@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ISO11783_TaskData TaskControllerVersion=""
+                   VersionMinor="1"
+                   ManagementSoftwareManufacturer="Topcon Precision Agriculture"
+                   DataTransferOrigin="2"
+                   ManagementSoftwareVersion="1.0"
+                   TaskControllerManufacturer=""
+                   VersionMajor="4" >
+
+  <XFR A="CTR00005" B="1" />
+
+  <CTR A="CTR2" B="Last2" C="First2" D="Street2" E="PO Box2" F="PostalCode2" G="City2" H="State2" I="Country2" J="Phone2" K="Mobile2" L="Fax2" M="Email2"/>
+
+</ISO11783_TaskData>

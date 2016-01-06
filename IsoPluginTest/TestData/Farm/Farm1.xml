@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ISO11783_TaskData TaskControllerVersion=""
+                   VersionMinor="1"
+                   ManagementSoftwareManufacturer="Topcon Precision Agriculture"
+                   DataTransferOrigin="2"
+                   ManagementSoftwareVersion="1.0"
+                   TaskControllerManufacturer=""
+                   VersionMajor="4" >
+
+  <FRM A="FRM1" B="Farm" C="Street" D="PO Box" E="PostalCode" F="City" G="State" H="Country" I="CTR1"/>
+
+  <CTR A="CTR1" B="Last" />
+
+</ISO11783_TaskData>
