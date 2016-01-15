@@ -41,16 +41,16 @@ namespace AgGateway.ADAPT.Plugins
 
         private bool LoadGridDefinition(XmlNode inputNode)
         {
-            if (!LoadMinPosition(inputNode))
+            if (!LoadOriginPosition(inputNode))
                 return false;
 
-            if (!LoadMaxPosition(inputNode))
+            if (!LoadCellDimensions(inputNode))
                 return false;
 
             return true;
         }
 
-        private bool LoadMinPosition(XmlNode inputNode)
+        private bool LoadOriginPosition(XmlNode inputNode)
         {
             double minLatitude;
             if (!inputNode.GetXmlNodeValue("@A").ParseValue(out minLatitude) ||
@@ -62,14 +62,14 @@ namespace AgGateway.ADAPT.Plugins
                 minLongitude < -180 || minLongitude > 180)
                 return false;
 
-            _descriptor.BoundingBox = new BoundingBox();
-            _descriptor.BoundingBox.MinLatitude = minLatitude;
-            _descriptor.BoundingBox.MinLongitude = minLongitude;
+            _descriptor.Origin = new Point();
+            _descriptor.Origin.Y = minLatitude;
+            _descriptor.Origin.X = minLongitude;
 
             return true;
         }
 
-        private bool LoadMaxPosition(XmlNode inputNode)
+        private bool LoadCellDimensions(XmlNode inputNode)
         {
             double gridCellSizeLatitude;
             if (!inputNode.GetXmlNodeValue("@C").ParseValue(out gridCellSizeLatitude) ||
@@ -93,10 +93,8 @@ namespace AgGateway.ADAPT.Plugins
 
             _descriptor.ColumnCount = columnCount;
             _descriptor.RowCount = rowCount;
-            _descriptor.RowLength = gridCellSizeLatitude;
-            _descriptor.ColumnLength = gridCellSizeLongitude;
-            _descriptor.BoundingBox.MaxLatitude = _descriptor.BoundingBox.MinLatitude + gridCellSizeLatitude * rowCount;
-            _descriptor.BoundingBox.MaxLongitude = _descriptor.BoundingBox.MinLongitude + gridCellSizeLongitude * columnCount;
+            _descriptor.CellHeight = new NumericRepresentationValue(null, new NumericValue(null, gridCellSizeLatitude));
+            _descriptor.CellWidth = new NumericRepresentationValue(null, new NumericValue(null, gridCellSizeLongitude));
 
             return true;
         }

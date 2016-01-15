@@ -64,6 +64,7 @@
     <Compile Include="Loaders\PrescriptionLoader.cs" />
     <Compile Include="Models\GridDescriptor.cs" />
     <Compile Include="Models\IsoUnit.cs" />
+    <Compile Include="Models\DataVariable.cs" />
     <Compile Include="Models\TreatmentZone.cs" />
     <Compile Include="Models\ValuePresentation.cs" />
     <Compile Include="Models\GuidanceGroupDescriptor.cs" />

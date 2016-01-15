@@ -10,7 +10,7 @@ namespace AgGateway.ADAPT.Plugins
 {
     internal static class ExtensionMethods
     {
-        internal static TValue FindById<TValue>(this Dictionary<string, TValue> items, string id) where TValue : class
+        internal static TValue FindById<TKey, TValue>(this Dictionary<TKey, TValue> items, TKey id) where TValue : class
         {
             if (items == null || items.Count == 0)
                 return null;

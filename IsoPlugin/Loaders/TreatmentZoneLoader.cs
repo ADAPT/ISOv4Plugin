@@ -8,22 +8,22 @@ namespace AgGateway.ADAPT.Plugins
     internal class TreatmentZoneLoader
     {
         private TaskDataDocument _taskDocument;
-        private Dictionary<string, List<TreatmentZone>> _zones;
+        private Dictionary<string, TreatmentZone> _zones;
 
         private TreatmentZoneLoader(TaskDataDocument taskDocument)
         {
             _taskDocument = taskDocument;
-            _zones = new Dictionary<string, List<TreatmentZone>>();
+            _zones = new Dictionary<string, TreatmentZone>();
         }
 
-        internal static Dictionary<string, List<TreatmentZone>> Load(XmlNode inputNode, TaskDataDocument taskDocument)
+        internal static Dictionary<string, TreatmentZone> Load(XmlNode inputNode, TaskDataDocument taskDocument)
         {
             var loader = new TreatmentZoneLoader(taskDocument);
 
             return loader.Load(inputNode);
         }
 
-        private Dictionary<string, List<TreatmentZone>> Load(XmlNode inputNode)
+        private Dictionary<string, TreatmentZone> Load(XmlNode inputNode)
         {
             LoadTreatmentZones(inputNode.SelectNodes("TZN"));
 
@@ -35,13 +35,13 @@ namespace AgGateway.ADAPT.Plugins
             foreach (XmlNode inputNode in inputNodes)
             {
                 string zoneId;
-                var zones = LoadTreatmentZone(inputNode, out zoneId);
-                if (zones != null)
-                    _zones.Add(zoneId, zones);
+                var zone = LoadTreatmentZone(inputNode, out zoneId);
+                if (zone != null)
+                    _zones.Add(zoneId, zone);
             }
         }
 
-        private List<TreatmentZone> LoadTreatmentZone(XmlNode inputNode, out string zoneId)
+        private TreatmentZone LoadTreatmentZone(XmlNode inputNode, out string zoneId)
         {
             // Required fields. Do not proceed if they are missing
             zoneId = inputNode.GetXmlNodeValue("@A");
@@ -49,24 +49,24 @@ namespace AgGateway.ADAPT.Plugins
                 return null;
 
             // Optional fields
-            var zone = LoadDataVariables(inputNode.SelectNodes("PDV"));
+            var zone = new TreatmentZone { Variables = new List<DataVariable>() };
+            zone.Name = inputNode.GetXmlNodeValue("@B");
+            LoadDataVariables(inputNode.SelectNodes("PDV"), zone);
 
             return zone;
         }
 
-        private List<TreatmentZone> LoadDataVariables(XmlNodeList inputNodes)
+        private void LoadDataVariables(XmlNodeList inputNodes, TreatmentZone zone)
         {
-            var zones = new List<TreatmentZone>();
             foreach (XmlNode inputNode in inputNodes)
             {
                 var dataVariable = LoadDataVariable(inputNode);
                 if (dataVariable != null)
-                    zones.Add(dataVariable);
+                    zone.Variables.Add(dataVariable);
             }
-            return zones;
         }
 
-        private TreatmentZone LoadDataVariable(XmlNode inputNode)
+        private DataVariable LoadDataVariable(XmlNode inputNode)
         {
             var ddiValue = inputNode.GetXmlNodeValue("@A");
             if (string.IsNullOrEmpty(ddiValue))
@@ -82,12 +82,14 @@ namespace AgGateway.ADAPT.Plugins
 
             var unit = UnitFactory.Instance.GetUnitByDdi(ddi);
 
-            var numericValue = new NumericValue(unit.ToModelUom(), unit.ConvertToUnit(dataValue));
-            var zone = new TreatmentZone();
-            zone.ProductId = inputNode.GetXmlNodeValue("@C");
-            zone.DataValue = new NumericRepresentationValue(null, userUnit.ToModelUom(), numericValue);
+            var dataVariable = new DataVariable();
 
-            return zone;
+            var numericValue = new NumericValue(unit.ToModelUom(), unit.ConvertToUnit(dataValue));
+            dataVariable.Value = new NumericRepresentationValue(null, userUnit.ToModelUom(), numericValue);
+
+            dataVariable.ProductId = inputNode.GetXmlNodeValue("@C");
+
+            return dataVariable;
         }
     }
 }

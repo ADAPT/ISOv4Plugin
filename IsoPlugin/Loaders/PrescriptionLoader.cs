@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Xml;
+using System;
 
 namespace AgGateway.ADAPT.Plugins
 {
@@ -109,6 +110,8 @@ namespace AgGateway.ADAPT.Plugins
             if (gridDescriptor == null)
                 return;
 
+            LoadDimensions(gridDescriptor, prescription);
+
             var treatmentZones = TreatmentZoneLoader.Load(inputNode, _taskDocument);
             if (gridDescriptor.TreatmentZones != null)
             {
@@ -124,7 +127,21 @@ namespace AgGateway.ADAPT.Plugins
             }
         }
 
-        private static RxRates[,] LoadRatesFromProducts(GridDescriptor gridDescriptor, List<TreatmentZone> treatmentZone)
+        private void LoadDimensions(GridDescriptor gridDescriptor, RasterGridPrescription prescription)
+        {
+            prescription.BoundingBox = new BoundingBox();
+            prescription.BoundingBox.MaxLatitude = prescription.BoundingBox.MinLatitude + gridDescriptor.CellHeight.Value.Value * gridDescriptor.RowCount;
+            prescription.BoundingBox.MaxLongitude = prescription.BoundingBox.MinLongitude + gridDescriptor.CellWidth.Value.Value * gridDescriptor.ColumnCount;
+
+            prescription.Origin = gridDescriptor.Origin;
+            prescription.CellHeight = gridDescriptor.CellHeight;
+            prescription.CellWidth = gridDescriptor.CellWidth;
+
+            prescription.ColumnCount = gridDescriptor.ColumnCount;
+            prescription.RowCount = gridDescriptor.RowCount;
+        }
+
+        private static RxRates[,] LoadRatesFromProducts(GridDescriptor gridDescriptor, TreatmentZone treatmentZone)
         {
             var rates = new RxRates[gridDescriptor.RowCount, gridDescriptor.ColumnCount];
             for (int cellIndex = 0; cellIndex < gridDescriptor.ProductRates.Count; cellIndex++)
@@ -135,7 +152,10 @@ namespace AgGateway.ADAPT.Plugins
 
                 for (int productIndex = 0; productIndex < productRates.Count; productIndex++)
                 {
-                    rate.RxRate.Add(new RxRate { Rate = productRates[productIndex] });
+                    rate.RxRate.Add(new RxRate
+                    {
+                        Rate = productRates[productIndex]
+                   });
                 }
 
                 var rowIndex = cellIndex & gridDescriptor.RowCount;
@@ -147,7 +167,7 @@ namespace AgGateway.ADAPT.Plugins
             return rates;
         }
 
-        private static RxRates[,] LoadRatesFromTreatmentZones(GridDescriptor gridDescriptor, Dictionary<string, List<TreatmentZone>> treatmentZones)
+        private RxRates[,] LoadRatesFromTreatmentZones(GridDescriptor gridDescriptor, Dictionary<string, TreatmentZone> treatmentZones)
         {
             var rates = new RxRates[gridDescriptor.RowCount, gridDescriptor.ColumnCount];
             for (int cellIndex = 0; cellIndex < gridDescriptor.TreatmentZones.Count; cellIndex++)
@@ -160,9 +180,18 @@ namespace AgGateway.ADAPT.Plugins
 
                 var rate = new RxRates { RxRate = new List<RxRate>() };
 
-                foreach (var dataVariable in treatmentZone)
+                foreach (var dataVariable in treatmentZone.Variables)
                 {
-                    rate.RxRate.Add(new RxRate { Rate = dataVariable.DataValue.Value.Value });
+                    var product = _taskDocument.Products.FindById(dataVariable.ProductId) ?? _taskDocument.ProductMixes.FindById(dataVariable.ProductId);
+
+                    var productRate = new RxRate
+                    {
+                        Rate = dataVariable.Value.Value.Value
+                    };
+
+                    if (product != null)
+                        productRate.ProductId = product.Id.ReferenceId;
+                    rate.RxRate.Add(productRate);
                 }
 
                 var rowIndex = cellIndex & gridDescriptor.RowCount;

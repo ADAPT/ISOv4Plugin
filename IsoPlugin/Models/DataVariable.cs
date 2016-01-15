@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace AgGateway.ADAPT.Plugins
 {
-    internal class TreatmentZone
+    internal class DataVariable
     {
-        public List<DataVariable> Variables { get; set; }
-        public string Name { get; set; }
+        public NumericRepresentationValue Value { get; set; }
+        public string ProductId { get; set; }
     }
 }
