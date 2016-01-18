@@ -18,7 +18,7 @@ namespace AgGateway.ADAPT.Plugins
             _taskDocument = taskDocument;
             _rootNode = _taskDocument.RootNode;
             _baseFolder = _taskDocument.BaseFolder;
-            _linkedIds = new Dictionary<string, List<UniqueId>>();
+            _linkedIds = new Dictionary<string, List<UniqueId>>(StringComparer.OrdinalIgnoreCase);
         }
 
         internal static Dictionary<string, List<UniqueId>> Load(TaskDataDocument taskDocument)
@@ -39,16 +39,25 @@ namespace AgGateway.ADAPT.Plugins
             if (!VerifyRootNode(rootNode))
                 return _linkedIds;
 
-            LoadLinkedIds(rootNode.SelectNodes("GLP"));
+            LoadLinkedIds(rootNode.SelectNodes("LGP"));
 
             return _linkedIds;
         }
 
         private bool FindLinkedListNode()
         {
-            var inputNode = _rootNode.SelectSingleNode("AFE[@D=1 and @A='LINKLIST.XML']");
+            var inputNodes = _rootNode.SelectNodes("AFE");
+            foreach (XmlNode inputNode in inputNodes)
+            {
+                var fileType = inputNode.GetXmlNodeValue("@D");
+                if (!string.Equals(fileType, "1", StringComparison.OrdinalIgnoreCase))
+                    continue;
 
-            return inputNode != null;
+                var fileName = inputNode.GetXmlNodeValue("@A");
+                if (string.Equals(fileName, "LINKLIST.XML", StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            return false;
         }
 
         private static bool VerifyRootNode(XmlNode rootNode)
