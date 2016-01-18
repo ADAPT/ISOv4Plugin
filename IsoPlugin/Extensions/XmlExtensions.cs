@@ -35,5 +35,13 @@ namespace AgGateway.ADAPT.Plugins
                 return selectedNode.Value;
             return null;
         }
+
+        internal static void WriteXmlAttribute(this XmlWriter writer, string attributeName, string attributeValue)
+        {
+            if (string.IsNullOrEmpty(attributeValue))
+                return;
+
+            writer.WriteAttributeString(attributeName, attributeValue);
+        }
     }
 }

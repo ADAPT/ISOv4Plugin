@@ -78,6 +78,22 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Extensions\XmlExtensions.cs" />
     <Compile Include="UnitFactory.cs" />
+    <Compile Include="Writers\CommentWriter.cs" />
+    <Compile Include="Writers\CommentListWriter.cs" />
+    <Compile Include="Writers\CropVarietyWriter.cs" />
+    <Compile Include="Writers\BaseWriter.cs" />
+    <Compile Include="Writers\CropWriter.cs" />
+    <Compile Include="Writers\CustomerWriter.cs" />
+    <Compile Include="Writers\FarmWriter.cs" />
+    <Compile Include="Writers\FieldWriter.cs" />
+    <Compile Include="Writers\GridWriter.cs" />
+    <Compile Include="Writers\IsoRootWriter.cs" />
+    <Compile Include="Writers\PrescriptionWriter.cs" />
+    <Compile Include="Writers\ProductWriter.cs" />
+    <Compile Include="Writers\ShapeWriter.cs" />
+    <Compile Include="Writers\TaskDocumentWriter.cs" />
+    <Compile Include="Writers\TreatmentZoneWriter.cs" />
+    <Compile Include="Writers\WorkerWriter.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\ADAPT\source\ADAPT\ApplicationDataModel.csproj">

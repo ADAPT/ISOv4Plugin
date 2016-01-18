@@ -189,7 +189,7 @@ namespace AgGateway.ADAPT.Plugins
 
             var productComponent = new ProductComponent
             {
-                IngredientId = ingredient.Id.ReferenceId,
+                IngredientId = product.Id.ReferenceId,
                 Quantity = new NumericRepresentationValue(null, numericValue.UnitOfMeasure, numericValue)
             };
 

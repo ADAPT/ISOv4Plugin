@@ -1,4 +1,5 @@
 ﻿using AgGateway.ADAPT.ApplicationDataModel;
+using AgGateway.ADAPT.Plugins.Writers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -19,6 +20,10 @@ namespace AgGateway.ADAPT.Plugins
 
         public void Export(ApplicationDataModel.ApplicationDataModel dataModel, string exportPath, Properties properties)
         {
+            using (var taskWriter = new TaskDocumentWriter())
+            {
+                taskWriter.Write(exportPath, dataModel);
+            }
         }
 
         public Properties GetProperties(string dataPath)
