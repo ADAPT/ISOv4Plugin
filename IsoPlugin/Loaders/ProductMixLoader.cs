@@ -93,7 +93,8 @@ namespace AgGateway.ADAPT.Plugins
 
         private ProductMix GetProduct(XmlNode inputNode)
         {
-            var product = new ProductMix { ProductType = ProductTypeEnum.Mix };
+            var product = new ProductMix { ProductType = ProductTypeEnum.Mix, Form = ProductFormEnum.Unknown };
+
             var groupId = inputNode.GetXmlNodeValue("@C");
             if (string.IsNullOrEmpty(groupId))
                 return product;

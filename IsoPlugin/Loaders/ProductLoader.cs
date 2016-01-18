@@ -82,7 +82,8 @@ namespace AgGateway.ADAPT.Plugins
 
         private Product GetProduct(XmlNode inputNode)
         {
-            var product = new FertilizerProduct { ProductType = ProductTypeEnum.Generic };
+            var product = new FertilizerProduct { ProductType = ProductTypeEnum.Generic, Form = ProductFormEnum.Unknown };
+
             var groupId = inputNode.GetXmlNodeValue("@C");
             if (string.IsNullOrEmpty(groupId))
                 return product;

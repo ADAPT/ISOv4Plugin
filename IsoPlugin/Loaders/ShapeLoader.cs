@@ -9,7 +9,7 @@ namespace AgGateway.ADAPT.Plugins
     {
         internal static MultiPolygon LoadPolygon(XmlNodeList polygonNodes)
         {
-            var multiPolygon = new MultiPolygon();
+            var multiPolygon = new MultiPolygon { Type = ShapeTypeEnum.MultiPolygon };
             multiPolygon.Polygons = new List<Polygon>();
 
             foreach (XmlNode polygonNode in polygonNodes)
@@ -28,7 +28,7 @@ namespace AgGateway.ADAPT.Plugins
 
         private static Polygon LoadPolygon(XmlNode polygonNode)
         {
-            var polygon = new Polygon { InteriorRings = new List<LinearRing>() };
+            var polygon = new Polygon { InteriorRings = new List<LinearRing>(), Type = ShapeTypeEnum.Polygon };
 
             var lineNodes = polygonNode.SelectNodes("LSG");
             foreach (XmlNode lineNode in lineNodes)
@@ -57,7 +57,7 @@ namespace AgGateway.ADAPT.Plugins
 
             exteriorRing = string.Equals(lineType, "1", StringComparison.OrdinalIgnoreCase);
 
-            var line = new LinearRing { Points = new List<Point>() };
+            var line = new LinearRing { Points = new List<Point>(), Type = ShapeTypeEnum.LinearRing };
 
             var pointNodes = lineNode.SelectNodes("PNT");
             foreach (XmlNode pointNode in pointNodes)
@@ -73,7 +73,7 @@ namespace AgGateway.ADAPT.Plugins
 
         internal static LineString LoadLine(XmlNodeList pointNodes)
         {
-            var line = new LineString { Points = new List<Point>() };
+            var line = new LineString { Points = new List<Point>(), Type = ShapeTypeEnum.Point };
 
             foreach (XmlNode pointNode in pointNodes)
             {
