@@ -8,22 +8,22 @@ namespace AgGateway.ADAPT.Plugins
     internal class TreatmentZoneLoader
     {
         private TaskDataDocument _taskDocument;
-        private Dictionary<string, TreatmentZone> _zones;
+        private Dictionary<int, TreatmentZone> _zones;
 
         private TreatmentZoneLoader(TaskDataDocument taskDocument)
         {
             _taskDocument = taskDocument;
-            _zones = new Dictionary<string, TreatmentZone>();
+            _zones = new Dictionary<int, TreatmentZone>();
         }
 
-        internal static Dictionary<string, TreatmentZone> Load(XmlNode inputNode, TaskDataDocument taskDocument)
+        internal static Dictionary<int, TreatmentZone> Load(XmlNode inputNode, TaskDataDocument taskDocument)
         {
             var loader = new TreatmentZoneLoader(taskDocument);
 
             return loader.Load(inputNode);
         }
 
-        private Dictionary<string, TreatmentZone> Load(XmlNode inputNode)
+        private Dictionary<int, TreatmentZone> Load(XmlNode inputNode)
         {
             LoadTreatmentZones(inputNode.SelectNodes("TZN"));
 
@@ -34,18 +34,17 @@ namespace AgGateway.ADAPT.Plugins
         {
             foreach (XmlNode inputNode in inputNodes)
             {
-                string zoneId;
+                int zoneId;
                 var zone = LoadTreatmentZone(inputNode, out zoneId);
                 if (zone != null)
                     _zones.Add(zoneId, zone);
             }
         }
 
-        private TreatmentZone LoadTreatmentZone(XmlNode inputNode, out string zoneId)
+        private TreatmentZone LoadTreatmentZone(XmlNode inputNode, out int zoneId)
         {
             // Required fields. Do not proceed if they are missing
-            zoneId = inputNode.GetXmlNodeValue("@A");
-            if (string.IsNullOrEmpty(zoneId))
+            if (!inputNode.GetXmlNodeValue("@A").ParseValue(out zoneId))
                 return null;
 
             // Optional fields

@@ -12,16 +12,18 @@ namespace AgGateway.ADAPT.Plugins
         private GridDescriptor _descriptor;
         private string _gridFileName;
         private string _baseFolder;
+        private Dictionary<int, TreatmentZone> _treatmentZones;
 
-        private GridLoader(string baseFolder)
+        private GridLoader(string baseFolder, Dictionary<int, TreatmentZone> treatmentZones)
         {
             _descriptor = new GridDescriptor();
             _baseFolder = baseFolder;
+            _treatmentZones = treatmentZones;
         }
 
-        internal static GridDescriptor Load(XmlNode inputNode, string baseFolder)
+        internal static GridDescriptor Load(XmlNode inputNode, Dictionary<int, TreatmentZone> treatmentZones, string baseFolder)
         {
-            var loader = new GridLoader(baseFolder);
+            var loader = new GridLoader(baseFolder, treatmentZones);
             return loader.Load(inputNode);
         }
 
@@ -122,7 +124,7 @@ namespace AgGateway.ADAPT.Plugins
             _descriptor.TreatmentZones = new List<int>();
             try
             {
-                string filePath = Path.Combine(_baseFolder, _gridFileName);
+                string filePath = Path.ChangeExtension(Path.Combine(_baseFolder, _gridFileName), ".bin");
                 using (var fileStream = File.OpenRead(filePath))
                 {
                     int treatmentZoneId;
@@ -141,7 +143,7 @@ namespace AgGateway.ADAPT.Plugins
                 return false;
             }
 
-            return true;
+            return _descriptor.TreatmentZones.Count == _descriptor.RowCount * _descriptor.ColumnCount;
         }
 
         private bool LoadRatesForGridType2(XmlNode inputNode)
@@ -153,7 +155,7 @@ namespace AgGateway.ADAPT.Plugins
             _descriptor.ProductRates = new List<List<int>>();
             try
             {
-                string filePath = Path.Combine(_baseFolder, _gridFileName);
+                string filePath = Path.ChangeExtension(Path.Combine(_baseFolder, _gridFileName), ".bin");
                 using (var fileStream = File.OpenRead(filePath))
                 {
                     var bytes = new byte[4];
@@ -183,19 +185,21 @@ namespace AgGateway.ADAPT.Plugins
                 return false;
             }
 
-            return true;
+            return _descriptor.ProductRates.Count == _descriptor.RowCount * _descriptor.ColumnCount;
         }
 
         private int CountNumberOfRatesPerCell(XmlNode inputNode)
         {
-            var treatmentZoneId = inputNode.GetXmlNodeValue("@J");
-            if (string.IsNullOrEmpty(treatmentZoneId))
+            int treatmentZoneId;
+            if (inputNode.GetXmlNodeValue("@J").ParseValue(out treatmentZoneId))
                 return -1;
 
             _descriptor.ProductRateTemplateId = treatmentZoneId;
 
-            var dataVariableNodes = inputNode.SelectNodes(string.Format(CultureInfo.InvariantCulture, "TZN[@A='{0}']/PDV", treatmentZoneId));
-            return dataVariableNodes.Count;
+            var treatmentZone = _treatmentZones.FindById(treatmentZoneId);
+            if (treatmentZone == null || treatmentZone.Variables == null)
+                return 0;
+            return treatmentZone.Variables.Count;
         }
     }
 }
