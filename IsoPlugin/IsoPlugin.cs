@@ -73,8 +73,13 @@ namespace AgGateway.ADAPT.Plugins
 
         private static string[] GetListOfTaskDataFiles(string dataPath)
         {
-            var taskDataFiles = Directory.GetFiles(Path.Combine(dataPath, "Taskdata"), "taskdata.xml");
-            if (taskDataFiles.Length == 0)
+            string[] taskDataFiles = new string[0];
+
+            var inputPath = Path.Combine(dataPath, "Taskdata");
+            if (Directory.Exists(inputPath))
+                taskDataFiles = Directory.GetFiles(inputPath, "taskdata.xml");
+
+            if (taskDataFiles.Length == 0 && Directory.Exists(dataPath))
                 taskDataFiles = Directory.GetFiles(dataPath, "taskdata.xml");
 
             return taskDataFiles;
