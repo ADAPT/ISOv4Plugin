@@ -44,7 +44,9 @@ namespace AgGateway.ADAPT.Plugins
             if (loggedNote == null)
                 return;
 
-            loggedNote.TimeStamp = AllocationTimestampLoader.Load(inputNode);
+            Point location;
+            loggedNote.TimeStamp = AllocationTimestampLoader.Load(inputNode, out location);
+            loggedNote.SpatialContext = location;
 
             _allocations.Add(loggedNote);
         }
@@ -63,7 +65,14 @@ namespace AgGateway.ADAPT.Plugins
             if (commentValue == null)
                 return null;
 
-            return new LoggedNote { Value = new EnumeratedValue { Value = commentValue } };
+            return new LoggedNote
+            {
+                Value = new EnumeratedValue
+                {
+                    Value = commentValue,
+                    Representation = comment.Comment
+                }
+            };
         }
     }
 }

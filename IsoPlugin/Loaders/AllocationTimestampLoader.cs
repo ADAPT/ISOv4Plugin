@@ -9,6 +9,14 @@ namespace AgGateway.ADAPT.Plugins
     {
         internal static TimeScope Load(XmlNode inputNode)
         {
+            Point location;
+            return Load(inputNode, out location);
+        }
+
+        internal static TimeScope Load(XmlNode inputNode, out Point location)
+        {
+            location = null;
+
             var timeStampNode = inputNode.SelectSingleNode("ASP");
             if (timeStampNode == null)
                 return null;
@@ -32,6 +40,8 @@ namespace AgGateway.ADAPT.Plugins
                     timeStamp2 = timeStamp1.Value.Add(duration.Value);
             }
 
+            location = ShapeLoader.LoadPoint(timeStampNode.SelectSingleNode("PTN"));
+
             return new TimeScope
             {
                 Stamp1 = GetDateWithContext(timeStamp1, typeValue, true),
@@ -39,10 +49,11 @@ namespace AgGateway.ADAPT.Plugins
             };
         }
 
+        private static readonly string[] DATE_TIME_PARSE_FORMATS = { "o", "s" };
         private static DateTime? ParseDateTime(string timeValue)
         {
             DateTime timeStamp;
-            if (!DateTime.TryParseExact(timeValue, "o", CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out timeStamp))
+            if (!DateTime.TryParseExact(timeValue, DATE_TIME_PARSE_FORMATS, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out timeStamp))
                 return null;
 
             return timeStamp;
