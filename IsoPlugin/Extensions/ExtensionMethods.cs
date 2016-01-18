@@ -12,7 +12,7 @@ namespace AgGateway.ADAPT.Plugins
     {
         internal static TValue FindById<TKey, TValue>(this Dictionary<TKey, TValue> items, TKey id) where TValue : class
         {
-            if (items == null || items.Count == 0)
+            if (items == null || items.Count == 0 || id == null)
                 return null;
 
             TValue value;

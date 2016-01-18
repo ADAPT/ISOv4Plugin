@@ -67,7 +67,7 @@ namespace AgGateway.ADAPT.Plugins
                 return null;
 
             group = FindGuidanceGroup(groupId) ?? group;
-            GuidanceAllocation allocation = new GuidanceAllocation
+            var allocation = new GuidanceAllocation
             {
                 GuidanceGroupId = group.Group.Id.ReferenceId,
                 GuidancePatternId = FindGuidancePattern(group, patternId),

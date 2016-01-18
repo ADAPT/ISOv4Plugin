@@ -22,7 +22,8 @@ namespace AgGateway.ADAPT.Plugins
 
                     return xmlDoc.SelectNodes("XFC/*");
                 }
-                catch { }
+                catch (XmlException) { }
+                catch (IOException) { }
             }
             return null;
         }
