@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("IsoPluginTest")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Topcon Precision Ag")]
+[assembly: AssemblyCompany("AgGateway")]
 [assembly: AssemblyProduct("IsoPluginTest")]
-[assembly: AssemblyCopyright("Copyright © 2015 Topcon Precision Ag. All Rights Reserved.")]
+[assembly: AssemblyCopyright("Copyright © 2016 AgGateway. All Rights Reserved.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
@@ -9,9 +10,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("ISO Plugin")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Topcon Precision Ag")]
+[assembly: AssemblyCompany("AgGateway")]
 [assembly: AssemblyProduct("IsoPlugin")]
-[assembly: AssemblyCopyright("Copyright © 2015 Topcon Precision Ag. All Rights Reserved.")]
+[assembly: AssemblyCopyright("Copyright © 2016 AgGateway. All Rights Reserved.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
