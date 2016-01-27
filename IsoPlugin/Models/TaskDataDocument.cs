@@ -26,6 +26,7 @@ namespace AgGateway.ADAPT.Plugins
         public Dictionary<string, Crop> Crops { get; private set; }
         public Dictionary<string, CropVariety> CropVarieties { get; private set; }
         public Dictionary<string, CropZone> CropZones { get; private set; }
+        public List<ContactInfo> Contacts { get; private set; }
 
         public List<Machine> Machines { get; private set; }
         public List<MachineModel> MachineModels { get; private set; }
@@ -64,6 +65,7 @@ namespace AgGateway.ADAPT.Plugins
             CropZones = new Dictionary<string, CropZone>();
             UnitsByItemId = new Dictionary<string, IsoUnit>();
             GuidanceAllocations = new List<GuidanceAllocation>();
+            Contacts = new List<ContactInfo>();
         }
 
         internal void LoadLinkedIds(string elementId, CompoundIdentifier id)

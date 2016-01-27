@@ -164,13 +164,11 @@ namespace AgGateway.ADAPT.Plugins
             prescription.ProductIds = productLookup;
         }
 
-        private static RxRates[,] LoadRatesFromProducts(GridDescriptor gridDescriptor, List<int> productIds)
+        private static List<RxRates> LoadRatesFromProducts(GridDescriptor gridDescriptor, List<int> productIds)
         {
-            var rates = new RxRates[gridDescriptor.RowCount, gridDescriptor.ColumnCount];
-            for (int cellIndex = 0; cellIndex < gridDescriptor.ProductRates.Count; cellIndex++)
+            var rates = new List<RxRates>();
+            foreach (var productRates in gridDescriptor.ProductRates)
             {
-                var productRates = gridDescriptor.ProductRates[cellIndex];
-
                 var rate = new RxRates { RxRate = new List<RxRate>() };
 
                 for (int productIndex = 0; productIndex < productRates.Count; productIndex++)
@@ -186,22 +184,17 @@ namespace AgGateway.ADAPT.Plugins
                     rate.RxRate.Add(productRate);
                 }
 
-                var rowIndex = cellIndex / gridDescriptor.ColumnCount;
-                var columnIndex = cellIndex % gridDescriptor.ColumnCount;
-
-                rates[rowIndex, columnIndex] = rate;
+                rates.Add(rate);
             }
 
             return rates;
         }
 
-        private static RxRates[,] LoadRatesFromTreatmentZones(GridDescriptor gridDescriptor, Dictionary<int, TreatmentZone> treatmentZones, List<int> productIds)
+        private static List<RxRates> LoadRatesFromTreatmentZones(GridDescriptor gridDescriptor, Dictionary<int, TreatmentZone> treatmentZones, List<int> productIds)
         {
-            var rates = new RxRates[gridDescriptor.RowCount, gridDescriptor.ColumnCount];
-            for (int cellIndex = 0; cellIndex < gridDescriptor.TreatmentZones.Count; cellIndex++)
+            var rates = new List<RxRates>();
+            foreach (var treatmentZoneId in gridDescriptor.TreatmentZones)
             {
-                var treatmentZoneId = gridDescriptor.TreatmentZones[cellIndex];
-
                 var treatmentZone = treatmentZones.FindById(treatmentZoneId);
                 if (treatmentZone == null)
                     return null;
@@ -223,10 +216,7 @@ namespace AgGateway.ADAPT.Plugins
                     rate.RxRate.Add(productRate);
                 }
 
-                var rowIndex = cellIndex / gridDescriptor.ColumnCount;
-                var columnIndex = cellIndex % gridDescriptor.ColumnCount;
-
-                rates[rowIndex, columnIndex] = rate;
+                rates.Add(rate);
             }
 
             return rates;

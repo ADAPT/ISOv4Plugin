@@ -87,7 +87,7 @@ namespace AgGateway.ADAPT.Plugins
             }
         }
 
-        private static void LoadContactInfo(XmlNode inputNode, Farm farm)
+        private void LoadContactInfo(XmlNode inputNode, Farm farm)
         {
             var contactInfo = new ContactInfo();
 
@@ -99,6 +99,8 @@ namespace AgGateway.ADAPT.Plugins
             contactInfo.Country = inputNode.GetXmlNodeValue("@H");
 
             farm.ContactInfo = contactInfo;
+
+            _taskDocument.Contacts.Add(contactInfo);
         }
     }
 }

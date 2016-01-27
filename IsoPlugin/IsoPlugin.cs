@@ -111,6 +111,7 @@ namespace AgGateway.ADAPT.Plugins
             catalog.Ingredients = taskDocument.Ingredients;
             catalog.FertilizerProducts = taskDocument.Products.Values.OfType<FertilizerProduct>().ToList();
             catalog.Prescriptions = taskDocument.RasterPrescriptions.Cast<Prescription>().ToList();
+            catalog.ContactInfo = taskDocument.Contacts;
 
             dataModel.Catalog = catalog;
 

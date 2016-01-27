@@ -80,7 +80,7 @@ namespace AgGateway.ADAPT.Plugins
             return grower;
         }
 
-        private static void LoadContactInfo(XmlNode inputNode, Grower grower)
+        private void LoadContactInfo(XmlNode inputNode, Grower grower)
         {
             var contactInfo = new ContactInfo();
 
@@ -94,6 +94,8 @@ namespace AgGateway.ADAPT.Plugins
             LoadContacts(inputNode, contactInfo);
 
             grower.ContactInfo = contactInfo;
+
+            _taskDocument.Contacts.Add(contactInfo);
         }
 
         private static void LoadContacts(XmlNode inputNode, ContactInfo contactInfo)

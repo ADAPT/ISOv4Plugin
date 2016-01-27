@@ -75,7 +75,7 @@ namespace AgGateway.ADAPT.Plugins
             return worker;
         }
 
-        private static void LoadContactInfo(XmlNode inputNode, Person worker)
+        private void LoadContactInfo(XmlNode inputNode, Person worker)
         {
             var contactInfo = new ContactInfo();
 
@@ -89,6 +89,8 @@ namespace AgGateway.ADAPT.Plugins
             LoadPhoneNumbers(inputNode, contactInfo);
 
             //worker.ContactInfo = contactInfo;
+
+            _taskDocument.Contacts.Add(contactInfo);
         }
 
         private static void LoadPhoneNumbers(XmlNode inputNode, ContactInfo contactInfo)

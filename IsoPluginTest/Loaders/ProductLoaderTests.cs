@@ -27,7 +27,7 @@ namespace IsoPluginTest
             Assert.AreEqual("Product 1", product.Value.Description);
             Assert.AreEqual(ProductTypeEnum.Generic, product.Value.ProductType);
             Assert.IsTrue(taskDocument.UnitsByItemId.ContainsKey(product.Key));
-            Assert.AreEqual("ml", taskDocument.UnitsByItemId[product.Key].Code);
+            Assert.AreEqual("l", taskDocument.UnitsByItemId[product.Key].Code);
         }
 
         [Test]
@@ -49,7 +49,7 @@ namespace IsoPluginTest
             Assert.AreEqual("Product 1", product.Value.Description);
             Assert.AreEqual(ProductTypeEnum.Generic, product.Value.ProductType);
             Assert.IsTrue(taskDocument.UnitsByItemId.ContainsKey(product.Key));
-            Assert.AreEqual("g", taskDocument.UnitsByItemId[product.Key].Code);
+            Assert.AreEqual("kg", taskDocument.UnitsByItemId[product.Key].Code);
         }
 
         [Test]
