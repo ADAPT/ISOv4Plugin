@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using AgGateway.ADAPT.ApplicationDataModel;
 using System.Globalization;
 using System.Xml;
 using System.IO;

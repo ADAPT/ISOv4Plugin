@@ -1,8 +1,6 @@
-﻿using System;
+﻿using AgGateway.ADAPT.ApplicationDataModel.Representations;
 using System.Collections.Generic;
 using System.Xml;
-using AgGateway.ADAPT.ApplicationDataModel;
-using System.Globalization;
 
 namespace AgGateway.ADAPT.Plugins.Writers
 {

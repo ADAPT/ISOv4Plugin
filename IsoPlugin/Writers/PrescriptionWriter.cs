@@ -1,8 +1,8 @@
-﻿using AgGateway.ADAPT.ApplicationDataModel;
-using System;
-using System.Xml;
-using System.Linq;
+﻿using AgGateway.ADAPT.ApplicationDataModel.Prescriptions;
+using AgGateway.ADAPT.ApplicationDataModel.Representations;
 using System.Collections.Generic;
+using System.Linq;
+using System.Xml;
 
 namespace AgGateway.ADAPT.Plugins.Writers
 {

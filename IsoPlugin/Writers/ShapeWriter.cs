@@ -1,7 +1,6 @@
-﻿using AgGateway.ADAPT.ApplicationDataModel;
-using System.Xml;
-using System;
+﻿using AgGateway.ADAPT.ApplicationDataModel.Shapes;
 using System.Globalization;
+using System.Xml;
 
 namespace AgGateway.ADAPT.Plugins.Writers
 {

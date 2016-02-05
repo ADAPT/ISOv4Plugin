@@ -1,4 +1,4 @@
-﻿using AgGateway.ADAPT.ApplicationDataModel;
+﻿using AgGateway.ADAPT.ApplicationDataModel.Common;
 using System;
 using System.Collections.Generic;
 using System.IO;

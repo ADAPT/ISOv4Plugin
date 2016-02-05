@@ -1,6 +1,6 @@
-﻿using System;
+﻿using AgGateway.ADAPT.ApplicationDataModel.Products;
+using AgGateway.ADAPT.ApplicationDataModel.Representations;
 using System.Collections.Generic;
-using AgGateway.ADAPT.ApplicationDataModel;
 using System.Globalization;
 using System.Xml;
 

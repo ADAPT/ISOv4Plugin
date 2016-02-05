@@ -1,11 +1,9 @@
-﻿using System;
+﻿using AgGateway.ADAPT.ApplicationDataModel.Common;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
-using AgGateway.ADAPT.ApplicationDataModel;
 
 namespace AgGateway.ADAPT.Plugins.Writers
 {
@@ -13,7 +11,7 @@ namespace AgGateway.ADAPT.Plugins.Writers
     {
         internal XmlWriter RootWriter { get; private set; }
         internal string BaseFolder { get; private set; }
-        internal ApplicationDataModel.ApplicationDataModel DataModel { get; private set; }
+        internal ApplicationDataModel.ADM.ApplicationDataModel DataModel { get; private set; }
 
 
         internal Dictionary<int, string> Customers { get; private set; }
@@ -36,7 +34,7 @@ namespace AgGateway.ADAPT.Plugins.Writers
             UserUnits = new Dictionary<int, IsoUnit>();
         }
 
-        public void Write(string exportPath, ApplicationDataModel.ApplicationDataModel dataModel)
+        public void Write(string exportPath, ApplicationDataModel.ADM.ApplicationDataModel dataModel)
         {
             BaseFolder = exportPath;
             DataModel = dataModel;

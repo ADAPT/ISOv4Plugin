@@ -1,10 +1,6 @@
-﻿using AgGateway.ADAPT.ApplicationDataModel;
-using System;
+﻿using AgGateway.ADAPT.ApplicationDataModel.Common;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AgGateway.ADAPT.Plugins
 {

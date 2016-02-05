@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml;
-using AgGateway.ADAPT.ApplicationDataModel;
-
-namespace AgGateway.ADAPT.Plugins.Writers
+﻿namespace AgGateway.ADAPT.Plugins.Writers
 {
     internal class IsoRootWriter
     {

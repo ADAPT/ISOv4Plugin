@@ -1,4 +1,5 @@
-﻿using AgGateway.ADAPT.ApplicationDataModel;
+﻿using AgGateway.ADAPT.ApplicationDataModel.Common;
+using AgGateway.ADAPT.ApplicationDataModel.Shapes;
 using System;
 using System.Globalization;
 using System.Xml;

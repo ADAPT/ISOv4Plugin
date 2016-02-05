@@ -1,7 +1,7 @@
-﻿using AgGateway.ADAPT.ApplicationDataModel;
+﻿using AgGateway.ADAPT.ApplicationDataModel.Equipment;
 using System.Collections.Generic;
-using System.Xml;
 using System.Globalization;
+using System.Xml;
 
 namespace AgGateway.ADAPT.Plugins
 {

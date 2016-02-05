@@ -1,4 +1,4 @@
-﻿using AgGateway.ADAPT.ApplicationDataModel;
+using AgGateway.ADAPT.ApplicationDataModel.Products;
 using AgGateway.ADAPT.Plugins;
 using NUnit.Framework;
 using System.Globalization;

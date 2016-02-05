@@ -1,4 +1,6 @@
-﻿using AgGateway.ADAPT.ApplicationDataModel;
+﻿using AgGateway.ADAPT.ApplicationDataModel.Notes;
+using AgGateway.ADAPT.ApplicationDataModel.Representations;
+using AgGateway.ADAPT.ApplicationDataModel.Shapes;
 using System.Collections.Generic;
 using System.Xml;
 
@@ -7,21 +9,21 @@ namespace AgGateway.ADAPT.Plugins
     internal class CommentAllocationLoader
     {
         private TaskDataDocument _taskDocument;
-        private List<LoggedNote> _allocations;
+        private List<Note> _allocations;
 
         private CommentAllocationLoader(TaskDataDocument taskDocument)
         {
             _taskDocument = taskDocument;
-            _allocations = new List<LoggedNote>();
+            _allocations = new List<Note>();
         }
 
-        internal static List<LoggedNote> Load(XmlNode inputNode, TaskDataDocument taskDocument)
+        internal static List<Note> Load(XmlNode inputNode, TaskDataDocument taskDocument)
         {
             var loader = new CommentAllocationLoader(taskDocument);
             return loader.Load(inputNode.SelectNodes("CAN"));
         }
 
-        private List<LoggedNote> Load(XmlNodeList inputNodes)
+        private List<Note> Load(XmlNodeList inputNodes)
         {
             foreach (XmlNode inputNode in inputNodes)
             {
@@ -33,25 +35,25 @@ namespace AgGateway.ADAPT.Plugins
 
         private void LoadCommentAllocations(XmlNode inputNode)
         {
-            LoggedNote loggedNote = null;
+            Note note = null;
 
             var commentId = inputNode.GetXmlNodeValue("@A");
             if (!string.IsNullOrEmpty(commentId))
-                loggedNote = LoadCodedComment(inputNode, commentId);
+                note = LoadCodedComment(inputNode, commentId);
             else
-                loggedNote = new LoggedNote { Description = inputNode.GetXmlNodeValue("@C") };
+                note = new Note { Description = inputNode.GetXmlNodeValue("@C") };
 
-            if (loggedNote == null)
+            if (note == null)
                 return;
 
             Point location;
-            loggedNote.TimeStamp = AllocationTimestampLoader.Load(inputNode, out location);
-            loggedNote.SpatialContext = location;
+            note.TimeStamp = AllocationTimestampLoader.Load(inputNode, out location);
+            note.SpatialContext = location;
 
-            _allocations.Add(loggedNote);
+            _allocations.Add(note);
         }
 
-        private LoggedNote LoadCodedComment(XmlNode inputNode, string commentId)
+        private Note LoadCodedComment(XmlNode inputNode, string commentId)
         {
             var comment = _taskDocument.Comments.FindById(commentId);
             if (comment == null)
@@ -65,7 +67,7 @@ namespace AgGateway.ADAPT.Plugins
             if (commentValue == null)
                 return null;
 
-            return new LoggedNote
+            return new Note
             {
                 Value = new EnumeratedValue
                 {

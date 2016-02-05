@@ -1,7 +1,7 @@
-﻿using System;
-using System.Xml;
-using AgGateway.ADAPT.ApplicationDataModel;
+﻿using AgGateway.ADAPT.ApplicationDataModel.Notes;
+using AgGateway.ADAPT.ApplicationDataModel.Representations;
 using System.Collections.Generic;
+using System.Xml;
 
 namespace AgGateway.ADAPT.Plugins.Writers
 {
@@ -17,8 +17,8 @@ namespace AgGateway.ADAPT.Plugins.Writers
 
         internal static void Write(TaskDocumentWriter taskWriter)
         {
-            if (taskWriter.DataModel.Catalog.ReferenceNotes == null ||
-                taskWriter.DataModel.Catalog.ReferenceNotes.Count == 0)
+            if (taskWriter.DataModel.Catalog.Notes == null ||
+                taskWriter.DataModel.Catalog.Notes.Count == 0)
                 return;
 
             var writer = new CommentWriter(taskWriter);
@@ -32,13 +32,13 @@ namespace AgGateway.ADAPT.Plugins.Writers
 
         private void WriteComments(XmlWriter writer)
         {
-            foreach (var note in TaskWriter.DataModel.Catalog.ReferenceNotes)
+            foreach (var note in TaskWriter.DataModel.Catalog.Notes)
             {
                 WriteComments(writer, note);
             }
         }
 
-        private void WriteComments(XmlWriter writer, ReferenceNote note)
+        private void WriteComments(XmlWriter writer, Note note)
         {
             writer.WriteStartElement(XmlPrefix);
             writer.WriteAttributeString("A", GenerateId());

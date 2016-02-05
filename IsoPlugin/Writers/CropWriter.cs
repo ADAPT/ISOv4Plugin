@@ -1,7 +1,6 @@
-﻿using System;
+﻿using AgGateway.ADAPT.ApplicationDataModel.Common;
+using AgGateway.ADAPT.ApplicationDataModel.Products;
 using System.Collections.Generic;
-using AgGateway.ADAPT.ApplicationDataModel;
-using System.Globalization;
 using System.Xml;
 
 namespace AgGateway.ADAPT.Plugins.Writers

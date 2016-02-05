@@ -1,4 +1,4 @@
-﻿using AgGateway.ADAPT.ApplicationDataModel;
+﻿using AgGateway.ADAPT.ApplicationDataModel.Logistics;
 using AgGateway.ADAPT.Plugins;
 using NUnit.Framework;
 using System.Linq;

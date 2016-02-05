@@ -1,7 +1,8 @@
-﻿using AgGateway.ADAPT.ApplicationDataModel;
+﻿using AgGateway.ADAPT.ApplicationDataModel.Common;
+using AgGateway.ADAPT.ApplicationDataModel.Guidance;
+using AgGateway.ADAPT.ApplicationDataModel.Representations;
 using AgGateway.ADAPT.Representation.UnitSystem;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Xml;
 
 namespace AgGateway.ADAPT.Plugins

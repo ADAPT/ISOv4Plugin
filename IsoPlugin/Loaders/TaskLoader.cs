@@ -1,4 +1,4 @@
-﻿using AgGateway.ADAPT.ApplicationDataModel;
+﻿using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
@@ -118,7 +118,7 @@ namespace AgGateway.ADAPT.Plugins
 
         private void LoadCommentAllocations(XmlNode inputNode, LoggedData task)
         {
-            task.LoggedNotes = CommentAllocationLoader.Load(inputNode, _taskDocument);
+            task.Notes = CommentAllocationLoader.Load(inputNode, _taskDocument);
         }
     }
 }

@@ -1,10 +1,11 @@
-﻿using AgGateway.ADAPT.ApplicationDataModel;
-using System.Collections.Generic;
-using System;
+﻿using AgGateway.ADAPT.ApplicationDataModel.Common;
+using AgGateway.ADAPT.ApplicationDataModel.FieldBoundaries;
+using AgGateway.ADAPT.ApplicationDataModel.Logistics;
+using AgGateway.ADAPT.ApplicationDataModel.Representations;
+using AgGateway.ADAPT.Representation.UnitSystem;
+using AgGateway.ADAPT.Representation.UnitSystem.ExtensionMethods;
 using System.Globalization;
 using System.Xml;
-using AgGateway.ADAPT.Representation.UnitSystem.ExtensionMethods;
-using AgGateway.ADAPT.Representation.UnitSystem;
 
 namespace AgGateway.ADAPT.Plugins.Writers
 {

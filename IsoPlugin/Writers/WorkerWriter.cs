@@ -1,7 +1,5 @@
-﻿using System;
-using System.Globalization;
+﻿using AgGateway.ADAPT.ApplicationDataModel.Logistics;
 using System.Xml;
-using AgGateway.ADAPT.ApplicationDataModel;
 
 namespace AgGateway.ADAPT.Plugins.Writers
 {

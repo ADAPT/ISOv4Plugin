@@ -1,4 +1,6 @@
-﻿using AgGateway.ADAPT.ApplicationDataModel;
+﻿using AgGateway.ADAPT.ApplicationDataModel.ADM;
+using AgGateway.ADAPT.ApplicationDataModel.Prescriptions;
+using AgGateway.ADAPT.ApplicationDataModel.Products;
 using AgGateway.ADAPT.Plugins.Writers;
 using System;
 using System.Collections.Generic;
@@ -18,7 +20,7 @@ namespace AgGateway.ADAPT.Plugins
 
         public string Version { get { return Assembly.GetExecutingAssembly().GetName().Version.ToString(); } }
 
-        public void Export(ApplicationDataModel.ApplicationDataModel dataModel, string exportPath, Properties properties)
+        public void Export(ApplicationDataModel.ADM.ApplicationDataModel dataModel, string exportPath, Properties properties)
         {
             using (var taskWriter = new TaskDocumentWriter())
             {
@@ -31,13 +33,13 @@ namespace AgGateway.ADAPT.Plugins
             return _properties;
         }
 
-        public ApplicationDataModel.ApplicationDataModel Import(string dataPath, Properties properties)
+        public ApplicationDataModel.ADM.ApplicationDataModel Import(string dataPath, Properties properties)
         {
             var taskDataFiles = GetListOfTaskDataFiles(dataPath);
             if (taskDataFiles.Length == 0)
                 return null;
 
-            var dataModel = new ApplicationDataModel.ApplicationDataModel();
+            var dataModel = new ApplicationDataModel.ADM.ApplicationDataModel();
 
             foreach (var taskDataFile in taskDataFiles)
                 ConvertTaskDataFileToModel(taskDataFile, dataModel);
@@ -90,7 +92,7 @@ namespace AgGateway.ADAPT.Plugins
             return taskDataFiles;
         }
 
-        private static void ConvertTaskDataFileToModel(string taskDataFile, ApplicationDataModel.ApplicationDataModel dataModel)
+        private static void ConvertTaskDataFileToModel(string taskDataFile, ApplicationDataModel.ADM.ApplicationDataModel dataModel)
         {
             var taskDocument = new TaskDataDocument();
             if (taskDocument.LoadFromFile(taskDataFile) == false)

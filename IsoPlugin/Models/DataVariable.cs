@@ -1,9 +1,4 @@
-﻿using AgGateway.ADAPT.ApplicationDataModel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using AgGateway.ADAPT.ApplicationDataModel.Representations;
 
 namespace AgGateway.ADAPT.Plugins
 {
