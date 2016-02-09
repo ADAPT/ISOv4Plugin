@@ -30,6 +30,18 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AgGateway.ADAPT.ApplicationDataModel, Version=1.0.0.1, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\AgGatewayADAPTFramework.1.0.0.5\lib\AgGateway.ADAPT.ApplicationDataModel.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="AgGateway.ADAPT.PluginManager, Version=1.0.0.1, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\AgGatewayADAPTFramework.1.0.0.5\lib\AgGateway.ADAPT.PluginManager.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="AgGateway.ADAPT.Representation, Version=1.0.0.1, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\AgGatewayADAPTFramework.1.0.0.5\lib\AgGateway.ADAPT.Representation.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Moq, Version=4.2.1510.2205, Culture=neutral, PublicKeyToken=69f491c39445e920, processorArchitecture=MSIL">
       <HintPath>..\packages\Moq.4.2.1510.2205\lib\net40\Moq.dll</HintPath>
       <Private>True</Private>
@@ -57,16 +69,14 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\ADAPT\source\ADAPT\ApplicationDataModel.csproj">
-      <Project>{af77f596-0c06-4873-a094-6f3ab987b0a5}</Project>
-      <Name>ApplicationDataModel</Name>
-    </ProjectReference>
     <ProjectReference Include="..\IsoPlugin\IsoPlugin.csproj">
       <Project>{7243fe86-34af-42f5-b605-bbe0fa6b41f0}</Project>
       <Name>TCPlugin</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Resources\RepresentationSystem.xml" />
+    <Content Include="Resources\UnitSystem.xml" />
     <Content Include="TestData\Crop\Crop6.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

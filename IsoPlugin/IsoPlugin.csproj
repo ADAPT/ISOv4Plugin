@@ -31,6 +31,18 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AgGateway.ADAPT.ApplicationDataModel, Version=1.0.0.1, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\AgGatewayADAPTFramework.1.0.0.5\lib\AgGateway.ADAPT.ApplicationDataModel.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="AgGateway.ADAPT.PluginManager, Version=1.0.0.1, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\AgGatewayADAPTFramework.1.0.0.5\lib\AgGateway.ADAPT.PluginManager.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="AgGateway.ADAPT.Representation, Version=1.0.0.1, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\AgGatewayADAPTFramework.1.0.0.5\lib\AgGateway.ADAPT.Representation.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -96,14 +108,11 @@
     <Compile Include="Writers\WorkerWriter.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\ADAPT\source\ADAPT\ApplicationDataModel.csproj">
-      <Project>{af77f596-0c06-4873-a094-6f3ab987b0a5}</Project>
-      <Name>ApplicationDataModel</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\ADAPT\source\Representation\Representation.csproj">
-      <Project>{00d0cb8e-2ede-4766-b261-1eb0cb655f07}</Project>
-      <Name>Representation</Name>
-    </ProjectReference>
+    <Content Include="Resources\RepresentationSystem.xml" />
+    <Content Include="Resources\UnitSystem.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
