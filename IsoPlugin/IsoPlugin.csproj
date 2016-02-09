@@ -108,8 +108,12 @@
     <Compile Include="Writers\WorkerWriter.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Resources\RepresentationSystem.xml" />
-    <Content Include="Resources\UnitSystem.xml" />
+    <Content Include="Resources\RepresentationSystem.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\UnitSystem.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
