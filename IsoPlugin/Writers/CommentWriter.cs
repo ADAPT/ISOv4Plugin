@@ -17,8 +17,8 @@ namespace AgGateway.ADAPT.Plugins.Writers
 
         internal static void Write(TaskDocumentWriter taskWriter)
         {
-            if (taskWriter.DataModel.Catalog.Notes == null ||
-                taskWriter.DataModel.Catalog.Notes.Count == 0)
+            if (taskWriter.DataModel.Documents ==null ||
+                taskWriter.DataModel.Documents.WorkOrders ==null)
                 return;
 
             var writer = new CommentWriter(taskWriter);
@@ -32,9 +32,12 @@ namespace AgGateway.ADAPT.Plugins.Writers
 
         private void WriteComments(XmlWriter writer)
         {
-            foreach (var note in TaskWriter.DataModel.Catalog.Notes)
+            foreach (var wordOrder in TaskWriter.DataModel.Documents.WorkOrders)
             {
-                WriteComments(writer, note);
+                foreach (var note in wordOrder.Notes)
+                {
+                    WriteComments(writer, note);
+                }
             }
         }
 
