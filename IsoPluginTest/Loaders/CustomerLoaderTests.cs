@@ -6,7 +6,7 @@ using System.Linq;
 namespace IsoPluginTest
 {
     [TestFixture]
-    public class TaskControllerPluginCustomerLoaderTests
+    public class CustomerLoaderTests
     {
         [Test]
         public void LoadCustomerInfoTest()

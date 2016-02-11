@@ -7,7 +7,7 @@ using System.Linq;
 namespace IsoPluginTest
 {
     [TestFixture]
-    public class TaskControllerPluginCropLoaderTests
+    public class CropLoaderTests
     {
         [Test]
         public void LoadCropAndVarietiesTest()

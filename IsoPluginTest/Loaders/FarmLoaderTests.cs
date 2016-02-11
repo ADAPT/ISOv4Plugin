@@ -5,7 +5,7 @@ using System.Linq;
 namespace IsoPluginTest
 {
     [TestFixture]
-    public class TaskControllerPluginFarmLoaderTests
+    public class FarmLoaderTests
     {
         [Test]
         public void LoadFarmInfoTest()
