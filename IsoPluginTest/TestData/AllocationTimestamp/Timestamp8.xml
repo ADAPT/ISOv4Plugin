@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ISO11783_TaskData TaskControllerVersion=""
+                   VersionMinor="1"
+                   ManagementSoftwareManufacturer="Topcon Precision Agriculture"
+                   DataTransferOrigin="2"
+                   ManagementSoftwareVersion="1.0"
+                   TaskControllerManufacturer=""
+                   VersionMajor="4" >
+
+  <TestCase name="missing gps date attribute">
+    <ASP A="2016-02-02T14:01:01.111Z" D="1">
+      <PTN A="54.588945" B="9.989209" D="1" H="10000" />
+    </ASP>
+  </TestCase>
+
+  <TestCase name="empty gps date attribute">
+    <ASP A="2016-02-02T14:01:01.111Z" D="1">
+      <PTN A="54.588945" B="9.989209" D="2" I="" />
+    </ASP>
+  </TestCase>
+
+  <TestCase name="missing gps date and time attributes">
+    <ASP A="2016-02-02T14:01:01.111Z" D="1">
+      <PTN A="54.588945" B="9.989209" D="4" />
+    </ASP>
+  </TestCase>
+
+  <TestCase name="non-numeric gps date attributes">
+    <ASP A="2016-02-02T14:01:01.111Z" D="1">
+      <PTN A="54.588945" B="9.989209" D="5" I="1.0"/>
+    </ASP>
+  </TestCase>
+
+</ISO11783_TaskData>

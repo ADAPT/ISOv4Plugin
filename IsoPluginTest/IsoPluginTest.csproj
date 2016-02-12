@@ -60,6 +60,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Loaders\AllocationTimestampLoaderTests.cs" />
     <Compile Include="Loaders\ProductMixLoaderTests.cs" />
     <Compile Include="Loaders\ProductLoaderTests.cs" />
     <Compile Include="Loaders\CropLoaderTests.cs" />
@@ -80,6 +81,30 @@
     </Content>
     <Content Include="Resources\UnitSystem.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestData\AllocationTimestamp\Timestamp8.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestData\AllocationTimestamp\Timestamp7.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestData\AllocationTimestamp\Timestamp6.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestData\AllocationTimestamp\Timestamp4.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestData\AllocationTimestamp\Timestamp5.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestData\AllocationTimestamp\Timestamp3.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestData\AllocationTimestamp\Timestamp2.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestData\AllocationTimestamp\Timestamp1.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="TestData\Crop\Crop6.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

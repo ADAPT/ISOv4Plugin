@@ -46,9 +46,9 @@ namespace AgGateway.ADAPT.Plugins
             if (note == null)
                 return;
 
-            Point location;
-            note.TimeStamp = AllocationTimestampLoader.Load(inputNode, out location);
-            note.SpatialContext = location;
+            note.TimeStamp = AllocationTimestampLoader.Load(inputNode);
+            if (note.TimeStamp != null && note.TimeStamp.Stamp1.Location != null)
+                note.SpatialContext = note.TimeStamp.Stamp1.Location.Position;
 
             _allocations.Add(note);
         }
