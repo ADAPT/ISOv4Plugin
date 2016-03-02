@@ -1,0 +1,66 @@
+﻿{
+    "Catalog": {
+        "Fields": [
+            {
+                "Id": {
+                    "ReferenceId": -1
+                },
+                "Description": "Field",
+                "GuidanceGroupIds": [
+                    -2,
+                    -3
+                ]
+            }
+        ],
+        "GuidanceGroups": [
+            {
+                "Id": {
+                    "ReferenceId": -2
+                },
+                "Description": "guidance group 1",
+                "BoundingPolygon": {
+                    "Polygons": [
+                        {
+                            "ExteriorRing": {
+                                "Points": [
+                                    {
+                                        "X": 1,
+                                        "Y": 2,
+                                        "Type": 5
+                                    }
+                                ],
+                                "Type": 0
+                            },
+                            "Type": 6
+                        }
+                    ],
+                    "Type": 4
+                }
+            },
+            {
+                "Id": {
+                    "ReferenceId": -3
+                },
+                "Description": "guidance group 2",
+                "BoundingPolygon": {
+                    "Polygons": [
+                        {
+                            "ExteriorRing": {
+                                "Points": [
+                                    {
+                                        "X": 10,
+                                        "Y": 20,
+                                        "Type": 5
+                                    }
+                                ],
+                                "Type": 0
+                            },
+                            "Type": 6
+                        }
+                    ],
+                    "Type": 4
+                }
+            }
+        ]
+    }
+}

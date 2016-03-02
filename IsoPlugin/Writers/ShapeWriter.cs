@@ -18,7 +18,7 @@ namespace AgGateway.ADAPT.Plugins.Writers
             }
         }
 
-        private static void WritePolygon(XmlWriter writer, Polygon polygon)
+        internal static void WritePolygon(XmlWriter writer, Polygon polygon)
         {
             if (polygon.ExteriorRing == null)
                 return;
@@ -51,6 +51,23 @@ namespace AgGateway.ADAPT.Plugins.Writers
             {
                 var pointLabel = i == 0 ? "start" : i == ring.Points.Count - 1 ? "end" : "";
                 WritePoint(writer, ring.Points[i], pointLabel);
+            }
+
+            writer.WriteEndElement();
+        }
+
+        internal  static void WriteLine(XmlWriter writer, LineString line, string lineType)
+        {
+            if (line == null || line.Points == null || line.Points.Count == 0)
+                return;
+
+            writer.WriteStartElement("LSG");
+            writer.WriteXmlAttribute("A", lineType);
+
+            for (int i = 0; i < line.Points.Count; i++)
+            {
+                var pointLabel = i == 0 ? "start" : i == line.Points.Count - 1 ? "end" : "";
+                WritePoint(writer, line.Points[i], pointLabel);
             }
 
             writer.WriteEndElement();

@@ -99,9 +99,11 @@
     <Compile Include="Writers\FarmWriter.cs" />
     <Compile Include="Writers\FieldWriter.cs" />
     <Compile Include="Writers\GridWriter.cs" />
+    <Compile Include="Writers\GuidancePatternWriter.cs" />
     <Compile Include="Writers\IsoRootWriter.cs" />
     <Compile Include="Writers\PrescriptionWriter.cs" />
     <Compile Include="Writers\ProductWriter.cs" />
+    <Compile Include="Writers\GuidanceGroupWriter.cs" />
     <Compile Include="Writers\ShapeWriter.cs" />
     <Compile Include="Writers\TaskDocumentWriter.cs" />
     <Compile Include="Writers\TreatmentZoneWriter.cs" />

@@ -1,19 +1,23 @@
-﻿using AgGateway.ADAPT.ApplicationDataModel.Common;
+﻿using System.Collections.Generic;
+using System.Globalization;
+using System.Xml;
+using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.FieldBoundaries;
 using AgGateway.ADAPT.ApplicationDataModel.Logistics;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
 using AgGateway.ADAPT.Representation.UnitSystem;
 using AgGateway.ADAPT.Representation.UnitSystem.ExtensionMethods;
-using System.Globalization;
-using System.Xml;
 
 namespace AgGateway.ADAPT.Plugins.Writers
 {
     internal class FieldWriter : BaseWriter
     {
+        private GuidanceGroupWriter _guidanceWriter;
+
         private FieldWriter(TaskDocumentWriter taskWriter)
             : base(taskWriter, "PFD")
         {
+            _guidanceWriter = new GuidanceGroupWriter(taskWriter);
         }
 
         internal static void Write(TaskDocumentWriter taskWriter)
@@ -52,6 +56,7 @@ namespace AgGateway.ADAPT.Plugins.Writers
 
             WriteFarmReference(writer, field.FarmId);
             WriteBoundary(writer, field.ActiveBoundaryId);
+            WriteGuidance(writer, field.GuidanceGroupIds);
 
             writer.WriteEndElement();
 
@@ -112,6 +117,26 @@ namespace AgGateway.ADAPT.Plugins.Writers
                 return;
 
             ShapeWriter.WritePolygon(writer, fieldBoundary.SpatialData);
+        }
+
+        private void WriteGuidance(XmlWriter writer, List<int> guidanceGroupIds)
+        {
+            if (guidanceGroupIds == null || guidanceGroupIds.Count == 0 ||
+                TaskWriter.DataModel.Catalog.GuidanceGroups == null ||
+                TaskWriter.DataModel.Catalog.GuidanceGroups.Count == 0)
+                return;
+
+            foreach (var guidanceGroupId in guidanceGroupIds)
+            {
+                foreach (var guidanceGroup in TaskWriter.DataModel.Catalog.GuidanceGroups)
+                {
+                    if (guidanceGroup.Id.ReferenceId == guidanceGroupId)
+                    {
+                        _guidanceWriter.Write(writer, guidanceGroup);
+                        break;
+                    }
+                }
+            }
         }
     }
 }

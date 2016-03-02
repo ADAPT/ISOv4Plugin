@@ -1,0 +1,259 @@
+﻿{
+    "Catalog": {
+        "Fields": [
+            {
+                "Description": "Field",
+                "GuidanceGroupIds": [
+                    -1
+                ]
+            }
+        ],
+        "GuidanceGroups": [
+            {
+                "Id": {
+                    "ReferenceId": -1
+                },
+                "Description": "guidance group",
+                "GuidancePatternIds": [ -2, -3, -4, -5, -6 ],
+                "BoundingPolygon": null
+            },
+        ],
+        "GuidancePatterns": [
+            {
+                "$type": "AgGateway.ADAPT.ApplicationDataModel.Guidance.AbLine, AgGateway.ADAPT.ApplicationDataModel",
+                "A": {
+                    "X": 1,
+                    "Y": 2,
+                    "Type": 5
+                },
+                "B": {
+                    "X": 3,
+                    "Y": 4,
+                    "Type": 5
+                },
+                "Heading": null,
+                "EastShiftComponent": null,
+                "NorthShiftComponent": null,
+                "Id": {
+                    "ReferenceId": -2
+                },
+                "GuidancePatternType": 1,
+                "GpsSource": null,
+                "OriginalEpsgCode": null,
+                "Description": "AbLine",
+                "SwathWidth": null,
+                "PropagationDirection": 0,
+                "Extension": 0,
+                "NumbersOfSwathsLeft": null,
+                "NumbersOfSwathsRight": null,
+                "BoundingPolygon": {
+                    "Polygons": [
+                        {
+                            "ExteriorRing": {
+                                "Points": [
+                                    {
+                                        "X": 1,
+                                        "Y": 2,
+                                        "Type": 5
+                                    }
+                                ],
+                                "Type": 0
+                            },
+                            "Type": 6
+                        }
+                    ],
+                    "Type": 4
+                }
+            },
+            {
+                "$type": "AgGateway.ADAPT.ApplicationDataModel.Guidance.APlus, AgGateway.ADAPT.ApplicationDataModel",
+                "Point": {
+                    "X": 1,
+                    "Y": 2,
+                    "Type": 5
+                },
+                "Heading": null,
+                "Id": {
+                    "ReferenceId": -3
+                },
+                "GuidancePatternType": 0,
+                "GpsSource": null,
+                "OriginalEpsgCode": null,
+                "Description": "APlus",
+                "SwathWidth": null,
+                "PropagationDirection": 0,
+                "Extension": 0,
+                "NumbersOfSwathsLeft": null,
+                "NumbersOfSwathsRight": null,
+                "BoundingPolygon": {
+                    "Polygons": [
+                        {
+                            "ExteriorRing": {
+                                "Points": [
+                                    {
+                                        "X": 11,
+                                        "Y": 21,
+                                        "Type": 5
+                                    }
+                                ],
+                                "Type": 0
+                            },
+                            "Type": 6
+                        }
+                    ],
+                    "Type": 4
+                }
+            },
+            {
+                "$type": "AgGateway.ADAPT.ApplicationDataModel.Guidance.AbCurve, AgGateway.ADAPT.ApplicationDataModel",
+                "Shape": [
+                    {
+                        "Points": [
+                            {
+                                "X": 1,
+                                "Y": 2,
+                                "Type": 5
+                            },
+                            {
+                                "X": 3,
+                                "Y": 4,
+                                "Type": 5
+                            }
+                        ],
+                        "Type": 1
+                    }
+                ],
+                "Heading": null,
+                "EastShiftComponent": null,
+                "NorthShiftComponent": null,
+                "Id": {
+                    "ReferenceId": -4
+                },
+                "NumberOfSegments": 0,
+                "GuidancePatternType": 2,
+                "GpsSource": null,
+                "OriginalEpsgCode": null,
+                "Description": "AbCurve",
+                "SwathWidth": null,
+                "PropagationDirection": 0,
+                "Extension": 0,
+                "NumbersOfSwathsLeft": null,
+                "NumbersOfSwathsRight": null,
+                "BoundingPolygon": {
+                    "Polygons": [
+                        {
+                            "ExteriorRing": {
+                                "Points": [
+                                    {
+                                        "X": 21,
+                                        "Y": 22,
+                                        "Type": 5
+                                    }
+                                ],
+                                "Type": 0
+                            },
+                            "Type": 6
+                        }
+                    ],
+                    "Type": 4
+                }
+            },
+            {
+                "$type": "AgGateway.ADAPT.ApplicationDataModel.Guidance.CenterPivot, AgGateway.ADAPT.ApplicationDataModel",
+                "Center": {
+                    "X": 1,
+                    "Y": 2,
+                    "Type": 5
+                },
+                "EndPoint": {
+                    "X": 3,
+                    "Y": 4,
+                    "Type": 5
+                },
+                "StartPoint": {
+                    "X": 5,
+                    "Y": 6,
+                    "Type": 5
+                },
+                "Id": {
+                    "ReferenceId": -5
+                },
+                "GuidancePatternType": 3,
+                "GpsSource": null,
+                "OriginalEpsgCode": null,
+                "Description": "CenterPivot",
+                "SwathWidth": null,
+                "PropagationDirection": 0,
+                "Extension": 0,
+                "NumbersOfSwathsLeft": null,
+                "NumbersOfSwathsRight": null,
+                "BoundingPolygon": {
+                    "Polygons": [
+                        {
+                            "ExteriorRing": {
+                                "Points": [
+                                    {
+                                        "X": 31,
+                                        "Y": 32,
+                                        "Type": 5
+                                    }
+                                ],
+                                "Type": 0
+                            },
+                            "Type": 6
+                        }
+                    ],
+                    "Type": 4
+                }
+            },
+            {
+                "$type": "AgGateway.ADAPT.ApplicationDataModel.Guidance.Spiral, AgGateway.ADAPT.ApplicationDataModel",
+                "Shape": {
+                    "Points": [
+                        {
+                            "X": 1,
+                            "Y": 2,
+                            "Type": 5
+                        },
+                        {
+                            "X": 3,
+                            "Y": 4,
+                            "Type": 5
+                        }
+                    ],
+                    "Type": 1
+                },
+                "Id": {
+                    "ReferenceId": -6
+                },
+                "GuidancePatternType": 4,
+                "GpsSource": null,
+                "OriginalEpsgCode": null,
+                "Description": "AbLine",
+                "SwathWidth": null,
+                "PropagationDirection": 0,
+                "Extension": 0,
+                "NumbersOfSwathsLeft": null,
+                "NumbersOfSwathsRight": null,
+                "BoundingPolygon": {
+                    "Polygons": [
+                        {
+                            "ExteriorRing": {
+                                "Points": [
+                                    {
+                                        "X": 41,
+                                        "Y": 42,
+                                        "Type": 5
+                                    }
+                                ],
+                                "Type": 0
+                            },
+                            "Type": 6
+                        }
+                    ],
+                    "Type": 4
+                }
+            }
+        ]
+    }
+}
