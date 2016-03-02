@@ -1,15 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using System.Runtime.Serialization.Formatters;
-using System.Xml;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
-using AgGateway.ADAPT.ApplicationDataModel.Guidance;
-using AgGateway.ADAPT.ApplicationDataModel.Logistics;
-using AgGateway.ADAPT.ApplicationDataModel.Shapes;
-using AgGateway.ADAPT.Plugins;
-using AgGateway.ADAPT.Plugins.Writers;
+using AgGateway.ADAPT.IsoPlugin.Writers;
 using Newtonsoft.Json;
 using NUnit.Framework;
 

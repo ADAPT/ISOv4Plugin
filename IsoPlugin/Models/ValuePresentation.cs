@@ -1,6 +1,6 @@
 ﻿using AgGateway.ADAPT.ApplicationDataModel.Common;
 
-namespace AgGateway.ADAPT.Plugins
+namespace AgGateway.ADAPT.IsoPlugin
 {
     internal class ValuePresentation
     {

@@ -1,4 +1,4 @@
-﻿namespace AgGateway.ADAPT.Plugins
+﻿namespace AgGateway.ADAPT.IsoPlugin
 {
     internal enum IsoVersionEnum
     {

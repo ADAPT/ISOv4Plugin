@@ -1,14 +1,13 @@
-﻿using AgGateway.ADAPT.ApplicationDataModel.ADM;
-using AgGateway.ADAPT.ApplicationDataModel.Prescriptions;
-using AgGateway.ADAPT.ApplicationDataModel.Products;
-using AgGateway.ADAPT.Plugins.Writers;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using AgGateway.ADAPT.ApplicationDataModel.ADM;
+using AgGateway.ADAPT.ApplicationDataModel.Prescriptions;
+using AgGateway.ADAPT.ApplicationDataModel.Products;
+using AgGateway.ADAPT.IsoPlugin.Writers;
 
-namespace AgGateway.ADAPT.Plugins
+namespace AgGateway.ADAPT.IsoPlugin
 {
     public class IsoPlugin : IPlugin
     {

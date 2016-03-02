@@ -1,6 +1,6 @@
 ﻿using AgGateway.ADAPT.ApplicationDataModel.Representations;
 
-namespace AgGateway.ADAPT.Plugins
+namespace AgGateway.ADAPT.IsoPlugin
 {
     internal class DataVariable
     {

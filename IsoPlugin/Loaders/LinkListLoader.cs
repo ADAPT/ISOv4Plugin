@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Xml;
 
-namespace AgGateway.ADAPT.Plugins
+namespace AgGateway.ADAPT.IsoPlugin
 {
     internal class LinkListLoader
     {

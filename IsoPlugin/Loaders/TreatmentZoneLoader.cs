@@ -1,9 +1,8 @@
-﻿using AgGateway.ADAPT.ApplicationDataModel.Representations;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Xml;
 
-namespace AgGateway.ADAPT.Plugins
+namespace AgGateway.ADAPT.IsoPlugin
 {
     internal class TreatmentZoneLoader
     {

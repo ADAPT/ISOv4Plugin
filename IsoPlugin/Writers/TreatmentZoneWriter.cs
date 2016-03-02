@@ -1,7 +1,9 @@
-﻿using System.Globalization;
+﻿using System.Collections.Generic;
+using System.Globalization;
 using System.Xml;
+using AgGateway.ADAPT.ApplicationDataModel.Common;
 
-namespace AgGateway.ADAPT.Plugins.Writers
+namespace AgGateway.ADAPT.IsoPlugin.Writers
 {
     internal class TreatmentZoneWriter
     {

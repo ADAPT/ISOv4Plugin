@@ -1,7 +1,7 @@
-﻿using AgGateway.ADAPT.ApplicationDataModel.Logistics;
-using System.Xml;
+﻿using System.Xml;
+using AgGateway.ADAPT.ApplicationDataModel.Logistics;
 
-namespace AgGateway.ADAPT.Plugins.Writers
+namespace AgGateway.ADAPT.IsoPlugin.Writers
 {
     internal class WorkerWriter : BaseWriter
     {

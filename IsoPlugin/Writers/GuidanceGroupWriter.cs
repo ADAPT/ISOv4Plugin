@@ -3,7 +3,7 @@ using System.Xml;
 using AgGateway.ADAPT.ApplicationDataModel.Guidance;
 using AgGateway.ADAPT.ApplicationDataModel.Shapes;
 
-namespace AgGateway.ADAPT.Plugins.Writers
+namespace AgGateway.ADAPT.IsoPlugin.Writers
 {
     internal class GuidanceGroupWriter : BaseWriter
     {

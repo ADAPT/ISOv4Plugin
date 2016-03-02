@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace AgGateway.ADAPT.Plugins
+namespace AgGateway.ADAPT.IsoPlugin
 {
     internal class TreatmentZone
     {

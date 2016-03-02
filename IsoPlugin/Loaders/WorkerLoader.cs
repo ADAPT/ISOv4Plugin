@@ -1,8 +1,8 @@
-﻿using AgGateway.ADAPT.ApplicationDataModel.Logistics;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Xml;
+using AgGateway.ADAPT.ApplicationDataModel.Logistics;
 
-namespace AgGateway.ADAPT.Plugins
+namespace AgGateway.ADAPT.IsoPlugin
 {
     internal class WorkerLoader
     {

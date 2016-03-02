@@ -1,8 +1,8 @@
-﻿using AgGateway.ADAPT.ApplicationDataModel.Products;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Xml;
+using AgGateway.ADAPT.ApplicationDataModel.Products;
 
-namespace AgGateway.ADAPT.Plugins
+namespace AgGateway.ADAPT.IsoPlugin
 {
     internal static class CropVarietyLoader
     {

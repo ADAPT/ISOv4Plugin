@@ -1,9 +1,9 @@
-﻿using AgGateway.ADAPT.ApplicationDataModel.Representations;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Globalization;
 using System.Xml;
+using AgGateway.ADAPT.ApplicationDataModel.Representations;
 
-namespace AgGateway.ADAPT.Plugins
+namespace AgGateway.ADAPT.IsoPlugin
 {
     internal class CommentLoader
     {

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Xml;
 
-namespace AgGateway.ADAPT.Plugins.Writers
+namespace AgGateway.ADAPT.IsoPlugin.Writers
 {
     internal class CustomerWriter : BaseWriter
     {

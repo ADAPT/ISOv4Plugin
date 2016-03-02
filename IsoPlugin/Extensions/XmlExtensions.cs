@@ -2,7 +2,7 @@
 using System.IO;
 using System.Xml;
 
-namespace AgGateway.ADAPT.Plugins
+namespace AgGateway.ADAPT.IsoPlugin
 {
     internal static class XmlExtensions
     {

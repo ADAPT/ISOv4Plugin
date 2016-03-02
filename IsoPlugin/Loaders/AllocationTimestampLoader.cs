@@ -2,10 +2,9 @@
 using AgGateway.ADAPT.ApplicationDataModel.Logistics;
 using AgGateway.ADAPT.ApplicationDataModel.Shapes;
 using System;
-using System.Globalization;
 using System.Xml;
 
-namespace AgGateway.ADAPT.Plugins
+namespace AgGateway.ADAPT.IsoPlugin
 {
     internal static class AllocationTimestampLoader
     {

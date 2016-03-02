@@ -1,10 +1,14 @@
-﻿using AgGateway.ADAPT.ApplicationDataModel.Prescriptions;
-using AgGateway.ADAPT.ApplicationDataModel.Representations;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
+using AgGateway.ADAPT.ApplicationDataModel.Common;
+using AgGateway.ADAPT.ApplicationDataModel.Logistics;
+using AgGateway.ADAPT.ApplicationDataModel.Prescriptions;
+using AgGateway.ADAPT.ApplicationDataModel.Representations;
+using AgGateway.ADAPT.Representation.UnitSystem.ExtensionMethods;
 
-namespace AgGateway.ADAPT.Plugins.Writers
+namespace AgGateway.ADAPT.IsoPlugin.Writers
 {
     internal class PrescriptionWriter : BaseWriter
     {

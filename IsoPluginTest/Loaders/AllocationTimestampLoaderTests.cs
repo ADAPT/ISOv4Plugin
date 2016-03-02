@@ -1,12 +1,10 @@
-﻿using AgGateway.ADAPT.ApplicationDataModel.Common;
-using AgGateway.ADAPT.ApplicationDataModel.Logistics;
-using AgGateway.ADAPT.ApplicationDataModel.Shapes;
-using AgGateway.ADAPT.Plugins;
-using NUnit.Framework;
-using System;
+﻿using System;
 using System.Globalization;
-using System.Linq;
 using System.Xml;
+using AgGateway.ADAPT.ApplicationDataModel.Common;
+using AgGateway.ADAPT.ApplicationDataModel.Logistics;
+using AgGateway.ADAPT.IsoPlugin;
+using NUnit.Framework;
 
 namespace IsoPluginTest
 {

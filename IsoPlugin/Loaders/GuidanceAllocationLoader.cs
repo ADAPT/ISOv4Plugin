@@ -1,11 +1,11 @@
-﻿using AgGateway.ADAPT.ApplicationDataModel.Common;
+﻿using System.Collections.Generic;
+using System.Xml;
+using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.Guidance;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
 using AgGateway.ADAPT.Representation.UnitSystem;
-using System.Collections.Generic;
-using System.Xml;
 
-namespace AgGateway.ADAPT.Plugins
+namespace AgGateway.ADAPT.IsoPlugin
 {
     internal class GuidanceAllocationLoader
     {

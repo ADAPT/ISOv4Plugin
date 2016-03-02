@@ -1,7 +1,7 @@
 ﻿using AgGateway.ADAPT.ApplicationDataModel.Guidance;
 using System.Collections.Generic;
 
-namespace AgGateway.ADAPT.Plugins
+namespace AgGateway.ADAPT.IsoPlugin
 {
     internal class GuidanceGroupDescriptor
     {

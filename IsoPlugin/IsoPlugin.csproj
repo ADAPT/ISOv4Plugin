@@ -7,7 +7,7 @@
     <ProjectGuid>{7243FE86-34AF-42F5-B605-BBE0FA6B41F0}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>AgGateway.ADAPT.Plugins</RootNamespace>
+    <RootNamespace>AgGateway.ADAPT.IsoPlugin</RootNamespace>
     <AssemblyName>AgGateway.ADAPT.IsoPlugin</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>

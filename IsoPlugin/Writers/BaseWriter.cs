@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Xml;
 using System.IO;
 
-namespace AgGateway.ADAPT.Plugins.Writers
+namespace AgGateway.ADAPT.IsoPlugin.Writers
 {
     internal class BaseWriter
     {

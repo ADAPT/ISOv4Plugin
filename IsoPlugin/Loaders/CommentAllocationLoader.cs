@@ -1,10 +1,9 @@
-﻿using AgGateway.ADAPT.ApplicationDataModel.Notes;
-using AgGateway.ADAPT.ApplicationDataModel.Representations;
-using AgGateway.ADAPT.ApplicationDataModel.Shapes;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Xml;
+using AgGateway.ADAPT.ApplicationDataModel.Notes;
+using AgGateway.ADAPT.ApplicationDataModel.Representations;
 
-namespace AgGateway.ADAPT.Plugins
+namespace AgGateway.ADAPT.IsoPlugin
 {
     internal class CommentAllocationLoader
     {

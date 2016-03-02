@@ -1,10 +1,12 @@
-﻿using AgGateway.ADAPT.ApplicationDataModel.Products;
-using AgGateway.ADAPT.ApplicationDataModel.Representations;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Xml;
+using AgGateway.ADAPT.ApplicationDataModel.Products;
+using AgGateway.ADAPT.ApplicationDataModel.Representations;
 
-namespace AgGateway.ADAPT.Plugins.Writers
+namespace AgGateway.ADAPT.IsoPlugin.Writers
 {
     internal class ProductWriter : BaseWriter
     {
