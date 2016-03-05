@@ -148,18 +148,18 @@ namespace AgGateway.ADAPT.IsoPlugin
 
         private bool LoadRatesForGridType2(XmlNode inputNode)
         {
-            int numberOfRatesPerCell = CountNumberOfRatesPerCell(inputNode);
-            if (numberOfRatesPerCell < 0)
+            var dataVariables = GetDataVariables(inputNode);
+            if (dataVariables.Count <= 0)
                 return false;
 
-            _descriptor.ProductRates = new List<List<int>>();
+            _descriptor.ProductRates = new List<List<double>>();
             try
             {
                 string filePath = Path.ChangeExtension(Path.Combine(_baseFolder, _gridFileName), ".bin");
                 using (var fileStream = File.OpenRead(filePath))
                 {
                     var bytes = new byte[4];
-                    var rates = new List<int>();
+                    var rates = new List<double>();
                     var rateCount = 0;
 
                     while (true)
@@ -168,14 +168,16 @@ namespace AgGateway.ADAPT.IsoPlugin
                         if (result == 0)
                             break;
 
+                        var rate = BitConverter.ToInt32(bytes, 0);
+                        rates.Add(dataVariables[rateCount].IsoUnit.ConvertFromIsoUnit(rate));
                         rateCount++;
-                        rates.Add(BitConverter.ToInt32(bytes, 0));
 
-                        if (rateCount == numberOfRatesPerCell)
+                        if (rateCount == dataVariables.Count)
                         {
+                            //System.Diagnostics.Debug.WriteLine("");
                             _descriptor.ProductRates.Add(rates);
                             rateCount = 0;
-                            rates = new List<int>();
+                            rates = new List<double>();
                         }
                     }
                 }
@@ -188,18 +190,19 @@ namespace AgGateway.ADAPT.IsoPlugin
             return _descriptor.ProductRates.Count == _descriptor.RowCount * _descriptor.ColumnCount;
         }
 
-        private int CountNumberOfRatesPerCell(XmlNode inputNode)
+        private List<DataVariable> GetDataVariables(XmlNode inputNode)
         {
+            var dataVariables = new List<DataVariable>();
             int treatmentZoneId;
-            if (inputNode.GetXmlNodeValue("@J").ParseValue(out treatmentZoneId))
-                return -1;
+            if (!inputNode.GetXmlNodeValue("@J").ParseValue(out treatmentZoneId))
+                return dataVariables;
 
             _descriptor.ProductRateTemplateId = treatmentZoneId;
 
             var treatmentZone = _treatmentZones.FindById(treatmentZoneId);
             if (treatmentZone == null || treatmentZone.Variables == null)
-                return 0;
-            return treatmentZone.Variables.Count;
+                return dataVariables;
+            return treatmentZone.Variables;
         }
     }
 }

@@ -17,7 +17,8 @@ namespace AgGateway.ADAPT.IsoPlugin.Writers
 
         internal static void Write(TaskDocumentWriter taskWriter)
         {
-            if (taskWriter.DataModel.Catalog.FertilizerProducts == null ||
+            if (taskWriter.DataModel.Catalog.FertilizerProducts == null &&
+                taskWriter.DataModel.Catalog.CropProtectionProducts == null &&
                 taskWriter.DataModel.Catalog.ProductMixes == null)
                 return;
 
@@ -33,11 +34,15 @@ namespace AgGateway.ADAPT.IsoPlugin.Writers
         private void WriteProducts(XmlWriter writer)
         {
             WriteProducts(writer, TaskWriter.DataModel.Catalog.FertilizerProducts);
+            WriteProducts(writer, TaskWriter.DataModel.Catalog.CropProtectionProducts);
             WriteProductMixes(writer, TaskWriter.DataModel.Catalog.ProductMixes);
         }
 
-        private void WriteProducts(XmlWriter writer, List<FertilizerProduct> products)
+        private void WriteProducts(XmlWriter writer, IEnumerable<Product> products)
         {
+            if (products == null)
+                return;
+
             foreach (var product in products)
             {
                 var productId = WriteProduct(writer, product);
@@ -47,6 +52,9 @@ namespace AgGateway.ADAPT.IsoPlugin.Writers
 
         private void WriteProductMixes(XmlWriter writer, List<ProductMix> productMixes)
         {
+            if (productMixes == null)
+                return;
+
             foreach (var productMix in productMixes)
             {
                 var productId = WriteProductMix(writer, productMix);
@@ -54,7 +62,7 @@ namespace AgGateway.ADAPT.IsoPlugin.Writers
             }
         }
 
-        private string WriteProduct(XmlWriter writer, FertilizerProduct product)
+        private string WriteProduct(XmlWriter writer, Product product)
         {
             var productId = GenerateId();
             writer.WriteStartElement(XmlPrefix);

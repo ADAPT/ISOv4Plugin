@@ -8,7 +8,7 @@ using NUnit.Framework;
 namespace IsoPluginTest.Writers
 {
     [TestFixture]
-    public class GuidancePatternWriterTests
+    public class PrescriptionWriterTests
     {
         [TearDown]
         public void Cleanup()
@@ -19,11 +19,11 @@ namespace IsoPluginTest.Writers
         }
 
         [Test]
-        public void ShouldWriteAllTypesOfPatterns()
+        public void ShouldWritePrescription()
         {
             // Setup
             var taskWriter = new TaskDocumentWriter();
-            var adaptDocument = TestHelpers.LoadApplicationModel(@"TestData\Guidance\AllPatterns.json");
+            var adaptDocument = TestHelpers.LoadApplicationModel(@"TestData\Prescription\SingleProduct.json");
 
             // Act
             using (taskWriter)
@@ -32,8 +32,10 @@ namespace IsoPluginTest.Writers
             }
 
             // Verify
-            Assert.AreEqual(TestHelpers.LoadFromFile(@"TestData\Guidance\AllPatternsOutput.xml"),
-                TestHelpers.LoadFromFile(TestContext.CurrentContext.WorkDirectory + @"\TASKDATA\PFD00000.XML"));
+            Assert.AreEqual(TestHelpers.LoadFromFile(@"TestData\Prescription\SingleProductOutput.xml"),
+                TestHelpers.LoadFromFile(TestContext.CurrentContext.WorkDirectory + @"\TASKDATA\TSK00000.XML"));
+            Assert.AreEqual(TestHelpers.LoadFromFile(@"TestData\Prescription\SingleProductOutput.TXT"),
+                TestHelpers.LoadFromFileAsHexString(TestContext.CurrentContext.WorkDirectory + @"\TASKDATA\GRD00000.BIN"));
         }
     }
 }

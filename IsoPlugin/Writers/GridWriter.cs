@@ -3,23 +3,27 @@ using System.Globalization;
 using System.IO;
 using System.Xml;
 using AgGateway.ADAPT.ApplicationDataModel.Prescriptions;
+using AgGateway.ADAPT.Representation.UnitSystem.ExtensionMethods;
 
 namespace AgGateway.ADAPT.IsoPlugin.Writers
 {
     internal class GridWriter : BaseWriter
     {
+        private Representation.UnitSystem.UnitOfMeasureConverter _unitConverter;
+
         internal GridWriter(TaskDocumentWriter taskWriter)
             : base(taskWriter, "GRD", 0)
         {
+            _unitConverter = new Representation.UnitSystem.UnitOfMeasureConverter();
         }
 
-        internal void Write(XmlWriter writer, RasterGridPrescription prescription)
+        internal void Write(XmlWriter writer, RasterGridPrescription prescription, TreatmentZone treatmentZone)
         {
             writer.WriteStartElement(XmlPrefix);
 
             WriteGridDefinition(writer, prescription);
 
-            var gridFileName = WriteGridFile(prescription);
+            var gridFileName = WriteGridFile(prescription, treatmentZone);
             writer.WriteAttributeString("G", gridFileName);
             writer.WriteAttributeString("I", "2");
             writer.WriteAttributeString("J", "1");
@@ -37,16 +41,21 @@ namespace AgGateway.ADAPT.IsoPlugin.Writers
             writer.WriteAttributeString("F", prescription.RowCount.ToString(CultureInfo.InvariantCulture));
         }
 
-        private string WriteGridFile(RasterGridPrescription prescription)
+        private string WriteGridFile(RasterGridPrescription prescription, TreatmentZone treatmentZone)
         {
             var gridFileName = GenerateId(5);
             using (var binaryWriter = CreateWriter(Path.ChangeExtension(gridFileName, ".BIN")))
             {
-                foreach (var rate in prescription.Rates)
+                foreach (var rxRate in prescription.Rates)
                 {
-                    foreach (var productRate in rate.RxRate)
+                    for (int index = 0; index < rxRate.RxRate.Count; index++)
                     {
-                        var bytes = BitConverter.GetBytes((int)productRate.Rate);
+                        var dataVariable = treatmentZone.Variables[index];
+                        var rate = rxRate.RxRate[index].Rate;
+                        if (dataVariable.UserUnit != null)
+                            rate = _unitConverter.Convert(dataVariable.UserUnit.ToInternalUom(), dataVariable.IsoUnit.ToAdaptUnit().ToInternalUom(), rate);
+
+                        var bytes = BitConverter.GetBytes((int)Math.Round(dataVariable.IsoUnit.ConvertToIsoUnit(rate), 0));
                         binaryWriter.Write(bytes, 0, bytes.Length);
                     }
                 }

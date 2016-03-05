@@ -73,6 +73,8 @@
     <Compile Include="Loaders\FarmLoaderTests.cs" />
     <Compile Include="Loaders\CustomerLoaderTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestHelpers.cs" />
+    <Compile Include="Writers\PrescriptionWriterTests.cs" />
     <Compile Include="Writers\GuidancePatternWriterTests.cs" />
     <Compile Include="Writers\GuidanceGroupWriterTests.cs" />
   </ItemGroup>
@@ -192,6 +194,12 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="TestData\Guidance\GroupsWithBoundaryAndNoPatternsOutput.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestData\Prescription\SingleProductOutput.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestData\Prescription\SingleProductOutput.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="TestData\ProductMix\PDT00002.xml">
@@ -315,6 +323,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="TestData\Guidance\AllPatternsOutput.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestData\Prescription\SingleProduct.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

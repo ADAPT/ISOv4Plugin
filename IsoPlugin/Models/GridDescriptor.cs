@@ -10,7 +10,7 @@ namespace AgGateway.ADAPT.IsoPlugin
         public List<int> TreatmentZones { get; set; }
 
         // Product rates for grid type 2
-        public List<List<int>> ProductRates { get; set; }
+        public List<List<double>> ProductRates { get; set; }
         // Treatment zone template id for grid type 2
         public int ProductRateTemplateId { get; set; }
 

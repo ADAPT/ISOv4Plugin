@@ -118,6 +118,13 @@ namespace AgGateway.ADAPT.IsoPlugin
                 return;
 
             LoadDefinition(gridDescriptor, prescription);
+            LoadRates(inputNode, gridDescriptor, treatmentZones, prescription);
+        }
+
+        private void LoadRates(XmlNode inputNode, GridDescriptor gridDescriptor, Dictionary<int, TreatmentZone> treatmentZones, RasterGridPrescription prescription)
+        {
+            prescription.LossOfGpsRate = LoadRateFromTreatmentZones(inputNode.GetXmlNodeValue("@I"), treatmentZones).FirstOrDefault();
+            prescription.OutOfFieldRate = LoadRateFromTreatmentZones(inputNode.GetXmlNodeValue("@J"), treatmentZones).FirstOrDefault();
 
             if (gridDescriptor.TreatmentZones != null)
             {
@@ -126,6 +133,7 @@ namespace AgGateway.ADAPT.IsoPlugin
                     return;
 
                 LoadProducts(treatmentZone, prescription);
+                LoadRateUnits(treatmentZone, prescription);
                 prescription.Rates = LoadRatesFromTreatmentZones(gridDescriptor, treatmentZones, prescription.ProductIds);
             }
             else if (gridDescriptor.ProductRates != null)
@@ -135,6 +143,7 @@ namespace AgGateway.ADAPT.IsoPlugin
                     return;
 
                 LoadProducts(treatmentZoneTemplate, prescription);
+                LoadRateUnits(treatmentZoneTemplate, prescription);
                 prescription.Rates = LoadRatesFromProducts(gridDescriptor, prescription.ProductIds);
             }
         }
@@ -155,15 +164,50 @@ namespace AgGateway.ADAPT.IsoPlugin
             prescription.RowCount = gridDescriptor.RowCount;
         }
 
+        private static List<NumericRepresentationValue> LoadRateFromTreatmentZones(string zoneId, Dictionary<int, TreatmentZone> treatmentZones)
+        {
+            var rates = new List<NumericRepresentationValue>();
+            int treatmentZoneId;
+            if (!zoneId.ParseValue(out treatmentZoneId))
+                return rates;
+
+            if (!treatmentZones.ContainsKey(treatmentZoneId))
+                return rates;
+
+            var treatmentZone = treatmentZones[treatmentZoneId];
+            if (treatmentZone.Variables == null || treatmentZone.Variables.Count == 0)
+                return rates;
+
+            foreach (var dataVariable in treatmentZone.Variables)
+            {
+                rates.Add(new NumericRepresentationValue
+                {
+                    Value = new NumericValue(dataVariable.IsoUnit.ToAdaptUnit(), dataVariable.Value),
+                    UserProvidedUnitOfMeasure = dataVariable.UserUnit
+                });
+            }
+            return rates;
+        }
+
         private void LoadProducts(TreatmentZone treatmentZone, RasterGridPrescription prescription)
         {
-            var productLookup = new List<int>();
+            var productIds = new List<int>();
             foreach (var dataVariable in treatmentZone.Variables)
             {
                 var product = _taskDocument.Products.FindById(dataVariable.ProductId) ?? _taskDocument.ProductMixes.FindById(dataVariable.ProductId);
-                productLookup.Add(product == null ? 0 : product.Id.ReferenceId);
+                productIds.Add(product == null ? 0 : product.Id.ReferenceId);
             }
-            prescription.ProductIds = productLookup;
+            prescription.ProductIds = productIds;
+        }
+
+        private static void LoadRateUnits(TreatmentZone treatmentZone, RasterGridPrescription prescription)
+        {
+            var rateUnits = new List<UnitOfMeasure>();
+            foreach (var dataVariable in treatmentZone.Variables)
+            {
+                rateUnits.Add(dataVariable.IsoUnit.ToAdaptUnit());
+            }
+            prescription.RateUnit = rateUnits.FirstOrDefault();
         }
 
         private static List<RxRates> LoadRatesFromProducts(GridDescriptor gridDescriptor, List<int> productIds)
@@ -175,15 +219,7 @@ namespace AgGateway.ADAPT.IsoPlugin
 
                 for (int productIndex = 0; productIndex < productRates.Count; productIndex++)
                 {
-                    var productRate = new RxRate
-                    {
-                        Rate = productRates[productIndex],
-                        ProductId = productIds[productIndex]
-                    };
-                    if (productRate.ProductId == 0)
-                        productRate.ProductId = null;
-
-                    rate.RxRate.Add(productRate);
+                    AddRate(productIds[productIndex], productRates[productIndex], rate);
                 }
 
                 rates.Add(rate);
@@ -206,22 +242,26 @@ namespace AgGateway.ADAPT.IsoPlugin
                 for (int i = 0; i < treatmentZone.Variables.Count; i++)
                 {
                     var dataVariable = treatmentZone.Variables[i];
-                    var productRate = new RxRate
-                    {
-                        Rate = dataVariable.Value.Value.Value,
-                        ProductId = productIds[i]
-                    };
-
-                    if (productRate.ProductId == 0)
-                        productRate.ProductId = null;
-
-                    rate.RxRate.Add(productRate);
+                    AddRate(productIds[i], dataVariable.Value, rate);
                 }
 
                 rates.Add(rate);
             }
 
             return rates;
+        }
+
+        private static void AddRate(int productId, double productRate, RxRates rates)
+        {
+            var rxRate = new RxRate
+            {
+                Rate = productRate,
+                ProductId = productId
+            };
+            if (rxRate.ProductId == 0)
+                rxRate.ProductId = null;
+
+            rates.RxRate.Add(rxRate);
         }
     }
 }

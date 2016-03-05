@@ -143,8 +143,8 @@ namespace AgGateway.ADAPT.IsoPlugin
             var unit = LoadUnit(inputNode);
             var userUnit = _taskDocument.Units.FindById(inputNode.GetXmlNodeValue("@D"));
 
-            var numericValue = new NumericValue(unit.ToModelUom(), unit.ConvertToUnit(quantity));
-            productMix.TotalQuantity = new NumericRepresentationValue(null, userUnit.ToModelUom(), numericValue);
+            var numericValue = new NumericValue(unit.ToAdaptUnit(), unit.ConvertFromIsoUnit(quantity));
+            productMix.TotalQuantity = new NumericRepresentationValue(null, userUnit.ToAdaptUnit(), numericValue);
         }
 
         private bool LoadProductComponents(XmlNodeList inputNodes, ProductMix productMix)
@@ -180,7 +180,7 @@ namespace AgGateway.ADAPT.IsoPlugin
                 return null;
 
             var unit = _taskDocument.UnitsByItemId.FindById(productId);
-            var numericValue = new NumericValue(unit.ToModelUom(), unit.ConvertToUnit(quantity));
+            var numericValue = new NumericValue(unit.ToAdaptUnit(), unit.ConvertFromIsoUnit(quantity));
 
             var ingredient = new ActiveIngredient
             {

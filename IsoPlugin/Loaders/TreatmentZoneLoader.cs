@@ -80,12 +80,13 @@ namespace AgGateway.ADAPT.IsoPlugin
 
             var unit = UnitFactory.Instance.GetUnitByDdi(ddi);
 
-            var dataVariable = new DataVariable();
-
-            var numericValue = new NumericValue(unit.ToModelUom(), unit.ConvertToUnit(dataValue));
-            dataVariable.Value = new NumericRepresentationValue(null, userUnit.ToModelUom(), numericValue);
-
-            dataVariable.ProductId = inputNode.GetXmlNodeValue("@C");
+            var dataVariable = new DataVariable
+            {
+                Value = unit.ConvertFromIsoUnit(dataValue),
+                ProductId = inputNode.GetXmlNodeValue("@C"),
+                IsoUnit = unit,
+                UserUnit = userUnit.ToAdaptUnit()
+            };
 
             return dataVariable;
         }

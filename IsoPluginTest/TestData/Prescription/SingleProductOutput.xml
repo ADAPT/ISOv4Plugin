@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<XFC>
+  <TSK A="TSK1" B="test" G="1">
+    <TZN A="1" B="Default">
+      <PDV A="0006" B="0" C="PDT1" />
+    </TZN>
+    <GRD A="2" B="1" C="0.00020000000000" D="0.00010000000000" E="3" F="3" G="GRD00000" I="2" J="1" />
+  </TSK>
+</XFC>

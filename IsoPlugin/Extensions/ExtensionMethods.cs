@@ -48,7 +48,7 @@ namespace AgGateway.ADAPT.IsoPlugin
             return double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out result);
         }
 
-        internal static double ConvertToUnit(this IsoUnit unit, double value)
+        internal static double ConvertFromIsoUnit(this IsoUnit unit, double value)
         {
             if (unit == null)
                 return value;
@@ -56,7 +56,15 @@ namespace AgGateway.ADAPT.IsoPlugin
             return (value + unit.Offset) * unit.Scale;
         }
 
-        internal static UnitOfMeasure ToModelUom(this IsoUnit isoUnit)
+        internal static double ConvertToIsoUnit(this IsoUnit unit, double value)
+        {
+            if (unit == null)
+                return value;
+
+            return value / unit.Scale - unit.Offset;
+        }
+
+        internal static UnitOfMeasure ToAdaptUnit(this IsoUnit isoUnit)
         {
             if (isoUnit == null)
                 return null;
@@ -66,7 +74,7 @@ namespace AgGateway.ADAPT.IsoPlugin
             return adaptUnuit;
         }
 
-        internal static UnitOfMeasure ToModelUom(this ValuePresentation unit)
+        internal static UnitOfMeasure ToAdaptUnit(this ValuePresentation unit)
         {
             if (unit == null)
                 return null;
