@@ -63,7 +63,7 @@ namespace AgGateway.ADAPT.IsoPlugin.Writers
             writer.WriteEndElement();
         }
 
-        private string ValidateAndGetPatternType(GuidancePattern guidancePattern)
+        private static string ValidateAndGetPatternType(GuidancePattern guidancePattern)
         {
             switch (guidancePattern.GuidancePatternType)
             {
@@ -110,7 +110,7 @@ namespace AgGateway.ADAPT.IsoPlugin.Writers
             return null;
         }
 
-        private string GetPropagationDirection(PropagationDirectionEnum propagationDirection)
+        private static string GetPropagationDirection(PropagationDirectionEnum propagationDirection)
         {
             switch (propagationDirection)
             {
@@ -129,7 +129,7 @@ namespace AgGateway.ADAPT.IsoPlugin.Writers
             return null;
         }
 
-        private string GetExtension(GuidanceExtensionEnum extension)
+        private static string GetExtension(GuidanceExtensionEnum extension)
         {
             switch (extension)
             {
@@ -149,7 +149,7 @@ namespace AgGateway.ADAPT.IsoPlugin.Writers
             return null;
         }
 
-        private string GetHeading(GuidancePattern guidancePattern)
+        private static string GetHeading(GuidancePattern guidancePattern)
         {
             double? heading = null;
             switch (guidancePattern.GuidancePatternType)
@@ -187,7 +187,7 @@ namespace AgGateway.ADAPT.IsoPlugin.Writers
             return null;
         }
 
-        private string GetAccuracy(NumericRepresentationValue accuracyValue)
+        private static string GetAccuracy(NumericRepresentationValue accuracyValue)
         {
             if (accuracyValue == null || accuracyValue.Value == null)
                 return null;
@@ -223,12 +223,12 @@ namespace AgGateway.ADAPT.IsoPlugin.Writers
             }
         }
 
-        private void WriteAbCurve(XmlWriter writer, AbCurve abCurve)
+        private static void WriteAbCurve(XmlWriter writer, AbCurve abCurve)
         {
             ShapeWriter.WriteLine(writer, abCurve.Shape[0], "5");
         }
 
-        private void WriteAbLine(XmlWriter writer, AbLine abLine)
+        private static void WriteAbLine(XmlWriter writer, AbLine abLine)
         {
             var line = new LineString { Points = new List<Point>() };
             line.Points.Add(abLine.A);
@@ -237,7 +237,7 @@ namespace AgGateway.ADAPT.IsoPlugin.Writers
             ShapeWriter.WriteLine(writer, line, "5");
         }
 
-        private void WriteAplus(XmlWriter writer, APlus aPlus)
+        private static void WriteAplus(XmlWriter writer, APlus aPlus)
         {
             var line = new LineString { Points = new List<Point>() };
             line.Points.Add(aPlus.Point);
@@ -245,7 +245,7 @@ namespace AgGateway.ADAPT.IsoPlugin.Writers
             ShapeWriter.WriteLine(writer, line, "5");
         }
 
-        private void WritePivot(XmlWriter writer, CenterPivot centerPivot)
+        private static void WritePivot(XmlWriter writer, CenterPivot centerPivot)
         {
             var line = new LineString { Points = new List<Point>() };
             line.Points.Add(centerPivot.Center);
@@ -260,12 +260,12 @@ namespace AgGateway.ADAPT.IsoPlugin.Writers
             ShapeWriter.WriteLine(writer, line, "5");
         }
 
-        private void WriteSpiral(XmlWriter writer, Spiral spiral)
+        private static void WriteSpiral(XmlWriter writer, Spiral spiral)
         {
             ShapeWriter.WriteLine(writer, spiral.Shape, "5");
         }
 
-        private void WriteBoundary(XmlWriter writer, MultiPolygon boundary)
+        private static void WriteBoundary(XmlWriter writer, MultiPolygon boundary)
         {
             if (boundary == null || boundary.Polygons == null || boundary.Polygons.Count == 0)
                 return;

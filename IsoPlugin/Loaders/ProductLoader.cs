@@ -74,7 +74,7 @@ namespace AgGateway.ADAPT.IsoPlugin
                 return null;
 
             // Optional fields
-            LoadQuantity(inputNode, productId, product);
+            LoadQuantity(inputNode, productId);
 
             _taskDocument.LoadLinkedIds(productId, product.Id);
             return product;
@@ -112,7 +112,7 @@ namespace AgGateway.ADAPT.IsoPlugin
                 inputNode.SelectNodes("PRN").Count > 0;
         }
 
-        private void LoadQuantity(XmlNode inputNode, string productId, Product product)
+        private void LoadQuantity(XmlNode inputNode, string productId)
         {
             //var valueUnitId = inputNode.GetXmlNodeValue("@D");
             var quantityDdiValue = inputNode.GetXmlNodeValue("@E");

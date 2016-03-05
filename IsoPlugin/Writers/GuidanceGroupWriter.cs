@@ -56,7 +56,7 @@ namespace AgGateway.ADAPT.IsoPlugin.Writers
             }
         }
 
-        private void WriteBoundary(XmlWriter writer, MultiPolygon boundary)
+        private static void WriteBoundary(XmlWriter writer, MultiPolygon boundary)
         {
             if (boundary == null || boundary.Polygons == null || boundary.Polygons.Count == 0)
                 return;
