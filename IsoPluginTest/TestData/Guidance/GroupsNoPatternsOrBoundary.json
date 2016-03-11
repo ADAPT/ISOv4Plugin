@@ -8,7 +8,8 @@
                 "Description": "Field",
                 "GuidanceGroupIds": [
                     -2,
-                    -3
+                    -3,
+                    -4
                 ]
             }
         ],
@@ -24,6 +25,13 @@
                     "ReferenceId": -3
                 },
                 "Description": "guidance group 2"
+            },
+            {
+                "Id": {
+                    "ReferenceId": -4
+                },
+                "Description": "guidance group 3",
+                "GuidancePatternIds": []
             }
         ]
     }

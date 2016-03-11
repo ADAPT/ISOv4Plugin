@@ -1,0 +1,72 @@
+﻿{
+    "Catalog": {
+		"ContactInfo": [
+			{
+				"AddressLine1": "line",
+				"City": "city",
+				"Country": "country",
+				"Id": { "ReferenceId": -1 },
+				"PoBoxNumber": "po box",
+				"PostalCode": "postal code",
+                "StateOrProvince": "state",
+                "Contacts": [
+                    {
+                        "Number": "Fixed",
+                        "Type": "FixedPhone"
+                    },
+                    {
+                        "Number": "Mobile",
+                        "Type": "MobilePhone"
+                    },
+                    {
+                        "Number": "Fax",
+                        "Type": "Fax"
+                    },
+                    {
+                        "Number": "Email",
+                        "Type": "Email"
+                    }
+                ]
+			},
+			{
+				"AddressLine1": "line2",
+				"City": "city2",
+				"Country": "country2",
+				"Id": { "ReferenceId": -2 },
+				"PoBoxNumber": "po box2",
+				"PostalCode": "postal code2",
+				"StateOrProvince": "state2",
+                "Contacts": [
+                    {
+                        "Number": "Fixed2",
+                        "Type": "FixedPhone"
+                    },
+                    {
+                        "Number": "Mobile2",
+                        "Type": "MobilePhone"
+                    },
+                    {
+                        "Number": "Fax2",
+                        "Type": "Fax"
+                    },
+                    {
+                        "Number": "Email2",
+                        "Type": "Email"
+                    }
+                ]
+			}
+		],
+		"Persons": [
+			{
+				"LastName": "last",
+				"FirstName": "first",
+				"ContactInfoId": -1,
+			},
+			{
+				"LastName": "last2",
+				"FirstName": "first2",
+				"ContactInfoId": -2
+			}
+		]
+    }
+}

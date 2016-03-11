@@ -1,0 +1,35 @@
+﻿{
+    "Catalog": {
+		"ContactInfo": [
+			{
+				"AddressLine1": "line",
+				"City": "city",
+				"Country": "country",
+				"Id": { "ReferenceId": -1 },
+				"PoBoxNumber": "po box",
+				"PostalCode": "postal code",
+				"StateOrProvince": "state"
+			},
+			{
+                "Id": { "ReferenceId": -3 },
+                "Contacts": [ ]
+			}
+		],
+		"Persons": [
+			{
+				"LastName": "last",
+				"FirstName": "first",
+				"ContactInfoId": -2
+			},
+			{
+				"LastName": "last2",
+				"FirstName": "first2"
+			},
+			{
+				"LastName": "last3",
+				"FirstName": "first3",
+				"ContactInfoId": -3
+			}
+		]
+    }
+}

@@ -1,0 +1,14 @@
+﻿{
+	"Name": "zone1",
+	"Variables": [
+		{
+			"ProductId": "PDT1",
+			"IsoUnit": {
+				"Code": "l",
+				"Scale": 0.01,
+				"Offset": 0
+			},
+			"Value": 100
+		}
+	]
+}

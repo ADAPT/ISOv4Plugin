@@ -1,8 +1,6 @@
 ﻿using System.IO;
-using System.Runtime.Serialization.Formatters;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
 using AgGateway.ADAPT.IsoPlugin.Writers;
-using Newtonsoft.Json;
 using NUnit.Framework;
 
 namespace IsoPluginTest.Writers
@@ -23,7 +21,7 @@ namespace IsoPluginTest.Writers
         {
             // Setup
             var taskWriter = new TaskDocumentWriter();
-            var adaptDocument = TestHelpers.LoadApplicationModel(@"TestData\Guidance\AllPatterns.json");
+            var adaptDocument = TestHelpers.LoadFromJson<ApplicationDataModel>(@"TestData\Guidance\AllPatterns.json");
 
             // Act
             using (taskWriter)

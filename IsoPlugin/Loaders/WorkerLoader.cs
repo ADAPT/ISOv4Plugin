@@ -88,7 +88,7 @@ namespace AgGateway.ADAPT.IsoPlugin
 
             LoadPhoneNumbers(inputNode, contactInfo);
 
-            //worker.ContactInfo = contactInfo;
+            worker.ContactInfoId = contactInfo.Id.ReferenceId;
 
             _taskDocument.Contacts.Add(contactInfo);
         }

@@ -74,6 +74,9 @@
     <Compile Include="Loaders\CustomerLoaderTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestHelpers.cs" />
+    <Compile Include="Writers\TreatmentZoneWriterTests.cs" />
+    <Compile Include="Writers\ShapeWriterTests.cs" />
+    <Compile Include="Writers\WorkerWriterTests.cs" />
     <Compile Include="Writers\PrescriptionWriterTests.cs" />
     <Compile Include="Writers\GuidancePatternWriterTests.cs" />
     <Compile Include="Writers\GuidanceGroupWriterTests.cs" />
@@ -328,8 +331,52 @@
     <Content Include="TestData\Prescription\SingleProduct.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="TestData\TreatmentZone\MissingUnitOutput.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestData\TreatmentZone\UnsupportedUnitDimensionOutput.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestData\TreatmentZone\NoVariablesOutput.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestData\TreatmentZone\MultipleVariablesOutput.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestData\Worker\WorkersWithAllData.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestData\Worker\WorkersWithAllDataOutput.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestData\Worker\WorkersWithNoContacts.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestData\Worker\WorkersWithNoContactsOutput.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestData\Worker\NoWorkersPresent.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestData\TreatmentZone\MultipleVariables.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestData\TreatmentZone\NoVariables.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestData\TreatmentZone\MissingUnit.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestData\TreatmentZone\UnsupportedUnitDimension.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestData\Worker\ZeroWorkersPresent.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="TestData\Shape\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
