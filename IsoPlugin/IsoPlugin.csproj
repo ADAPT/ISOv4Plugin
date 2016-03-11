@@ -1,0 +1,131 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{7243FE86-34AF-42F5-B605-BBE0FA6B41F0}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>AgGateway.ADAPT.IsoPlugin</RootNamespace>
+    <AssemblyName>AgGateway.ADAPT.IsoPlugin</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="AgGateway.ADAPT.ApplicationDataModel, Version=1.0.0.1, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\AgGatewayADAPTFramework.1.0.0.19\lib\AgGateway.ADAPT.ApplicationDataModel.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="AgGateway.ADAPT.PluginManager, Version=1.0.0.1, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\AgGatewayADAPTFramework.1.0.0.19\lib\AgGateway.ADAPT.PluginManager.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="AgGateway.ADAPT.Representation, Version=1.0.0.1, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\AgGatewayADAPTFramework.1.0.0.19\lib\AgGateway.ADAPT.Representation.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="IsoPlugin.cs" />
+    <Compile Include="Loaders\AllocationTimestampLoader.cs" />
+    <Compile Include="Loaders\CommentAllocationLoader.cs" />
+    <Compile Include="Loaders\CommentLoader.cs" />
+    <Compile Include="Loaders\GridLoader.cs" />
+    <Compile Include="Loaders\GuidanceAllocationLoader.cs" />
+    <Compile Include="Loaders\TaskLoader.cs" />
+    <Compile Include="Loaders\TreatmentZoneLoader.cs" />
+    <Compile Include="Loaders\WorkerLoader.cs" />
+    <Compile Include="Loaders\DeviceLoader.cs" />
+    <Compile Include="Loaders\UnitLoader.cs" />
+    <Compile Include="Loaders\ProductMixLoader.cs" />
+    <Compile Include="Loaders\ProductLoader.cs" />
+    <Compile Include="Loaders\CropVarietyLoader.cs" />
+    <Compile Include="Extensions\ExtensionMethods.cs" />
+    <Compile Include="Loaders\CropLoader.cs" />
+    <Compile Include="Loaders\FarmLoader.cs" />
+    <Compile Include="Loaders\FieldLoader.cs" />
+    <Compile Include="Loaders\LinkListLoader.cs" />
+    <Compile Include="Models\CodedComment.cs" />
+    <Compile Include="Loaders\PrescriptionLoader.cs" />
+    <Compile Include="Models\GridDescriptor.cs" />
+    <Compile Include="Models\IsoUnit.cs" />
+    <Compile Include="Models\DataVariable.cs" />
+    <Compile Include="Models\TreatmentZone.cs" />
+    <Compile Include="Models\ValuePresentation.cs" />
+    <Compile Include="Models\GuidanceGroupDescriptor.cs" />
+    <Compile Include="Loaders\GuidancePatternLoader.cs" />
+    <Compile Include="Loaders\GuidanceGroupLoader.cs" />
+    <Compile Include="Models\IsoVersionEnum.cs" />
+    <Compile Include="Loaders\CustomerLoader.cs" />
+    <Compile Include="Loaders\ShapeLoader.cs" />
+    <Compile Include="Models\TaskDataDocument.cs" />
+    <Compile Include="Models\TCError.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Extensions\XmlExtensions.cs" />
+    <Compile Include="UnitFactory.cs" />
+    <Compile Include="Writers\CommentWriter.cs" />
+    <Compile Include="Writers\CommentListWriter.cs" />
+    <Compile Include="Writers\CropVarietyWriter.cs" />
+    <Compile Include="Writers\BaseWriter.cs" />
+    <Compile Include="Writers\CropWriter.cs" />
+    <Compile Include="Writers\CustomerWriter.cs" />
+    <Compile Include="Writers\FarmWriter.cs" />
+    <Compile Include="Writers\FieldWriter.cs" />
+    <Compile Include="Writers\GridWriter.cs" />
+    <Compile Include="Writers\GuidancePatternWriter.cs" />
+    <Compile Include="Writers\IsoRootWriter.cs" />
+    <Compile Include="Writers\PrescriptionWriter.cs" />
+    <Compile Include="Writers\ProductWriter.cs" />
+    <Compile Include="Writers\GuidanceGroupWriter.cs" />
+    <Compile Include="Writers\ShapeWriter.cs" />
+    <Compile Include="Writers\TaskDocumentWriter.cs" />
+    <Compile Include="Writers\TreatmentZoneWriter.cs" />
+    <Compile Include="Writers\WorkerWriter.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\RepresentationSystem.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\UnitSystem.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

@@ -1,0 +1,38 @@
+﻿{
+    "Catalog": {
+        "Fields": [
+            {
+                "Id": {
+                    "ReferenceId": -1
+                },
+                "Description": "Field",
+                "GuidanceGroupIds": [
+                    -2,
+                    -3,
+                    -4
+                ]
+            }
+        ],
+        "GuidanceGroups": [
+            {
+                "Id": {
+                    "ReferenceId": -2
+                },
+                "Description": "guidance group 1"
+            },
+            {
+                "Id": {
+                    "ReferenceId": -3
+                },
+                "Description": "guidance group 2"
+            },
+            {
+                "Id": {
+                    "ReferenceId": -4
+                },
+                "Description": "guidance group 3",
+                "GuidancePatternIds": []
+            }
+        ]
+    }
+}

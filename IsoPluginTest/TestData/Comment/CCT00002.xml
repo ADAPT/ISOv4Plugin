@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<XFC>
+  <CCT A="CCT2" B="Comment 2" C="2">
+    <CCL A="CCL3" B="Comment value 3" />
+    <CCL A="CCL4" B="Comment value 4" />
+  </CCT>
+</XFC>

@@ -1,0 +1,9 @@
+﻿{
+	"Name": "zone1",
+	"Variables": [
+		{
+			"ProductId": "PDT1",
+			"Value": 100
+		}
+	]
+}

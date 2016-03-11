@@ -1,0 +1,51 @@
+﻿{
+    "Catalog": {
+        "FertilizerProducts": [
+            {
+                "Description": "product",
+                "Id": {
+                    "ReferenceId": -1
+                }
+            }
+        ],
+
+        "Prescriptions": [
+            {
+                "$type": "AgGateway.ADAPT.ApplicationDataModel.Prescriptions.RasterGridPrescription, AgGateway.ADAPT.ApplicationDataModel",
+                "RowCount": 3,
+                "ColumnCount": 3,
+                "Origin": {
+                    "X": 1,
+                    "Y": 2
+                },
+                "CellWidth": {
+                    "Value": {
+                        "Value": 0.0001
+                    }
+                },
+                "CellHeight": {
+                    "Value": {
+                        "Value": 0.0002
+                    }
+                },
+                "RateUnit": {
+                    "Code": "kg1[m2]-1",
+                    "Dimension": 76,
+                },
+                "Description": "test",
+                "ProductIds": [ -1 ],
+                "Rates": [
+                    {"RxRate": [ { "ProductId": -1, "Rate": 1 }]},
+                    {"RxRate": [ { "ProductId": -1, "Rate": 2 }]},
+                    {"RxRate": [ { "ProductId": -1, "Rate": 3 }]},
+                    {"RxRate": [ { "ProductId": -1, "Rate": 4 }]},
+                    {"RxRate": [ { "ProductId": -1, "Rate": 5 }]},
+                    {"RxRate": [ { "ProductId": -1, "Rate": 6 }]},
+                    {"RxRate": [ { "ProductId": -1, "Rate": 7 }]},
+                    {"RxRate": [ { "ProductId": -1, "Rate": 8 }]},
+                    {"RxRate": [ { "ProductId": -1, "Rate": 9 }]}
+                ]
+            }
+        ]
+    }
+}

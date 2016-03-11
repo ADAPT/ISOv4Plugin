@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ISO11783_TaskData TaskControllerVersion=""
+                   VersionMinor="1"
+                   ManagementSoftwareManufacturer="Topcon Precision Agriculture"
+                   DataTransferOrigin="2"
+                   ManagementSoftwareVersion="1.0"
+                   TaskControllerManufacturer=""
+                   VersionMajor="4" >
+
+  <TestCase name="missing east position attribute">
+    <ASP A="2016-02-02T14:01:01.111Z" D="1">
+      <PTN A="54.588945" D="5" G="2" H="10000" I="500" />
+    </ASP>
+  </TestCase>
+
+  <TestCase name="missing north position attribute">
+    <ASP A="2016-02-02T14:01:01.111Z" D="1">
+      <PTN B="9.989209" D="6" G="2" H="10000" I="500" />
+    </ASP>
+  </TestCase>
+
+  <TestCase name="missing position attributes">
+    <ASP A="2016-02-02T14:01:01.111Z" D="1">
+      <PTN D="3" G="7" H="10000" I="500" />
+    </ASP>
+  </TestCase>
+
+</ISO11783_TaskData>

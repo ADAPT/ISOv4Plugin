@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<XFC>
+  <PFD A="PFD1" C="Field" D="0">
+    <GGP A="GGP1" B="guidance group 1" />
+    <GGP A="GGP2" B="guidance group 2" />
+    <GGP A="GGP3" B="guidance group 3" />
+  </PFD>
+</XFC>

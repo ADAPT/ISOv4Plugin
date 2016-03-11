@@ -1,0 +1,32 @@
+﻿{
+	"Name": "zone1",
+	"Variables": [
+		{
+			"ProductId": "PDT1",
+			"IsoUnit": {
+				"Code": "kg1ha-1",
+				"Scale": 0.01,
+				"Offset": 0
+			},
+			"Value": 100
+		},
+		{
+			"ProductId": "PDT2",
+			"IsoUnit": {
+				"Code": "l1ha-1",
+				"Scale": 0.0001,
+				"Offset": 0
+			},
+			"Value": 200
+		},
+		{
+			"ProductId": "PDT3",
+			"IsoUnit": {
+				"Code": "g1sec-1",
+				"Scale": 0.001,
+				"Offset": 0
+			},
+			"Value": 300
+		}
+	]
+}

@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<XFC>
+  <CTP A="CTP2" B="Crop 2">
+    <CVT A="CVT3" B="Variety 3" />
+    <CVT A="CVT4" B="Variety 4" />
+  </CTP>
+</XFC>

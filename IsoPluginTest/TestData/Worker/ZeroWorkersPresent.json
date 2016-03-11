@@ -1,0 +1,15 @@
+﻿{
+    "Catalog": {
+		"ContactInfo": [
+			{
+				"AddressLine1": "line",
+				"City": "city",
+				"Country": "country",
+				"Id": { "ReferenceId": -1 },
+				"PoBoxNumber": "po box",
+				"PostalCode": "postal code",
+				"StateOrProvince": "state"
+			}
+		]
+    }
+}

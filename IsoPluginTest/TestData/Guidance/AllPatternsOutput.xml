@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<XFC>
+  <PFD A="PFD1" C="Field" D="0">
+    <GGP A="GGP1" B="guidance group">
+      <GPN A="GPN1" B="AbLine" C="1" E="1">
+        <LSG A="5">
+          <PNT A="2" B="start" C="2" D="1" />
+          <PNT A="2" B="end" C="4" D="3" />
+        </LSG>
+        <PLN A="1">
+          <LSG A="1">
+            <PNT A="2" B="start" C="2" D="1" />
+          </LSG>
+        </PLN>
+      </GPN>
+      <GPN A="GPN2" B="APlus" C="2" E="1" G="0">
+        <LSG A="5">
+          <PNT A="2" B="start" C="2" D="1" />
+        </LSG>
+        <PLN A="1">
+          <LSG A="1">
+            <PNT A="2" B="start" C="21" D="11" />
+          </LSG>
+        </PLN>
+      </GPN>
+      <GPN A="GPN3" B="AbCurve" C="3" E="1">
+        <LSG A="5">
+          <PNT A="2" B="start" C="2" D="1" />
+          <PNT A="2" B="end" C="4" D="3" />
+        </LSG>
+        <PLN A="1">
+          <LSG A="1">
+            <PNT A="2" B="start" C="22" D="21" />
+          </LSG>
+        </PLN>
+      </GPN>
+      <GPN A="GPN4" B="CenterPivot" C="4" E="1">
+        <LSG A="5">
+          <PNT A="2" B="start" C="2" D="1" />
+          <PNT A="2" C="6" D="5" />
+          <PNT A="2" B="end" C="4" D="3" />
+        </LSG>
+        <PLN A="1">
+          <LSG A="1">
+            <PNT A="2" B="start" C="32" D="31" />
+          </LSG>
+        </PLN>
+      </GPN>
+      <GPN A="GPN5" B="AbLine" C="5" E="1">
+        <LSG A="5">
+          <PNT A="2" B="start" C="2" D="1" />
+          <PNT A="2" B="end" C="4" D="3" />
+        </LSG>
+        <PLN A="1">
+          <LSG A="1">
+            <PNT A="2" B="start" C="42" D="41" />
+          </LSG>
+        </PLN>
+      </GPN>
+    </GGP>
+  </PFD>
+</XFC>

@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ISO11783_TaskData TaskControllerVersion=""
+                   VersionMinor="1"
+                   ManagementSoftwareManufacturer="Topcon Precision Agriculture"
+                   DataTransferOrigin="2"
+                   ManagementSoftwareVersion="1.0"
+                   TaskControllerManufacturer=""
+                   VersionMajor="4" >
+
+  <TestCase name="missing start attribute">
+    <ASP D="1">
+    </ASP>
+  </TestCase>
+
+  <TestCase name="missing type attribute">
+    <ASP A="2016-02-02T14:01:01.111Z">
+    </ASP>
+  </TestCase>
+
+  <TestCase name="no asp element exists">
+  </TestCase>
+
+  <TestCase name="invalid dateime format">
+    <ASP A="2016-02-00 14:01" D="1">
+    </ASP>
+  </TestCase>
+
+</ISO11783_TaskData>
