@@ -173,7 +173,7 @@ namespace AgGateway.ADAPT.IsoPlugin.Writers
             return heading.Value.ToString(CultureInfo.InvariantCulture);
         }
 
-        private string WriteGpsData(XmlWriter writer, GpsSource gpsSource)
+        private static string WriteGpsData(XmlWriter writer, GpsSource gpsSource)
         {
             if (gpsSource == null)
                 return null;
@@ -197,7 +197,7 @@ namespace AgGateway.ADAPT.IsoPlugin.Writers
             return accuracy.ToString(CultureInfo.InvariantCulture);
         }
 
-        private void WritePattern(XmlWriter writer, GuidancePattern guidancePattern)
+        private static void WritePattern(XmlWriter writer, GuidancePattern guidancePattern)
         {
             switch (guidancePattern.GuidancePatternType)
             {

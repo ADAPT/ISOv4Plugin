@@ -1,4 +1,11 @@
-﻿using AgGateway.ADAPT.ApplicationDataModel.ADM;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Xml;
+using AgGateway.ADAPT.ApplicationDataModel.ADM;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.Equipment;
 using AgGateway.ADAPT.ApplicationDataModel.FieldBoundaries;
@@ -8,13 +15,6 @@ using AgGateway.ADAPT.ApplicationDataModel.Logistics;
 using AgGateway.ADAPT.ApplicationDataModel.Prescriptions;
 using AgGateway.ADAPT.ApplicationDataModel.Products;
 using AgGateway.ADAPT.ApplicationDataModel.ReferenceLayers;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Xml;
 
 namespace AgGateway.ADAPT.IsoPlugin
 {
@@ -146,12 +146,27 @@ namespace AgGateway.ADAPT.IsoPlugin
             Errors = new ReadOnlyCollection<IError>(errors);
         }
 
+        private void SetError(string message)
+        {
+            List<IError> errors = new List<IError>();
+
+            errors.Add(new TCError
+            {
+                Id = string.Empty,
+                Description = message,
+                Source = "IsoPlugin",
+                StackTrace = string.Empty
+            });
+
+            Errors = new ReadOnlyCollection<IError>(errors);
+        }
+
         private bool VerifyIsoVersion()
         {
             RootNode = _taskDataXmlDocument.SelectSingleNode("ISO11783_TaskData");
             if (RootNode == null)
             {
-                SetError(new ApplicationException("Missing required ISO11783_TaskData"));
+                SetError("Missing required ISO11783_TaskData");
                 return false;
             }
 
@@ -159,7 +174,7 @@ namespace AgGateway.ADAPT.IsoPlugin
             IsoVersionEnum isoVersion;
             if (majorVersion == null || Enum.TryParse(majorVersion, true, out isoVersion) == false)
             {
-                SetError(new ApplicationException("Missing required VersionMajor attribute or its value is not supported"));
+                SetError("Missing required VersionMajor attribute or its value is not supported");
                 return false;
             }
             IsoVersion = isoVersion;
