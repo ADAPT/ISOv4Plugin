@@ -37,16 +37,6 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             Assert.AreEqual(RepresentationInstanceList.dtHitchType.ToModelRepresentation().Code, result[0].Representation.Code);
         }
 
-        //[Test]
-        //public void GivenValueZeroWhenCreateThenReturnsUnknown()
-        //{
-        //    //TODO:  There is no unknown representation
-        //    var value = MakeSpatialValue(0);
-        //    var result = _creator.GetValueForMeter(value, CreateMeter());
-
-        //    //Assert.AreEqual(DefinedTypeEnumerationInstanceList.dtiWeightUnStable.ToModelEnumMember().Code, result.Code);
-        //}
-
         [Test]
         public void GivenValueOneWhenCreateThenReturnsDrawbar()
         {
@@ -74,35 +64,6 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             Assert.AreEqual(DefinedTypeEnumerationInstanceList.dtiThreePoint.ToModelEnumMember().Code, result.Code);
         }
 
-        //[Test]
-        //public void GivenValueFourWhenCreateThenReturnsHitchhook()
-        //{
-        //    // TODO:  There is no representation for Hitch-hook
-        //    var value = MakeSpatialValue(4);
-        //    var result = _creator.GetValueForMeter(value, CreateMeter());
-
-        //    Assert.AreEqual(DefinedTypeEnumerationInstanceList.dtiThreePoint.ToModelEnumMember().Code, result.Code);
-        //}
-
-        //[Test]
-        //public void GivenValueFiveWhenCreateThenReturnsClevisCoupling()
-        //{
-        //    // TODO:  There is no representation for Clevis coupling
-        //    var value = MakeSpatialValue(5);
-        //    var result = _creator.GetValueForMeter(value, CreateMeter());
-
-        //    Assert.AreEqual(DefinedTypeEnumerationInstanceList.dtiThreePoint.ToModelEnumMember().Code, result.Code);
-        //}
-
-        //[Test]
-        //public void GivenValueSixWhenCreateThenReturnsPitonTypeCoupling()
-        //{
-        //    var value = MakeSpatialValue(6);
-        //    var result = _creator.GetValueForMeter(value, CreateMeter());
-
-        //    Assert.AreEqual(DefinedTypeEnumerationInstanceList.dtiThreePoint.ToModelEnumMember().Code, result.Code);
-        //}
-
         [Test]
         public void GivenValueSevenWhenCreateThenReturnsPivotWagonHitch()
         {
@@ -111,15 +72,6 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
 
             Assert.AreEqual(DefinedTypeEnumerationInstanceList.dtiRearPivotWagonHitch.ToModelEnumMember().Code, result.Code);
         }
-
-        //[Test]
-        //public void GivenValueEightWhenCreateThenReturnsBallHitch()
-        //{
-        //    var value = MakeSpatialValue(8);
-        //    var result = _creator.GetValueForMeter(value, CreateMeter());
-
-        //    Assert.AreEqual(DefinedTypeEnumerationInstanceList.dtiThreePoint.ToModelEnumMember().Code, result.Code);
-        //}
 
         [Test]
         public void GivenMetersWithDrawbarWhenGetMetersValueThenOne()

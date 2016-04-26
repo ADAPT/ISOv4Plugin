@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
+using AgGateway.ADAPT.ISOv4Plugin.Extensions;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
+using AgGateway.ADAPT.Representation.RepresentationSystem;
 using NUnit.Framework;
 
 namespace AcceptanceTests.Asserts.Export
@@ -12,15 +14,14 @@ namespace AcceptanceTests.Asserts.Export
         {
             Assert.AreEqual(meters.Count(), dlVs.Count);
 
-            foreach (var meter in meters)
+            var sortedMeters = meters.OrderBy(x => x.Id.FindIntIsoId()).ToList();
+            for (int i = 0; i < sortedMeters.Count; i++)
             {
-                //TODO: find way to get matching DLV to meter??
-                //                if(meters[i].Representation != null)
-                //                {
-                //                    var matchingRepresentation = RepresentationManager.Instance.Representations.FirstOrDefault(x => x.DomainId == meters[i].Representation.Code);
-                //                    if(matchingRepresentation != null)
-                //                        Assert.AreEqual(matchingRepresentation.Ddi, timHeader.DLVs[i].ProcessDataDDI.Value);
-                //                }
+                var meter = sortedMeters[i];
+                var dlv = dlVs[i];
+                var matchingRepresentation = RepresentationManager.Instance.Representations.FirstOrDefault(x => x.DomainId == meter.Representation.Code);
+                if (matchingRepresentation != null)
+                    Assert.AreEqual(matchingRepresentation.Ddi, dlv.ProcessDataDDI.Value);
             }
         }
     }

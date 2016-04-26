@@ -53,7 +53,6 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenValueNscWhenGetValueThenReturnsMostlySunny()
         {
-            //TODO:  There is no mostly sunny  - map to sunny?
             var bytes = System.Text.Encoding.Default.GetBytes("NSC ").ToArray();
             var mostlySunny = System.BitConverter.ToInt32(bytes, 0);
 
@@ -66,7 +65,6 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenValueFewWhenGetValueThenReturnsPartySunny()
         {
-            //TODO:  There is no mostly sunny  - map to partly cloudy?
             var bytes = System.Text.Encoding.Default.GetBytes("FEW ").ToArray();
             var partlySunny = System.BitConverter.ToInt32(bytes, 0);
 

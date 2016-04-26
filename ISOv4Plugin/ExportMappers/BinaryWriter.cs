@@ -51,7 +51,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
         {
             WriteTimeStart(spatialRecord.Timestamp, binaryWriter);
             WritePosition(spatialRecord.Geometry, binaryWriter);
-            // TODO:  PDOP, HDOP, Number Of Satellites- all have to do with precision of location from satellites
             WriteGpcUtcTime(spatialRecord.Timestamp.ToUniversalTime(), binaryWriter);
             WriteMeterValues(spatialRecord, meters.ToList(), binaryWriter);
         }

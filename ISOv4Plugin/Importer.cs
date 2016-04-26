@@ -43,7 +43,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin
                 return dataModel;
 
             var tasks = GetItemsOfType<TSK>(isoObjects);
-            //var objects = tasks.SelectMany(x => x.Items).ToArray();
 
             _documentMapper.Map(tasks, dataModel.Documents, dataPath, dataModel.Catalog, iso11783TaskData);
             return dataModel;
