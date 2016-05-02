@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
@@ -12,42 +13,21 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
     [TestFixture]
     public class DocumentMapperTest
     {
-        private List<TSK> _tsks;
-        private DocumentMapper _documentMapper;
-        private Mock<ILoggedDataMapper> _loggedDataMapperMock;
-        private Documents _documents;
-        private string _dataPath;
-        private Catalog _catalog;
-        private ISO11783_TaskData _isoTaskData;
-
-        [SetUp]
-        public void Setup()
-        {
-            _tsks = new List<TSK> { new TSK() };
-            _documents = new Documents();
-            _dataPath = "";
-            _loggedDataMapperMock = new Mock<ILoggedDataMapper>();
-            _catalog = new Catalog();
-            _isoTaskData = new ISO11783_TaskData();
-            _documentMapper = new DocumentMapper(_loggedDataMapperMock.Object);
-        }
-
         [Test]
-        public void GivenOneTlgWhenMapThenSomething()
+        public void GivenTsksWhenMapThenLoggedDataAreMapped()
         {
-            _documentMapper.Map(_tsks, _documents, _dataPath, _catalog, _isoTaskData);
+            var tsks = new List<TSK>();
+            var documents = new Documents();
+            var catalog = new Catalog();
+            var dataPath = Path.GetTempPath();
 
-            Assert.AreEqual(1, _documents.LoggedData.Count);
-        }
+            var loggedDataMapperMock = new Mock<ILoggedDataMapper>();
+            var loggedDatas = new List<LoggedData>();
+            loggedDataMapperMock.Setup(x => x.Map(tsks, dataPath, catalog)).Returns(loggedDatas);
 
-        [Test]
-        public void GivenOneTlgWhenMapThenLoggedDataIsMapped()
-        {
-            var loggedData = new LoggedData();
-            _loggedDataMapperMock.Setup(x => x.Map(_tsks.First(), _dataPath, _catalog)).Returns(loggedData);
-            _documentMapper.Map(_tsks, _documents, _dataPath, _catalog, _isoTaskData);
+            var result = new DocumentMapper(loggedDataMapperMock.Object).Map(tsks, documents, catalog, dataPath);
 
-            Assert.AreSame(loggedData, _documents.LoggedData.First());
+            Assert.AreSame(loggedDatas, result.LoggedData);
         }
     }
 }

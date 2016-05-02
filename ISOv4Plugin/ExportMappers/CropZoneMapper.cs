@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
+using AgGateway.ADAPT.ApplicationDataModel.Logistics;
 using AgGateway.ADAPT.ApplicationDataModel.ReferenceLayers;
 using AgGateway.ADAPT.ISOv4Plugin.Extensions;
 using AgGateway.ADAPT.ISOv4Plugin.Models;

@@ -24,7 +24,7 @@ namespace AcceptanceTests.Asserts.Import
         public static void AreEqual(TSK tsk, string currentPath, LoggedData loggedData, Catalog catalog)
         {
             var tlgs = tsk.Items.Where(x => x.GetType() == typeof(TLG)).Cast<TLG>().ToList();
-            OperationDataAssert.AreEqual(tlgs, currentPath, loggedData.OperationData);
+            OperationDataAssert.AreEqual(tlgs, currentPath, loggedData.OperationData.ToList());
 
             if(tsk.C != null)
             {

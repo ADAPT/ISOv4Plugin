@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
 using TechTalk.SpecFlow;
@@ -41,12 +42,12 @@ namespace AcceptanceTests
             scenarioContext.Set(taskData, OriginalIsoTaskDataKey);
         }
 
-        public static ApplicationDataModel ApplicationDataModel(this ScenarioContext scenarioContext)
+        public static IList<ApplicationDataModel> ApplicationDataModel(this ScenarioContext scenarioContext)
         {
-            return scenarioContext.SafeGet<ApplicationDataModel>(ApplicationDataModelKey);
+            return scenarioContext.SafeGet<IList<ApplicationDataModel>>(ApplicationDataModelKey);
         }
 
-        public static void ApplicationDataModel(this ScenarioContext scenarioContext, ApplicationDataModel applicationDataModel)
+        public static void ApplicationDataModel(this ScenarioContext scenarioContext, IList<ApplicationDataModel> applicationDataModel)
         {
             scenarioContext.Set(applicationDataModel, ApplicationDataModelKey);
         }

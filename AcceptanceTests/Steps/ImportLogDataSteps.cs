@@ -38,7 +38,10 @@ namespace AcceptanceTests.Steps
             var tsks = ScenarioContext.Current.OriginalIsoTaskData().Items.Where(x => x.GetType() == typeof(TSK)).Cast<TSK>().ToList();
             var currentPath = ScenarioContext.Current.DataCardPath();
 
-            LoggedDataAssert.AreEqual(tsks, currentPath, ScenarioContext.Current.ApplicationDataModel().Documents.LoggedData, ScenarioContext.Current.ApplicationDataModel().Catalog);
+            foreach (var applicationDataModel in ScenarioContext.Current.ApplicationDataModel())
+            {
+                LoggedDataAssert.AreEqual(tsks, currentPath, applicationDataModel.Documents.LoggedData.ToList(), applicationDataModel.Catalog);
+            }
         }
 
         [When(@"I export to Iso")]
@@ -48,14 +51,20 @@ namespace AcceptanceTests.Steps
             Directory.CreateDirectory(exportPath);
             ScenarioContext.Current.ExportPath(exportPath);
 
-            _plugin.Export(ScenarioContext.Current.ApplicationDataModel(), exportPath);
+            foreach (var applicationDataModel in ScenarioContext.Current.ApplicationDataModel())
+            {
+                _plugin.Export(applicationDataModel, exportPath);
+            }
         }
 
         [Then(@"Adapt is exported to ISO")]
         public void ThenAdaptIsExportedToIso()
         {
             var isoTaskData = new XmlReader().Read(ScenarioContext.Current.ExportPath(), "TASKDATA.XML");
-            TaskDataAssert.AreEqual(ScenarioContext.Current.ApplicationDataModel(), isoTaskData, ScenarioContext.Current.ExportPath());
+            foreach (var applicationDataModel in ScenarioContext.Current.ApplicationDataModel())
+            {
+                TaskDataAssert.AreEqual(applicationDataModel, isoTaskData, ScenarioContext.Current.ExportPath()); 
+            }
         }
 
         [AfterScenario]

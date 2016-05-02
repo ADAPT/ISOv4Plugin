@@ -33,7 +33,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin
         {
         }
 
-        public List<IError> ValidateDataOnCard(string dataPath, Properties properties = null)
+        public IList<IError> ValidateDataOnCard(string dataPath, Properties properties = null)
         {
             var errors = new List<IError>();
             var taskDataFiles = GetListOfTaskDataFiles(dataPath);
@@ -58,25 +58,28 @@ namespace AgGateway.ADAPT.ISOv4Plugin
             return taskDataFiles.Any();
         }
 
-        public ApplicationDataModel.ADM.ApplicationDataModel Import(string dataPath, Properties properties = null)
+        public IList<ApplicationDataModel.ADM.ApplicationDataModel> Import(string dataPath, Properties properties = null)
         {
             var taskDataFiles = GetListOfTaskDataFiles(dataPath);
             if (!taskDataFiles.Any())
                 return null;
 
-            var dataModel = new ApplicationDataModel.ADM.ApplicationDataModel();
+            var adms = new List<ApplicationDataModel.ADM.ApplicationDataModel>();
 
             foreach (var taskDataFile in taskDataFiles)
             {
+                var dataModel = new ApplicationDataModel.ADM.ApplicationDataModel();
+
                 ConvertTaskDataFileToModel(taskDataFile, dataModel);
 
                 var iso11783TaskData = _xmlReader.Read(taskDataFile);
 
                 var taskDataImportMapper = new Importer();
                 taskDataImportMapper.Import(iso11783TaskData, dataPath, dataModel);
+                adms.Add(dataModel);
             }
 
-            return dataModel;
+            return adms;
         }
 
         public void Export(ApplicationDataModel.ADM.ApplicationDataModel dataModel, string exportPath, Properties properties = null)

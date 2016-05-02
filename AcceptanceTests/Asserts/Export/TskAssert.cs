@@ -45,7 +45,7 @@ namespace AcceptanceTests.Asserts.Export
             if(loggedData.OperationData != null && loggedData.OperationData.Any())
             {
                 var tlgs = tsk.Items.Where(x => x.GetType() == typeof(TLG)).Cast<TLG>().ToList();
-                TlgAssert.AreEqual(loggedData.OperationData, tlgs, catalog, cardPath);
+                TlgAssert.AreEqual(loggedData.OperationData.ToList(), tlgs, catalog, cardPath);
             }
         }
 

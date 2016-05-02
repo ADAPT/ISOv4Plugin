@@ -1,12 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
-using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.Prescriptions;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
 using AgGateway.ADAPT.ApplicationDataModel.Shapes;
 using AgGateway.ADAPT.ISOv4Plugin.Extensions;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
+using AgGateway.ADAPT.Representation.RepresentationSystem;
+using AgGateway.ADAPT.Representation.RepresentationSystem.ExtensionMethods;
+using AgGateway.ADAPT.Representation.UnitSystem;
+using UnitOfMeasure = AgGateway.ADAPT.ApplicationDataModel.Common.UnitOfMeasure;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
 {
@@ -152,10 +156,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
         private static void LoadDefinition(GridDescriptor gridDescriptor, RasterGridPrescription prescription)
         {
             prescription.BoundingBox = new BoundingBox();
-            prescription.BoundingBox.MinLatitude = gridDescriptor.Origin.Y;
-            prescription.BoundingBox.MinLongitude = gridDescriptor.Origin.X;
-            prescription.BoundingBox.MaxLatitude = prescription.BoundingBox.MinLatitude + gridDescriptor.CellHeight.Value.Value * gridDescriptor.RowCount;
-            prescription.BoundingBox.MaxLongitude = prescription.BoundingBox.MinLongitude + gridDescriptor.CellWidth.Value.Value * gridDescriptor.ColumnCount;
+            prescription.BoundingBox.MinY = new NumericRepresentationValue(RepresentationInstanceList.vrLatitude.ToModelRepresentation(), new NumericValue(UnitSystemManager.GetUnitOfMeasure("arcdeg"), gridDescriptor.Origin.Y));
+            prescription.BoundingBox.MinX = new NumericRepresentationValue(RepresentationInstanceList.vrLongitude.ToModelRepresentation(), new NumericValue(UnitSystemManager.GetUnitOfMeasure("arcdeg"), gridDescriptor.Origin.X));
+            var maxYValue = prescription.BoundingBox.MinY.Value.Value + gridDescriptor.CellHeight.Value.Value * gridDescriptor.RowCount;
+            var maxXValue = prescription.BoundingBox.MinX.Value.Value + gridDescriptor.CellWidth.Value.Value * gridDescriptor.ColumnCount;
+            prescription.BoundingBox.MaxY = new NumericRepresentationValue(RepresentationInstanceList.vrLatitude.ToModelRepresentation(), new NumericValue(UnitSystemManager.GetUnitOfMeasure("arcdeg"), maxYValue));
+            prescription.BoundingBox.MaxX = new NumericRepresentationValue(RepresentationInstanceList.vrLongitude.ToModelRepresentation(), new NumericValue(UnitSystemManager.GetUnitOfMeasure("arcdeg"), maxXValue));
 
             prescription.Origin = gridDescriptor.Origin;
             prescription.CellHeight = gridDescriptor.CellHeight;
@@ -201,14 +207,29 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
             prescription.ProductIds = productIds;
         }
 
-        private static void LoadRateUnits(TreatmentZone treatmentZone, RasterGridPrescription prescription)
+        private void LoadRateUnits(TreatmentZone treatmentZone, RasterGridPrescription prescription)
         {
-            var rateUnits = new List<UnitOfMeasure>();
+            if(prescription.RxProductLookups == null)
+                prescription.RxProductLookups = new List<RxProductLookup>();
+
+            var rxRates = new List<RxRate>();
             foreach (var dataVariable in treatmentZone.Variables)
             {
-                rateUnits.Add(dataVariable.IsoUnit.ToAdaptUnit());
+                var product = _taskDocument.Products.FindById(dataVariable.ProductId) ?? _taskDocument.ProductMixes.FindById(dataVariable.ProductId);
+                var rxProductLookup = new RxProductLookup
+                {
+                    ProductId = product.Id.FindIntIsoId(),
+                    UnitOfMeasure = dataVariable.IsoUnit.ToAdaptUnit(),
+                };
+                prescription.RxProductLookups.Add(rxProductLookup);
+                var rxRate = new RxRate
+                {
+                    Rate = dataVariable.Value,
+                    RxProductLookupId = rxProductLookup.Id.ReferenceId,
+                };
+                rxRates.Add(rxRate);
             }
-            prescription.RateUnit = rateUnits.FirstOrDefault();
+            prescription.Rates = new List<RxRates>{ new RxRates{ RxRate = rxRates }}; 
         }
 
         private static List<RxRates> LoadRatesFromProducts(GridDescriptor gridDescriptor, List<int> productIds)
@@ -257,10 +278,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
             var rxRate = new RxRate
             {
                 Rate = productRate,
-                ProductId = productId
+                RxProductLookupId = productId,
             };
-            if (rxRate.ProductId == 0)
-                rxRate.ProductId = null;
 
             rates.RxRate.Add(rxRate);
         }

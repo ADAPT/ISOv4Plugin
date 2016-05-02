@@ -12,6 +12,7 @@ using AgGateway.ADAPT.ApplicationDataModel.Logistics;
 using AgGateway.ADAPT.ApplicationDataModel.Prescriptions;
 using AgGateway.ADAPT.ApplicationDataModel.Products;
 using AgGateway.ADAPT.ApplicationDataModel.ReferenceLayers;
+using AgGateway.ADAPT.ISOv4Plugin.Extensions;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
 
@@ -32,7 +33,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin
 
         public ApplicationDataModel.ADM.ApplicationDataModel Import(ISO11783_TaskData iso11783TaskData, string dataPath, ApplicationDataModel.ADM.ApplicationDataModel dataModel)
         {
-
             if (dataModel.Catalog == null)
                 dataModel.Catalog = CreateCatalog();
             if (dataModel.Documents == null)
@@ -42,9 +42,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin
             if (isoObjects == null || isoObjects.Length == 0)
                 return dataModel;
 
-            var tasks = GetItemsOfType<TSK>(isoObjects);
+            var tasks = isoObjects.GetItemsOfType<TSK>();
 
-            _documentMapper.Map(tasks, dataModel.Documents, dataPath, dataModel.Catalog, iso11783TaskData);
+            _documentMapper.Map(tasks, dataModel.Documents, dataModel.Catalog, dataPath);
             return dataModel;
         }
 
@@ -100,15 +100,5 @@ namespace AgGateway.ADAPT.ISOv4Plugin
                 TimeScopes = new List<TimeScope>(),
             };
         }
-
-        public static List<T> GetItemsOfType<T>(object[] items)
-        {
-            if(items == null)
-                return null;
-
-            var itemsOfType = items.Where(x => x.GetType() == typeof (T)).Cast<T>().ToList();
-            return itemsOfType;
-        }
-
     }
 }

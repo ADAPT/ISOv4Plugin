@@ -31,15 +31,15 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="AgGateway.ADAPT.ApplicationDataModel, Version=1.0.0.1, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\AgGatewayADAPTFramework.1.0.0.27\lib\AgGateway.ADAPT.ApplicationDataModel.dll</HintPath>
+      <HintPath>..\packages\AgGatewayADAPTFramework.1.0.0.38\lib\AgGateway.ADAPT.ApplicationDataModel.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="AgGateway.ADAPT.PluginManager, Version=1.0.0.1, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\AgGatewayADAPTFramework.1.0.0.27\lib\AgGateway.ADAPT.PluginManager.dll</HintPath>
+      <HintPath>..\packages\AgGatewayADAPTFramework.1.0.0.38\lib\AgGateway.ADAPT.PluginManager.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="AgGateway.ADAPT.Representation, Version=1.0.0.1, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\AgGatewayADAPTFramework.1.0.0.27\lib\AgGateway.ADAPT.Representation.dll</HintPath>
+      <HintPath>..\packages\AgGatewayADAPTFramework.1.0.0.38\lib\AgGateway.ADAPT.Representation.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Moq, Version=4.2.1510.2205, Culture=neutral, PublicKeyToken=69f491c39445e920, processorArchitecture=MSIL">
@@ -95,10 +95,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Resources\RepresentationSystem.xml" />
-    <Content Include="Resources\UnitSystem.xml" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\ISOv4Plugin\ISOv4Plugin.csproj">
       <Project>{1b525a08-00af-4c21-bdea-6b2c198fd5e8}</Project>
       <Name>ISOv4Plugin</Name>
@@ -107,6 +103,10 @@
       <Project>{4fa6c7dc-ddf3-48e4-b188-412a1d52fb0d}</Project>
       <Name>TestUtilities</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\RepresentationSystem.xml" />
+    <Content Include="Resources\UnitSystem.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

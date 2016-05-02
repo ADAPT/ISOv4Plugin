@@ -8,7 +8,7 @@ namespace AcceptanceTests.Asserts.Export
     {
         public static void AreEqual(ApplicationDataModel applicationDataModel, ISO11783_TaskData isoTaskData, string cardPath)
         {
-            var loggedData = applicationDataModel.Documents.LoggedData;
+            var loggedData = applicationDataModel.Documents.LoggedData.ToList();
             var tasks = isoTaskData.Items.Where(x => x.GetType() == typeof (TSK)).Cast<TSK>().ToList();
 
             TskAssert.AreEqual(loggedData, tasks, applicationDataModel.Catalog, cardPath);

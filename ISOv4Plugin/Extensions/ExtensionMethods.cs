@@ -23,6 +23,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Extensions
             return null;
         }
 
+        public static List<T> GetItemsOfType<T>(this object[] items)
+        {
+            if (items == null)
+                return null;
+
+            var itemsOfType = items.Where(x => x.GetType() == typeof(T)).Cast<T>().ToList();
+            return itemsOfType;
+        }
+
         public static List<Section> GetAllSections(this OperationData operationData)
         {
             if(operationData.GetSections == null)

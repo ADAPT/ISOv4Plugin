@@ -25,7 +25,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
         public static void Write(TaskDocumentWriter taskWriter)
         {
             if (taskWriter.DataModel.Catalog.Prescriptions == null ||
-                taskWriter.DataModel.Catalog.Prescriptions.Count == 0)
+                !taskWriter.DataModel.Catalog.Prescriptions.Any())
                 return;
 
             var writer = new PrescriptionWriter(taskWriter);
@@ -119,24 +119,24 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
             if (prescription.ProductIds == null)
                 return null;
 
-            var lossOfSignlaTreatmentZone = new TreatmentZone { Name = "Loss of GPS", Variables = new List<DataVariable>() };
+            var lossOfSignalTreatmentZone = new TreatmentZone { Name = "Loss of GPS", Variables = new List<DataVariable>() };
             var outOfFieldTreatmentZone = new TreatmentZone { Name = "Out of Field", Variables = new List<DataVariable>() };
             var defaultTreatmentZone = new TreatmentZone { Name = "Default", Variables = new List<DataVariable>() };
 
-            var defaultRate = new NumericRepresentationValue(null, new NumericValue(prescription.RateUnit, 0));
-            var isoUnit = DetermineIsoUnit(prescription.RateUnit);
+            var defaultRate = new NumericRepresentationValue(null, new NumericValue(prescription.RxProductLookups.First().UnitOfMeasure, 0));
+            var isoUnit = DetermineIsoUnit(prescription.RxProductLookups.First().UnitOfMeasure);
 
             foreach (var productId in prescription.ProductIds)
             {
                 var isoProductId = TaskWriter.Products.FindById(productId);
 
-                AddDataVariable(lossOfSignlaTreatmentZone, prescription.LossOfGpsRate, isoProductId, isoUnit);
+                AddDataVariable(lossOfSignalTreatmentZone, prescription.LossOfGpsRate, isoProductId, isoUnit);
                 AddDataVariable(outOfFieldTreatmentZone, prescription.OutOfFieldRate, isoProductId, isoUnit);
                 AddDataVariable(defaultTreatmentZone, defaultRate, isoProductId, isoUnit);
             }
 
             var lossOfSignalZoneId = "253";
-            if (lossOfSignlaTreatmentZone.Variables.Count > 0)
+            if (lossOfSignalTreatmentZone.Variables.Count > 0)
                 writer.WriteXmlAttribute("I", lossOfSignalZoneId);
 
             var outOfFieldZoneId = "254";
@@ -144,8 +144,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
                 writer.WriteXmlAttribute("J", outOfFieldZoneId);
 
             TreatmentZoneWriter.Write(writer, "1", defaultTreatmentZone);
-            if (lossOfSignlaTreatmentZone.Variables.Count > 0)
-                TreatmentZoneWriter.Write(writer, lossOfSignalZoneId, lossOfSignlaTreatmentZone);
+            if (lossOfSignalTreatmentZone.Variables.Count > 0)
+                TreatmentZoneWriter.Write(writer, lossOfSignalZoneId, lossOfSignalTreatmentZone);
             if (outOfFieldTreatmentZone.Variables.Count > 0)
                 TreatmentZoneWriter.Write(writer, outOfFieldZoneId, outOfFieldTreatmentZone);
 
@@ -160,8 +160,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
             return UnitFactory.Instance.GetUnitByDimension(rateUnit.Dimension);
         }
 
-        private void AddDataVariable(TreatmentZone treatmentZone, NumericRepresentationValue value,
-            string productId, IsoUnit unit)
+        private void AddDataVariable(TreatmentZone treatmentZone, NumericRepresentationValue value, string productId, IsoUnit unit)
         {
             if (value != null && value.Value != null)
             {

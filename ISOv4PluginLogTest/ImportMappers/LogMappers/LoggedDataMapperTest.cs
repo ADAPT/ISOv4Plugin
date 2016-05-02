@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
@@ -53,7 +54,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenNullTskTWhenMapThenNull()
         {
-            var result = _loggedDataMapper.Map(null, _dataPath, _catalog);
+            var result = _loggedDataMapper.Map(null as TSK, _dataPath, _catalog);
 
             Assert.IsNull(result);
         }
@@ -149,6 +150,16 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             var result = Map();
 
             Assert.Contains(uniqueId, result.Id.UniqueIds);
+        }
+
+        [Test]
+        public void GivenMultipleTasksWhenMapThenMultipleMapped()
+        {
+            var tasks = new List<TSK> {new TSK(), new TSK(), new TSK()};
+
+            var result = _loggedDataMapper.Map(tasks, _dataPath, _catalog);
+
+            Assert.AreEqual(tasks.Count, result.Count());
         }
 
         public LoggedData Map()

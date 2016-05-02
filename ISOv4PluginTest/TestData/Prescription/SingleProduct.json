@@ -8,7 +8,6 @@
                 }
             }
         ],
-
         "Prescriptions": [
             {
                 "$type": "AgGateway.ADAPT.ApplicationDataModel.Prescriptions.RasterGridPrescription, AgGateway.ADAPT.ApplicationDataModel",
@@ -34,16 +33,20 @@
                 },
                 "Description": "test",
                 "ProductIds": [ -1 ],
+				"RxProductLookups":[
+					{ "RxProductLookup": [ { "Id": { "ReferenceId": -1 } } ] },
+					{ "RxProductLookup": [ { "Id": { "ReferenceId": -2 } } ] },
+				],
                 "Rates": [
-                    {"RxRate": [ { "ProductId": -1, "Rate": 1 }]},
-                    {"RxRate": [ { "ProductId": -1, "Rate": 2 }]},
-                    {"RxRate": [ { "ProductId": -1, "Rate": 3 }]},
-                    {"RxRate": [ { "ProductId": -1, "Rate": 4 }]},
-                    {"RxRate": [ { "ProductId": -1, "Rate": 5 }]},
-                    {"RxRate": [ { "ProductId": -1, "Rate": 6 }]},
-                    {"RxRate": [ { "ProductId": -1, "Rate": 7 }]},
-                    {"RxRate": [ { "ProductId": -1, "Rate": 8 }]},
-                    {"RxRate": [ { "ProductId": -1, "Rate": 9 }]}
+                    {"RxRate": [ { "RxProductLookupId": -1, "Rate": 1 }]},
+                    {"RxRate": [ { "RxProductLookupId": -1, "Rate": 2 }]},
+                    {"RxRate": [ { "RxProductLookupId": -2, "Rate": 3 }]},
+                    {"RxRate": [ { "RxProductLookupId": -1, "Rate": 4 }]},
+                    {"RxRate": [ { "RxProductLookupId": -2, "Rate": 5 }]},
+                    {"RxRate": [ { "RxProductLookupId": -1, "Rate": 6 }]},
+                    {"RxRate": [ { "RxProductLookupId": -2, "Rate": 7 }]},
+                    {"RxRate": [ { "RxProductLookupId": -1, "Rate": 8 }]},
+                    {"RxRate": [ { "RxProductLookupId": -1, "Rate": 9 }]}
                 ]
             }
         ]

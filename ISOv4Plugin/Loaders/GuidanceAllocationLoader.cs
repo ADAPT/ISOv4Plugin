@@ -79,7 +79,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
                 NorthShift = GetShiftValue(inputNode.GetXmlNodeValue("@D")),
                 PropagationOffset = GetShiftValue(inputNode.GetXmlNodeValue("@E")),
 
-                TimeScope = AllocationTimestampLoader.Load(inputNode) ?? baseTimeScope
+                TimeScopes = new List<TimeScope>{ AllocationTimestampLoader.Load(inputNode) ?? baseTimeScope }
             };
             return allocation;
         }

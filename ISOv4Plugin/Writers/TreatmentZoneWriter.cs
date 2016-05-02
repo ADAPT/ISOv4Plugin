@@ -9,8 +9,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
 {
     public class TreatmentZoneWriter
     {
-        private static readonly Dictionary<UnitOfMeasureDimensionEnum, long> _dimensionToDdi =
-            new Dictionary<UnitOfMeasureDimensionEnum, long>()
+        private static readonly Dictionary<UnitOfMeasureDimensionEnum, long> _dimensionToDdi = new Dictionary<UnitOfMeasureDimensionEnum, long>
             {
                 { UnitOfMeasureDimensionEnum.VolumePerArea, 1 },
                 { UnitOfMeasureDimensionEnum.MassPerArea, 6 },

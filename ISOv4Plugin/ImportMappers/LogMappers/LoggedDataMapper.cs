@@ -10,6 +10,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
 {
     public interface ILoggedDataMapper
     {
+        IEnumerable<LoggedData> Map(List<TSK> tsk, string dataPath, Catalog catalog);
         LoggedData Map(TSK tsk, string dataPath, Catalog catalog);
     }
 
@@ -31,12 +32,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             _timeScopeMapper = timeScopeMapper;
         }
 
+        public IEnumerable<LoggedData> Map(List<TSK> tsk, string dataPath, Catalog catalog)
+        {
+            return tsk.Select(x => Map(x, dataPath, catalog));
+        }
+
         public LoggedData Map(TSK tsk, string dataPath, Catalog catalog)
         {
             if (tsk == null)
                 return null;
 
-            var tlgs = Importer.GetItemsOfType<TLG>(tsk.Items);
+            var tlgs = tsk.Items.GetItemsOfType<TLG>();
 
             var loggedData = new LoggedData
             {
@@ -54,7 +60,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
 
         private void ConvertTimsToTimescopes(TSK tsk, Catalog catalog, LoggedData loggedData)
         {
-            var tims = Importer.GetItemsOfType<TIM>(tsk.Items);
+            var tims = tsk.Items.GetItemsOfType<TIM>();
             var timeScopes = _timeScopeMapper.Map(tims, catalog);
             
             if(timeScopes != null)
