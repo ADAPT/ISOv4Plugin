@@ -5,7 +5,12 @@ using AgGateway.ADAPT.ISOv4Plugin.Models;
 
 namespace AgGateway.ADAPT.ISOv4Plugin
 {
-    public class Exporter
+    public interface IExporter
+    {
+        ISO11783_TaskData Export(ApplicationDataModel.ADM.ApplicationDataModel applicationDataModel, string datacardPath, ISO11783_TaskData isoTaskData);
+    }
+
+    public class Exporter : IExporter
     {
         private readonly IGrowerFarmFieldMapper _growerFarmFieldMapper;
         private readonly ICropZoneMapper _cropZoneMapper;

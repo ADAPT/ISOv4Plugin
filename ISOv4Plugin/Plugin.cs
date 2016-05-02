@@ -14,16 +14,20 @@ namespace AgGateway.ADAPT.ISOv4Plugin
     {
         private readonly IXmlReader _xmlReader;
         private readonly IXpathFileWriter _xpathFileWriter;
+        private readonly IImporter _importer;
+        private readonly IExporter _exporter;
         private const string FileName = "TASKDATA.XML";
 
-        public Plugin() : this(new XmlReader(), new XpathFileWriter())
+        public Plugin() : this(new XmlReader(), new XpathFileWriter(), new Importer(), new Exporter())
         {
             
         }
-        public Plugin(IXmlReader xmlReader, IXpathFileWriter xpathFileWriter)
+        public Plugin(IXmlReader xmlReader, IXpathFileWriter xpathFileWriter, IImporter importer, IExporter exporter)
         {
             _xmlReader = xmlReader;
             _xpathFileWriter = xpathFileWriter;
+            _importer = importer;
+            _exporter = exporter;
             Name = "ISO Plugin";
             Version = "0.1.1";
             Owner = "AgGateway & Contributors";
@@ -72,10 +76,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin
 
                 ConvertTaskDataFileToModel(taskDataFile, dataModel);
 
-                var iso11783TaskData = _xmlReader.Read(taskDataFile);
 
-                var taskDataImportMapper = new Importer();
-                taskDataImportMapper.Import(iso11783TaskData, dataPath, dataModel);
+                var iso11783TaskData = _xmlReader.Read(taskDataFile);
+                _importer.Import(iso11783TaskData, dataPath, dataModel);
                 adms.Add(dataModel);
             }
 
@@ -90,8 +93,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin
                 var serializer = new XmlSerializer();
                 var isoTaskData = serializer.Deserialize<ISO11783_TaskData>(xmlString);
 
-                var taskDataExportMapper = new Exporter();
-                var iso11783TaskData = taskDataExportMapper.Export(dataModel, exportPath, isoTaskData);
+                
+                
+                var iso11783TaskData = _exporter.Export(dataModel, exportPath, isoTaskData);
 
                 var filePath = Path.Combine(exportPath, FileName);
                 _xpathFileWriter.WriteToFile(iso11783TaskData, filePath);

@@ -94,6 +94,7 @@
     <Compile Include="Models\TIMTest.cs" />
     <Compile Include="Models\TLGTest.cs" />
     <Compile Include="Models\TSKTest.cs" />
+    <Compile Include="PluginTest.cs" />
     <Compile Include="Readers\TaskDataReaderTest.cs" />
     <Compile Include="Readers\TaskdataTimReaderTest.cs" />
     <Compile Include="Readers\TlgReaderTest.cs" />
