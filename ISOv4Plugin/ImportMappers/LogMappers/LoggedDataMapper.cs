@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
-using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ISOv4Plugin.Extensions;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
@@ -10,70 +9,41 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
 {
     public interface ILoggedDataMapper
     {
-        IEnumerable<LoggedData> Map(List<TSK> tsk, string dataPath, Catalog catalog);
-        LoggedData Map(TSK tsk, string dataPath, Catalog catalog);
+        List<LoggedData> Map(List<TSK> tsks, string dataPath, Documents documents);
     }
 
     public class LoggedDataMapper : ILoggedDataMapper
     {
         private readonly IOperationDataMapper _operationDataMapper;
-        private readonly IUniqueIdMapper _uniqueIdMapper;
-        private readonly ITimeScopeMapper _timeScopeMapper;
 
-        public LoggedDataMapper() : this(new OperationDataMapper(), new UniqueIdMapper(), new TimeScopeMapper())
+        public LoggedDataMapper() : this(new OperationDataMapper())
         {
             
         }
 
-        public LoggedDataMapper(IOperationDataMapper operationDataMapper, IUniqueIdMapper uniqueIdMapper, ITimeScopeMapper timeScopeMapper)
+        public LoggedDataMapper(IOperationDataMapper operationDataMapper)
         {
             _operationDataMapper = operationDataMapper;
-            _uniqueIdMapper = uniqueIdMapper;
-            _timeScopeMapper = timeScopeMapper;
         }
 
-        public IEnumerable<LoggedData> Map(List<TSK> tsk, string dataPath, Catalog catalog)
+        public List<LoggedData> Map(List<TSK> tsks, string dataPath, Documents documents)
         {
-            return tsk.Select(x => Map(x, dataPath, catalog));
+            return tsks == null 
+                ? null 
+                : tsks.Select(tsk => Map(tsk, dataPath, documents)).ToList();
         }
 
-        public LoggedData Map(TSK tsk, string dataPath, Catalog catalog)
+        private LoggedData Map(TSK tsk, string dataPath, Documents documents)
         {
-            if (tsk == null)
+            if (tsk == null || documents.LoggedData == null)
                 return null;
 
-            var tlgs = tsk.Items.GetItemsOfType<TLG>();
+            var existingLoggedData = documents.LoggedData.FirstOrDefault(x => x.Id.FindIsoId() == tsk.A);
+            if (existingLoggedData == null) 
+                return null;
 
-            var loggedData = new LoggedData
-            {
-                OperationData = _operationDataMapper.Map(tlgs, dataPath),
-                GrowerId = FindMatchingId(tsk.C, catalog.Growers.Select(g => g.Id)),
-                FarmId = FindMatchingId(tsk.D, catalog.Farms.Select(f => f.Id)),
-                FieldId = FindMatchingId(tsk.E, catalog.Fields.Select(f => f.Id)),
-            };
-            loggedData.Id.UniqueIds.Add(_uniqueIdMapper.Map(tsk.A));
-
-            ConvertTimsToTimescopes(tsk, catalog, loggedData);
-
-            return loggedData;
-        }
-
-        private void ConvertTimsToTimescopes(TSK tsk, Catalog catalog, LoggedData loggedData)
-        {
-            var tims = tsk.Items.GetItemsOfType<TIM>();
-            var timeScopes = _timeScopeMapper.Map(tims, catalog);
-            
-            if(timeScopes != null)
-                loggedData.TimeScopeIds = timeScopes.Select(t => t.Id.ReferenceId).ToList();
-        }
-
-        private static int? FindMatchingId(string isoId, IEnumerable<CompoundIdentifier> adaptObjects)
-        {
-            var compoundIdentifier = adaptObjects.SingleOrDefault(x => x.FindIsoId() == isoId);
-
-            if (compoundIdentifier != null)
-                return compoundIdentifier.ReferenceId;
-            return null;
+            existingLoggedData.OperationData = _operationDataMapper.Map(tsk.Items.GetItemsOfType<TLG>(), dataPath, existingLoggedData.Id.ReferenceId);
+            return existingLoggedData;
         }
     }
 }

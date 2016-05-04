@@ -47,7 +47,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin
 
             var tasks = isoObjects.GetItemsOfType<TSK>();
 
-            _documentMapper.Map(tasks, dataModel.Documents, dataModel.Catalog, dataPath);
+            _documentMapper.Map(tasks, dataPath, dataModel.Documents);
             return dataModel;
         }
 

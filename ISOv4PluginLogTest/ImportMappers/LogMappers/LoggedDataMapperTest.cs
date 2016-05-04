@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
-using AgGateway.ADAPT.ApplicationDataModel.Logistics;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
@@ -17,154 +16,99 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
     public class LoggedDataMapperTest
     {
         private TSK _tsk;
-        private LoggedDataMapper _loggedDataMapper;
-        private Mock<IOperationDataMapper> _operationDataMapper;
-        private Mock<ITimeScopeMapper> _timeScopeMapperMock;
+        private List<TSK> _tsks;
         private string _dataPath;
-        private Catalog _catalog;
-        private Mock<IUniqueIdMapper> _uniqueIdMapperMock;
+        private Documents _documents;
+        private Mock<IOperationDataMapper> _operationDataMapper;
+        private LoggedDataMapper _loggedDataMapper;
 
         [SetUp]
         public void Setup()
         {
             _tsk = new TSK();
-            _dataPath = "";
-            _catalog = new Catalog
-            {
-                Growers = new List<Grower>(),
-                Fields = new List<Field>(),
-                Farms = new List<Farm>(),
-            };
+            _tsks = new List<TSK>{ _tsk };
+            _dataPath = Path.GetTempPath();
+            _documents = new Documents();
 
             _operationDataMapper = new Mock<IOperationDataMapper>();
-            _uniqueIdMapperMock = new Mock<IUniqueIdMapper>();
-            _timeScopeMapperMock = new Mock<ITimeScopeMapper>();
 
-            _loggedDataMapper = new LoggedDataMapper(_operationDataMapper.Object, _uniqueIdMapperMock.Object, _timeScopeMapperMock.Object);
-        }
-
-        [Test]
-        public void GivenTskWhenMapThenLoggedData()
-        {
-            var result = Map();
-
-            Assert.IsNotNull(result);
-        }
-
-        [Test]
-        public void GivenNullTskTWhenMapThenNull()
-        {
-            var result = _loggedDataMapper.Map(null as TSK, _dataPath, _catalog);
-
-            Assert.IsNull(result);
-        }
-
-        [Test]
-        public void GivenTskWhenMapThenOperationDataAreMapped()
-        {
-            var tlgs = new List<TLG> {new TLG()};
-            _tsk.Items = tlgs.ToArray();
-
-            var operationDatas = new List<OperationData>();
-            _operationDataMapper.Setup(x => x.Map(tlgs, _dataPath)).Returns(operationDatas);
-
-            var result = Map();
-            Assert.AreSame(operationDatas, result.OperationData);
-        }
-
-        [Test]
-        public void GivenTskWithCustomerIdWhenMapThenSetsGrowerId()
-        {
-            var grower = new Grower();
-            grower.Id.UniqueIds.Add(new UniqueId
-            {
-                CiTypeEnum = CompoundIdentifierTypeEnum.String,
-                Id = "CTR1",
-                Source = UniqueIdMapper.IsoSource
-            });
-            _catalog.Growers.Add(grower);
-            _tsk.C = "CTR1";
-
-            var result = Map();
-            Assert.AreEqual(grower.Id.ReferenceId, result.GrowerId);
-        }
-
-        [Test]
-        public void GivenTskWithFramIdWhenMapThenSetsFarmId()
-        {
-            var farm = new Farm();
-            farm.Id.UniqueIds.Add(new UniqueId
-            {
-                CiTypeEnum = CompoundIdentifierTypeEnum.String,
-                Id = "FRM1",
-                Source = UniqueIdMapper.IsoSource
-            });
-            _catalog.Farms.Add(farm);
-            _tsk.D = "FRM1";
-
-            var result = Map();
-            Assert.AreEqual(farm.Id.ReferenceId, result.FarmId);
-        }
-
-        [Test]
-        public void GivenTskWithFieldIdWhenMapThenSetsFieldId()
-        {
-            var field = new Field();
-            field.Id.UniqueIds.Add(new UniqueId
-            {
-                CiTypeEnum = CompoundIdentifierTypeEnum.String,
-                Id = "PFD1",
-                Source = UniqueIdMapper.IsoSource
-            });
-            _catalog.Fields.Add(field);
-            _tsk.E = "PFD1";
-
-            var result = Map();
-            Assert.AreEqual(field.Id.ReferenceId, result.FieldId);
-        }
-
-        [Test]
-        public void GivenTskWithTimeWhenMapThenSetsTimeScopeId()
-        {
-            var tim = new TIM {A = DateTime.Now, B = DateTime.Now.AddHours(5)};
-            var items = new List<object> { tim };
-            _tsk.Items = items.ToArray();
-
-            var timeScopes = new List<TimeScope>{ new TimeScope(), new TimeScope()};
-            _timeScopeMapperMock.Setup(x => x.Map(new List<TIM> {tim}, _catalog)).Returns(timeScopes);
-
-            var result = Map();
-
-            Assert.Contains(timeScopes[0].Id.ReferenceId, result.TimeScopeIds);
-            Assert.Contains(timeScopes[1].Id.ReferenceId, result.TimeScopeIds);
-        }
-
-        [Test]
-        public void GivenTskWhenMapThenIdIsMapped()
-        {
-            _tsk.A = "TSK1";
-
-            var uniqueId = new UniqueId();
-            _uniqueIdMapperMock.Setup(x => x.Map(_tsk.A)).Returns(uniqueId);
-
-            var result = Map();
-
-            Assert.Contains(uniqueId, result.Id.UniqueIds);
+            _loggedDataMapper = new LoggedDataMapper(_operationDataMapper.Object);
         }
 
         [Test]
         public void GivenMultipleTasksWhenMapThenMultipleMapped()
         {
-            var tasks = new List<TSK> {new TSK(), new TSK(), new TSK()};
+            _tsks.Add(new TSK());
+            _tsks.Add(new TSK());
+            _tsks.Add(new TSK());
+            _tsks.Add(new TSK());
 
-            var result = _loggedDataMapper.Map(tasks, _dataPath, _catalog);
-
-            Assert.AreEqual(tasks.Count, result.Count());
+            var result = Map();
+            Assert.AreEqual(_tsks.Count, result.Count);
         }
 
-        public LoggedData Map()
+        [Test]
+        public void GivenTskWhenMapThenOperationDataAreMapped()
         {
-            return _loggedDataMapper.Map(_tsk, _dataPath, _catalog);
+            const string taskName = "TSK5";
+
+            var existingLoggedData = new LoggedData();
+            existingLoggedData.Id.UniqueIds.Add(new UniqueId{ CiTypeEnum = CompoundIdentifierTypeEnum.String, Id = taskName, Source = UniqueIdMapper.IsoSource});
+            _documents.LoggedData = new List<LoggedData> {existingLoggedData};
+
+            var tlgs = new List<TLG> {new TLG()};
+            _tsk.Items = tlgs.ToArray();
+            _tsk.A = taskName;
+
+            var operationDatas = new List<OperationData>();
+            _operationDataMapper.Setup(x => x.Map(tlgs, _dataPath, It.IsAny<int>())).Returns(operationDatas);
+
+            var result = MapSingle();
+            Assert.AreSame(operationDatas, result.OperationData);
+        }
+
+        [Test]
+        public void GivenNullTsksWhenMapThenNull()
+        {
+            var result = _loggedDataMapper.Map(null, _dataPath, _documents);
+            Assert.IsNull(result);
+        }
+
+        [Test]
+        public void GivenNullTskWhenMapThenNull()
+        {
+            _tsks = new List<TSK>{ null };
+            var result = MapSingle();
+            Assert.IsNull(result);
+        }
+
+        [Test]
+        public void GivenNullLoggedDataWhenMapThenNull()
+        {
+            _documents.LoggedData = null;
+
+            var result = MapSingle();
+            Assert.IsNull(result);
+        }
+
+        [Test]
+        public void GivenNoMatcingLoggedDataInDocumentsWhenMapThenNull()
+        {
+            _tsk.A = "TSK9";
+            _documents.LoggedData = new List<LoggedData>{ new LoggedData(), new LoggedData(), new LoggedData()};
+
+            var result = MapSingle();
+            Assert.IsNull(result);
+        }
+
+        private LoggedData MapSingle()
+        {
+            return Map().First();
+        }
+
+        public List<LoggedData> Map()
+        {
+            return _loggedDataMapper.Map(_tsks, _dataPath, _documents).ToList();
         }
 
     }

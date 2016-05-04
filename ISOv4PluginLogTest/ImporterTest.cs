@@ -40,7 +40,7 @@ namespace ISOv4PluginLogTest
 
             _importer.Import(_taskData, _dataPath, _applicationDataModel);
 
-            _documentMapperMock.Verify(x => x.Map(tasks, _applicationDataModel.Documents, _applicationDataModel.Catalog, _dataPath), Times.Once());
+            _documentMapperMock.Verify(x => x.Map(tasks, _dataPath, _applicationDataModel.Documents), Times.Once());
         }
 
         [Test]
@@ -50,7 +50,7 @@ namespace ISOv4PluginLogTest
 
             _importer.Import(_taskData, _dataPath, _applicationDataModel);
 
-            _documentMapperMock.Verify(x => x.Map(It.IsAny<List<TSK>>(), _applicationDataModel.Documents, _applicationDataModel.Catalog, _dataPath), Times.Never);
+            _documentMapperMock.Verify(x => x.Map(It.IsAny<List<TSK>>(), _dataPath, _applicationDataModel.Documents), Times.Never);
         }
 
         [Test]
@@ -60,7 +60,7 @@ namespace ISOv4PluginLogTest
 
             _importer.Import(_taskData, _dataPath, _applicationDataModel);
 
-            _documentMapperMock.Verify(x => x.Map(It.IsAny<List<TSK>>(), _applicationDataModel.Documents, _applicationDataModel.Catalog, _dataPath), Times.Never);
+            _documentMapperMock.Verify(x => x.Map(It.IsAny<List<TSK>>(), _dataPath, _applicationDataModel.Documents), Times.Never);
         }
 
         [Test]

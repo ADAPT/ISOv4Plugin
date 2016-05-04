@@ -24,6 +24,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         private OperationDataMapper _operationDataMapper;
         private Mock<ISectionMapper> _sectionMapperMock;
         private Mock<IUniqueIdMapper> _uniqueIdMapperMock;
+        private int _loggedDataId;
 
         [SetUp]
         public void Setup()
@@ -44,14 +45,15 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenTlgsWhenMapThenListOfOperationData()
         {
-            var tlgs = new List<TLG> {new TLG(), new TLG(), new TLG()};
+            _tlgs.Add(new TLG());
+            _tlgs.Add(new TLG());
+            _tlgs.Add(new TLG());
 
-            var result = _operationDataMapper.Map(tlgs, _datacardPath);
+            var result = Map();
 
-            Assert.AreEqual(tlgs.Count, result.Count);
+            Assert.AreEqual(_tlgs.Count, result.Count());
         }
 
-        
         [Test]
         public void GivenTskWhenMapThenXmlFileIsRead()
         {
@@ -126,6 +128,16 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             Assert.Contains(uniqueId, result.Id.UniqueIds);
         }
 
+        [Test]
+        public void GivenTlgAndLoggedDataIdWhenMapThenLoggedDataIdIsMapped()
+        {
+            _loggedDataId = 123;
+
+            var result = MapSingle();
+
+            Assert.AreEqual(_loggedDataId, result.LoggedDataId);
+        }
+
         public OperationData MapSingle()
         {
             return Map().First();
@@ -133,7 +145,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
 
         public List<OperationData> Map()
         {
-            return _operationDataMapper.Map(_tlgs, _datacardPath);
+            return _operationDataMapper.Map(_tlgs, _datacardPath, _loggedDataId).ToList();
         }
     }
 }

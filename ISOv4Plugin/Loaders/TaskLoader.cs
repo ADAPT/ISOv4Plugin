@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
+using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ISOv4Plugin.Extensions;
+using AgGateway.ADAPT.ISOv4Plugin.ImportMappers;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
@@ -77,6 +79,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
 
             LoadGuidanceAllocations(inputNode, task);
             LoadCommentAllocations(inputNode, task);
+            task.Id.UniqueIds.Add(new UniqueId
+            {
+                Id = taskId,
+                Source = UniqueIdMapper.IsoSource,
+                CiTypeEnum = CompoundIdentifierTypeEnum.String,
+            });
 
             _taskDocument.LoadLinkedIds(taskId, task.Id);
             return task;

@@ -6,7 +6,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
 {
     public interface IDocumentMapper
     {
-        Documents Map(List<TSK> tsks, Documents documents, Catalog catalog, string dataPath);
+        Documents Map(List<TSK> tsks, string dataPath, Documents documents);
     }
 
     public class DocumentMapper : IDocumentMapper
@@ -23,9 +23,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             _loggedDataMapper = loggedDataMapper;
         }
 
-        public Documents Map(List<TSK> tsks, Documents documents, Catalog catalog, string dataPath)
+        public Documents Map(List<TSK> tsks, string dataPath, Documents documents)
         {           
-            documents.LoggedData = _loggedDataMapper.Map(tsks, dataPath, catalog);
+            _loggedDataMapper.Map(tsks, dataPath, documents);
 
             return documents;
         }

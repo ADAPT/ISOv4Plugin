@@ -8,7 +8,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
 {
     public interface IOperationDataMapper
     {
-        List<OperationData> Map(List<TLG> tlgs, string datacardPath);
+        IEnumerable<OperationData> Map(List<TLG> tlgs, string datacardPath, int loggedDataReferenceId);
     }
 
     public class OperationDataMapper : IOperationDataMapper
@@ -33,12 +33,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             _binaryReader = binaryReader;
         }
 
-        public List<OperationData> Map(List<TLG> tlgs, string datacardPath)
+        public IEnumerable<OperationData> Map(List<TLG> tlgs, string datacardPath, int loggedDataReferenceId)
         {
-            return tlgs.Select(x => Map(x, datacardPath)).ToList();
+            return tlgs.Select(x => Map(x, datacardPath, loggedDataReferenceId)).ToList();
         }
 
-        private OperationData Map(TLG tlg, string datacardPath)
+        private OperationData Map(TLG tlg, string datacardPath, int loggedDataReferenceId)
         {
             var timHeader = _xmlReader.ReadTlgXmlData(datacardPath, tlg.A + ".xml");
             var isoRecords = _binaryReader.Read(datacardPath, tlg.A + ".bin", timHeader).ToList();
@@ -47,6 +47,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
 
             var operationData = new OperationData
             {
+                LoggedDataId = loggedDataReferenceId,
                 GetSpatialRecords = () => _spatialRecordMapper.Map(isoRecords, meters),
                 MaxDepth = 0,
                 GetSections = x => x == 0 ? sections : new List<Section>(),
