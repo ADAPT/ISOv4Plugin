@@ -62,6 +62,7 @@ dlldata.c
 *.pidb
 *.svclog
 *.scc
+*.DotSettings
 
 # Chutzpah Test files
 _Chutzpah*
@@ -137,7 +138,7 @@ publish/
 # NuGet Packages
 *.nupkg
 # The packages folder can be ignored because of Package Restore
-**/packages/*
+[Pp]ackages/
 # except build/, which is used as an MSBuild target.
 !**/packages/build/
 # Uncomment if necessary however generally it will be regenerated when needed

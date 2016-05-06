@@ -1,0 +1,54 @@
+﻿{
+    "Catalog": {
+        "FertilizerProducts": [
+            {
+                "Description": "product",
+                "Id": {
+                    "ReferenceId": -1
+                }
+            }
+        ],
+        "Prescriptions": [
+            {
+                "$type": "AgGateway.ADAPT.ApplicationDataModel.Prescriptions.RasterGridPrescription, AgGateway.ADAPT.ApplicationDataModel",
+                "RowCount": 3,
+                "ColumnCount": 3,
+                "Origin": {
+                    "X": 1,
+                    "Y": 2
+                },
+                "CellWidth": {
+                    "Value": {
+                        "Value": 0.0001
+                    }
+                },
+                "CellHeight": {
+                    "Value": {
+                        "Value": 0.0002
+                    }
+                },
+                "RateUnit": {
+                    "Code": "kg1[m2]-1",
+                    "Dimension": 76,
+                },
+                "Description": "test",
+                "ProductIds": [ -1 ],
+				"RxProductLookups":[
+					{ "RxProductLookup": [ { "Id": { "ReferenceId": -1 } } ] },
+					{ "RxProductLookup": [ { "Id": { "ReferenceId": -2 } } ] },
+				],
+                "Rates": [
+                    {"RxRate": [ { "RxProductLookupId": -1, "Rate": 1 }]},
+                    {"RxRate": [ { "RxProductLookupId": -1, "Rate": 2 }]},
+                    {"RxRate": [ { "RxProductLookupId": -2, "Rate": 3 }]},
+                    {"RxRate": [ { "RxProductLookupId": -1, "Rate": 4 }]},
+                    {"RxRate": [ { "RxProductLookupId": -2, "Rate": 5 }]},
+                    {"RxRate": [ { "RxProductLookupId": -1, "Rate": 6 }]},
+                    {"RxRate": [ { "RxProductLookupId": -2, "Rate": 7 }]},
+                    {"RxRate": [ { "RxProductLookupId": -1, "Rate": 8 }]},
+                    {"RxRate": [ { "RxProductLookupId": -1, "Rate": 9 }]}
+                ]
+            }
+        ]
+    }
+}

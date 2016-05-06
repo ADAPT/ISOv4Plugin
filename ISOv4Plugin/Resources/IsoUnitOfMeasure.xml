@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ddiToUnitOfMeasureMapping>
+  <mappings>
+    <mapping unit="kg" domainId="kg" />
+    <mapping unit="L" domainId="l" />
+    <mapping unit="mg/m²" domainId="mg1[m2]-1" />
+    <mapping unit="ml/m²" domainId="ml1[m2]-1" />
+    <mapping unit="mm" domainId="mm" />
+    <mapping unit="mm³/s" domainId="[mm3]1sec-1" />
+    <mapping unit="ppm" domainId="ppm" />
+    <mapping unit="mg/s" domainId="mg1sec-1" />
+    <mapping unit="/s" domainId="sec-1" />
+    <mapping unit="#" domainId="seeds" />
+    <mapping unit="mm³/m²" domainId="[mm3]1[m2]-1" />
+    <mapping unit="mm³/m³" domainId="[mm3]1[m3]-1" />
+    <mapping unit="/m²" domainId="seeds1[m2]-1" />
+    <mapping unit="1" domainId="seeds" />
+    <mapping unit="%" domainId="prcnt" />
+    <mapping unit="L/m^2" domainId="l1[m2]-1" />
+    <mapping unit="kg/m^2" domainId="kg1[m2]-1" />
+    <mapping unit="sds/m^2" domainId="seeds1[m2]-1" />
+    <mapping unit="L/s" domainId="l1sec-1" />
+    <mapping unit="kg/s" domainId="kg1sec-1" />
+    <mapping unit="sds/s" domainId="seeds1sec-1" />
+    <mapping unit="m" domainId="m" />
+    <mapping unit="L/ha" domainId="l1ha-1" />
+    <mapping unit="kg/ha" domainId="kg1ha-1" />
+    <mapping unit="1/s" domainId="seeds1sec-1" />
+    <mapping unit="sds" domainId="seeds" />
+    <mapping unit="mg/kg" domainId="mg1kg-1" />
+    <mapping unit="mm³/kg" domainId="[mg3]1kg-1" />
+    <mapping unit="ml" domainId="ml" />
+    <mapping unit="g" domainId="g" />
+    <mapping unit="m²" domainId="m2" />
+    <mapping unit="ml/s" domainId="ml1sec-1" />
+    <mapping unit="s" domainId="sec" />
+    <mapping unit="mg/l" domainId="mg1l-1" />
+    <mapping unit="mg/1000" domainId="ug1count-1" />
+    <mapping unit="ml/1000" domainId="ul1count-1" />
+    <mapping unit="ms" domainId="ms" />
+    <mapping unit="°" domainId="arcdeg" />
+    <mapping unit="mm²/s" domainId="[mm2]1sec-1" />
+    <mapping unit="mK" domainId="mK" />
+    <mapping unit="Pa" domainId="Pa" />
+    <mapping unit="mm/s" domainId="mm1sec-1" />
+    <mapping unit="h" domainId="hr" />
+    <mapping unit="kg/m3" domainId="kg1[m3]-1" />
+    <mapping unit="r/min" domainId="RPM" />
+    <mapping unit="N" domainId="N" />
+  </mappings>
+</ddiToUnitOfMeasureMapping>
