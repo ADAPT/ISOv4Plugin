@@ -19,14 +19,14 @@ namespace ISOv4PluginLogTest.ExportMappers
         public void WhenMapThenGpsUtcDateIsMapped()
         {
             var result = _ptnHeaderMapper.Map();
-            Assert.AreEqual(HeaderPropertyState.IsEmpty, result.GpsUtcDate.State);
+            Assert.AreEqual(HeaderPropertyState.IsNull, result.GpsUtcDate.State);
         }
 
         [Test]
         public void WhenMapThenGpsUtcTimeIsMapped()
         {
             var result = _ptnHeaderMapper.Map();
-            Assert.AreEqual(HeaderPropertyState.IsEmpty, result.GpsUtcTime.State);
+            Assert.AreEqual(HeaderPropertyState.IsNull, result.GpsUtcTime.State);
         }
 
         [Test]

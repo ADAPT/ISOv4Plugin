@@ -122,7 +122,7 @@ namespace ISOv4PluginLogTest.ExportMappers
 
             var expectedBytes = new List<byte> {0x01, 0x00, 0x14, 0x00, 0x00, 0x00};
 
-            VerifyFileContents(expectedBytes, 24);
+            VerifyFileContents(expectedBytes, 18);
         }
 
         [Test]
@@ -137,7 +137,7 @@ namespace ISOv4PluginLogTest.ExportMappers
             Write();
 
             var expectedBytes = new List<byte> {0x01, 0x00, 0x01, 0x00, 0x00, 0x00};
-            VerifyFileContents(expectedBytes, 24);
+            VerifyFileContents(expectedBytes, 18);
         }
 
         [Test]
@@ -170,7 +170,7 @@ namespace ISOv4PluginLogTest.ExportMappers
                 0x00 // DLV1 and value
             };
 
-            VerifyFileContents(expectedBytes, 24);
+            VerifyFileContents(expectedBytes, 18);
         }
 
         [Test]
@@ -216,76 +216,22 @@ namespace ISOv4PluginLogTest.ExportMappers
 
             var expectedBytes = new List<byte>
             {
-                0x00,
-                0x74,
-                0xB7,
-                0x01,
-                0x89,
-                0x1C, // SpatialRecord1 TimeStart
-                0xA0,
-                0x40,
-                0xCA,
-                0x18, // SpatialRecord1 Position North
-                0x80,
-                0x66,
-                0xCD,
-                0x37, // SpatialRecord1 Position East
-                0x00,
-                0x00,
-                0x00,
-                0x00, // SpatialRecord1 Position Up
-                0x00,
-                0x0B,
-                0x01,
-                0x03,
-                0x89,
-                0x1C, // SpatialRecord1 GpsUtcTime and Date
+                0x00, 0x74, 0xB7, 0x01, 0x89, 0x1C, // SpatialRecord1 TimeStart
+                0xA0, 0x40, 0xCA, 0x18, // SpatialRecord1 Position North
+                0x80, 0x66, 0xCD, 0x37, // SpatialRecord1 Position East
+                0x00, 0x00, 0x00, 0x00, // SpatialRecord1 Position Up
+                //0x00, 0x0B, 0x01, 0x03, 0x89, 0x1C, // SpatialRecord1 GpsUtcTime and Date
                 0x02, // number of DLVs to follow
-                0x00,
-                0x01,
-                0x00,
-                0x00,
-                0x00, // DLV0 and value
-                0x01,
-                0x14,
-                0x00,
-                0x00,
-                0x00, // DLV1 and value
-                0x00,
-                0x74,
-                0xB7,
-                0x01,
-                0x89,
-                0x1C, // SpatialRecord2 TimeStart
-                0xA0,
-                0x40,
-                0xCA,
-                0x18, // SpatialRecord1 Position North
-                0x80,
-                0x66,
-                0xCD,
-                0x37, // SpatialRecord1 Position East
-                0x00,
-                0x00,
-                0x00,
-                0x00, // SpatialRecord1 Position Up
-                0x00,
-                0x0B,
-                0x01,
-                0x03,
-                0x89,
-                0x1C, // SpatialRecord2 GpsUtcTime and Date
+                0x00, 0x01, 0x00, 0x00, 0x00, // DLV0 and value
+                0x01, 0x14, 0x00, 0x00, 0x00, // DLV1 and value
+                0x00, 0x74, 0xB7, 0x01, 0x89, 0x1C, // SpatialRecord2 TimeStart
+                0xA0, 0x40, 0xCA, 0x18, // SpatialRecord1 Position North
+                0x80, 0x66, 0xCD, 0x37, // SpatialRecord1 Position East
+                0x00, 0x00, 0x00, 0x00, // SpatialRecord1 Position Up
+                //0x00, 0x0B, 0x01, 0x03, 0x89, 0x1C, // SpatialRecord2 GpsUtcTime and Date
                 0x02, // number of DLVs to follow
-                0x00,
-                0x02,
-                0x00,
-                0x00,
-                0x00, // DLV0 and value
-                0x01,
-                0x1E,
-                0x00,
-                0x00,
-                0x00 // DLV1 and value
+                0x00, 0x02, 0x00, 0x00, 0x00, // DLV0 and value
+                0x01, 0x1E, 0x00, 0x00, 0x00 // DLV1 and value
             };
 
             VerifyFileContents(expectedBytes, 0);
@@ -330,12 +276,12 @@ namespace ISOv4PluginLogTest.ExportMappers
                 0x00,
                 0x00,
                 0x00, // SpatialRecord1 Position Up
-                0x00,
-                0x0B,
-                0x01,
-                0x03,
-                0x89,
-                0x1C, // SpatialRecord1 GpsUtcTime and Date
+//                0x00,
+//                0x0B,
+//                0x01,
+//                0x03,
+//                0x89,
+//                0x1C, // SpatialRecord1 GpsUtcTime and Date
                 0x01, // number of DLVs to follow
                 0x00,
                 0x78,

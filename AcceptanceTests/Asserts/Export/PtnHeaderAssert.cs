@@ -15,8 +15,8 @@ namespace AcceptanceTests.Asserts.Export
             Assert.AreEqual(HeaderPropertyState.IsNull, ptnHeader.PDOP.State);
             Assert.AreEqual(HeaderPropertyState.IsNull, ptnHeader.HDOP.State);
             Assert.AreEqual(HeaderPropertyState.IsNull, ptnHeader.NumberOfSatellites.State);
-            Assert.AreEqual(HeaderPropertyState.IsEmpty, ptnHeader.GpsUtcTime.State);
-            Assert.AreEqual(HeaderPropertyState.IsEmpty, ptnHeader.GpsUtcDate.State);
+            Assert.AreEqual(HeaderPropertyState.IsNull, ptnHeader.GpsUtcTime.State);
+            Assert.AreEqual(HeaderPropertyState.IsNull, ptnHeader.GpsUtcDate.State);
         }
     }
 }

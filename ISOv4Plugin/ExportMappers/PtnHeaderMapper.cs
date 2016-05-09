@@ -14,8 +14,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
         {
             return new PTNHeader
             {
-                GpsUtcDate = new HeaderProperty { State = HeaderPropertyState.IsEmpty },
-                GpsUtcTime = new HeaderProperty { State = HeaderPropertyState.IsEmpty },
+                GpsUtcDate = new HeaderProperty { State = HeaderPropertyState.IsNull },
+                GpsUtcTime = new HeaderProperty { State = HeaderPropertyState.IsNull },
                 HDOP = new HeaderProperty { State = HeaderPropertyState.IsNull},
                 NumberOfSatellites = new HeaderProperty { State = HeaderPropertyState.IsNull},
                 PDOP = new HeaderProperty { State = HeaderPropertyState.IsNull },

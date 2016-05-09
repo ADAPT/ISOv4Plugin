@@ -64,8 +64,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
 
         private void SetGpsUtcDateTime(PTNHeader ptnHeader, ISOSpatialRow record, System.IO.BinaryReader binaryReader)
         {
-            record.GpsUtcTime = ReadInt32(ptnHeader.GpsUtcTime, binaryReader);
-            record.GpsUtcDate = ReadShort(ptnHeader.GpsUtcDate, binaryReader);
+            if(ptnHeader.GpsUtcTime.State != HeaderPropertyState.IsNull)
+                record.GpsUtcTime = ReadInt32(ptnHeader.GpsUtcTime, binaryReader);
+            if (ptnHeader.GpsUtcDate.State != HeaderPropertyState.IsNull)
+                record.GpsUtcDate = ReadShort(ptnHeader.GpsUtcDate, binaryReader);
 
             if (record.GpsUtcDate != null && record.GpsUtcTime != null)
                 record.GpsUtcDateTime = _firstDayOf1980.AddDays((double) record.GpsUtcDate).AddMilliseconds((double) record.GpsUtcTime);

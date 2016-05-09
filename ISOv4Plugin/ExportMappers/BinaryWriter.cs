@@ -52,7 +52,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
         {
             WriteTimeStart(spatialRecord.Timestamp, binaryWriter);
             WritePosition(spatialRecord.Geometry, binaryWriter);
-            WriteGpcUtcTime(spatialRecord.Timestamp.ToUniversalTime(), binaryWriter);
+            //WriteGpcUtcTime(spatialRecord.Timestamp.ToUniversalTime(), binaryWriter);
             WriteMeterValues(spatialRecord, meters, binaryWriter);
         }
 
