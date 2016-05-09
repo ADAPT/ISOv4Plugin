@@ -29,14 +29,16 @@ namespace ISOv4PluginLogTest.ExportMappers
         private List<SpatialRecord> _spatialRecords;
         private NumericMeter _numericMeter;
         private ISOEnumeratedMeter _enumeratedMeter;
-        private Mock<IRepresentationMapper> _representationMapperMock;
+        private Mock<INumericValueMapper> _numericValueMapperMock;
         private Mock<IEnumeratedValueMapper> _enumeratedMeterMapperMock;
-            
+        private SpatialRecord _spatialRecord;
+
         [SetUp]
         public void Setup()
         {
             _meters = new List<Meter>();
-            _spatialRecords = new List<SpatialRecord>();
+            _spatialRecord = new SpatialRecord{Geometry = new Point { X = 93.6208, Y = 41.5908 }};
+            _spatialRecords = new List<SpatialRecord>{ _spatialRecord };
 
             _numericMeter = new NumericMeter
             {
@@ -52,9 +54,9 @@ namespace ISOv4PluginLogTest.ExportMappers
                 ValueCodes = new List<int> { 0, 1, 2 }
             };
 
-            _representationMapperMock = new Mock<IRepresentationMapper>();
+            _numericValueMapperMock = new Mock<INumericValueMapper>();
             _enumeratedMeterMapperMock = new Mock<IEnumeratedValueMapper>();
-            _binaryWriter = new BinaryWriter(_enumeratedMeterMapperMock.Object, _representationMapperMock.Object);
+            _binaryWriter = new BinaryWriter(_enumeratedMeterMapperMock.Object, _numericValueMapperMock.Object);
         }
 
         [Test]
@@ -64,7 +66,7 @@ namespace ISOv4PluginLogTest.ExportMappers
             _fileName = "test.bin";
             var filename = Path.Combine(_dataPath, _fileName);
 
-            _binaryWriter.Write(filename, new List<Section>(), new List<Meter>(), new List<SpatialRecord>());
+            _binaryWriter.Write(filename, new List<Meter>(), new List<SpatialRecord>());
 
             Assert.IsTrue(File.Exists(filename));
         }
@@ -72,14 +74,9 @@ namespace ISOv4PluginLogTest.ExportMappers
         [Test]
         public void GivenSpatialRowWhenWriteThenTimeStartTimeIsWritten()
         {
-            var spatialRecord = new SpatialRecord
-            {
-                // number of seconds since midnight is 8hr * 60min/hr * 60s/min * 1000ms/s = 28800000 = 0x01B77400
-                // number of days since Jan 1 1980 is 7305 = 0x1C89
-                Timestamp = new DateTime(2000, 1, 1, 8, 0, 0)
-            };
-
-            _spatialRecords = new List<SpatialRecord> { spatialRecord };
+            // number of seconds since midnight is 8hr * 60min/hr * 60s/min * 1000ms/s = 28800000 = 0x01B77400
+            // number of days since Jan 1 1980 is 7305 = 0x1C89
+            _spatialRecord.Timestamp = new DateTime(2000, 1, 1, 8, 0, 0);
 
             Write();
 
@@ -90,22 +87,13 @@ namespace ISOv4PluginLogTest.ExportMappers
         [Test]
         public void GivenSpatialRowWhenWriteThenPositionIsWritten()
         {
-            var spatialRecord = new SpatialRecord
-            {
-                // number of seconds since midnight is 8hr * 60min/hr * 60s/min * 1000ms/s = 28800000 = 0x01B77400
-                // number of days since Jan 1 1980 is 7305 = 0x1C89
-                Timestamp = new DateTime(2000, 1, 1, 8, 0, 0),
-
-                // North = (41.5908 / .0000001) = 415908000 = 0x18CA40A0
-                // East =  (93.6208 / .0000001) = 936208000 = 0x37CD6680
-                Geometry = new Point { X = 93.6208, Y = 41.5908 }
-            };
-
-            _spatialRecords = new List<SpatialRecord> { spatialRecord };
+            // North = (41.5908 / .0000001) = 415908000 = 0x18CA40A0
+            // East =  (93.6208 / .0000001) = 936208000 = 0x37CD6680
+            _spatialRecord.Geometry = new Point { X = 93.6208, Y = 41.5908 };
 
             Write();
 
-            var expectedBytes = new List<byte> { 0xA0, 0x40, 0xCA, 0x18,
+            var expectedBytes = new List<byte> { 0xA0, 0x40, 0xCA, 0x18, 
                                                  0x80, 0x66, 0xCD, 0x37 };
 
             VerifyFileContents(expectedBytes, 6);
@@ -117,44 +105,13 @@ namespace ISOv4PluginLogTest.ExportMappers
             _numericMeter.Id.UniqueIds.Add(GenerateUniqueId(0));
             _meters.AddRange(new List<Meter> { _numericMeter });
 
-            var spatialRecord = new SpatialRecord
-            {
-                Timestamp = new DateTime(2000, 1, 1, 8, 0, 0),
-                Geometry = new Point { X = 93.6208, Y = 41.5908 }
-            };
+            _spatialRecord.SetMeterValue(_numericMeter, new NumericRepresentationValue());
 
-            spatialRecord.SetMeterValue(_numericMeter, new NumericRepresentationValue(RepresentationInstanceList.vrAvgHarvestMoisture.ToModelRepresentation(), new NumericValue(UnitSystemManager.GetUnitOfMeasure("prcnt"), 20)));
-            _spatialRecords = new List<SpatialRecord> { spatialRecord };
+            _numericValueMapperMock.Setup(x => x.Map(_numericMeter, _spatialRecord)).Returns(20);
 
             Write();
 
             var expectedBytes = new List<byte> { 0x01, 0x00, 0x14, 0x00, 0x00, 0x00 };
-
-            VerifyFileContents(expectedBytes, 24);
-        }
-
-        [Test]
-        public void GivenSpatialRowWithNumericMeterWhenWriteThenValueHasBeenScaled()
-        {
-            _numericMeter.Id.UniqueIds.Add(GenerateUniqueId(0));
-            _meters.AddRange(new List<Meter> { _numericMeter });
-
-            var spatialRecord = new SpatialRecord
-            {
-                Timestamp = new DateTime(2000, 1, 1, 8, 0, 0),
-                Geometry = new Point { X = 93.6208, Y = 41.5908 }
-            };
-
-            var numericRepresentationValue = new NumericRepresentationValue(RepresentationInstanceList.vrAvgHarvestMoisture.ToModelRepresentation(), new NumericValue(UnitSystemManager.GetUnitOfMeasure("prcnt"), 38000));
-            spatialRecord.SetMeterValue(_numericMeter, numericRepresentationValue);
-            _spatialRecords = new List<SpatialRecord> { spatialRecord };
-
-
-            _representationMapperMock.Setup(x => x.Map(numericRepresentationValue.Representation)).Returns(2);
-
-            Write();
-
-            var expectedBytes = new List<byte> { 0x01, 0x00, 0xC0, 0xFB, 0x39, 0x00 };
 
             VerifyFileContents(expectedBytes, 24);
         }
@@ -165,20 +122,8 @@ namespace ISOv4PluginLogTest.ExportMappers
             _enumeratedMeter.Id.UniqueIds.Add(GenerateUniqueId(0));
             _meters.AddRange(new List<Meter> { _enumeratedMeter });
 
-            var spatialRecord = new SpatialRecord
-            {
-                Timestamp = new DateTime(2000, 1, 1, 8, 0, 0),
-                Geometry = new Point { X = 93.6208, Y = 41.5908 }
-            };
-
-            spatialRecord.SetMeterValue(_enumeratedMeter,
-                new EnumeratedValue
-                {
-                    Value = new AgGateway.ADAPT.ApplicationDataModel.Representations.EnumerationMember {Code = 1}
-                });
-
-            _spatialRecords = new List<SpatialRecord> { spatialRecord };
-            _enumeratedMeterMapperMock.Setup(x => x.Map(_enumeratedMeter, _meters, spatialRecord)).Returns(1);
+            _spatialRecord.SetMeterValue(_enumeratedMeter, new EnumeratedValue());
+            _enumeratedMeterMapperMock.Setup(x => x.Map(_enumeratedMeter, _meters, _spatialRecord)).Returns(1);
 
             Write();
 
@@ -193,20 +138,11 @@ namespace ISOv4PluginLogTest.ExportMappers
             _numericMeter.Id.UniqueIds.Add(GenerateUniqueId(1));
             _meters.AddRange(new List<Meter> { _enumeratedMeter, _numericMeter });
 
-            var spatialRecord = new SpatialRecord
-            {
-                Timestamp = new DateTime(2000, 1, 1, 8, 0, 0),
-                Geometry = new Point { X = 93.6208, Y = 41.5908 }
-            };
+            _spatialRecord.SetMeterValue(_enumeratedMeter, new EnumeratedValue());
+            _spatialRecord.SetMeterValue(_numericMeter, new NumericRepresentationValue());
 
-            spatialRecord.SetMeterValue(_enumeratedMeter,
-                new EnumeratedValue
-                {
-                    Value = new AgGateway.ADAPT.ApplicationDataModel.Representations.EnumerationMember { Code = 1 }
-                });
-            spatialRecord.SetMeterValue(_numericMeter, new NumericRepresentationValue(RepresentationInstanceList.vrAvgHarvestMoisture.ToModelRepresentation(), new NumericValue(UnitSystemManager.GetUnitOfMeasure("prcnt"), 20)));
-            _spatialRecords = new List<SpatialRecord> { spatialRecord };
-            _enumeratedMeterMapperMock.Setup(x => x.Map(_enumeratedMeter, _meters, spatialRecord)).Returns(1);
+            _enumeratedMeterMapperMock.Setup(x => x.Map(_enumeratedMeter, _meters, _spatialRecord)).Returns(1);
+            _numericValueMapperMock.Setup(x => x.Map(_numericMeter, _spatialRecord)).Returns(20);
 
             Write();
 
@@ -238,7 +174,8 @@ namespace ISOv4PluginLogTest.ExportMappers
                 {
                     Value = new AgGateway.ADAPT.ApplicationDataModel.Representations.EnumerationMember { Code = 1 }
                 });
-            spatialRecord1.SetMeterValue(_numericMeter, new NumericRepresentationValue(RepresentationInstanceList.vrAvgHarvestMoisture.ToModelRepresentation(), new NumericValue(UnitSystemManager.GetUnitOfMeasure("prcnt"), 20)));
+            spatialRecord1.SetMeterValue(_numericMeter, new NumericRepresentationValue());
+            _numericValueMapperMock.Setup(x => x.Map(_numericMeter, spatialRecord1)).Returns(20);
 
             var spatialRecord2 = new SpatialRecord
             {
@@ -251,7 +188,9 @@ namespace ISOv4PluginLogTest.ExportMappers
                 {
                     Value = new AgGateway.ADAPT.ApplicationDataModel.Representations.EnumerationMember { Code = 2 }
                 });
-            spatialRecord2.SetMeterValue(_numericMeter, new NumericRepresentationValue(RepresentationInstanceList.vrAvgHarvestMoisture.ToModelRepresentation(), new NumericValue(UnitSystemManager.GetUnitOfMeasure("prcnt"), 30)));
+            spatialRecord2.SetMeterValue(_numericMeter, new NumericRepresentationValue());
+            _numericValueMapperMock.Setup(x => x.Map(_numericMeter, spatialRecord2)).Returns(30);
+
             _spatialRecords = new List<SpatialRecord> { spatialRecord1, spatialRecord2 };
             _enumeratedMeterMapperMock.Setup(x => x.Map(_enumeratedMeter, _meters, spatialRecord1)).Returns(1);
             _enumeratedMeterMapperMock.Setup(x => x.Map(_enumeratedMeter, _meters, spatialRecord2)).Returns(2);
@@ -324,8 +263,7 @@ namespace ISOv4PluginLogTest.ExportMappers
 
                 foreach (byte t in expectedBytes)
                 {
-                    byte byteIn = binaryReader.ReadByte();
-                    Console.WriteLine(byteIn.ToString("X2"));
+                    var byteIn = binaryReader.ReadByte();
                     Assert.AreEqual(t, byteIn);
                 }
             }
@@ -347,7 +285,7 @@ namespace ISOv4PluginLogTest.ExportMappers
             _fileName = "test.bin";
             var filename = Path.Combine(_dataPath, _fileName);
 
-            _binaryWriter.Write(filename, null, _meters, _spatialRecords);
+            _binaryWriter.Write(filename, _meters, _spatialRecords);
         }
 
         [TearDown]

@@ -61,6 +61,7 @@
     <Compile Include="ExportMappers\DlvHeaderMapper.cs" />
     <Compile Include="ExportMappers\EnumeratedValueMapper.cs" />
     <Compile Include="ExportMappers\GrowerFarmFieldMapper.cs" />
+    <Compile Include="ExportMappers\NumericValueMapper.cs" />
     <Compile Include="ExportMappers\PrescriptionMapper.cs" />
     <Compile Include="ExportMappers\ProductsMapper.cs" />
     <Compile Include="ExportMappers\PtnHeaderMapper.cs" />

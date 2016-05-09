@@ -47,7 +47,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
             _xmlReader.WriteTlgXmlData(datacardPath, tlg.A + ".xml", timHeader);
 
             var binFilePath = Path.Combine(datacardPath, tlg.A + ".bin");
-            _binaryWriter.Write(binFilePath, sections, meters, spatialRecords);
+            _binaryWriter.Write(binFilePath, meters, spatialRecords);
 
             return tlg;
         }

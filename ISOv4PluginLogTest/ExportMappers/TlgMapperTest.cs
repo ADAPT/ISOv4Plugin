@@ -96,7 +96,7 @@ namespace ISOv4PluginLogTest.ExportMappers
             MapSingle();
 
             var expectedPath = Path.Combine(_datacardPath, "TLG00016.bin");
-            _binaryWriterMock.Verify(x => x.Write(expectedPath, sections, meters, spatialRecords), Times.Once);
+            _binaryWriterMock.Verify(x => x.Write(expectedPath, meters, spatialRecords), Times.Once);
         }
 
         [Test]

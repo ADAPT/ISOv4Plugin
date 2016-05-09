@@ -90,7 +90,7 @@ namespace ISOv4PluginTest.Writers
             }
 
             // Verify
-            Assert.IsNullOrEmpty(sb.ToString());
+            Assert.IsEmpty(sb.ToString());
         }
     }
 }
