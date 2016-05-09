@@ -35,5 +35,14 @@ namespace ISOv4PluginTest
                 }
             }
         }
+
+        public static T LoadFromJson<T>(byte[] workersWithAllData)
+        {
+            using (var stream = new MemoryStream(workersWithAllData))
+            using (var reader = new StreamReader(stream))
+            {
+                return (T)_jsonSerializer.Deserialize(reader, typeof (T));
+            }
+        }
     }
 }

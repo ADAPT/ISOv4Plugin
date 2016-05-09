@@ -1,4 +1,7 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Text;
+using System.Xml;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
 using AgGateway.ADAPT.ISOv4Plugin.Writers;
 using NUnit.Framework;
@@ -8,12 +11,13 @@ namespace ISOv4PluginTest.Writers
     [TestFixture]
     public class WorkerWriterTests
     {
-        [TearDown]
-        public void Cleanup()
+        private string _directory;
+
+        [SetUp]
+        public void Setup()
         {
-            var folderLocation = TestContext.CurrentContext.WorkDirectory + @"\TASKDATA";
-            if (Directory.Exists(folderLocation))
-                Directory.Delete(folderLocation, true);
+            _directory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(_directory);
         }
 
         [Test]
@@ -21,16 +25,15 @@ namespace ISOv4PluginTest.Writers
         {
             // Setup
             var taskWriter = new TaskDocumentWriter();
-            var adaptDocument = TestHelpers.LoadFromJson<ApplicationDataModel>(@"TestData\Worker\WorkersWithAllData.json");
+            var adaptDocument = TestHelpers.LoadFromJson<ApplicationDataModel>(TestData.TestData.WorkersWithAllData);
 
             // Act
             using (taskWriter)
             {
-                var resultingXml = taskWriter.Write(TestContext.CurrentContext.WorkDirectory, adaptDocument);
-            
+                var resultingXml = taskWriter.Write(_directory, adaptDocument);
+                
                 // Verify
-                Assert.AreEqual(TestHelpers.LoadFromFile(@"TestData\Worker\WorkersWithAllDataOutput.xml"),
-                    resultingXml.ToString());
+                Assert.AreEqual(TestData.TestData.WorkersWithAllDataOutput, resultingXml.ToString());
             }
         }
 
@@ -39,14 +42,14 @@ namespace ISOv4PluginTest.Writers
         {
             // Setup
             var taskWriter = new TaskDocumentWriter();
-            var adaptDocument = TestHelpers.LoadFromJson<ApplicationDataModel>(@"TestData\Worker\WorkersWithNoContacts.json");
+            var adaptDocument = TestHelpers.LoadFromJson<ApplicationDataModel>(TestData.TestData.WorkersWithNoContacts);
 
             // Act
             using (taskWriter)
             {
-                var result = taskWriter.Write(TestContext.CurrentContext.WorkDirectory, adaptDocument);
+                var result = taskWriter.Write(_directory, adaptDocument);
 
-                Assert.AreEqual(TestHelpers.LoadFromFile(@"TestData\Worker\WorkersWithNoContactsOutput.xml"), result.ToString());
+                Assert.AreEqual(TestData.TestData.WorkersWithNoContactsOutput, result.ToString());
             }
         }
 
@@ -55,16 +58,16 @@ namespace ISOv4PluginTest.Writers
         {
             // Setup
             var taskWriter = new TaskDocumentWriter();
-            var adaptDocument = TestHelpers.LoadFromJson<ApplicationDataModel>(@"TestData\Worker\NoWorkersPresent.json");
+            var adaptDocument = TestHelpers.LoadFromJson<ApplicationDataModel>(TestData.TestData.NoWorkersPresent);
 
             // Act
             using (taskWriter)
             {
-                taskWriter.Write(TestContext.CurrentContext.WorkDirectory, adaptDocument);
+                taskWriter.Write(_directory, adaptDocument);
             }
 
             // Verify
-            Assert.AreEqual(false, File.Exists(TestContext.CurrentContext.WorkDirectory + @"\TASKDATA\WKR00000.XML"));
+            Assert.AreEqual(false, File.Exists(Path.Combine(_directory, "TASKDATA", "WKR00000.XML")));
         }
 
         [Test]
@@ -72,7 +75,7 @@ namespace ISOv4PluginTest.Writers
         {
             // Setup
             var taskWriter = new TaskDocumentWriter();
-            var adaptDocument = TestHelpers.LoadFromJson<ApplicationDataModel>(@"TestData\Worker\ZeroWorkersPresent.json");
+            var adaptDocument = TestHelpers.LoadFromJson<ApplicationDataModel>(TestData.TestData.ZeroWorkersPresent);
 
             // Act
             using (taskWriter)
@@ -81,7 +84,14 @@ namespace ISOv4PluginTest.Writers
             }
 
             // Verify
-            Assert.AreEqual(false, File.Exists(TestContext.CurrentContext.WorkDirectory + @"\TASKDATA\WKR00000.XML"));
+            Assert.AreEqual(false, File.Exists(Path.Combine(_directory, "TASKDATA", "WKR00000.XML")));
+        }
+
+        [TearDown]
+        public void Cleanup()
+        {
+            if(Directory.Exists(_directory))
+                Directory.Delete(_directory, true);
         }
     }
 }
