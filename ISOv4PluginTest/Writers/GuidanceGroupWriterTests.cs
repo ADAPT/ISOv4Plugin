@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
 using AgGateway.ADAPT.ISOv4Plugin.Writers;
 using NUnit.Framework;
@@ -8,12 +9,13 @@ namespace ISOv4PluginTest.Writers
     [TestFixture]
     public class GuidanceGroupWriterTests
     {
-        [TearDown]
-        public void Cleanup()
+        private string _exportPath;
+
+        [SetUp]
+        public void Setup()
         {
-            var folderLocation = TestContext.CurrentContext.WorkDirectory + @"\TASKDATA";
-            if (Directory.Exists(folderLocation))
-                Directory.Delete(folderLocation, true);
+            _exportPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(_exportPath);
         }
 
         [Test]
@@ -21,14 +23,13 @@ namespace ISOv4PluginTest.Writers
         {
             // Setup
             var taskWriter = new TaskDocumentWriter();
-            var adaptDocument = TestHelpers.LoadFromJson<ApplicationDataModel>(@"TestData\Guidance\GroupsNoPatternsOrBoundary.json");
+            var adaptDocument = TestHelpers.LoadFromJson<ApplicationDataModel>(TestData.TestData.GroupsNoPatternsOrBoundary);
 
             // Act
             using (taskWriter)
             {
-                var actual = taskWriter.Write(TestContext.CurrentContext.WorkDirectory, adaptDocument);
-                Assert.AreEqual(TestHelpers.LoadFromFile(@"TestData\Guidance\GroupsNoPatternsOrBoundaryOutput.xml"),
-                    actual.ToString());
+                var actual = taskWriter.Write(_exportPath, adaptDocument);
+                Assert.AreEqual(TestData.TestData.GroupsNoPatternsOrBoundaryOutput, actual.ToString());
             }
         }
 
@@ -37,14 +38,13 @@ namespace ISOv4PluginTest.Writers
         {
             // Setup
             var taskWriter = new TaskDocumentWriter();
-            var adaptDocument = TestHelpers.LoadFromJson<ApplicationDataModel>(@"TestData\Guidance\GroupsWithBoundaryAndNoPatterns.json");
+            var adaptDocument = TestHelpers.LoadFromJson<ApplicationDataModel>(TestData.TestData.GroupsWithBoundaryAndNoPatterns);
 
             // Act
             using (taskWriter)
             {
-                var actual = taskWriter.Write(TestContext.CurrentContext.WorkDirectory, adaptDocument);
-                var loadFromFile = TestHelpers.LoadFromFile(@"TestData\Guidance\GroupsWithBoundaryAndNoPatternsOutput.xml");
-                Assert.AreEqual(loadFromFile, actual.ToString().Replace("{","").Replace("}",""));
+                var actual = taskWriter.Write(_exportPath, adaptDocument);
+                Assert.AreEqual(TestData.TestData.GroupsWithBoundaryAndNoPatternsOutput, actual.ToString().Replace("{","").Replace("}",""));
             }
         }
 
@@ -53,18 +53,16 @@ namespace ISOv4PluginTest.Writers
         {
             // Setup
             var taskWriter = new TaskDocumentWriter();
-            var adaptDocument = TestHelpers.LoadFromJson<ApplicationDataModel>(@"TestData\Guidance\GroupsWithBoundaryAndPatterns.json");
+            var adaptDocument = TestHelpers.LoadFromJson<ApplicationDataModel>(TestData.TestData.GroupsWithBoundaryAndPatterns);
 
             // Act
             using (taskWriter)
             {
-                var actual = taskWriter.Write(TestContext.CurrentContext.WorkDirectory, adaptDocument);
+                var actual = taskWriter.Write(_exportPath, adaptDocument);
             
-                Assert.AreEqual(TestHelpers.LoadFromFile(@"TestData\Guidance\GroupsWithBoundaryAndPatternsOutput.xml"),
-                    actual.ToString());
+                Assert.AreEqual(TestData.TestData.GroupsWithBoundaryAndPatternsOutput, actual.ToString());
             }
         }
-
 
         [Test]
         public void ShouldHandleNullGroup()
@@ -77,7 +75,14 @@ namespace ISOv4PluginTest.Writers
             writer.Write(taskWriter.RootWriter, null);
 
             // Verify
-            Assert.AreEqual(false, Directory.Exists(TestContext.CurrentContext.WorkDirectory + @"\TASKDATA"));
+            Assert.AreEqual(false, Directory.Exists(Path.Combine(_exportPath, "TASKDATA")));
+        }
+
+        [TearDown]
+        public void Cleanup()
+        {
+            if (Directory.Exists(_exportPath))
+                Directory.Delete(_exportPath, true);
         }
     }
 }

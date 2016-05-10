@@ -12,10 +12,12 @@ namespace ISOv4PluginTest.Writers
     public class WorkerWriterTests
     {
         private string _directory;
+        private TaskDocumentWriter _taskWriter;
 
         [SetUp]
         public void Setup()
         {
+            _taskWriter = new TaskDocumentWriter();
             _directory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             Directory.CreateDirectory(_directory);
         }
@@ -24,13 +26,12 @@ namespace ISOv4PluginTest.Writers
         public void ShouldWriteWorkersWithAllData()
         {
             // Setup
-            var taskWriter = new TaskDocumentWriter();
             var adaptDocument = TestHelpers.LoadFromJson<ApplicationDataModel>(TestData.TestData.WorkersWithAllData);
 
             // Act
-            using (taskWriter)
+            using (_taskWriter)
             {
-                var resultingXml = taskWriter.Write(_directory, adaptDocument);
+                var resultingXml = _taskWriter.Write(_directory, adaptDocument);
                 
                 // Verify
                 Assert.AreEqual(TestData.TestData.WorkersWithAllDataOutput, resultingXml.ToString());
@@ -41,13 +42,12 @@ namespace ISOv4PluginTest.Writers
         public void ShouldWriteWorkersWithNonExistentOrMissingContactInfo()
         {
             // Setup
-            var taskWriter = new TaskDocumentWriter();
             var adaptDocument = TestHelpers.LoadFromJson<ApplicationDataModel>(TestData.TestData.WorkersWithNoContacts);
 
             // Act
-            using (taskWriter)
+            using (_taskWriter)
             {
-                var result = taskWriter.Write(_directory, adaptDocument);
+                var result = _taskWriter.Write(_directory, adaptDocument);
 
                 Assert.AreEqual(TestData.TestData.WorkersWithNoContactsOutput, result.ToString());
             }
@@ -57,13 +57,12 @@ namespace ISOv4PluginTest.Writers
         public void ShouldNotWriteWorkersWhenNoneAreAvailable()
         {
             // Setup
-            var taskWriter = new TaskDocumentWriter();
             var adaptDocument = TestHelpers.LoadFromJson<ApplicationDataModel>(TestData.TestData.NoWorkersPresent);
 
             // Act
-            using (taskWriter)
+            using (_taskWriter)
             {
-                taskWriter.Write(_directory, adaptDocument);
+                _taskWriter.Write(_directory, adaptDocument);
             }
 
             // Verify
@@ -74,13 +73,12 @@ namespace ISOv4PluginTest.Writers
         public void ShouldNotWriteWorkersWhenZeroAreAvailable()
         {
             // Setup
-            var taskWriter = new TaskDocumentWriter();
             var adaptDocument = TestHelpers.LoadFromJson<ApplicationDataModel>(TestData.TestData.ZeroWorkersPresent);
 
             // Act
-            using (taskWriter)
+            using (_taskWriter)
             {
-                taskWriter.Write(TestContext.CurrentContext.WorkDirectory, adaptDocument);
+                _taskWriter.Write(_directory, adaptDocument);
             }
 
             // Verify

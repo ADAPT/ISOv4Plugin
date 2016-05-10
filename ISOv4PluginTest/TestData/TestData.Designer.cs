@@ -63,10 +63,255 @@ namespace ISOv4PluginTest.TestData {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] AllPatterns {
+            get {
+                object obj = ResourceManager.GetObject("AllPatterns", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-16&quot;?&gt;
+        ///&lt;ISO11783_TaskData VersionMajor=&quot;4&quot; VersionMinor=&quot;0&quot; ManagementSoftwareManufacturer=&quot;AgGateway&quot; ManagementSoftwareVersion=&quot;1.0&quot;&gt;
+        ///  &lt;PFD A=&quot;PFD1&quot; C=&quot;Field&quot; D=&quot;0&quot;&gt;
+        ///    &lt;GGP A=&quot;GGP1&quot; B=&quot;guidance group&quot;&gt;
+        ///      &lt;GPN A=&quot;GPN1&quot; B=&quot;AbLine&quot; C=&quot;1&quot; E=&quot;1&quot;&gt;
+        ///        &lt;LSG A=&quot;5&quot;&gt;
+        ///          &lt;PNT A=&quot;2&quot; B=&quot;start&quot; C=&quot;2&quot; D=&quot;1&quot; /&gt;
+        ///          &lt;PNT A=&quot;2&quot; B=&quot;end&quot; C=&quot;4&quot; D=&quot;3&quot; /&gt;
+        ///        &lt;/LSG&gt;
+        ///        &lt;PLN A=&quot;1&quot;&gt;
+        ///          &lt;LSG A=&quot;1&quot;&gt;
+        ///            &lt;PNT A=&quot;2&quot; B=&quot;start&quot; C=&quot;2&quot; D=&quot;1&quot; /&gt;
+        ///  [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string AllPatternsOutput {
+            get {
+                return ResourceManager.GetString("AllPatternsOutput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] GroupsNoPatternsOrBoundary {
+            get {
+                object obj = ResourceManager.GetObject("GroupsNoPatternsOrBoundary", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-16&quot;?&gt;
+        ///&lt;ISO11783_TaskData VersionMajor=&quot;4&quot; VersionMinor=&quot;0&quot; ManagementSoftwareManufacturer=&quot;AgGateway&quot; ManagementSoftwareVersion=&quot;1.0&quot;&gt;
+        ///  &lt;PFD A=&quot;PFD1&quot; C=&quot;Field&quot; D=&quot;0&quot;&gt;
+        ///    &lt;GGP A=&quot;GGP1&quot; B=&quot;guidance group 1&quot; /&gt;
+        ///    &lt;GGP A=&quot;GGP2&quot; B=&quot;guidance group 2&quot; /&gt;
+        ///    &lt;GGP A=&quot;GGP3&quot; B=&quot;guidance group 3&quot; /&gt;
+        ///  &lt;/PFD&gt;
+        ///&lt;/ISO11783_TaskData&gt;.
+        /// </summary>
+        internal static string GroupsNoPatternsOrBoundaryOutput {
+            get {
+                return ResourceManager.GetString("GroupsNoPatternsOrBoundaryOutput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] GroupsWithBoundaryAndNoPatterns {
+            get {
+                object obj = ResourceManager.GetObject("GroupsWithBoundaryAndNoPatterns", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-16&quot;?&gt;
+        ///&lt;ISO11783_TaskData VersionMajor=&quot;4&quot; VersionMinor=&quot;0&quot; ManagementSoftwareManufacturer=&quot;AgGateway&quot; ManagementSoftwareVersion=&quot;1.0&quot;&gt;
+        ///  &lt;PFD A=&quot;PFD1&quot; C=&quot;Field&quot; D=&quot;0&quot;&gt;
+        ///    &lt;GGP A=&quot;GGP1&quot; B=&quot;guidance group 1&quot;&gt;
+        ///      &lt;PLN A=&quot;1&quot;&gt;
+        ///        &lt;LSG A=&quot;1&quot;&gt;
+        ///          &lt;PNT A=&quot;2&quot; B=&quot;start&quot; C=&quot;2&quot; D=&quot;1&quot; /&gt;
+        ///        &lt;/LSG&gt;
+        ///      &lt;/PLN&gt;
+        ///    &lt;/GGP&gt;
+        ///    &lt;GGP A=&quot;GGP2&quot; B=&quot;guidance group 2&quot;&gt;
+        ///      &lt;PLN A=&quot;1&quot;&gt;
+        ///        &lt;LSG A=&quot;1&quot;&gt;
+        ///          &lt;PNT A=&quot;2&quot; B=&quot;start&quot; C=&quot;20&quot; D=&quot;10&quot; /&gt;
+        ///        [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string GroupsWithBoundaryAndNoPatternsOutput {
+            get {
+                return ResourceManager.GetString("GroupsWithBoundaryAndNoPatternsOutput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] GroupsWithBoundaryAndPatterns {
+            get {
+                object obj = ResourceManager.GetObject("GroupsWithBoundaryAndPatterns", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-16&quot;?&gt;
+        ///&lt;ISO11783_TaskData VersionMajor=&quot;4&quot; VersionMinor=&quot;0&quot; ManagementSoftwareManufacturer=&quot;AgGateway&quot; ManagementSoftwareVersion=&quot;1.0&quot;&gt;
+        ///  &lt;PFD A=&quot;PFD1&quot; C=&quot;Field&quot; D=&quot;0&quot;&gt;
+        ///    &lt;GGP A=&quot;GGP1&quot; B=&quot;guidance group 1&quot;&gt;
+        ///      &lt;GPN A=&quot;GPN1&quot; B=&quot;AbLine&quot; C=&quot;1&quot; E=&quot;1&quot;&gt;
+        ///        &lt;LSG A=&quot;5&quot;&gt;
+        ///          &lt;PNT A=&quot;2&quot; B=&quot;start&quot; C=&quot;2&quot; D=&quot;1&quot; /&gt;
+        ///          &lt;PNT A=&quot;2&quot; B=&quot;end&quot; C=&quot;4&quot; D=&quot;3&quot; /&gt;
+        ///        &lt;/LSG&gt;
+        ///        &lt;PLN A=&quot;1&quot;&gt;
+        ///          &lt;LSG A=&quot;1&quot;&gt;
+        ///            &lt;PNT A=&quot;2&quot; B=&quot;start&quot; C=&quot;21&quot; D=&quot;11&quot; / [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string GroupsWithBoundaryAndPatternsOutput {
+            get {
+                return ResourceManager.GetString("GroupsWithBoundaryAndPatternsOutput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] MissingUnit {
+            get {
+                object obj = ResourceManager.GetObject("MissingUnit", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-16&quot;?&gt;
+        ///&lt;TZN A=&quot;1&quot; B=&quot;zone1&quot;&gt;
+        ///  &lt;PDV A=&quot;0006&quot; B=&quot;100&quot; C=&quot;PDT1&quot; /&gt;
+        ///&lt;/TZN&gt;.
+        /// </summary>
+        internal static string MissingUnitOutput {
+            get {
+                return ResourceManager.GetString("MissingUnitOutput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] MultipleVariables {
+            get {
+                object obj = ResourceManager.GetObject("MultipleVariables", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-16&quot;?&gt;
+        ///&lt;TZN A=&quot;1&quot; B=&quot;zone1&quot;&gt;
+        ///  &lt;PDV A=&quot;0006&quot; B=&quot;10000&quot; C=&quot;PDT1&quot; /&gt;
+        ///  &lt;PDV A=&quot;0001&quot; B=&quot;2000000&quot; C=&quot;PDT2&quot; /&gt;
+        ///  &lt;PDV A=&quot;0029&quot; B=&quot;300000&quot; C=&quot;PDT3&quot; /&gt;
+        ///&lt;/TZN&gt;.
+        /// </summary>
+        internal static string MultipleVariablesOutput {
+            get {
+                return ResourceManager.GetString("MultipleVariablesOutput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] NoVariables {
+            get {
+                object obj = ResourceManager.GetObject("NoVariables", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-16&quot;?&gt;
+        ///&lt;TZN A=&quot;1&quot; B=&quot;zone1&quot; /&gt;.
+        /// </summary>
+        internal static string NoVariablesOutput {
+            get {
+                return ResourceManager.GetString("NoVariablesOutput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] NoWorkersPresent {
             get {
                 object obj = ResourceManager.GetObject("NoWorkersPresent", resourceCulture);
                 return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] SingleProduct {
+            get {
+                object obj = ResourceManager.GetObject("SingleProduct", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 010000000200000003000000040000000500000006000000070000000800000009000000.
+        /// </summary>
+        internal static string SingleProductOutputTxt {
+            get {
+                return ResourceManager.GetString("SingleProductOutputTxt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-16&quot;?&gt;
+        ///&lt;ISO11783_TaskData VersionMajor=&quot;4&quot; VersionMinor=&quot;0&quot; ManagementSoftwareManufacturer=&quot;AgGateway&quot; ManagementSoftwareVersion=&quot;1.0&quot;&gt;
+        ///  &lt;PDT A=&quot;PDT1&quot; B=&quot;product&quot; /&gt;
+        ///  &lt;TSK A=&quot;TSK1&quot; B=&quot;test&quot; G=&quot;1&quot;&gt;
+        ///    &lt;TZN A=&quot;1&quot; B=&quot;Default&quot;&gt;
+        ///      &lt;PDV A=&quot;0006&quot; B=&quot;0&quot; C=&quot;PDT1&quot; /&gt;
+        ///    &lt;/TZN&gt;
+        ///    &lt;GRD A=&quot;2&quot; B=&quot;1&quot; C=&quot;0.00020000000000&quot; D=&quot;0.00010000000000&quot; E=&quot;3&quot; F=&quot;3&quot; G=&quot;GRD00000&quot; I=&quot;2&quot; J=&quot;1&quot; /&gt;
+        ///  &lt;/TSK&gt;
+        ///&lt;/ISO11783_TaskData&gt;.
+        /// </summary>
+        internal static string SingleProductOutputXml {
+            get {
+                return ResourceManager.GetString("SingleProductOutputXml", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] UnsupportedUnitDimension {
+            get {
+                object obj = ResourceManager.GetObject("UnsupportedUnitDimension", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-16&quot;?&gt;
+        ///&lt;TZN A=&quot;1&quot; B=&quot;zone1&quot;&gt;
+        ///  &lt;PDV A=&quot;0006&quot; B=&quot;10000&quot; C=&quot;PDT1&quot; /&gt;
+        ///&lt;/TZN&gt;.
+        /// </summary>
+        internal static string UnsupportedUnitDimensionOutput {
+            get {
+                return ResourceManager.GetString("UnsupportedUnitDimensionOutput", resourceCulture);
             }
         }
         

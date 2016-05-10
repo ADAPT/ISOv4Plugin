@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
 using AgGateway.ADAPT.ISOv4Plugin.Writers;
 using NUnit.Framework;
@@ -8,12 +9,13 @@ namespace ISOv4PluginTest.Writers
     [TestFixture]
     public class PrescriptionWriterTests
     {
-        [TearDown]
-        public void Cleanup()
+        private string _exportPath;
+
+        [SetUp]
+        public void Setup()
         {
-            var folderLocation = TestContext.CurrentContext.WorkDirectory + @"\TASKDATA";
-            if (Directory.Exists(folderLocation))
-                Directory.Delete(folderLocation, true);
+            _exportPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(_exportPath);
         }
 
         [Test]
@@ -21,20 +23,25 @@ namespace ISOv4PluginTest.Writers
         {
             // Setup
             var taskWriter = new TaskDocumentWriter();
-            var adaptDocument = TestHelpers.LoadFromJson<ApplicationDataModel>(@"TestData\Prescription\SingleProduct.json");
+            var adaptDocument = TestHelpers.LoadFromJson<ApplicationDataModel>(TestData.TestData.SingleProduct);
 
             // Act
             using (taskWriter)
             {
-                var actualXml = taskWriter.Write(TestContext.CurrentContext.WorkDirectory, adaptDocument);
-            
-                Assert.AreEqual(TestHelpers.LoadFromFile(@"TestData\Prescription\SingleProductOutput.xml"),
-                    actualXml.ToString());
+                var actualXml = taskWriter.Write(_exportPath, adaptDocument);
+                Assert.AreEqual(TestData.TestData.SingleProductOutputXml, actualXml.ToString());
             }
 
             // Verify
-            Assert.AreEqual(TestHelpers.LoadFromFile(@"TestData\Prescription\SingleProductOutput.TXT"),
-                TestHelpers.LoadFromFileAsHexString(TestContext.CurrentContext.WorkDirectory + @"\TASKDATA\GRD00000.BIN"));
+            var expectedPath = Path.Combine(_exportPath, "TASKDATA", "GRD00000.BIN");
+            Assert.AreEqual(TestData.TestData.SingleProductOutputTxt, TestHelpers.LoadFromFileAsHexString(expectedPath));
+        }
+
+        [TearDown]
+        public void Cleanup()
+        {
+            if (Directory.Exists(_exportPath))
+                Directory.Delete(_exportPath, true);
         }
     }
 }
