@@ -16,7 +16,8 @@ namespace ISOv4PluginTest.Loaders
         {
             // Setup
             var xmlDoc = new XmlDocument();
-            xmlDoc.Load(@"TestData\AllocationTimestamp\Timestamp1.xml");
+
+            xmlDoc.LoadXml(TestData.TestData.Timestamp1);
             var inputXmlNode = xmlDoc.SelectSingleNode("ISO11783_TaskData");
 
             // Act
@@ -35,7 +36,7 @@ namespace ISOv4PluginTest.Loaders
         {
             // Setup
             var xmlDoc = new XmlDocument();
-            xmlDoc.Load(@"TestData\AllocationTimestamp\Timestamp2.xml");
+            xmlDoc.LoadXml(TestData.TestData.Timestamp2);
             var inputXmlNode = xmlDoc.SelectSingleNode("ISO11783_TaskData");
 
             // Act
@@ -57,7 +58,7 @@ namespace ISOv4PluginTest.Loaders
         {
             // Setup
             var xmlDoc = new XmlDocument();
-            xmlDoc.Load(@"TestData\AllocationTimestamp\Timestamp3.xml");
+            xmlDoc.LoadXml(TestData.TestData.Timestamp3);
             var inputXmlNode = xmlDoc.SelectSingleNode("ISO11783_TaskData");
 
             // Act
@@ -79,7 +80,7 @@ namespace ISOv4PluginTest.Loaders
         {
             // Setup
             var xmlDoc = new XmlDocument();
-            xmlDoc.Load(@"TestData\AllocationTimestamp\Timestamp4.xml");
+            xmlDoc.LoadXml(TestData.TestData.Timestamp4);
             var inputXmlNode = xmlDoc.SelectSingleNode("ISO11783_TaskData");
 
             // Act
@@ -101,7 +102,7 @@ namespace ISOv4PluginTest.Loaders
         {
             // Setup
             var xmlDoc = new XmlDocument();
-            xmlDoc.Load(@"TestData\AllocationTimestamp\Timestamp5.xml");
+            xmlDoc.LoadXml(TestData.TestData.Timestamp5);
             var xmlNodes = xmlDoc.SelectNodes("//TestCase");
 
             if (xmlNodes == null) return;
@@ -120,7 +121,7 @@ namespace ISOv4PluginTest.Loaders
         {
             // Setup
             var xmlDoc = new XmlDocument();
-            xmlDoc.Load(@"TestData\AllocationTimestamp\Timestamp6.xml");
+            xmlDoc.LoadXml(TestData.TestData.Timestamp6);
             var inputXmlNode = xmlDoc.SelectSingleNode("ISO11783_TaskData");
 
             // Act
@@ -142,7 +143,7 @@ namespace ISOv4PluginTest.Loaders
         {
             // Setup
             var xmlDoc = new XmlDocument();
-            xmlDoc.Load(@"TestData\AllocationTimestamp\Timestamp7.xml");
+            xmlDoc.LoadXml(TestData.TestData.Timestamp7);
 
             var xmlNodes = xmlDoc.SelectNodes("//TestCase");
 
@@ -163,7 +164,7 @@ namespace ISOv4PluginTest.Loaders
         {
             // Setup
             var xmlDoc = new XmlDocument();
-            xmlDoc.Load(@"TestData\AllocationTimestamp\Timestamp8.xml");
+            xmlDoc.LoadXml(TestData.TestData.Timestamp8);
 
             var xmlNodes = xmlDoc.SelectNodes("//TestCase");
 

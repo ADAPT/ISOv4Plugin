@@ -1,4 +1,7 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.Products;
 using AgGateway.ADAPT.ISOv4Plugin;
@@ -10,15 +13,26 @@ namespace ISOv4PluginTest.Loaders
     [TestFixture]
     public class CropLoaderTests
     {
+        private string _directory;
+
+        [SetUp]
+        public void Setup()
+        {
+            _directory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(_directory);
+        }
+
         [Test]
         public void LoadCropAndVarietiesTest()
         {
             var unit = UnitFactory.Instance.GetUnitByDdi(1);
             // Setup
             var taskDocument = new  TaskDataDocument();
+            var path = Path.Combine(_directory, "Crop1.xml");
+            File.WriteAllText(path, TestData.TestData.Crop1);
 
             // Act
-            var result = taskDocument.LoadFromFile(@"TestData\Crop\Crop1.xml");
+            var result = taskDocument.LoadFromFile(path);
 
             // Verify
             Assert.IsTrue(result);
@@ -46,9 +60,11 @@ namespace ISOv4PluginTest.Loaders
         {
             // Setup
             var taskDocument = new TaskDataDocument();
+            var path = Path.Combine(_directory, "Crop2.xml");
+            File.WriteAllText(path, TestData.TestData.Crop2);
 
             // Act
-            var result = taskDocument.LoadFromFile(@"TestData\Crop\Crop2.xml");
+            var result = taskDocument.LoadFromFile(path);
 
             // Verify
             Assert.IsTrue(result);
@@ -68,9 +84,13 @@ namespace ISOv4PluginTest.Loaders
         {
             // Setup
             var taskDocument = new TaskDataDocument();
+            var path = Path.Combine(_directory, "Crop3.xml");
+            File.WriteAllText(path, TestData.TestData.Crop3);
+            var ctpPath = Path.Combine(_directory, "CTP00003.xml");
+            File.WriteAllText(ctpPath, TestData.TestData.CTP00003);
 
             // Act
-            var result = taskDocument.LoadFromFile(@"TestData\Crop\Crop3.xml");
+            var result = taskDocument.LoadFromFile(path);
 
             // Verify
             Assert.IsTrue(result);
@@ -96,21 +116,39 @@ namespace ISOv4PluginTest.Loaders
 
         }
 
-        [TestCase(@"TestData\Crop\Crop4.xml")]
-        [TestCase(@"TestData\Crop\Crop5.xml")]
-        [TestCase(@"TestData\Crop\Crop6.xml")]
-        public void CropWithMissingRequiredInfoTest(string testFileName)
+        [Test]
+        public void CropWithMissingRequiredInfoTest()
         {
-            // Setup
-            var taskDocument = new TaskDataDocument();
+            var crops = new List<String>
+            {
+                TestData.TestData.Crop4,
+                TestData.TestData.Crop5,
+                TestData.TestData.Crop6,
+            };
 
-            // Act
-            var result = taskDocument.LoadFromFile(testFileName);
+            for (int i = 0; i < crops.Count; i++)
+            {
+                // Setup
+                var taskDocument = new TaskDataDocument();
+                var path = Path.Combine(_directory, String.Format("crop{0}.xml", i));
+                File.WriteAllText(path, crops[i]);
 
-            // Verify
-            Assert.IsTrue(result);
-            Assert.IsNotNull(taskDocument.Crops);
-            Assert.AreEqual(0, taskDocument.Crops.Count);
+                // Act
+                var result = taskDocument.LoadFromFile(path);
+
+                // Verify
+                Assert.IsTrue(result);
+                Assert.IsNotNull(taskDocument.Crops);
+                Assert.AreEqual(0, taskDocument.Crops.Count);
+            }
         }
+
+        [TearDown]
+        public void TearDown()
+        {
+            if (Directory.Exists(_directory))
+                Directory.Delete(_directory, true);
+        }
+        
     }
 }

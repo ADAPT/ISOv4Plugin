@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.IO;
+using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.Products;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
 using NUnit.Framework;
@@ -8,14 +10,25 @@ namespace ISOv4PluginTest.Loaders
     [TestFixture]
     public class ProductMixLoaderTests
     {
+        private string _directory;
+
+        [SetUp]
+        public void Setup()
+        {
+            _directory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(_directory);
+        }
+
         [Test]
         public void LoadProductMixTest()
         {
             // Setup
             var taskDocument = new  TaskDataDocument();
+            var path = Path.Combine(_directory, "test.xml");
+            File.WriteAllText(path, TestData.TestData.ProductMix1);
 
             // Act
-            var result = taskDocument.LoadFromFile(@"TestData\ProductMix\ProductMix1.xml");
+            var result = taskDocument.LoadFromFile(path);
 
             // Verify
             Assert.IsTrue(result);
@@ -57,9 +70,12 @@ namespace ISOv4PluginTest.Loaders
         {
             // Setup
             var taskDocument = new TaskDataDocument();
+            var path = Path.Combine(_directory, "test.xml");
+            File.WriteAllText(path, TestData.TestData.ProductMix2);
+            File.WriteAllText(Path.Combine(_directory, "PDT00002.xml"), TestData.TestData.PDT00002);
 
             // Act
-            var result = taskDocument.LoadFromFile(@"TestData\ProductMix\ProductMix2.xml");
+            var result = taskDocument.LoadFromFile(path);
 
             // Verify
             Assert.IsTrue(result);
@@ -101,9 +117,11 @@ namespace ISOv4PluginTest.Loaders
         {
             // Setup
             var taskDocument = new TaskDataDocument();
+            var path = Path.Combine(_directory, "test.xml");
+            File.WriteAllText(path, TestData.TestData.ProductMix3);
 
             // Act
-            var result = taskDocument.LoadFromFile(@"TestData\ProductMix\ProductMix3.xml");
+            var result = taskDocument.LoadFromFile(path);
 
             // Verify
             Assert.IsTrue(result);
@@ -119,9 +137,11 @@ namespace ISOv4PluginTest.Loaders
         {
             // Setup
             var taskDocument = new TaskDataDocument();
+            var path = Path.Combine(_directory, "test.xml");
+            File.WriteAllText(path, TestData.TestData.ProductMix4);
 
             // Act
-            var result = taskDocument.LoadFromFile(@"TestData\ProductMix\ProductMix4.xml");
+            var result = taskDocument.LoadFromFile(path);
 
             // Verify
             Assert.IsTrue(result);
@@ -130,6 +150,13 @@ namespace ISOv4PluginTest.Loaders
 
             Assert.IsNotNull(taskDocument.Ingredients);
             Assert.AreEqual(0, taskDocument.Ingredients.Count);
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            if (Directory.Exists(_directory))
+                Directory.Delete(_directory, true);
         }
     }
 }

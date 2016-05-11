@@ -1,4 +1,8 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.Logistics;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
@@ -9,14 +13,25 @@ namespace ISOv4PluginTest.Loaders
     [TestFixture]
     public class CustomerLoaderTests
     {
+        private string _directory;
+
+        [SetUp]
+        public void Setup()
+        {
+            _directory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(_directory);
+        }
+
         [Test]
         public void LoadCustomerInfoTest()
         {
             // Setup
             var taskDocument = new  TaskDataDocument();
+            var path = Path.Combine(_directory, "test.xml");
+            File.WriteAllText(path, TestData.TestData.Customer1);
 
             // Act
-            var result = taskDocument.LoadFromFile(@"TestData\Customer\Customer1.xml");
+            var result = taskDocument.LoadFromFile(path);
 
             // Verify
             Assert.IsTrue(result);
@@ -49,9 +64,11 @@ namespace ISOv4PluginTest.Loaders
         {
             // Setup
             var taskDocument = new TaskDataDocument();
+            var path = Path.Combine(_directory, "test.xml");
+            File.WriteAllText(path, TestData.TestData.Customer1);
 
             // Act
-            var result = taskDocument.LoadFromFile(@"TestData\Customer\Customer1.xml");
+            var result = taskDocument.LoadFromFile(path);
 
             // Verify
             var customer = taskDocument.Customers["CTR1"];
@@ -68,9 +85,11 @@ namespace ISOv4PluginTest.Loaders
         {
             // Setup
             var taskDocument = new TaskDataDocument();
+            var path = Path.Combine(_directory, "test.xml");
+            File.WriteAllText(path, TestData.TestData.Customer2);
 
             // Act
-            var result = taskDocument.LoadFromFile(@"TestData\Customer\Customer2.xml");
+            var result = taskDocument.LoadFromFile(path);
 
             // Verify
             Assert.IsTrue(result);
@@ -95,9 +114,11 @@ namespace ISOv4PluginTest.Loaders
         {
             // Setup
             var taskDocument = new TaskDataDocument();
+            var path = Path.Combine(_directory, "test.xml");
+            File.WriteAllText(path, TestData.TestData.Customer3);
 
             // Act
-            var result = taskDocument.LoadFromFile(@"TestData\Customer\Customer3.xml");
+            var result = taskDocument.LoadFromFile(path);
 
             // Verify
             Assert.IsTrue(result);
@@ -122,9 +143,11 @@ namespace ISOv4PluginTest.Loaders
         {
             // Setup
             var taskDocument = new TaskDataDocument();
+            var path = Path.Combine(_directory, "test.xml");
+            File.WriteAllText(path, TestData.TestData.Customer4);
 
             // Act
-            var result = taskDocument.LoadFromFile(@"TestData\Customer\Customer4.xml");
+            var result = taskDocument.LoadFromFile(path);
 
             // Verify
             Assert.IsTrue(result);
@@ -149,9 +172,12 @@ namespace ISOv4PluginTest.Loaders
         {
             // Setup
             var taskDocument = new TaskDataDocument();
+            var path = Path.Combine(_directory, "test.xml");
+            File.WriteAllText(path, TestData.TestData.Customer5);
+            File.WriteAllText(Path.Combine(_directory, "CTR00005.xml"), TestData.TestData.CTR00005);
 
             // Act
-            var result = taskDocument.LoadFromFile(@"TestData\Customer\Customer5.xml");
+            var result = taskDocument.LoadFromFile(path);
 
             // Verify
             Assert.IsTrue(result);
@@ -201,21 +227,39 @@ namespace ISOv4PluginTest.Loaders
             Assert.AreEqual(ContactTypeEnum.Email, customer.ContactInfo.Contacts[3].Type);
         }
 
-        [TestCase(@"TestData\Customer\Customer6.xml")]
-        [TestCase(@"TestData\Customer\Customer7.xml")]
-        [TestCase(@"TestData\Customer\Customer8.xml")]
-        public void CustomerWithMissingRequiredInfoTest(string testFileName)
+        [Test]
+        public void CustomerWithMissingRequiredInfoTest()
         {
-            // Setup
-            var taskDocument = new TaskDataDocument();
+            var customers = new List<string>
+            {
+                TestData.TestData.Customer6,
+                TestData.TestData.Customer7,
+                TestData.TestData.Customer8,
+            };
 
-            // Act
-            var result = taskDocument.LoadFromFile(testFileName);
+            for (int i = 0; i < customers.Count; i++)
+            {
+                var path = Path.Combine(_directory, String.Format("customer{0}.xml", i));
+                File.WriteAllText(path, customers[i]);
 
-            // Verify
-            Assert.IsTrue(result);
-            Assert.IsNotNull(taskDocument.Customers);
-            Assert.AreEqual(0, taskDocument.Customers.Count);
+                // Setup
+                var taskDocument = new TaskDataDocument();
+
+                // Act
+                var result = taskDocument.LoadFromFile(path);
+
+                // Verify
+                Assert.IsTrue(result);
+                Assert.IsNotNull(taskDocument.Customers);
+                Assert.AreEqual(0, taskDocument.Customers.Count);
+            }
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            if (Directory.Exists(_directory))
+                Directory.Delete(_directory, true);
         }
     }
 }
