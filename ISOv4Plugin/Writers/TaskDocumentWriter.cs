@@ -11,6 +11,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
     public class TaskDocumentWriter : IDisposable
     {
         public XmlWriter RootWriter { get; private set; }
+        public MemoryStream XmlStream { get; private set; }
         public string BaseFolder { get; private set; }
         public ApplicationDataModel.ADM.ApplicationDataModel DataModel { get; private set; }
 
@@ -35,19 +36,20 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
             UserUnits = new Dictionary<int, IsoUnit>();
         }
 
-        public StringBuilder Write(string exportPath, ApplicationDataModel.ADM.ApplicationDataModel dataModel)
+        public XmlWriter Write(string exportPath, ApplicationDataModel.ADM.ApplicationDataModel dataModel)
         {
             BaseFolder = exportPath;
             DataModel = dataModel;
 
             CreateFolderStructure();
 
-            var xmlString = new StringBuilder();
-            RootWriter = CreateWriter("TASKDATA.XML", xmlString);
+            XmlStream = new MemoryStream();
+            RootWriter = CreateWriter("TASKDATA.XML", XmlStream);
+            RootWriter.WriteStartDocument();
 
             IsoRootWriter.Write(this);
             RootWriter.Flush();
-            return xmlString;
+            return RootWriter;
         }
 
         private void CreateFolderStructure()
@@ -60,14 +62,21 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
             Directory.CreateDirectory(BaseFolder);
         }
 
-        public XmlWriter CreateWriter(string fileName, StringBuilder xmlString)
+        public XmlWriter CreateWriter(string fileName, MemoryStream xmlString)
         {
-            return XmlWriter.Create(xmlString, new XmlWriterSettings { Indent = true });
+            var settings = new XmlWriterSettings
+            {
+                Encoding = new UTF8Encoding(false),
+                Indent = true
+            };
+            return XmlWriter.Create(xmlString, settings);
         }
 
         public void Dispose()
         {
-            using (RootWriter) { }
+            using (RootWriter)
+            {
+            }
         }
     }
 }

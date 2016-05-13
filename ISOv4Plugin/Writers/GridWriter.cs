@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Xml;
 using AgGateway.ADAPT.ApplicationDataModel.Prescriptions;
 using AgGateway.ADAPT.ISOv4Plugin.Extensions;
@@ -35,10 +36,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
 
         private static void WriteGridDefinition(XmlWriter writer, RasterGridPrescription prescription)
         {
-            writer.WriteAttributeString("A", prescription.Origin.Y.ToString(CultureInfo.InvariantCulture));
-            writer.WriteAttributeString("B", prescription.Origin.X.ToString(CultureInfo.InvariantCulture));
-            writer.WriteAttributeString("C", prescription.CellHeight.Value.Value.ToString("F14", CultureInfo.InvariantCulture));
-            writer.WriteAttributeString("D", prescription.CellWidth.Value.Value.ToString("F14", CultureInfo.InvariantCulture));
+            var cellWidth = Math.Abs(prescription.BoundingBox.MaxX.Value.Value - prescription.BoundingBox.MinX.Value.Value) / prescription.ColumnCount;
+            var cellHeight = Math.Abs(prescription.BoundingBox.MaxY.Value.Value - prescription.BoundingBox.MinY.Value.Value) / prescription.RowCount;
+            writer.WriteAttributeString("A", prescription.BoundingBox.MinY.Value.Value.ToString());
+            writer.WriteAttributeString("B", prescription.BoundingBox.MinX.Value.Value.ToString());
+            writer.WriteAttributeString("C", cellHeight.ToString("F14", CultureInfo.InvariantCulture));
+            writer.WriteAttributeString("D", cellWidth.ToString("F14", CultureInfo.InvariantCulture));
             writer.WriteAttributeString("E", prescription.ColumnCount.ToString(CultureInfo.InvariantCulture));
             writer.WriteAttributeString("F", prescription.RowCount.ToString(CultureInfo.InvariantCulture));
         }
@@ -48,8 +51,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
             var gridFileName = GenerateId(5);
             using (var binaryWriter = CreateWriter(Path.ChangeExtension(gridFileName, ".BIN")))
             {
+                byte[] previousBytes = BitConverter.GetBytes(0);
                 foreach (var rxRate in prescription.Rates)
                 {
+                    if (rxRate.RxRate == null || !rxRate.RxRate.Any())
+                    {
+                        //If there is null or no rate, write the previous rate (or 0 if we have not yet entered a valid rate)
+                        binaryWriter.Write(previousBytes, 0, previousBytes.Length);
+                    } else
                     for (int index = 0; index < rxRate.RxRate.Count; index++)
                     {
                         var dataVariable = treatmentZone.Variables[index];
@@ -57,8 +66,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
                         if (dataVariable.UserUnit != null)
                             rate = _unitConverter.Convert(dataVariable.UserUnit.ToInternalUom(), dataVariable.IsoUnit.ToAdaptUnit().ToInternalUom(), rate);
 
-                        var bytes = BitConverter.GetBytes((int)Math.Round(dataVariable.IsoUnit.ConvertToIsoUnit(rate), 0));
-                        binaryWriter.Write(bytes, 0, bytes.Length);
+                        previousBytes = BitConverter.GetBytes((int)Math.Round(dataVariable.IsoUnit.ConvertToIsoUnit(rate), 0));
+                        binaryWriter.Write(previousBytes, 0, previousBytes.Length);
                     }
                 }
             }

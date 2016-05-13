@@ -199,7 +199,6 @@
     <Compile Include="Writers\TaskDocumentWriter.cs" />
     <Compile Include="Writers\TreatmentZoneWriter.cs" />
     <Compile Include="Writers\WorkerWriter.cs" />
-    <Compile Include="Writers\XpathFileWriter.cs" />
     <Compile Include="XmlSerializer.cs" />
   </ItemGroup>
   <ItemGroup>

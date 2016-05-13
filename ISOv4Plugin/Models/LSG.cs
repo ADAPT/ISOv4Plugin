@@ -1,28 +1,28 @@
-﻿using System.Linq;
-using System.Text;
+﻿using System.Globalization;
+using System.Linq;
+using System.Xml;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Models
 {
     public class LSG : IWriter
     {
-        public LSGA A { get; set; }
+        public LSGA? A { get; set; }
         public object[] Items { get; set; }
 
-        public string WriteXML()
+        public XmlWriter WriteXML(XmlWriter xmlBuilder)
         {
-            var xmlBuilder = new StringBuilder();
-            xmlBuilder.Append("<LSG ");
-            xmlBuilder.Append(string.Format("A=\"{0}\" ", (int)A));
-            xmlBuilder.Append(">");
+            xmlBuilder.WriteStartElement("LSG");
+            if(A != null)
+                xmlBuilder.WriteAttributeString("A", ((int)A).ToString(CultureInfo.InvariantCulture));
             if(Items != null)
             {
                 foreach (var item in Items.Cast<IWriter>())
                 {
-                    xmlBuilder.Append(item.WriteXML());
+                    xmlBuilder = item.WriteXML(xmlBuilder);
                 }
             }
-            xmlBuilder.Append("</LSG>");
-            return xmlBuilder.ToString();
+            xmlBuilder.WriteEndElement();
+            return xmlBuilder;
         }
     }
 }

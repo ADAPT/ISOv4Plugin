@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Text;
+using System.Xml;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
 using NUnit.Framework;
 
@@ -8,19 +10,24 @@ namespace ISOv4PluginLogTest.Models
     public class TIMTest
     {
         private TIM _tim;
+        private StringBuilder _output;
+        private XmlWriter _xmlBuilder;
 
         [SetUp]
         public void Setup()
         {
             _tim = new TIM();
+            _output = new StringBuilder();
+            _xmlBuilder = XmlWriter.Create(_output);
         }
 
         [Test]
         public void GivenTIMWhenWriteXMLThenStartAndEndTagsAreWritten()
         {
-            var result = _tim.WriteXML();
-            Assert.True(result.Contains("<TIM"));
-            Assert.True(result.Contains("</TIM>"));
+            _tim.WriteXML(_xmlBuilder);
+            _xmlBuilder.Flush();
+            Assert.True(_output.ToString().Contains("<TIM"));
+            Assert.True(_output.ToString().Contains("/"));
         }
 
         [Test]
@@ -28,8 +35,9 @@ namespace ISOv4PluginLogTest.Models
         {
             _tim.A = DateTime.Today;
 
-            var result = _tim.WriteXML();
-            Assert.True(result.Contains("A=\""+DateTime.Today+"\""));
+            _tim.WriteXML(_xmlBuilder);
+            _xmlBuilder.Flush();
+            Assert.True(_output.ToString().Contains("A=\"" + DateTime.Today.ToString("yyyy-MM-ddThh:mm:ss") + "\""));
         }
 
         [Test]
@@ -37,16 +45,18 @@ namespace ISOv4PluginLogTest.Models
         {
             _tim.B = DateTime.Today;
 
-            var result = _tim.WriteXML();
-            Assert.True(result.Contains("B=\"" + DateTime.Today + "\""));
+            _tim.WriteXML(_xmlBuilder);
+            _xmlBuilder.Flush();
+            Assert.True(_output.ToString().Contains("B=\"" + DateTime.Today.ToString("yyyy-MM-ddThh:mm:ss") + "\""));
         }
 
         [Test]
         public void GivenTIMWhenWriteXMLThenDIsWritten()
         {
             _tim.D = TIMD.Item3;
-            var result = _tim.WriteXML();
-            Assert.True(result.Contains("D=\"3\""));
+            _tim.WriteXML(_xmlBuilder);
+            _xmlBuilder.Flush();
+            Assert.True(_output.ToString().Contains("D=\"3\""));
         }
     }
 }

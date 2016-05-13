@@ -55,12 +55,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
             return tsk;
         }
 
-        private object[] MapItems(LoggedData loggedData, Catalog catalog, string datacardPath)
+        private IWriter[] MapItems(LoggedData loggedData, Catalog catalog, string datacardPath)
         {
             var times = FindAndMapTimes(loggedData.TimeScopeIds, catalog);
             var tlgs = _tlgMapper.Map(loggedData.OperationData, datacardPath);
 
-            var items = new List<object>();
+            var items = new List<IWriter>();
             
             if(times != null)
                 items.AddRange(times);

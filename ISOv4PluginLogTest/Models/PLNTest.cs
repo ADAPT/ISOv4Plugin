@@ -1,4 +1,6 @@
-﻿using AgGateway.ADAPT.ISOv4Plugin.Models;
+﻿using System.Text;
+using System.Xml;
+using AgGateway.ADAPT.ISOv4Plugin.Models;
 using Moq;
 using NUnit.Framework;
 
@@ -8,47 +10,42 @@ namespace ISOv4PluginLogTest.Models
     public class PLNTest
     {
         private PLN _pln;
+        private StringBuilder _output;
+        private XmlWriter _xmlBuilder;
 
         [SetUp]
         public void Setup()
         {
             _pln = new PLN();
+            _output = new StringBuilder();
+            _xmlBuilder = XmlWriter.Create(_output);
         }
 
         [Test]
         public void GivenPlnWhenWriteXmlThenStartAndEndTagsAreWritten()
         {
-            var result = _pln.WriteXML();
-            Assert.True(result.Contains("<PLN"));
-            Assert.True(result.Contains("</PLN>"));
+            _pln.WriteXML(_xmlBuilder);
+            _xmlBuilder.Flush();
+            Assert.True(_output.ToString().Contains("<PLN"));
+            Assert.True(_output.ToString().Contains("/"));
         }
         
         [Test]
         public void GivenPlnWhenWriteXmlThenPlnAIsWritten()
         {
             _pln.A = PLNA.Item8;
-
-            var result = _pln.WriteXML();
-            Assert.True(result.Contains("A=\"8\""));
+            _pln.WriteXML(_xmlBuilder);
+            _xmlBuilder.Flush();
+            Assert.True(_output.ToString().Contains("A=\"8\""));
         }
         
         [Test]
         public void GivenPlnWhenWriteXmlThenPlnBIsWritten()
         {
             _pln.B = "Wilma";
-
-            var result = _pln.WriteXML();
-            Assert.True(result.Contains("B=\"Wilma\""));
-        }
-
-        [Test]
-        public void GivenPlnWithItemsWhenWriteXmlThenItemsAreIncluded()
-        {
-            var mockWriter = new Mock<IWriter>();
-            _pln.Items = new object[] { mockWriter.Object, mockWriter.Object };
-
-            var result = _pln.WriteXML();
-            mockWriter.Verify(x => x.WriteXML(), Times.Exactly(2));
+            _pln.WriteXML(_xmlBuilder);
+            _xmlBuilder.Flush();
+            Assert.True(_output.ToString().Contains("B=\"Wilma\""));
         }
     }
 }

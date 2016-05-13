@@ -35,7 +35,7 @@ namespace ISOv4PluginLogTest
         [Test]
         public void GivenTaskDataWhenImportThenDocumentsAreMapped()
         {
-            _taskData.Items = new object[] {new TSK(), new TSK(), new PDT(), new TSK(), new TLG()};
+            _taskData.Items = new IWriter[] {new TSK(), new TSK(), new PDT(), new TSK(), new TLG()};
             var tasks = _taskData.Items.GetItemsOfType<TSK>();
 
             _importer.Import(_taskData, _dataPath, _applicationDataModel);
@@ -56,7 +56,7 @@ namespace ISOv4PluginLogTest
         [Test]
         public void GivenTaskDataWithEmptyItemsWhenImportThenDocumentsNotMapped()
         {
-            _taskData.Items = new object[] {};
+            _taskData.Items = new IWriter[] {};
 
             _importer.Import(_taskData, _dataPath, _applicationDataModel);
 

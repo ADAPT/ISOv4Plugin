@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
 using AgGateway.ADAPT.ApplicationDataModel.Prescriptions;
 using AgGateway.ADAPT.ApplicationDataModel.Products;
@@ -13,19 +14,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin
     public class Plugin : IPlugin
     {
         private readonly IXmlReader _xmlReader;
-        private readonly IXpathFileWriter _xpathFileWriter;
         private readonly IImporter _importer;
         private readonly IExporter _exporter;
         private const string FileName = "TASKDATA.XML";
 
-        public Plugin() : this(new XmlReader(), new XpathFileWriter(), new Importer(), new Exporter())
+        public Plugin() : this(new XmlReader(), new Importer(), new Exporter())
         {
             
         }
-        public Plugin(IXmlReader xmlReader, IXpathFileWriter xpathFileWriter, IImporter importer, IExporter exporter)
+        public Plugin(IXmlReader xmlReader, IImporter importer, IExporter exporter)
         {
             _xmlReader = xmlReader;
-            _xpathFileWriter = xpathFileWriter;
             _importer = importer;
             _exporter = exporter;
             Name = "ISO Plugin";
@@ -89,16 +88,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin
         {
             using (var taskWriter = new TaskDocumentWriter())
             {
-                var xmlString = taskWriter.Write(exportPath, dataModel).ToString();
-                var serializer = new XmlSerializer();
-                var isoTaskData = serializer.Deserialize<ISO11783_TaskData>(xmlString);
+                var xmlWriter = taskWriter.Write(exportPath, dataModel);
 
-                
-                
-                var iso11783TaskData = _exporter.Export(dataModel, exportPath, isoTaskData);
+                var iso11783TaskData = _exporter.Export(dataModel, exportPath, xmlWriter, taskWriter.XmlStream);
 
-                var filePath = Path.Combine(exportPath, FileName);
-                _xpathFileWriter.WriteToFile(iso11783TaskData, filePath);
+                var filePath = Path.Combine(exportPath, "TASKDATA", FileName);
+                if (iso11783TaskData != null)
+                {
+                    xmlWriter.Flush();
+                    var xml = Encoding.UTF8.GetString(taskWriter.XmlStream.ToArray());
+                    File.WriteAllText(filePath, xml);
+                }
             }
         }
         

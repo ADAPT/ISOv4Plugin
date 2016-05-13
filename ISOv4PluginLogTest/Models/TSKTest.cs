@@ -1,4 +1,6 @@
-﻿using AgGateway.ADAPT.ISOv4Plugin.Models;
+﻿using System.Text;
+using System.Xml;
+using AgGateway.ADAPT.ISOv4Plugin.Models;
 using Moq;
 using NUnit.Framework;
 
@@ -8,150 +10,162 @@ namespace ISOv4PluginLogTest.Models
     public class TSKTest
     {
         private TSK _tsk;
+        private StringBuilder _output;
+        private XmlWriter _xmlBuilder;
 
         [SetUp]
         public void Setup()
         {
             _tsk = new TSK();
+            _output = new StringBuilder();
+            _xmlBuilder = XmlWriter.Create(_output);
         }
 
         [Test]
         public void GivenTSKWhenWriteXmlThenStartAndEndTagsAreWritten()
         {
-            var result = _tsk.WriteXML();
-            Assert.True(result.Contains("<TSK"));
-            Assert.True(result.Contains("</TSK>"));
+            _tsk.WriteXML(_xmlBuilder);
+            _xmlBuilder.Flush();
+            Assert.True(_output.ToString().Contains("<TSK"));
+            Assert.True(_output.ToString().Contains("/"));
         }
 
         [Test]
         public void GivenTSKWhenWriteXmlThenAIsWritten()
         {
             _tsk.A = "H";
-            var result = _tsk.WriteXML();
-            Assert.True(result.Contains("A=\"H\""));
+            _tsk.WriteXML(_xmlBuilder);
+            _xmlBuilder.Flush();
+            Assert.True(_output.ToString().Contains("A=\"H\""));
         }
 
         [Test]
         public void GivenTSKWithoutAWhenWriteXmlThenAIsNotWritten()
         {
-            var result = _tsk.WriteXML();
-            Assert.False(result.Contains("A="));
+            _tsk.WriteXML(_xmlBuilder);
+            _xmlBuilder.Flush();
+            Assert.False(_output.ToString().Contains("A="));
         }
 
         [Test]
         public void GivenTSKWhenWriteXmlThenBIsWritten()
         {
             _tsk.B = "H";
-            var result = _tsk.WriteXML();
-            Assert.True(result.Contains("B=\"H\""));
+            _tsk.WriteXML(_xmlBuilder);
+            _xmlBuilder.Flush();
+            Assert.True(_output.ToString().Contains("B=\"H\""));
         }
 
         [Test]
         public void GivenTSKWithoutAWhenWriteXmlThenBIsNotWritten()
         {
-            var result = _tsk.WriteXML();
-            Assert.False(result.Contains("B="));
+            _tsk.WriteXML(_xmlBuilder);
+            _xmlBuilder.Flush();
+            Assert.False(_output.ToString().Contains("B="));
         }
 
         [Test]
         public void GivenTSKWhenWriteXmlThenCIsWritten()
         {
             _tsk.C = "H";
-            var result = _tsk.WriteXML();
-            Assert.True(result.Contains("C=\"H\""));
+            _tsk.WriteXML(_xmlBuilder);
+            _xmlBuilder.Flush();
+            Assert.True(_output.ToString().Contains("C=\"H\""));
         }
 
         [Test]
         public void GivenTSKWithoutAWhenWriteXmlThenCIsNotWritten()
         {
-            var result = _tsk.WriteXML();
-            Assert.False(result.Contains("C="));
+            _tsk.WriteXML(_xmlBuilder);
+            _xmlBuilder.Flush();
+            Assert.False(_output.ToString().Contains("C="));
         }
 
         [Test]
         public void GivenTSKWhenWriteXmlThenDIsWritten()
         {
             _tsk.D = "H";
-            var result = _tsk.WriteXML();
-            Assert.True(result.Contains("D=\"H\""));
+            _tsk.WriteXML(_xmlBuilder);
+            _xmlBuilder.Flush();
+            Assert.True(_output.ToString().Contains("D=\"H\""));
         }
 
         [Test]
         public void GivenTSKWithoutAWhenWriteXmlThenDIsNotWritten()
         {
-            var result = _tsk.WriteXML();
-            Assert.False(result.Contains("D="));
+            _tsk.WriteXML(_xmlBuilder);
+            _xmlBuilder.Flush();
+            Assert.False(_output.ToString().Contains("D="));
         }
 
         [Test]
         public void GivenTSKWhenWriteXmlThenEIsWritten()
         {
             _tsk.E = "H";
-            var result = _tsk.WriteXML();
-            Assert.True(result.Contains("E=\"H\""));
+            _tsk.WriteXML(_xmlBuilder);
+            _xmlBuilder.Flush();
+            Assert.True(_output.ToString().Contains("E=\"H\""));
         }
 
         [Test]
         public void GivenTSKWithoutAWhenWriteXmlThenEIsNotWritten()
         {
-            var result = _tsk.WriteXML();
-            Assert.False(result.Contains("E="));
+            _tsk.WriteXML(_xmlBuilder);
+            _xmlBuilder.Flush();
+            Assert.False(_output.ToString().Contains("E="));
         }
 
         [Test]
         public void GivenTSKWhenWriteXmlThenFIsWritten()
         {
             _tsk.F = "H";
-            var result = _tsk.WriteXML();
-            Assert.True(result.Contains("F=\"H\""));
+            _tsk.WriteXML(_xmlBuilder);
+            _xmlBuilder.Flush();
+            Assert.True(_output.ToString().Contains("F=\"H\""));
         }
 
         [Test]
         public void GivenTSKWithoutAWhenWriteXmlThenFIsNotWritten()
         {
-            var result = _tsk.WriteXML();
-            Assert.False(result.Contains("F="));
+            _tsk.WriteXML(_xmlBuilder);
+            _xmlBuilder.Flush();
+            Assert.False(_output.ToString().Contains("F="));
         }
 
         [Test]
         public void GivenTSKWhenWriteXmlThenGISWritten()
         {
             _tsk.G = TSKG.Item1;
-            var result = _tsk.WriteXML();
-            Assert.True(result.Contains("G=\"1\""));
+            _tsk.WriteXML(_xmlBuilder);
+            _xmlBuilder.Flush();
+            Assert.True(_output.ToString().Contains("G=\"1\""));
         }
 
         [Test]
         public void GivenTSKWhenWriteXmlThenHIsWritten()
         {
             _tsk.H = 3;
-            var result = _tsk.WriteXML();
-            Assert.True(result.Contains("H=\"3\""));
+            _tsk.WriteXML(_xmlBuilder);
+            _xmlBuilder.Flush();
+            Assert.True(_output.ToString().Contains("H=\"3\""));
         }
 
         [Test]
         public void GivenTSKWhenWriteXmlThenIIsWritten()
         {
             _tsk.I = 7;
-            var result = _tsk.WriteXML();
-            Assert.True(result.Contains("I=\"7\""));
+            _tsk.WriteXML(_xmlBuilder);
+            _xmlBuilder.Flush();
+            Assert.True(_output.ToString().Contains("I=\"7\""));
         }
 
         [Test]
         public void GivenTSKWhenWriteXmlThenJIsWritten()
         {
             _tsk.J = 13;
-            var result = _tsk.WriteXML();
-            Assert.True(result.Contains("J=\"13\""));
-        }
-
-        [Test]
-        public void GivenTSKWhenWriteThenItemsAreWritten()
-        {
-            var mockWriter = new Mock<IWriter>();
-            _tsk.Items = new object[] {mockWriter.Object, mockWriter.Object};
-            var result = _tsk.WriteXML();
-            mockWriter.Verify(x => x.WriteXML(), Times.Exactly(2));
+            _tsk.WriteXML(_xmlBuilder);
+            _xmlBuilder.Flush();
+            Assert.True(_output.ToString().Contains("J=\"13\""));
         }
     }
 }

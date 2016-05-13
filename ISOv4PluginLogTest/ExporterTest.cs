@@ -1,13 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Text;
+using System.Xml;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ApplicationDataModel.Logistics;
 using AgGateway.ADAPT.ApplicationDataModel.Products;
-using AgGateway.ADAPT.ApplicationDataModel.ReferenceLayers;
 using AgGateway.ADAPT.ISOv4Plugin;
 using AgGateway.ADAPT.ISOv4Plugin.ExportMappers;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
+using AgGateway.ADAPT.ISOv4Plugin.Writers;
 using Moq;
 using NUnit.Framework;
 
@@ -39,7 +41,7 @@ namespace ISOv4PluginLogTest
             _cropTypeMapperMock = new Mock<ICropTypeMapper>();
             _taskMapperMock = new Mock<ITaskMapper>();
 
-            _exporter = new Exporter(_growerFarmFieldMapperMock.Object, _cropZoneMapperMock.Object, _cropTypeMapperMock.Object, _taskMapperMock.Object);
+            _exporter = new Exporter(_taskMapperMock.Object);
         }
 
         [Test]
@@ -51,8 +53,13 @@ namespace ISOv4PluginLogTest
             _growerFarmFieldMapperMock.Setup(x => x.Map(_applicationDataModel.Catalog.Growers, It.IsAny<Dictionary<int, string>>())).Returns(ctrs);
 
             var result = Export();
-            Assert.Contains(ctrs[0], result.Items);
-            Assert.Contains(ctrs[1], result.Items);
+            var ctrXml = new StringBuilder();
+            ctrs[0].WriteXML(XmlWriter.Create(ctrXml));
+            Assert.IsTrue(result.Contains(ctrXml.ToString()));
+            
+            ctrXml = new StringBuilder();
+            ctrs[1].WriteXML(XmlWriter.Create(ctrXml));
+            Assert.IsTrue(result.Contains(ctrXml.ToString()));
         }
 
         [Test]
@@ -64,8 +71,14 @@ namespace ISOv4PluginLogTest
             _growerFarmFieldMapperMock.Setup(x => x.Map(_applicationDataModel.Catalog.Farms, It.IsAny<Dictionary<int, string>>())).Returns(frms);
 
             var result = Export();
-            Assert.Contains(frms[0], result.Items);
-            Assert.Contains(frms[1], result.Items);
+
+            var frmXml = new StringBuilder();
+            frms[0].WriteXML(XmlWriter.Create(frmXml));
+            Assert.IsTrue(result.Contains(frmXml.ToString()));
+            
+            frmXml = new StringBuilder();
+            frms[1].WriteXML(XmlWriter.Create(frmXml));
+            Assert.IsTrue(result.Contains(frmXml.ToString()));
         }
 
         [Test]
@@ -77,8 +90,13 @@ namespace ISOv4PluginLogTest
             _growerFarmFieldMapperMock.Setup(x => x.Map(_applicationDataModel.Catalog.Fields, It.IsAny<Dictionary<int, string>>(), _applicationDataModel.Catalog)).Returns(pfds);
 
             var result = Export();
-            Assert.Contains(pfds[0], result.Items);
-            Assert.Contains(pfds[1], result.Items);
+            var pfdXml = new StringBuilder();
+            pfds[0].WriteXML(XmlWriter.Create(pfdXml));
+            Assert.IsTrue(result.Contains(pfdXml.ToString()));
+            
+            pfdXml = new StringBuilder();
+            pfds[1].WriteXML(XmlWriter.Create(pfdXml));
+            Assert.IsTrue(result.Contains(pfdXml.ToString()));
         }
 
         [Test]
@@ -90,8 +108,13 @@ namespace ISOv4PluginLogTest
             _cropTypeMapperMock.Setup(x => x.Map(_applicationDataModel.Catalog.Crops, It.IsAny<Dictionary<int, string>>(), _applicationDataModel.Catalog)).Returns(ctps);
 
             var result = Export();
-            Assert.Contains(ctps[0], result.Items);
-            Assert.Contains(ctps[1], result.Items);
+            var ctpXml = new StringBuilder();
+            ctps[0].WriteXML(XmlWriter.Create(ctpXml));
+            Assert.IsTrue(result.Contains(ctpXml.ToString()));
+            
+            ctpXml = new StringBuilder();
+            ctps[1].WriteXML(XmlWriter.Create(ctpXml));
+            Assert.IsTrue(result.Contains(ctpXml.ToString()));
         }
 
         [Test]
@@ -106,8 +129,13 @@ namespace ISOv4PluginLogTest
             _cropZoneMapperMock.Setup(x => x.Map(_applicationDataModel.Catalog.CropZones, fieldPfds, It.IsAny<Dictionary<int, string>>(), _applicationDataModel.Catalog)).Returns(cropPfds);
 
             var result = Export();
-            Assert.Contains(cropPfds[0], result.Items);
-            Assert.Contains(cropPfds[1], result.Items);
+            var cropXml = new StringBuilder();
+            cropPfds[0].WriteXML(XmlWriter.Create(cropXml));
+            Assert.IsTrue(result.Contains(cropXml.ToString()));
+
+            cropXml = new StringBuilder();
+            cropPfds[0].WriteXML(XmlWriter.Create(cropXml));
+            Assert.IsTrue(result.Contains(cropXml.ToString()));
         }
 
         [Test]
@@ -119,50 +147,55 @@ namespace ISOv4PluginLogTest
             _taskMapperMock.Setup(x => x.Map(_applicationDataModel.Documents.LoggedData, _applicationDataModel.Catalog, _datacardPath, It.IsAny<int>())).Returns(tasks);
 
             var result = Export();
-            Assert.Contains(tasks[0], result.Items);
-            Assert.Contains(tasks[1], result.Items);
+            var tskXml = new StringBuilder();
+            tasks[0].WriteXML(XmlWriter.Create(tskXml));
+            Assert.IsTrue(result.Contains(tskXml.ToString()));
+            
+            tskXml = new StringBuilder();
+            tasks[1].WriteXML(XmlWriter.Create(tskXml));
+            Assert.IsTrue(result.Contains(tskXml.ToString()));
         }
 
         [Test]
         public void GivenApplicationDataModelWhenExportThenDataTransferOriginIsMapped()
         {
             var result = Export();
-            Assert.AreEqual(ISO11783_TaskDataDataTransferOrigin.Item1, result.DataTransferOrigin);
+            Assert.IsTrue(result.Contains("DataTransferOrigin=\"1\""));
         }
 
         [Test]
         public void GivenApplicationDataModelWhenExportThenManagementSoftwareVersionIsMapped()
         {
             var result = Export();
-            Assert.AreEqual("0.1", result.ManagementSoftwareVersion);
+            Assert.IsTrue(result.Contains("ManagementSoftwareVersion=\"1.0\""));
         }
 
         [Test]
         public void GivenApplicationDataModelWhenExportThenManagementSoftwareManufacturerIsMapped()
         {
             var result = Export();
-            Assert.AreEqual("AgGateway ADAPT", result.ManagementSoftwareManufacturer);
+            Assert.IsTrue(result.Contains("ManagementSoftwareManufacturer=\"AgGateway\""));
         }
 
         [Test]
         public void GivenApplicationDataModelWhenExportThenVersionMajorIsMapped()
         {
             var result = Export();
-            Assert.AreEqual(4, result.VersionMajor);
+            Assert.IsTrue(result.Contains("VersionMajor=\"4\""));
         }
 
         [Test]
         public void GivenApplicationDataModelWhenExportThenVersionMinorIsMapped()
         {
             var result = Export();
-            Assert.AreEqual(1, result.VersionMinor);
+            Assert.IsTrue(result.Contains("VersionMinor=\"0\""));
         }
 
         [Test]
         public void GivenNullApplicationDataModelWhenExportThenIsNotChanged()
         {
-            var iso11783TaskData = new ISO11783_TaskData();
-            var result = _exporter.Export(null, _datacardPath, iso11783TaskData);
+            var iso11783TaskData = XmlWriter.Create(new StringBuilder());
+            var result = _exporter.Export(null, _datacardPath, iso11783TaskData, new MemoryStream());
             Assert.AreEqual(iso11783TaskData, result);
         }
 
@@ -190,9 +223,15 @@ namespace ISOv4PluginLogTest
             _taskMapperMock.Verify(x => x.Map(null, null, _datacardPath, It.IsAny<int>()), Times.Never());
         }
 
-        private ISO11783_TaskData Export()
+        private string Export()
         {
-            return _exporter.Export(_applicationDataModel, _datacardPath, new ISO11783_TaskData());
+            using (var taskDocumentWriter = new TaskDocumentWriter())
+            {
+                var isoTaskData = taskDocumentWriter.Write(Path.GetTempPath(), _applicationDataModel);
+                var xmlWriter = _exporter.Export(_applicationDataModel, _datacardPath, isoTaskData, taskDocumentWriter.XmlStream);
+                xmlWriter.Flush();
+                return Encoding.UTF8.GetString(taskDocumentWriter.XmlStream.ToArray());
+            }
         }
     }
 }

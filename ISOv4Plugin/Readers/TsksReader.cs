@@ -69,13 +69,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Readers
             return outValue;
         }
 
-        private object[] GetItems(XPathNavigator node)
+        private IWriter[] GetItems(XPathNavigator node)
         {
             var children = node.SelectChildren(XPathNodeType.Element);
             var tims = _taskdataTimReader.Read(children.Current.Select("./" + "TIM"));
             var tlgs = _tlgReader.Read(children.Current.Select("./"+"TLG"));
 
-            var items = new List<Object>();
+            var items = new List<IWriter>();
             items.AddRange(tims);
             items.AddRange(tlgs);
             return items.ToArray();

@@ -1,8 +1,9 @@
 ﻿namespace AgGateway.ADAPT.ISOv4Plugin.Models
 {
-    public class PDTF
+    public enum PDTF
     {
-        public static PDTF Item1 { get; set; }
-        public static PDTF Item2 { get; set; }
+        Single = 1,
+        Mixture = 2,
+        TemporaryMixture = 3
     }
 }

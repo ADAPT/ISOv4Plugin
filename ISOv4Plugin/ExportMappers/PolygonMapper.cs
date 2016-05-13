@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using AgGateway.ADAPT.ApplicationDataModel;
 using AgGateway.ADAPT.ApplicationDataModel.Shapes;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
-using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
 {
@@ -23,7 +21,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
                 B = name
             };
             var exteriors = polygon.Polygons.Select(p => p.ExteriorRing).SelectMany(x => Map(x, LSGA.Item1));
-            var interiors = polygon.Polygons.Select(p => p.ExteriorRing).SelectMany(x => Map(x, LSGA.Item2));
+            var interiors = polygon.Polygons.SelectMany(p => p.InteriorRings).SelectMany(x => Map(x, LSGA.Item2));
             isoPolygon.Items = exteriors.Concat(interiors).ToArray();
 
             return isoPolygon;

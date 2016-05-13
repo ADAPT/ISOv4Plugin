@@ -1,4 +1,6 @@
-﻿using AgGateway.ADAPT.ISOv4Plugin.Models;
+﻿using System.Text;
+using System.Xml;
+using AgGateway.ADAPT.ISOv4Plugin.Models;
 using NUnit.Framework;
 
 namespace ISOv4PluginLogTest.Models
@@ -7,49 +9,57 @@ namespace ISOv4PluginLogTest.Models
     public class CTPTest
     {
         private CTP _ctp;
+        private StringBuilder _output;
+        private XmlWriter _xmlBuilder;
 
         [SetUp]
         public void Setup()
         {
             _ctp = new CTP();
+            _output = new StringBuilder();
+            _xmlBuilder = XmlWriter.Create(_output);
         }
 
         [Test]
         public void GivenCTPWhenWriteXmlThenStartAndEndTagsAreWritten()
         {
-            var result = _ctp.WriteXML();
-            Assert.True(result.Contains("<CTP"));
-            Assert.True(result.Contains("</CTP>"));
+            _ctp.WriteXML(_xmlBuilder);
+            _xmlBuilder.Flush();
+            Assert.True(_output.ToString().Contains("<CTP"));
         }
 
         [Test]
         public void GivenCTPWhenWriteXmlThenAIsWritten()
         {
             _ctp.A = "H";
-            var result = _ctp.WriteXML();
-            Assert.True(result.Contains("A=\"H\""));
+            _ctp.WriteXML(_xmlBuilder);
+            _xmlBuilder.Flush();
+            Assert.True(_output.ToString().Contains("A=\"H\""));
         }
 
         [Test]
         public void GivenCTPWithoutAWhenWriteXmlThenAIsNotWritten()
         {
-            var result = _ctp.WriteXML();
-            Assert.False(result.Contains("A="));
+            _ctp.WriteXML(_xmlBuilder);
+            _xmlBuilder.Flush();
+            Assert.False(_output.ToString().Contains("A="));
         }
 
         [Test]
         public void GivenCTPWhenWriteXmlThenBIsWritten()
         {
             _ctp.B = "B";
-            var result = _ctp.WriteXML();
-            Assert.True(result.Contains("B=\"B\""));
+            _ctp.WriteXML(_xmlBuilder);
+            _xmlBuilder.Flush();
+            Assert.True(_output.ToString().Contains("B=\"B\""));
         }
 
         [Test]
         public void GivenCTPWithoutAWhenWriteXmlThenBIsNotWritten()
         {
-            var result = _ctp.WriteXML();
-            Assert.False(result.Contains("B="));
+            _ctp.WriteXML(_xmlBuilder);
+            _xmlBuilder.Flush();
+            Assert.False(_output.ToString().Contains("B="));
         }
     }
 }

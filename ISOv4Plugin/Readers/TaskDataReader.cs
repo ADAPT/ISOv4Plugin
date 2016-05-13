@@ -58,13 +58,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Readers
             return outValue;
         }
 
-        private object[] GetItems(XPathNavigator navigator)
+        private IWriter[] GetItems(XPathNavigator navigator)
         {
             var children = navigator.SelectChildren(XPathNodeType.Element);
 
             var tsks = _tsksReader.Read(children.Current.Select("./" + TSK));
 
-            var items = new List<Object>();
+            var items = new List<IWriter>();
             items.AddRange(tsks);
 
             return items.ToArray();

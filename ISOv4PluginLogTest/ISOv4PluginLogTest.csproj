@@ -88,8 +88,8 @@
     <Compile Include="Models\CTRTest.cs" />
     <Compile Include="Models\CVTTest.cs" />
     <Compile Include="Models\FRMTest.cs" />
-    <Compile Include="Models\ISO11783_TaskDataTest.cs" />
     <Compile Include="Models\LSGTest.cs" />
+    <Compile Include="Models\PDTTest.cs" />
     <Compile Include="Models\PFDTest.cs" />
     <Compile Include="Models\PLNTest.cs" />
     <Compile Include="Models\PNTTest.cs" />

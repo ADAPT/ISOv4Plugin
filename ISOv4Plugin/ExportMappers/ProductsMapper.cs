@@ -33,7 +33,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
 
         private PDTF Map(ProductTypeEnum productType)
         {
-            return productType != ProductTypeEnum.Mix ? PDTF.Item1 : PDTF.Item2;
+            return productType != ProductTypeEnum.Mix ? PDTF.Single : PDTF.Mixture;
         }
     }
 }
