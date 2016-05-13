@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
 using AgGateway.ADAPT.ISOv4Plugin.Writers;
 using NUnit.Framework;
@@ -28,8 +29,8 @@ namespace ISOv4PluginTest.Writers
             // Act
             using (taskWriter)
             {
-                var actualXml = taskWriter.Write(_exportPath, adaptDocument);
-                Assert.AreEqual(TestData.TestData.SingleProductOutputXml, actualXml.ToString());
+                var actualXml = TestHelpers.Export(taskWriter, adaptDocument, _exportPath);
+                Assert.AreEqual(TestData.TestData.SingleProductOutputXml, actualXml);
             }
 
             // Verify

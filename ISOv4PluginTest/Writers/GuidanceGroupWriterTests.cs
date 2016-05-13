@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
+using AgGateway.ADAPT.ISOv4Plugin;
 using AgGateway.ADAPT.ISOv4Plugin.Writers;
 using NUnit.Framework;
 
@@ -28,8 +30,8 @@ namespace ISOv4PluginTest.Writers
             // Act
             using (taskWriter)
             {
-                var actual = taskWriter.Write(_exportPath, adaptDocument);
-                Assert.AreEqual(TestData.TestData.GroupsNoPatternsOrBoundaryOutput, actual.ToString());
+                var actual = TestHelpers.Export(taskWriter, adaptDocument, _exportPath);
+                Assert.AreEqual(TestData.TestData.GroupsNoPatternsOrBoundaryOutput, actual);
             }
         }
 
@@ -43,8 +45,8 @@ namespace ISOv4PluginTest.Writers
             // Act
             using (taskWriter)
             {
-                var actual = taskWriter.Write(_exportPath, adaptDocument);
-                Assert.AreEqual(TestData.TestData.GroupsWithBoundaryAndNoPatternsOutput, actual.ToString().Replace("{","").Replace("}",""));
+                var actual = TestHelpers.Export(taskWriter, adaptDocument, _exportPath);
+                Assert.AreEqual(TestData.TestData.GroupsWithBoundaryAndNoPatternsOutput, actual.Replace("{", "").Replace("}", ""));
             }
         }
 
@@ -58,9 +60,8 @@ namespace ISOv4PluginTest.Writers
             // Act
             using (taskWriter)
             {
-                var actual = taskWriter.Write(_exportPath, adaptDocument);
-            
-                Assert.AreEqual(TestData.TestData.GroupsWithBoundaryAndPatternsOutput, actual.ToString());
+                var actual = TestHelpers.Export(taskWriter, adaptDocument, _exportPath);
+                Assert.AreEqual(TestData.TestData.GroupsWithBoundaryAndPatternsOutput, actual);
             }
         }
 

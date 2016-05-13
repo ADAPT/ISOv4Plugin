@@ -1,6 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters;
+using System.Text;
+using AgGateway.ADAPT.ApplicationDataModel.ADM;
+using AgGateway.ADAPT.ISOv4Plugin;
+using AgGateway.ADAPT.ISOv4Plugin.Writers;
 using Newtonsoft.Json;
 
 namespace ISOv4PluginTest
@@ -43,6 +47,15 @@ namespace ISOv4PluginTest
             {
                 return (T)_jsonSerializer.Deserialize(reader, typeof (T));
             }
+        }
+
+        public static string Export(TaskDocumentWriter taskWriter, ApplicationDataModel adaptDocument, string datacardPath)
+        {
+            taskWriter.Write(datacardPath, adaptDocument);
+            new Exporter().Export(adaptDocument, datacardPath, taskWriter.RootWriter, taskWriter.XmlStream);
+            taskWriter.RootWriter.Flush();
+            var actual = Encoding.UTF8.GetString(taskWriter.XmlStream.ToArray());
+            return actual;
         }
     }
 }

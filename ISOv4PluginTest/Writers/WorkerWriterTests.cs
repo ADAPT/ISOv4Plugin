@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Text;
-using System.Xml;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
 using AgGateway.ADAPT.ISOv4Plugin.Writers;
 using NUnit.Framework;
@@ -31,10 +30,10 @@ namespace ISOv4PluginTest.Writers
             // Act
             using (_taskWriter)
             {
-                var resultingXml = _taskWriter.Write(_directory, adaptDocument);
+                var actualXml = TestHelpers.Export(_taskWriter, adaptDocument, _directory);
                 
                 // Verify
-                Assert.AreEqual(TestData.TestData.WorkersWithAllDataOutput, resultingXml.ToString());
+                Assert.AreEqual(TestData.TestData.WorkersWithAllDataOutput, actualXml);
             }
         }
 
@@ -47,9 +46,9 @@ namespace ISOv4PluginTest.Writers
             // Act
             using (_taskWriter)
             {
-                var result = _taskWriter.Write(_directory, adaptDocument);
+                var result = TestHelpers.Export(_taskWriter, adaptDocument, _directory);
 
-                Assert.AreEqual(TestData.TestData.WorkersWithNoContactsOutput, result.ToString());
+                Assert.AreEqual(TestData.TestData.WorkersWithNoContactsOutput, result);
             }
         }
 

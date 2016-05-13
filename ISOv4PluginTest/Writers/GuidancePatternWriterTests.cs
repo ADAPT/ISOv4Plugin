@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
 using AgGateway.ADAPT.ISOv4Plugin.Writers;
 using NUnit.Framework;
@@ -28,9 +29,9 @@ namespace ISOv4PluginTest.Writers
             // Act
             using (taskWriter)
             {
-                var actual = taskWriter.Write(_exportPath, adaptDocument);
+                var actual = TestHelpers.Export(taskWriter, adaptDocument, _exportPath);
 
-                Assert.AreEqual(TestData.TestData.AllPatternsOutput, actual.ToString());
+                Assert.AreEqual(TestData.TestData.AllPatternsOutput, actual);
             }
         }
 

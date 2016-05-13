@@ -121,9 +121,6 @@
   <data name="AllPatterns" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>guidance\allpatterns.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="AllPatternsOutput" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>guidance\allpatternsoutput.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-16</value>
-  </data>
   <data name="CCT00002" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>comment\cct00002.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
@@ -262,20 +259,11 @@
   <data name="GroupsNoPatternsOrBoundary" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>guidance\groupsnopatternsorboundary.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="GroupsNoPatternsOrBoundaryOutput" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>guidance\groupsnopatternsorboundaryoutput.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-16</value>
-  </data>
   <data name="GroupsWithBoundaryAndNoPatterns" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>guidance\groupswithboundaryandnopatterns.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="GroupsWithBoundaryAndNoPatternsOutput" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>guidance\groupswithboundaryandnopatternsoutput.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
   <data name="GroupsWithBoundaryAndPatterns" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>guidance\groupswithboundaryandpatterns.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="GroupsWithBoundaryAndPatternsOutput" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>guidance\groupswithboundaryandpatternsoutput.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-16</value>
   </data>
   <data name="MissingUnit" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>treatmentzone\missingunit.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
@@ -349,9 +337,6 @@
   <data name="SingleProductOutputTxt" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>prescription\singleproductoutput.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="SingleProductOutputXml" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>prescription\singleproductoutput.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-16</value>
-  </data>
   <data name="Timestamp1" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>allocationtimestamp\timestamp1.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
@@ -385,16 +370,31 @@
   <data name="WorkersWithAllData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>worker\workerswithalldata.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="WorkersWithAllDataOutput" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>worker\workerswithalldataoutput.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-16</value>
-  </data>
   <data name="WorkersWithNoContacts" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>worker\workerswithnocontacts.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="WorkersWithNoContactsOutput" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>worker\workerswithnocontactsoutput.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-16</value>
-  </data>
   <data name="ZeroWorkersPresent" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>worker\zeroworkerspresent.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="AllPatternsOutput" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>guidance\allpatternsoutput.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="GroupsNoPatternsOrBoundaryOutput" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>guidance\groupsnopatternsorboundaryoutput.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="GroupsWithBoundaryAndNoPatternsOutput" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>guidance\groupswithboundaryandnopatternsoutput.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="GroupsWithBoundaryAndPatternsOutput" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>guidance\groupswithboundaryandpatternsoutput.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="SingleProductOutputXml" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>prescription\singleproductoutput.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="WorkersWithAllDataOutput" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>worker\workerswithalldataoutput.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="WorkersWithNoContactsOutput" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>worker\workerswithnocontactsoutput.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
 </root>
