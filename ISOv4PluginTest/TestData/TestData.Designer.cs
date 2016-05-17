@@ -1179,6 +1179,30 @@ namespace ISOv4PluginTest.TestData {
         
         /// <summary>
         ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt;
+        ///&lt;XFC&gt;
+        ///  &lt;PGP A=&quot;PGP1&quot; B=&quot;Group 1&quot; C=&quot;1&quot; /&gt;
+        ///&lt;/XFC&gt;.
+        /// </summary>
+        internal static string PGP00001 {
+            get {
+                return ResourceManager.GetString("PGP00001", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt;
+        ///&lt;XFC&gt;
+        ///  &lt;PGP A=&quot;PGP2&quot; B=&quot;Group 2&quot; C=&quot;2&quot; /&gt;
+        ///&lt;/XFC&gt;.
+        /// </summary>
+        internal static string PGP00002 {
+            get {
+                return ResourceManager.GetString("PGP00002", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt;
         ///&lt;ISO11783_TaskData TaskControllerVersion=&quot;&quot;
         ///                   VersionMinor=&quot;1&quot;
         ///                   ManagementSoftwareManufacturer=&quot;Topcon Precision Agriculture&quot;
@@ -1338,6 +1362,28 @@ namespace ISOv4PluginTest.TestData {
         internal static string Product8 {
             get {
                 return ResourceManager.GetString("Product8", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt;
+        ///&lt;ISO11783_TaskData TaskControllerVersion=&quot;&quot;
+        ///                   VersionMinor=&quot;1&quot;
+        ///                   ManagementSoftwareManufacturer=&quot;Topcon Precision Agriculture&quot;
+        ///                   DataTransferOrigin=&quot;2&quot;
+        ///                   ManagementSoftwareVersion=&quot;1.0&quot;
+        ///                   TaskControllerManufacturer=&quot;&quot;
+        ///                   VersionMajor=&quot;4&quot; &gt;
+        ///
+        ///  &lt;PDT A=&quot;PDT1&quot; B=&quot;Product 1&quot; C=&quot;PGP1&quot;/&gt;
+        ///  &lt;XFR A=&quot;PGP00001&quot; B=&quot;1&quot; /&gt;
+        ///
+        ///  &lt;PDT A=&quot;PDT2&quot; B=&quot;Product 2&quot; C=&quot;PGP2&quot;/&gt;
+        ///  &lt;XF [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string Product9 {
+            get {
+                return ResourceManager.GetString("Product9", resourceCulture);
             }
         }
         

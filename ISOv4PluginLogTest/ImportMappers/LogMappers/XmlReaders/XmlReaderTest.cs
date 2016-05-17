@@ -41,7 +41,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers.XmlReaders
             File.AppendAllText(Path.Combine(_dataPath, _fileName), _xml);
 
             var taskData = new ISO11783_TaskData();
-            _taskDataReaderMock.Setup(x => x.Read(It.IsAny<XPathNavigator>())).Returns(taskData);
+            _taskDataReaderMock.Setup(x => x.Read(It.IsAny<XPathNavigator>(), It.IsAny<String>())).Returns(taskData);
 
             var result = _xmlReader.Read(_dataPath, _fileName);
             Assert.AreSame(taskData, result);

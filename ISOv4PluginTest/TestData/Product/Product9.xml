@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ISO11783_TaskData TaskControllerVersion=""
+                   VersionMinor="1"
+                   ManagementSoftwareManufacturer="Topcon Precision Agriculture"
+                   DataTransferOrigin="2"
+                   ManagementSoftwareVersion="1.0"
+                   TaskControllerManufacturer=""
+                   VersionMajor="4" >
+
+  <PDT A="PDT1" B="Product 1" C="PGP1"/>
+  <XFR A="PGP00001" B="1" />
+
+  <PDT A="PDT2" B="Product 2" C="PGP2"/>
+  <XFR A="PGP00002" B="1" />
+
+</ISO11783_TaskData>
+

@@ -48,7 +48,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders
             var xpathReader = new XPathDocument(file);
             var navigator = xpathReader.CreateNavigator();
 
-            return _taskDataReader.Read(navigator);
+            return _taskDataReader.Read(navigator, Path.GetDirectoryName(file));
         }
 
         public TIMHeader ReadTlgXmlData(string dataPath, string fileName)

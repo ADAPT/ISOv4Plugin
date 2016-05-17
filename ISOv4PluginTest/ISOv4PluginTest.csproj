@@ -224,6 +224,8 @@
     <Content Include="TestData\ProductMix\ProductMix4.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="TestData\Product\PGP00001.xml" />
+    <Content Include="TestData\Product\PGP00002.xml" />
     <Content Include="TestData\Product\Product3.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -335,6 +337,7 @@
     <Content Include="TestData\Prescription\SingleProduct.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="TestData\Product\Product9.xml" />
     <Content Include="TestData\TreatmentZone\MissingUnitOutput.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

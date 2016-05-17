@@ -182,6 +182,37 @@ namespace ISOv4PluginTest.Loaders
         }
 
         [Test]
+        public void ProductWithExternalProductGroupTest()
+        {
+            // Setup
+            var taskDocument = new TaskDataDocument();
+            var path = Path.Combine(_directory, "test.xml");
+            File.WriteAllText(path, TestData.TestData.Product9);
+
+            var pgp1Path = Path.Combine(_directory, "PGP00001.xml");
+            File.WriteAllText(pgp1Path, TestData.TestData.PGP00001);
+
+            var pgp2Path = Path.Combine(_directory, "PGP00002.xml");
+            File.WriteAllText(pgp2Path, TestData.TestData.PGP00002);
+
+            // Act
+            var result = taskDocument.LoadFromFile(path);
+
+            // Verify
+            Assert.IsTrue(result);
+            Assert.IsNotNull(taskDocument.Products);
+            Assert.AreEqual(2, taskDocument.Products.Count);
+
+            var product = taskDocument.Products["PDT1"];
+            Assert.AreEqual("Product 1", product.Description);
+            Assert.AreEqual(ProductTypeEnum.Generic, product.ProductType);
+
+            product = taskDocument.Products["PDT2"];
+            Assert.AreEqual("Product 2", product.Description);
+            Assert.AreEqual(ProductTypeEnum.Variety, product.ProductType);
+        }
+
+        [Test]
         public void ProductWithInvalidProductTypeTest()
         {
             // Setup
