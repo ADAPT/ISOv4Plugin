@@ -84,6 +84,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
 
             var dataVariable = new DataVariable
             {
+                Ddi = ddi,
                 Value = unit.ConvertFromIsoUnit(dataValue),
                 ProductId = inputNode.GetXmlNodeValue("@C"),
                 IsoUnit = unit,

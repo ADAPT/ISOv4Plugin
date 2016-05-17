@@ -7,9 +7,11 @@ using AgGateway.ADAPT.ApplicationDataModel.Representations;
 using AgGateway.ADAPT.ApplicationDataModel.Shapes;
 using AgGateway.ADAPT.ISOv4Plugin.Extensions;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
+using AgGateway.ADAPT.ISOv4Plugin.Representation;
 using AgGateway.ADAPT.Representation.RepresentationSystem;
 using AgGateway.ADAPT.Representation.RepresentationSystem.ExtensionMethods;
 using AgGateway.ADAPT.Representation.UnitSystem;
+using NumericRepresentation = AgGateway.ADAPT.ApplicationDataModel.Representations.NumericRepresentation;
 using UnitOfMeasure = AgGateway.ADAPT.ApplicationDataModel.Common.UnitOfMeasure;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
@@ -20,6 +22,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
         private string _baseFolder;
         private TaskDataDocument _taskDocument;
         private List<RasterGridPrescription> _prescriptions;
+        private static RepresentationMapper _representationMapper;
 
         private PrescriptionLoader(TaskDataDocument taskDocument)
         {
@@ -27,6 +30,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
             _rootNode = _taskDocument.RootNode;
             _baseFolder = _taskDocument.BaseFolder;
             _prescriptions = new List<RasterGridPrescription>();
+            _representationMapper = new RepresentationMapper();
         }
 
         public static List<RasterGridPrescription> Load(TaskDataDocument taskDocument)
@@ -189,6 +193,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
             {
                 rates.Add(new NumericRepresentationValue
                 {
+                    Representation = _representationMapper.Map(dataVariable.Ddi) as NumericRepresentation,
                     Value = new NumericValue(dataVariable.IsoUnit.ToAdaptUnit(), dataVariable.Value),
                     UserProvidedUnitOfMeasure = dataVariable.UserUnit
                 });
@@ -218,7 +223,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
                 var product = _taskDocument.Products.FindById(dataVariable.ProductId) ?? _taskDocument.ProductMixes.FindById(dataVariable.ProductId);
                 var rxProductLookup = new RxProductLookup
                 {
-                    ProductId = product.Id.FindIntIsoId(),
+                    ProductId = product == null ? 0 : product.Id.FindIntIsoId(),
                     UnitOfMeasure = dataVariable.IsoUnit.ToAdaptUnit(),
                 };
                 prescription.RxProductLookups.Add(rxProductLookup);

@@ -6,6 +6,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Models
     {
         public double Value { get; set; }
         public string ProductId { get; set; }
+        public int Ddi { get; set; }
         public IsoUnit IsoUnit { get; set; }
         public UnitOfMeasure UserUnit { get; set; }
     }
