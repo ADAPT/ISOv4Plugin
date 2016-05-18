@@ -144,7 +144,7 @@ namespace ISOv4PluginLogTest
             _applicationDataModel.Documents.LoggedData = new List<LoggedData>();
 
             var tasks = new List<TSK>{ new TSK(), new TSK()};
-            _taskMapperMock.Setup(x => x.Map(_applicationDataModel.Documents.LoggedData, _applicationDataModel.Catalog, _datacardPath, It.IsAny<int>())).Returns(tasks);
+            _taskMapperMock.Setup(x => x.Map(_applicationDataModel.Documents.LoggedData, _applicationDataModel.Catalog, _datacardPath, It.IsAny<int>(), It.IsAny<TaskDocumentWriter>())).Returns(tasks);
 
             var result = Export();
             var tskXml = new StringBuilder();
@@ -195,7 +195,7 @@ namespace ISOv4PluginLogTest
         public void GivenNullApplicationDataModelWhenExportThenIsNotChanged()
         {
             var iso11783TaskData = XmlWriter.Create(new StringBuilder());
-            var result = _exporter.Export(null, _datacardPath, iso11783TaskData, new MemoryStream());
+            var result = _exporter.Export(null, _datacardPath, iso11783TaskData, new TaskDocumentWriter());
             Assert.AreEqual(iso11783TaskData, result);
         }
 
@@ -220,7 +220,7 @@ namespace ISOv4PluginLogTest
 
             Export();
 
-            _taskMapperMock.Verify(x => x.Map(null, null, _datacardPath, It.IsAny<int>()), Times.Never());
+            _taskMapperMock.Verify(x => x.Map(null, null, _datacardPath, It.IsAny<int>(), It.IsAny<TaskDocumentWriter>()), Times.Never());
         }
 
         private string Export()
@@ -228,7 +228,7 @@ namespace ISOv4PluginLogTest
             using (var taskDocumentWriter = new TaskDocumentWriter())
             {
                 var isoTaskData = taskDocumentWriter.Write(Path.GetTempPath(), _applicationDataModel);
-                var xmlWriter = _exporter.Export(_applicationDataModel, _datacardPath, isoTaskData, taskDocumentWriter.XmlStream);
+                var xmlWriter = _exporter.Export(_applicationDataModel, _datacardPath, isoTaskData, taskDocumentWriter);
                 xmlWriter.Flush();
                 return Encoding.UTF8.GetString(taskDocumentWriter.XmlStream.ToArray());
             }

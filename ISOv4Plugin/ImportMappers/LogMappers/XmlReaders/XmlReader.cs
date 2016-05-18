@@ -38,7 +38,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders
 
         public ISO11783_TaskData Read(string dataPath, string fileName)
         {
-            var file = Path.Combine(dataPath, fileName);
+            var file = Path.Combine(dataPath, "TASKDATA", fileName);
 
             return Read(file);
         }
@@ -53,7 +53,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders
 
         public TIMHeader ReadTlgXmlData(string dataPath, string fileName)
         {
-            var file = Path.Combine(dataPath, fileName);
+            var file = Path.Combine(dataPath, "TASKDATA", fileName);
 
             using (var streamReader = new StreamReader(file))
             {

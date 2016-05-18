@@ -8,6 +8,7 @@ using AgGateway.ADAPT.ISOv4Plugin.ImportMappers;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
+using AgGateway.ADAPT.ISOv4Plugin.Writers;
 using Moq;
 using NUnit.Framework;
 
@@ -23,6 +24,7 @@ namespace ISOv4PluginLogTest.ExportMappers
         private Mock<IBinaryWriter> _binaryWriterMock;
         private Mock<IXmlReader> _xmlReaderMock;  
         private Mock<ITimHeaderMapper> _timHeaderMock;
+        private TaskDocumentWriter _taskDocumentWriter;
         private string _datacardPath;
 
         [SetUp]
@@ -35,6 +37,7 @@ namespace ISOv4PluginLogTest.ExportMappers
             _xmlReaderMock = new Mock<IXmlReader>();
             _timHeaderMock = new Mock<ITimHeaderMapper>();
             _datacardPath = "";
+            _taskDocumentWriter = new TaskDocumentWriter();
 
             _tlgMapper = new TlgMapper(_xmlReaderMock.Object, _timHeaderMock.Object, _binaryWriterMock.Object);
         }
@@ -95,7 +98,7 @@ namespace ISOv4PluginLogTest.ExportMappers
 
             MapSingle();
 
-            var expectedPath = Path.Combine(_datacardPath, "TLG00016.bin");
+            var expectedPath = Path.Combine(Path.Combine(_datacardPath, "TASKDATA"), "TLG00016.bin");
             _binaryWriterMock.Verify(x => x.Write(expectedPath, meters, spatialRecords), Times.Once);
         }
 
@@ -158,7 +161,7 @@ namespace ISOv4PluginLogTest.ExportMappers
 
             MapSingle();
 
-            _xmlReaderMock.Verify(x => x.WriteTlgXmlData(_datacardPath, "TLG00016.xml",  timHeader));
+            _xmlReaderMock.Verify(x => x.WriteTlgXmlData(Path.Combine(_datacardPath, "TASKDATA"), "TLG00016.xml", timHeader));
         }
 
         private TLG MapSingle()
@@ -168,7 +171,7 @@ namespace ISOv4PluginLogTest.ExportMappers
 
         private IEnumerable<TLG> Map()
         {
-            return _tlgMapper.Map(_operationDatas, _datacardPath);
+            return _tlgMapper.Map(_operationDatas, _datacardPath, _taskDocumentWriter);
         }
     }
 }

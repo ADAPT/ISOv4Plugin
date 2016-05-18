@@ -43,6 +43,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
         private string WriteField(XmlWriter writer, Field field)
         {
             var fieldId = GenerateId();
+            TaskWriter.Ids.Add(fieldId, field.Id);
+
             writer.WriteStartElement(XmlPrefix);
             writer.WriteAttributeString("A", fieldId);
             writer.WriteAttributeString("C", field.Description);

@@ -193,6 +193,7 @@
     <Compile Include="Writers\GuidanceGroupWriter.cs" />
     <Compile Include="Writers\GuidancePatternWriter.cs" />
     <Compile Include="Writers\IsoRootWriter.cs" />
+    <Compile Include="Writers\LinkListWriter.cs" />
     <Compile Include="Writers\PrescriptionWriter.cs" />
     <Compile Include="Writers\ProductWriter.cs" />
     <Compile Include="Writers\ShapeWriter.cs" />

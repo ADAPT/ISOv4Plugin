@@ -4,12 +4,13 @@ using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using AgGateway.ADAPT.ISOv4Plugin.ExportMappers;
+using AgGateway.ADAPT.ISOv4Plugin.Writers;
 
 namespace AgGateway.ADAPT.ISOv4Plugin
 {
     public interface IExporter
     {
-        XmlWriter Export(ApplicationDataModel.ADM.ApplicationDataModel applicationDataModel, string datacardPath, XmlWriter isoTaskData, MemoryStream xmlStream);
+        XmlWriter Export(ApplicationDataModel.ADM.ApplicationDataModel applicationDataModel, string datacardPath, XmlWriter isoTaskData, TaskDocumentWriter taskDocumentWriter);
     }
 
     public class Exporter : IExporter
@@ -26,13 +27,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin
             _taskMapper = taskMapper;
         }
 
-        public XmlWriter Export(ApplicationDataModel.ADM.ApplicationDataModel applicationDataModel, string datacardPath, XmlWriter isoTaskData, MemoryStream xmlStream)
+        public XmlWriter Export(ApplicationDataModel.ADM.ApplicationDataModel applicationDataModel, string datacardPath, XmlWriter isoTaskData, TaskDocumentWriter taskDocumentWriter)
         {
             if (applicationDataModel == null)
                 return isoTaskData;
             
-            var numberOfExistingTasks = GetNumberOfExistingTasks(isoTaskData, xmlStream);
-            var tasks = applicationDataModel.Documents == null ? null : _taskMapper.Map(applicationDataModel.Documents.LoggedData, applicationDataModel.Catalog, datacardPath, numberOfExistingTasks);
+            var numberOfExistingTasks = GetNumberOfExistingTasks(isoTaskData, taskDocumentWriter);
+            var tasks = applicationDataModel.Documents == null ? null : _taskMapper.Map(applicationDataModel.Documents.LoggedData, applicationDataModel.Catalog, datacardPath, numberOfExistingTasks, taskDocumentWriter);
             if (tasks != null)
             {
                 var taskList = tasks.ToList();
@@ -43,10 +44,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin
             return isoTaskData;
         }
 
-        private static int GetNumberOfExistingTasks(XmlWriter data, MemoryStream isoTaskData)
+        private static int GetNumberOfExistingTasks(XmlWriter data, TaskDocumentWriter isoTaskData)
         {
             data.Flush();
-            var xml = Encoding.UTF8.GetString(isoTaskData.ToArray());
+            var xml = Encoding.UTF8.GetString(isoTaskData.XmlStream.ToArray());
             if(!xml.EndsWith(">"))
                 xml += ">";
             xml += "</ISO11783_TaskData>";

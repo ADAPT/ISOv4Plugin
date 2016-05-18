@@ -60,7 +60,7 @@ namespace AcceptanceTests.Steps
         [Then(@"Adapt is exported to ISO")]
         public void ThenAdaptIsExportedToIso()
         {
-            var isoTaskData = new XmlReader().Read(Path.Combine(ScenarioContext.Current.ExportPath(), "TASKDATA"), "TASKDATA.XML");
+            var isoTaskData = new XmlReader().Read(ScenarioContext.Current.ExportPath(), "TASKDATA.XML");
             foreach (var applicationDataModel in ScenarioContext.Current.ApplicationDataModel())
             {
                 TaskDataAssert.AreEqual(applicationDataModel, isoTaskData, ScenarioContext.Current.ExportPath()); 
@@ -70,7 +70,7 @@ namespace AcceptanceTests.Steps
         [AfterScenario]
         public void AfterScenario()
         {
-            var directory = Directory.GetParent(ScenarioContext.Current.DataCardPath()).FullName;
+            var directory = ScenarioContext.Current.DataCardPath();
             if(Directory.Exists(directory))
                 Directory.Delete(directory, true);
         }

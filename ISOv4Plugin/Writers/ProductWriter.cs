@@ -59,6 +59,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
         private string WriteProduct(XmlWriter writer, Product product)
         {
             var productId = GenerateId();
+            TaskWriter.Ids.Add(productId, product.Id);
+
             writer.WriteStartElement(XmlPrefix);
             writer.WriteAttributeString("A", productId);
             writer.WriteAttributeString("B", product.Description);
@@ -71,6 +73,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
         private string WriteProductMix(XmlWriter writer, ProductMix productMix)
         {
             var productId = GenerateId();
+            TaskWriter.Ids.Add(productId, productMix.Id);
+
             writer.WriteStartElement(XmlPrefix);
             writer.WriteAttributeString("A", productId);
             writer.WriteAttributeString("B", productMix.Description);

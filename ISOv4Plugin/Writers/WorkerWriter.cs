@@ -34,6 +34,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
         private string WriteWorker(XmlWriter writer, Person person)
         {
             var workerId = GenerateId();
+            TaskWriter.Ids.Add(workerId, person.Id);
+
             writer.WriteStartElement(XmlPrefix);
             writer.WriteAttributeString("A", workerId);
             writer.WriteAttributeString("B", person.LastName);

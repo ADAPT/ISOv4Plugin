@@ -50,7 +50,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
                 meters.Add(MapNumericMeter(dlv, sectionId, order));
                 return meters;
             }
-            var meterCreator = _enumeratedMeterCreatorFactory.GetMeterCreator((int)dlv.ProcessDataDDI.Value);
+            var meterCreator = _enumeratedMeterCreatorFactory.GetMeterCreator(dlv.ProcessDataDDI.Value as int?);
             if(meterCreator != null)
             {
                 var isoEnumeratedMeters = meterCreator.CreateMeters(isoSpatialRows);

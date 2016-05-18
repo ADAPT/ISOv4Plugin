@@ -89,8 +89,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin
             using (var taskWriter = new TaskDocumentWriter())
             {
                 var xmlWriter = taskWriter.Write(exportPath, dataModel);
-
-                var iso11783TaskData = _exporter.Export(dataModel, exportPath, xmlWriter, taskWriter.XmlStream);
+                var iso11783TaskData = _exporter.Export(dataModel, exportPath, xmlWriter, taskWriter);
 
                 var filePath = Path.Combine(exportPath, "TASKDATA", FileName);
                 if (iso11783TaskData != null)
@@ -98,6 +97,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin
                     xmlWriter.Flush();
                     var xml = Encoding.UTF8.GetString(taskWriter.XmlStream.ToArray());
                     File.WriteAllText(filePath, xml);
+                    LinkListWriter.Write(exportPath, taskWriter.Ids);
                 }
             }
         }

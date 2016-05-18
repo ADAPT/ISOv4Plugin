@@ -52,7 +52,7 @@ namespace ISOv4PluginTest
         public static string Export(TaskDocumentWriter taskWriter, ApplicationDataModel adaptDocument, string datacardPath)
         {
             taskWriter.Write(datacardPath, adaptDocument);
-            new Exporter().Export(adaptDocument, datacardPath, taskWriter.RootWriter, taskWriter.XmlStream);
+            new Exporter().Export(adaptDocument, datacardPath, taskWriter.RootWriter, taskWriter);
             taskWriter.RootWriter.Flush();
             var actual = Encoding.UTF8.GetString(taskWriter.XmlStream.ToArray());
             return actual;

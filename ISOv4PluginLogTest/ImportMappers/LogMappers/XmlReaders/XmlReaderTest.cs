@@ -26,7 +26,8 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers.XmlReaders
         [SetUp]
         public void Setup()
         {
-            _dataPath = Path.GetTempPath();
+            _dataPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(Path.Combine(_dataPath, "TASKDATA"));
             _fileName = "test.xml";
 
             _timReaderMock = new Mock<ITimReader>();
@@ -38,7 +39,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers.XmlReaders
         public void GivenDataPathAndFileNameWhenReadThenTaskDataReturned()
         {
             _xml = "<ISO11783_TaskData></ISO11783_TaskData>";
-            File.AppendAllText(Path.Combine(_dataPath, _fileName), _xml);
+            File.AppendAllText(Path.Combine(_dataPath, "TASKDATA", _fileName), _xml);
 
             var taskData = new ISO11783_TaskData();
             _taskDataReaderMock.Setup(x => x.Read(It.IsAny<XPathNavigator>(), It.IsAny<String>())).Returns(taskData);
@@ -51,7 +52,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers.XmlReaders
         public void GivenDataPathAndFileNameWhenReadTlgXmlDataThenTimReturned()
         {
             _xml = "<TIM></TIM>";
-            File.AppendAllText(Path.Combine(_dataPath, _fileName), _xml);
+            File.AppendAllText(Path.Combine(_dataPath, "TASKDATA", _fileName), _xml);
 
             var timHeader = new TIMHeader();
             _timReaderMock.Setup(x => x.Read(It.IsAny<XDocument>())).Returns(timHeader);

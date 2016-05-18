@@ -26,7 +26,7 @@ namespace AcceptanceTests.Asserts.Export
         private static void AreEqual(OperationData operationData, TLG tlg, string cardPath)
         {
             var fileName = tlg.A + ".xml";
-            var tlgXmlHeaderFilePath = Path.Combine(cardPath, fileName);
+            var tlgXmlHeaderFilePath = Path.Combine(cardPath, "TASKDATA", fileName);
             Assert.IsTrue(File.Exists(tlgXmlHeaderFilePath));
 
             var timHeader = new XmlReader().ReadTlgXmlData(cardPath, fileName);

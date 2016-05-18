@@ -45,8 +45,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
             if (!IsValidPrescription(prescription))
                 return;
 
+            var prescriptionId = GenerateId();
+            TaskWriter.Ids.Add(prescriptionId, prescription.Id);
+
             writer.WriteStartElement(XmlPrefix);
-            writer.WriteAttributeString("A", GenerateId());
+            writer.WriteAttributeString("A", prescriptionId);
             writer.WriteAttributeString("B", prescription.Description);
 
             WriteFieldMeta(writer, prescription.FieldId);
