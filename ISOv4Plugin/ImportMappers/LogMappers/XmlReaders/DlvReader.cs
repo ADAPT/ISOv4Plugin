@@ -39,9 +39,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders
             if(dlvElement.Attribute("A") == null)
                 return new HeaderProperty{ State = HeaderPropertyState.IsNull };
 
-            var stringDdi = dlvElement.Attribute("A").Value;
-            var byteDdi = Convert.ToByte(stringDdi, 16);
-            var intDdi = Convert.ToInt32(byteDdi);
+            var hexDdi = dlvElement.Attribute("A").Value;
+            var intDdi = int.Parse(hexDdi, System.Globalization.NumberStyles.HexNumber);
 
             return new HeaderProperty { State = HeaderPropertyState.HasValue, Value = intDdi };
         }
