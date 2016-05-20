@@ -2,6 +2,7 @@
 using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ISOv4Plugin.Extensions;
+using AgGateway.ADAPT.ISOv4Plugin.Models;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using AgGateway.ADAPT.ISOv4Plugin.Representation;
 
@@ -9,7 +10,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
 {
     public interface IDlvHeaderMapper
     {
-        IEnumerable<DLVHeader> Map(IEnumerable<Meter> meters);
+        IEnumerable<DLV> Map(IEnumerable<Meter> meters);
     }
 
     public class DlvHeaderMapper : IDlvHeaderMapper
@@ -26,7 +27,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
             _representationMapper = representationMapper;
         }
 
-        public IEnumerable<DLVHeader> Map(IEnumerable<Meter> meters)
+        public IEnumerable<DLV> Map(IEnumerable<Meter> meters)
         {
             if (meters == null)
                 return null;
@@ -36,17 +37,31 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
             return sortedMeters.Select(Map);
         }
 
-        public DLVHeader Map(Meter meter)
+        public DLV Map(Meter meter)
         {
             var representation = _representationMapper.Map(meter.Representation);
-            return new DLVHeader
+
+            var dlv = new DLV();
+            if (representation == null)
             {
-                ProcessDataDDI = new HeaderProperty
-                {
-                    State = representation == null ? HeaderPropertyState.IsNull : HeaderPropertyState.HasValue,
-                    Value = representation
-                }
-            };
+                // to do:  add state 
+                dlv.A = null;
+            }
+            else
+            {
+                dlv.A = representation.ToString();
+            }
+
+            return dlv;
+            //return new DLV
+            //{
+
+            //    ProcessDataDDI = new HeaderProperty
+            //    {
+            //        State = representation == null ? HeaderPropertyState.IsNull : HeaderPropertyState.HasValue,
+            //        Value = representation
+            //    }
+            //};
         }
     }
 }

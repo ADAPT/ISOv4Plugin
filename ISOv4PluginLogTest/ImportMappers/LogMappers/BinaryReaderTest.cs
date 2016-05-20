@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using AgGateway.ADAPT.ISOv4Plugin.Extensions;
+using AgGateway.ADAPT.ISOv4Plugin.Models;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using NUnit.Framework;
 using BinaryReader = AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.BinaryReader;
@@ -12,7 +14,8 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
     public class BinaryReaderTest
     {
         private byte _numberOfDlvs;
-        private TIMHeader _timHeader;
+        private TIM _tim;
+        private PTN _ptn;
         private BinaryReader _binaryReader;
         private string _dataPath;
         private string _fileName;
@@ -23,22 +26,44 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         {
             _numberOfDlvs = 0;
             _bytes = new List<byte>();
-            _timHeader = new TIMHeader
+            _ptn = new PTN
             {
-                Start = new HeaderProperty{State = HeaderPropertyState.HasValue, Value = DateTime.Today},
-                PtnHeader = new PTNHeader
+                A = 94.1234,
+                ASpecified = true,
+                B = 49.4321,
+                BSpecified = true,
+                C = 5,
+                CSpecified = true,
+                D = 1,
+                DSpecified = true,
+                E = 33,
+                ESpecified = true,
+                F = 44,
+                FSpecified = true,
+                G = 13,
+                GSpecified = true,
+                H = 123123213,
+                HSpecified = true,
+                I = 13213,
+                ISpecified = true
+            };
+            _tim = new TIM
+            {
+                A = DateTime.Today,
+                ASpecified = true,
+                Items = new List<IWriter>
                 {
-                    GpsUtcDate = new HeaderProperty(),
-                    GpsUtcTime = new HeaderProperty(),
-                    HDOP = new HeaderProperty(),
-                    NumberOfSatellites = new HeaderProperty(),
-                    PDOP = new HeaderProperty(),
-                    PositionEast = new HeaderProperty(),
-                    PositionNorth = new HeaderProperty(),
-                    PositionStatus = new HeaderProperty(),
-                    PositionUp = new HeaderProperty(),
-                },
-                DLVs = new List<DLVHeader>()
+                    _ptn,
+                    new DLV
+                    {
+                        A = "0075",
+                        B = 32,
+                        C = "DEC-1",
+                        D = null,
+                        E = null,
+                        F = null
+                    }
+                }.ToArray()
             };
 
             _binaryReader = new BinaryReader();
@@ -47,11 +72,11 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenTimHeaderWithEmptyStartTimeWhenReadThenTimeStartIsReadFromFile()
         {
-            _timHeader.Start.State = HeaderPropertyState.IsEmpty;
+            _tim.A = null;
             
             const int milliseconds = 12321;
             const short daysFrom1980 = 4264;
-            _timHeader.Start.Value = milliseconds;
+            
 
             _bytes.AddRange(BitConverter.GetBytes(milliseconds));
             _bytes.AddRange(BitConverter.GetBytes(daysFrom1980));
@@ -66,20 +91,19 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
 
         [Test]
         public void GivenTimHeaderWithStartTimeWithValueWhenReadThenUseDefaultValue()
-        {
-            _timHeader.Start.State = HeaderPropertyState.HasValue;
-            _timHeader.Start.Value = DateTime.Now;
+        {            
+            _tim.A = DateTime.Now;
             _bytes.Add(_numberOfDlvs);
 
             var result = ReadSingle();
 
-            Assert.AreEqual(Convert.ToDateTime(_timHeader.Start.Value), result.TimeStart);
+            Assert.AreEqual(Convert.ToDateTime(_tim.A.Value), result.TimeStart);
         }
 
         [Test]
         public void GivenTimHeaderWithNullPositionNorthWhenReadThenPositionNorthIsZero()
         {
-            _timHeader.PtnHeader.PositionNorth.State = HeaderPropertyState.IsNull;
+            _ptn.ASpecified = false;
             _bytes.Add(_numberOfDlvs);
 
             var result = ReadSingle();
@@ -90,7 +114,8 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenTimHeaderWithEmptyPositionNorthWhenReadThenPositionNorthIsReadFromFile()
         {
-            _timHeader.PtnHeader.PositionNorth.State = HeaderPropertyState.IsEmpty;
+            _ptn.ASpecified = true;
+            _ptn.A = null;
             const int positionNorth = 12321;
             _bytes.AddRange(BitConverter.GetBytes(positionNorth));
             _bytes.Add(_numberOfDlvs);
@@ -103,9 +128,9 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenTimHeaderWithPositionNorthHasValueWhenReadThenUseDefaultValue()
         {
-            _timHeader.PtnHeader.PositionNorth.State = HeaderPropertyState.HasValue;
+            _ptn.ASpecified = true;
             const int positionNorthValue = 98765;
-            _timHeader.PtnHeader.PositionNorth.Value = positionNorthValue;
+            _ptn.A = positionNorthValue;
             _bytes.Add(_numberOfDlvs);
 
             var result = ReadSingle();
@@ -116,7 +141,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenTimHeaderWithNullPositionEastWhenReadThenPositionEastIsZero()
         {
-            _timHeader.PtnHeader.PositionEast.State = HeaderPropertyState.IsNull;
+            _ptn.BSpecified = false;
             _bytes.Add(_numberOfDlvs);
 
             var result = ReadSingle();
@@ -127,7 +152,8 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenTimHeaderWithEmptyPositionEastWhenReadThenPositionEastIsReadFromFile()
         {
-            _timHeader.PtnHeader.PositionEast.State = HeaderPropertyState.IsEmpty;
+            _ptn.BSpecified = true;
+            _ptn.B = null;
             const int positionEast = 12321;
             _bytes.AddRange(BitConverter.GetBytes(positionEast));
             _bytes.Add(_numberOfDlvs);
@@ -140,19 +166,19 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenTimHeaderWithPositionEastHasValueWhenReadThenUseDefaultValue()
         {
-            _timHeader.PtnHeader.PositionEast.State = HeaderPropertyState.HasValue;
-            _timHeader.PtnHeader.PositionEast.Value = 1564;
+            _ptn.BSpecified = true;
+            _ptn.B = 1564;
             _bytes.Add(_numberOfDlvs);
 
             var result = ReadSingle();
 
-            Assert.AreEqual(_timHeader.PtnHeader.PositionEast.Value, result.EastPosition);
+            Assert.AreEqual(_ptn.B.Value, result.EastPosition);
         }
 
         [Test]
         public void GivenTimHeaderWithNullPositionUpWhenReadThenPositionUpIsNull()
         {
-            _timHeader.PtnHeader.PositionUp.State = HeaderPropertyState.IsNull;
+            _ptn.CSpecified = false;
             _bytes.Add(_numberOfDlvs);
 
             var result = ReadSingle();
@@ -163,7 +189,8 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenTimHeaderWithEmptyPositionUpWhenReadThenPositionUpIsReadFromFile()
         {
-            _timHeader.PtnHeader.PositionUp.State = HeaderPropertyState.IsEmpty;
+            _ptn.CSpecified = true;
+            _ptn.C = null;
             const int positionUp = 846;
             _bytes.AddRange(BitConverter.GetBytes(positionUp));
             _bytes.Add(_numberOfDlvs);
@@ -176,19 +203,19 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenTimHeaderWithPositionUpHasValueWhenReadThenUseDefaultValue()
         {
-            _timHeader.PtnHeader.PositionUp.State = HeaderPropertyState.HasValue;
-            _timHeader.PtnHeader.PositionUp.Value = 9515;
+            _ptn.CSpecified = true;
+            _ptn.C = 9515;
             _bytes.Add(_numberOfDlvs);
 
             var result = ReadSingle();
 
-            Assert.AreEqual(_timHeader.PtnHeader.PositionUp.Value, result.Elevation);
+            Assert.AreEqual(_ptn.C.Value, result.Elevation);
         }
 
         [Test]
         public void GivenTimHeaderWithNullPositionStatusWhenReadThenPositionStatusIsNull()
         {
-            _timHeader.PtnHeader.PositionStatus.State = HeaderPropertyState.IsNull;
+            _ptn.DSpecified = false;
             _bytes.Add(_numberOfDlvs);
 
             var result = ReadSingle();
@@ -199,7 +226,8 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenTimHeaderWithEmptyPositionStatusWhenReadThenPositionStatusIsReadFromFile()
         {
-            _timHeader.PtnHeader.PositionStatus.State = HeaderPropertyState.IsEmpty;
+            _ptn.DSpecified = true;
+            _ptn.D = null;
             const byte positionStatus = 48;
             _bytes.AddRange(BitConverter.GetBytes(positionStatus));
             _bytes.Add(_numberOfDlvs);
@@ -212,19 +240,19 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenTimHeaderWithPositionStatusHasValueWhenReadThenUseDefaultValue()
         {
-            _timHeader.PtnHeader.PositionStatus.State = HeaderPropertyState.HasValue;
-            _timHeader.PtnHeader.PositionStatus.Value = (byte)53;
+            _ptn.DSpecified = true;
+            _ptn.D = (byte) 53;
             _bytes.Add(_numberOfDlvs);
 
             var result = ReadSingle();
 
-            Assert.AreEqual(_timHeader.PtnHeader.PositionStatus.Value, result.PositionStatus);
+            Assert.AreEqual(_ptn.D.Value, result.PositionStatus);
         }
 
         [Test]
         public void GivenTimHeaderWithNullPdopWhenReadThenPdopIsNull()
         {
-            _timHeader.PtnHeader.PDOP.State = HeaderPropertyState.IsNull;
+            _ptn.ESpecified = false;
             _bytes.Add(_numberOfDlvs);
 
             var result = ReadSingle();
@@ -235,7 +263,8 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenTimHeaderWithEmptyPdopWhenReadThenPdopIsReadFromFile()
         {
-            _timHeader.PtnHeader.PDOP.State = HeaderPropertyState.IsEmpty;
+            _ptn.ESpecified = true;
+            _ptn.E = null;
             const short pdop = 6453;
             _bytes.AddRange(BitConverter.GetBytes(pdop));
             _bytes.Add(_numberOfDlvs);
@@ -248,19 +277,19 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenTimHeaderWithPdopHasValueWhenReadThenUseDefaultValue()
         {
-            _timHeader.PtnHeader.PDOP.State = HeaderPropertyState.HasValue;
-            _timHeader.PtnHeader.PDOP.Value = (short)2835;
+            _ptn.ESpecified = true;
+            _ptn.E = (short) 2835;
             _bytes.Add(_numberOfDlvs);
 
             var result = ReadSingle();
 
-            Assert.AreEqual(_timHeader.PtnHeader.PDOP.Value, result.PDOP);
+            Assert.AreEqual(_ptn.E.Value, result.PDOP);
         }
 
         [Test]
         public void GivenTimHeaderWithNullHdopWhenReadThenHdopIsNull()
         {
-            _timHeader.PtnHeader.HDOP.State = HeaderPropertyState.IsNull;
+            _ptn.FSpecified = false;
             _bytes.Add(_numberOfDlvs);
 
             var result = ReadSingle();
@@ -271,7 +300,8 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenTimHeaderWithEmptyHdopWhenReadThenHdopIsReadFromFile()
         {
-            _timHeader.PtnHeader.HDOP.State = HeaderPropertyState.IsEmpty;
+            _ptn.FSpecified = true;
+            _ptn.F = null;
             const short hdop = 23235;
             _bytes.AddRange(BitConverter.GetBytes(hdop));
             _bytes.Add(_numberOfDlvs);
@@ -284,19 +314,19 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenTimHeaderWithHdopHasValueWhenReadThenUseDefaultValue()
         {
-            _timHeader.PtnHeader.HDOP.State = HeaderPropertyState.HasValue;
-            _timHeader.PtnHeader.HDOP.Value = (short)5473;
+            _ptn.FSpecified = true;
+            _ptn.F = (short) 5473;
             _bytes.Add(_numberOfDlvs);
 
             var result = ReadSingle();
 
-            Assert.AreEqual(_timHeader.PtnHeader.HDOP.Value, result.HDOP);
+            Assert.AreEqual(_ptn.F.Value, result.HDOP);
         }
 
         [Test]
         public void GivenTimHeaderWithNullNumberOfSatellitesWhenReadThenNumberOfSatellitesIsNull()
         {
-            _timHeader.PtnHeader.NumberOfSatellites.State = HeaderPropertyState.IsNull;
+            _ptn.GSpecified = false;
             _bytes.Add(_numberOfDlvs);
 
             var result = ReadSingle();
@@ -307,7 +337,8 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenTimHeaderWithEmptyNumberOfSatellitesWhenReadThenNumberOfSatellitesIsReadFromFile()
         {
-            _timHeader.PtnHeader.NumberOfSatellites.State = HeaderPropertyState.IsEmpty;
+            _ptn.GSpecified = true;
+            _ptn.G = null;
             const byte numberOfSatellites = 31;
             _bytes.AddRange(BitConverter.GetBytes(numberOfSatellites));
             _bytes.Add(_numberOfDlvs);
@@ -320,19 +351,19 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenTimHeaderWithNumberOfSatellitesHasValueWhenReadThenUseDefaultValue()
         {
-            _timHeader.PtnHeader.NumberOfSatellites.State = HeaderPropertyState.HasValue;
-            _timHeader.PtnHeader.NumberOfSatellites.Value = (byte)121;
+            _ptn.GSpecified = true;
+            _ptn.G = (byte) 121;
             _bytes.Add(_numberOfDlvs);
 
             var result = ReadSingle();
 
-            Assert.AreEqual(_timHeader.PtnHeader.NumberOfSatellites.Value, result.NumberOfSatellites);
+            Assert.AreEqual(_ptn.G.Value, result.NumberOfSatellites);
         }
 
         [Test]
         public void GivenTimHeaderWithNullGpsUtcTimeWhenReadThenIsNull()
         {
-            _timHeader.PtnHeader.GpsUtcTime.State = HeaderPropertyState.IsNull;
+            _ptn.HSpecified = false;
             _bytes.Add(_numberOfDlvs);
 
             var result = ReadSingle();
@@ -343,7 +374,8 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenTimHeaderWithEmptyGpsUtcTimeWhenReadThenIsReadFromFile()
         {
-            _timHeader.PtnHeader.GpsUtcTime.State = HeaderPropertyState.IsEmpty;
+            _ptn.HSpecified = true;
+            _ptn.H = null;
             const int gpsUtcTime = 45678;
             _bytes.AddRange(BitConverter.GetBytes(gpsUtcTime));
             _bytes.Add(_numberOfDlvs);
@@ -356,19 +388,19 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenTimHeaderWithGpsUtcTimeHasValueWhenReadThenUseDefaultValue()
         {
-            _timHeader.PtnHeader.GpsUtcTime.State = HeaderPropertyState.HasValue;
-            _timHeader.PtnHeader.GpsUtcTime.Value = 45678;
+            _ptn.HSpecified = true;
+            _ptn.H = 45678;
             _bytes.Add(_numberOfDlvs);
 
             var result = ReadSingle();
 
-            Assert.AreEqual(_timHeader.PtnHeader.GpsUtcTime.Value, result.GpsUtcTime);
+            Assert.AreEqual(_ptn.H.Value, result.GpsUtcTime);
         }
 
         [Test]
         public void GivenTimHeaderWithNullGpsUtcDateWhenReadThenIsNull()
         {
-            _timHeader.PtnHeader.GpsUtcDate.State = HeaderPropertyState.IsNull;
+            _ptn.ISpecified = false;
             _bytes.Add(_numberOfDlvs);
 
             var result = ReadSingle();
@@ -379,7 +411,8 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenTimHeaderWithEmptyGpsUtcDateWhenReadThenIsReadFromFile()
         {
-            _timHeader.PtnHeader.GpsUtcDate.State = HeaderPropertyState.IsEmpty;
+            _ptn.ISpecified = true;
+            _ptn.I = null;
             const short gpsUtcDate = 9842;
             _bytes.AddRange(BitConverter.GetBytes(gpsUtcDate));
             _bytes.Add(_numberOfDlvs);
@@ -392,24 +425,27 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenTimHeaderWithGpsUtcDateHasValueWhenReadThenUseDefaultValue()
         {
-            _timHeader.PtnHeader.GpsUtcDate.State = HeaderPropertyState.HasValue;
-            _timHeader.PtnHeader.GpsUtcDate.Value = (short)5132;
+            _ptn.ISpecified = true;
+            _ptn.I = (ushort) 5132;
             _bytes.Add(_numberOfDlvs);
 
             var result = ReadSingle();
 
-            Assert.AreEqual(_timHeader.PtnHeader.GpsUtcDate.Value, result.GpsUtcDate);
+            Assert.AreEqual(_ptn.I.Value, result.GpsUtcDate);
         }
 
         [Test]
         public void GivenTimHeaderWithGpsUtcDateAndGpsUtcTimeWhenReadThenGpsUtcDateTimeIsSet()
         {
-            _timHeader.PtnHeader.GpsUtcTime.State = HeaderPropertyState.IsEmpty;
             const int gpsUtcTime = 7894552;
+            _ptn.HSpecified = true;
+            _ptn.H = null;
             _bytes.AddRange(BitConverter.GetBytes(gpsUtcTime));
 
-            _timHeader.PtnHeader.GpsUtcDate.State = HeaderPropertyState.IsEmpty;
+
             const int gpsUtcDate = 6850;
+            _ptn.ISpecified = true;
+            _ptn.I = null;
             _bytes.AddRange(BitConverter.GetBytes(gpsUtcDate));
 
             _bytes.Add(_numberOfDlvs);
@@ -423,12 +459,13 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenTimeHeaderWhenReadThenDlvsIsSet()
         {
+            var dlv1 = new DLV {A = "6"};
+            var dlv2 = new DLV {A = "7"};
+            var dlv3 = new DLV {A = "8"};
+            var dlv4 = new DLV {A = "9"};
+            var dlv5 = new DLV {A = "10"};
 
-            _timHeader.DLVs.Add(new DLVHeader{ ProcessDataDDI = new HeaderProperty {Value =  6} });
-            _timHeader.DLVs.Add(new DLVHeader { ProcessDataDDI = new HeaderProperty { Value = 7 } });
-            _timHeader.DLVs.Add(new DLVHeader { ProcessDataDDI = new HeaderProperty { Value = 8 } });
-            _timHeader.DLVs.Add(new DLVHeader { ProcessDataDDI = new HeaderProperty { Value = 9 } });
-            _timHeader.DLVs.Add(new DLVHeader { ProcessDataDDI = new HeaderProperty { Value = 10 } });
+            _tim.Items = new List<DLV> {dlv1, dlv2, dlv3, dlv4, dlv5}.ToArray();
 
             _numberOfDlvs = 5;
             _bytes.Add(_numberOfDlvs);
@@ -458,15 +495,18 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenBinaryWithMultipleRecordsWhenReadThenMultipleRecordsReturned()
         {
-            _timHeader.PtnHeader.PositionNorth.State = HeaderPropertyState.IsEmpty;
+
+
+
+            _ptn.ASpecified = true;
+            _ptn.A = null;
             _bytes.AddRange(BitConverter.GetBytes(12321));
             _bytes.Add(_numberOfDlvs);
 
-            _timHeader.PtnHeader.PositionNorth.State = HeaderPropertyState.IsEmpty;
+
             _bytes.AddRange(BitConverter.GetBytes(54863));
             _bytes.Add(_numberOfDlvs);
 
-            _timHeader.PtnHeader.PositionNorth.State = HeaderPropertyState.IsEmpty;
             _bytes.AddRange(BitConverter.GetBytes(875));
             _bytes.Add(_numberOfDlvs);
 
@@ -481,7 +521,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             _dataPath = "blarg";
             _fileName = "false";
 
-            var result = _binaryReader.Read(_dataPath, _fileName, _timHeader);
+            var result = _binaryReader.Read(_dataPath, _fileName, _tim);
 
             Assert.IsEmpty(result);
         }
@@ -489,7 +529,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenNullTimHeaderWhenReadThenReturnedEmpty()
         {
-            _timHeader = null;
+            _tim = null;
             _bytes.Add(_numberOfDlvs);
 
             var result = Read();
@@ -500,6 +540,8 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenBinaryDlvDataWithoutMatchingDlvThenSpatialValueIsNull()
         {
+            _tim.Items = new List<IWriter>{_ptn}.ToArray();
+
             _numberOfDlvs = 1;
             _bytes.Add(_numberOfDlvs);
 
@@ -524,8 +566,11 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenBinaryWhenReadThenResolutionIsApplied()
         {
-            _timHeader.DLVs.Add(new DLVHeader { ProcessDataDDI = new HeaderProperty { Value = 10 } });
-            _timHeader.DLVs.Add(new DLVHeader { ProcessDataDDI = new HeaderProperty { Value = 11 } });
+
+            var dlv1 = new DLV { A = "10" };
+            var dlv2 = new DLV { A = "11" };
+            
+            _tim.Items = new List<DLV> { dlv1, dlv2 }.ToArray();
 
             _numberOfDlvs = 2;
             _bytes.Add(_numberOfDlvs);
@@ -562,7 +607,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             binaryWriter.Close();
             
 
-            return _binaryReader.Read(_dataPath, _fileName, _timHeader);
+            return _binaryReader.Read(_dataPath, _fileName, _tim);
         }
 
         [TearDown]

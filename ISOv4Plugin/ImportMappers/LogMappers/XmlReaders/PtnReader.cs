@@ -1,33 +1,109 @@
-﻿using System.Xml.Linq;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Xml.Linq;
+using System.Xml.XPath;
+using AgGateway.ADAPT.ISOv4Plugin.Models;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders
 {
     public interface IPtnReader
     {
-        PTNHeader Read(XElement ptnElement);
+        PTN Read(XPathNavigator navigator);
+        IEnumerable<PTN> Read(XPathNodeIterator nodeIterator);
     }
 
     public class PtnReader : IPtnReader
     {
-        public PTNHeader Read(XElement ptnElement)
+        //public PTNHeader Read(XElement navigator)
+        //{
+        //    if (navigator == null)
+        //        return null;
+
+        //    return new PTNHeader
+        //    {
+        //        PositionNorth = new HeaderProperty(navigator.Attribute("A")),
+        //        PositionEast = new HeaderProperty(navigator.Attribute("B")),
+        //        PositionUp = new HeaderProperty(navigator.Attribute("C")),
+        //        PositionStatus = new HeaderProperty(navigator.Attribute("D")),
+        //        PDOP = new HeaderProperty(navigator.Attribute("E")),
+        //        HDOP = new HeaderProperty(navigator.Attribute("F")),
+        //        NumberOfSatellites = new HeaderProperty(navigator.Attribute("G")),
+        //        GpsUtcTime = new HeaderProperty(navigator.Attribute("H")),
+        //        GpsUtcDate = new HeaderProperty(navigator.Attribute("I")),
+        //    };
+
+        //}
+ 
+
+
+        public PTN Read(XPathNavigator navigator)
         {
-            if (ptnElement == null)
+            if (navigator == null)
                 return null;
 
-            return new PTNHeader
+            return new PTN
             {
-                PositionNorth = new HeaderProperty(ptnElement.Attribute("A")),
-                PositionEast = new HeaderProperty(ptnElement.Attribute("B")),
-                PositionUp = new HeaderProperty(ptnElement.Attribute("C")),
-                PositionStatus = new HeaderProperty(ptnElement.Attribute("D")),
-                PDOP = new HeaderProperty(ptnElement.Attribute("E")),
-                HDOP = new HeaderProperty(ptnElement.Attribute("F")),
-                NumberOfSatellites = new HeaderProperty(ptnElement.Attribute("G")),
-                GpsUtcTime = new HeaderProperty(ptnElement.Attribute("H")),
-                GpsUtcDate = new HeaderProperty(ptnElement.Attribute("I")),
-            };
+                A = GetPtnAttribute<double?>(navigator, "A"),
+                ASpecified = IsAttributePresent(navigator, "A"),
 
+                B = GetPtnAttribute<double?>(navigator, "B"),
+                BSpecified = IsAttributePresent(navigator, "B"),
+
+                C = GetPtnAttribute<long?>(navigator, "C"),
+                CSpecified = IsAttributePresent(navigator, "C"),
+
+                D = GetPtnAttribute<byte?>(navigator, "D"),
+                DSpecified = IsAttributePresent(navigator, "D"),
+
+                E = GetPtnAttribute<double?>(navigator, "E"),
+                ESpecified = IsAttributePresent(navigator, "E"),
+
+                F = GetPtnAttribute<double?>(navigator, "F"),
+                FSpecified = IsAttributePresent(navigator, "F"),
+
+                G = GetPtnAttribute<byte?>(navigator, "G"),
+                GSpecified = IsAttributePresent(navigator, "G"),
+
+                H = GetPtnAttribute<ulong?>(navigator, "H"),
+                HSpecified = IsAttributePresent(navigator, "H"),
+
+                I = GetPtnAttribute<ushort?>(navigator, "I"),
+                ISpecified = IsAttributePresent(navigator, "I"),
+            };
+        }
+
+        private bool IsAttributePresent(XPathNavigator navigator, string attributeName)
+        {
+            if (navigator.SelectSingleNode("@" + attributeName) == null)
+                return false;
+            return true;
+        }
+
+        public IEnumerable<PTN> Read(XPathNodeIterator nodeIterator)
+        {
+            if(nodeIterator == null)
+                return null;
+
+            var ptns = new List<PTN>();
+            foreach (XPathNavigator node in nodeIterator)
+            {
+                ptns.Add(Read(node));
+            }
+            return ptns;
+        }
+
+        private T GetPtnAttribute<T>(XPathNavigator navigator, string attributeName)
+        {
+            if (navigator.SelectSingleNode("@" + attributeName) == null)
+            {
+                return default(T);
+            }
+
+            var value = navigator.GetAttribute(attributeName, navigator.NamespaceURI);
+            TypeConverter conv = TypeDescriptor.GetConverter(typeof(T));
+            return (T)conv.ConvertFrom(value);
         }
     }
 }

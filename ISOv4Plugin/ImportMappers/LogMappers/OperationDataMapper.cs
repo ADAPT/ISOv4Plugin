@@ -3,6 +3,7 @@ using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
 {
@@ -40,9 +41,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
 
         private OperationData Map(TLG tlg, string datacardPath, int loggedDataReferenceId)
         {
-            var timHeader = _xmlReader.ReadTlgXmlData(datacardPath, tlg.A + ".xml");
-            var isoRecords = _binaryReader.Read(datacardPath, tlg.A + ".bin", timHeader).ToList();
-            var sections = _sectionMapper.Map(timHeader, isoRecords);
+            var tim = _xmlReader.ReadTlgXmlData(datacardPath, tlg.A + ".xml").First();
+            var isoRecords = _binaryReader.Read(datacardPath, tlg.A + ".bin", tim).ToList();
+            var sections = _sectionMapper.Map(new List<TIM> {tim}, isoRecords); 
             var meters = sections != null ? sections.SelectMany(x => x.GetMeters()).ToList() : new List<Meter>();
 
             var operationData = new OperationData

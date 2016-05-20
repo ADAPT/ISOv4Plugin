@@ -103,12 +103,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
 
         public List<ISOEnumeratedMeter> CreateMeters(IEnumerable<ISOSpatialRow> spatialRows)
         {
-            var spatialRowWithDdi = spatialRows.FirstOrDefault(x => x.SpatialValues.Any(y => (int)y.DlvHeader.ProcessDataDDI.Value == DDI));
+            var spatialRowWithDdi = spatialRows.FirstOrDefault(x => x.SpatialValues.Any(y => Convert.ToInt32(y.Dlv.A, 16) == DDI));
 
             int numberOfSections = 16;
             if (spatialRowWithDdi != null)
             {
-                var spatialValue = spatialRowWithDdi.SpatialValues.First(x => (int)x.DlvHeader.ProcessDataDDI.Value == DDI);
+                var spatialValue = spatialRowWithDdi.SpatialValues.First(x => Convert.ToInt32(x.Dlv.A, 16) == DDI);
                 numberOfSections = GetNumberOfInstalledSections(spatialValue);
             }
 

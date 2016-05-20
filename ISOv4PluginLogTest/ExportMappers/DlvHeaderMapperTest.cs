@@ -4,6 +4,7 @@ using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ISOv4Plugin.ExportMappers;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers;
+using AgGateway.ADAPT.ISOv4Plugin.Models;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using AgGateway.ADAPT.ISOv4Plugin.Representation;
 using AgGateway.ADAPT.Representation.RepresentationSystem;
@@ -54,7 +55,7 @@ namespace ISOv4PluginLogTest.ExportMappers
 
             var result = MapSingle();
 
-            Assert.AreEqual(5, result.ProcessDataDDI.Value);
+            Assert.AreEqual(5.ToString(), result.A);
         }
 
         [Test]
@@ -82,8 +83,8 @@ namespace ISOv4PluginLogTest.ExportMappers
             _meters.Add(meter1);
 
             var result = Map().ToList();
-            Assert.AreEqual(8, result[0].ProcessDataDDI.Value);
-            Assert.AreEqual(5, result[1].ProcessDataDDI.Value);
+            Assert.AreEqual(8.ToString(), result[0].A);
+            Assert.AreEqual(5.ToString(), result[1].A);
         }
 
         [Test]
@@ -96,12 +97,12 @@ namespace ISOv4PluginLogTest.ExportMappers
             Assert.IsNull(result);
         }
 
-        private DLVHeader MapSingle()
+        private DLV MapSingle()
         {
             return Map().First();
         }
 
-        private IEnumerable<DLVHeader> Map()
+        private IEnumerable<DLV> Map()
         {
             return _dlvHeaderMapper.Map(_meters);
         }

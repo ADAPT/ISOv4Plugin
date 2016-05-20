@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using System.Xml.XPath;
+using AgGateway.ADAPT.ISOv4Plugin.Extensions;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
@@ -53,11 +54,12 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers.XmlReaders
             _xml = "<TIM></TIM>";
             File.AppendAllText(Path.Combine(_dataPath, _fileName), _xml);
 
-            var timHeader = new TIMHeader();
-            _timReaderMock.Setup(x => x.Read(It.IsAny<XDocument>())).Returns(timHeader);
+            var tim = new TIM();
+            _timReaderMock.Setup(x => x.Read(It.IsAny<XPathDocument>())).Returns(new List<TIM>{tim});
 
             var result = _xmlReader.ReadTlgXmlData(_dataPath, _fileName);
-            Assert.AreSame(timHeader, result);
+            Assert.AreEqual(1, result.Count);
+            Assert.AreSame(tim, result[0]);
         }
 
         [Test]
@@ -181,8 +183,8 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers.XmlReaders
         [Test]
         public void GivenPathAndTimHeaderWhenWriteTlgXmlDataThenTlgFileIsCreated()
         {
-            var timHeader = new TIMHeader();
-            _xmlReader.WriteTlgXmlData(_dataPath, _fileName, timHeader);
+            var tim = new TIM();
+            _xmlReader.WriteTlgXmlData(_dataPath, _fileName, tim);
 
             var expectedPath = Path.Combine(_dataPath, _fileName);
             Assert.IsTrue(File.Exists(expectedPath));
@@ -191,74 +193,71 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers.XmlReaders
         [Test]
         public void GivenPathAndTimHeaderWithMultipleDlvsWhenWriteTheOneDlvElementPerDlv()
         {
-            var dlvHeaders = new List<DLVHeader>
+            var dlvs = new List<DLV>
             {
-                new DLVHeader(),
-                new DLVHeader(),
-                new DLVHeader(),
+                new DLV(),
+                new DLV(),
+                new DLV(),
             };
-            var timHeader = new TIMHeader
+            var tim = new TIM
             {
-                DLVs = dlvHeaders
+                Items = dlvs.ToArray()
             };
 
-            var xdoc =_xmlReader.WriteTlgXmlData(_dataPath, _fileName, timHeader);
+            var xdoc =_xmlReader.WriteTlgXmlData(_dataPath, _fileName, tim);
             var expectedTim = xdoc.Element("TIM");
 
-            Assert.AreEqual(dlvHeaders.Count, expectedTim.Elements("DLV").Count());
+            Assert.AreEqual(dlvs.Count, expectedTim.Elements("DLV").Count());
         }
 
         [Test]
         public void GivenTimHeaderWhenWriteThenDlvHasAttributes()
         {
-            var dlvHeader = new DLVHeader
+            var dlv = new DLV
             {
-                ProcessDataDDI = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 123 },
-                DataLogPGN = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 2 },
-                DataLogPGNStartBit = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = new byte() },
-                DataLogPGNStopBit = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = new byte() },
-                DeviceElementIdRef = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = "DLV-1" },
-                ProcessDataValue = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 456 },
+                A = "123",
+                B = 456,
+                C = "DLV-1",
+                D = 2,
+                E = new byte(),
+                F = new byte()
             };
-            var timHeader = new TIMHeader
+
+            var timHeader = new TIM
             {
-                DLVs = new List<DLVHeader>
-                {
-                    dlvHeader
-                }
+                Items = new List<DLV> { dlv }.ToArray()
             };
             var xdoc = _xmlReader.WriteTlgXmlData(_dataPath, _fileName, timHeader);
             var actualDlv = xdoc.Element("TIM").Elements("DLV").First();
 
             var expected = "007B";
             Assert.AreEqual(expected, actualDlv.Attribute("A").Value);
-            Assert.AreEqual(dlvHeader.ProcessDataValue.Value.ToString(), actualDlv.Attribute("B").Value);
-            Assert.AreEqual(dlvHeader.DeviceElementIdRef.Value, actualDlv.Attribute("C").Value);
-            Assert.AreEqual(dlvHeader.DataLogPGN.Value.ToString(), actualDlv.Attribute("D").Value);
-            Assert.AreEqual(dlvHeader.DataLogPGNStartBit.Value.ToString(), actualDlv.Attribute("E").Value);
-            Assert.AreEqual(dlvHeader.DataLogPGNStopBit.Value.ToString(), actualDlv.Attribute("F").Value);
+            Assert.AreEqual(dlv.B.Value.ToString(), actualDlv.Attribute("B").Value);
+            Assert.AreEqual(dlv.C, actualDlv.Attribute("C").Value);
+            Assert.AreEqual(dlv.D.Value.ToString(), actualDlv.Attribute("D").Value);
+            Assert.AreEqual(dlv.E.Value.ToString(), actualDlv.Attribute("E").Value);
+            Assert.AreEqual(dlv.F.Value.ToString(), actualDlv.Attribute("F").Value);
         }
 
         [Test]
         public void GivenNullProcessDataValueWhenWriteThenAttributeIsNull()
         {
-            var dlvHeader = new DLVHeader
+            var dlv = new DLV
             {
-                ProcessDataDDI = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 123 },
-                ProcessDataValue = new HeaderProperty { State = HeaderPropertyState.IsNull, Value = null },
-                DeviceElementIdRef = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = "DLV-1" },
-                DataLogPGN = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 2 },
-                DataLogPGNStartBit = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = new byte() },
-                DataLogPGNStopBit = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = new byte() },
+                A = "123",
+                B = null,
+                C = "DLV-1",
+                D = 2,
+                E = new byte(),
+                F = new byte()
             };
-            var timHeader = new TIMHeader
+
+            var tim = new TIM
             {
-                DLVs = new List<DLVHeader>
-                {
-                    dlvHeader
-                }
+                Items = new List<DLV> { dlv }.ToArray()
             };
-            var xdoc = _xmlReader.WriteTlgXmlData(_dataPath, _fileName, timHeader);
+
+            var xdoc = _xmlReader.WriteTlgXmlData(_dataPath, _fileName, tim);
             var expectedDlv = xdoc.Element("TIM").Elements("DLV").First();
 
             Assert.IsNull(expectedDlv.Attribute("B"));
@@ -267,23 +266,20 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers.XmlReaders
         [Test]
         public void GivenNullDataLogPGNWhenWriteThenDIsNull()
         {
-            var dlvHeader = new DLVHeader
+            var dlv = new DLV
             {
-                ProcessDataDDI = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 123 },
-                ProcessDataValue = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 5 },
-                DeviceElementIdRef = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = "DLV-1" },
-                DataLogPGN = new HeaderProperty { State = HeaderPropertyState.IsNull, Value = null},
-                DataLogPGNStartBit = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = new byte() },
-                DataLogPGNStopBit = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = new byte() },
+                A = "123",
+                B = null,
+                C = "DLV-1",
+                D = null,
+                E = new byte(),
+                F = new byte()
             };
-            var timHeader = new TIMHeader
+            var tim = new TIM
             {
-                DLVs = new List<DLVHeader>
-                {
-                    dlvHeader
-                }
+                Items = new List<DLV> { dlv }.ToArray()
             };
-            var xdoc = _xmlReader.WriteTlgXmlData(_dataPath, _fileName, timHeader);
+            var xdoc = _xmlReader.WriteTlgXmlData(_dataPath, _fileName, tim);
             var expectedDlv = xdoc.Element("TIM").Elements("DLV").First();
 
             Assert.IsNull(expectedDlv.Attribute("D"));
@@ -292,23 +288,22 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers.XmlReaders
         [Test]
         public void GivenNullDataLogStartBitWhenWriteThenEIsNull()
         {
-            var dlvHeader = new DLVHeader
+            var dlv = new DLV
             {
-                ProcessDataDDI = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 123 },
-                ProcessDataValue = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 5},
-                DeviceElementIdRef = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = "DLV-1" },
-                DataLogPGN = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 5 },
-                DataLogPGNStartBit = new HeaderProperty { State = HeaderPropertyState.IsNull, Value = null },
-                DataLogPGNStopBit = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = new byte() },
+                A = "123",
+                B = null,
+                C = "DLV-1",
+                D = 5,
+                E = null,
+                F = new byte()
             };
-            var timHeader = new TIMHeader
+            var tim = new TIM
             {
-                DLVs = new List<DLVHeader>
-                {
-                    dlvHeader
-                }
+                Items = new List<DLV> { dlv }.ToArray()
             };
-            var xdoc = _xmlReader.WriteTlgXmlData(_dataPath, _fileName, timHeader);
+
+            
+            var xdoc = _xmlReader.WriteTlgXmlData(_dataPath, _fileName, tim);
             var expectedDlv = xdoc.Element("TIM").Elements("DLV").First();
 
             Assert.IsNull(expectedDlv.Attribute("E"));
@@ -317,23 +312,21 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers.XmlReaders
         [Test]
         public void GivenNullDataLogStartBitWhenWriteThenFIsNull()
         {
-            var dlvHeader = new DLVHeader
+            var dlv = new DLV
             {
-                ProcessDataDDI = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 123 },
-                ProcessDataValue = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 5 },
-                DeviceElementIdRef = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = "DLV-1" },
-                DataLogPGN = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 5 },
-                DataLogPGNStartBit = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = new byte() },
-                DataLogPGNStopBit = new HeaderProperty { State = HeaderPropertyState.IsNull, Value = null },
+                A = "123",
+                B = 5,
+                C = "DLV-1",
+                D = 5,
+                E = new byte(),
+                F = null
             };
-            var timHeader = new TIMHeader
+            var tim = new TIM
             {
-                DLVs = new List<DLVHeader>
-                {
-                    dlvHeader
-                }
+                Items = new List<DLV> { dlv }.ToArray()
             };
-            var xdoc = _xmlReader.WriteTlgXmlData(_dataPath, _fileName, timHeader);
+            
+            var xdoc = _xmlReader.WriteTlgXmlData(_dataPath, _fileName, tim);
             var expectedDlv = xdoc.Element("TIM").Elements("DLV").First();
 
             Assert.IsNull(expectedDlv.Attribute("F"));
@@ -342,24 +335,42 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers.XmlReaders
         [Test]
         public void GivenTimHeaderWhenWriteThenPtnHasAtributes()
         {
-            var ptnHeader = new PTNHeader
+            var ptn = new PTN
             {
-                GpsUtcDate = new HeaderProperty {State = HeaderPropertyState.IsEmpty},
-                GpsUtcTime = new HeaderProperty {State = HeaderPropertyState.IsEmpty},
-                HDOP = new HeaderProperty {State = HeaderPropertyState.IsEmpty},
-                NumberOfSatellites = new HeaderProperty {State = HeaderPropertyState.IsEmpty},
-                PDOP = new HeaderProperty {State = HeaderPropertyState.IsEmpty},
-                PositionEast = new HeaderProperty {State = HeaderPropertyState.IsEmpty},
-                PositionNorth = new HeaderProperty {State = HeaderPropertyState.IsEmpty},
-                PositionStatus = new HeaderProperty {State = HeaderPropertyState.IsEmpty},
-                PositionUp = new HeaderProperty {State = HeaderPropertyState.IsEmpty},
+                ASpecified = true,
+                A = null,
+
+                BSpecified = true,
+                B = null,
+
+                CSpecified = true,
+                C = null,
+
+                DSpecified = true,
+                D = null,
+
+                ESpecified = true,
+                E = null,
+
+                FSpecified = true,
+                F = null,
+
+                GSpecified = true,
+                G = null,
+
+                HSpecified = true,
+                H = null,
+
+                ISpecified = true,
+                I = null
+
             };
-            var timHeader = new TIMHeader
+            var tim = new TIM
             {
-                PtnHeader = ptnHeader
+                Items = new List<IWriter> {ptn}.ToArray()
             };
 
-            var xdoc = _xmlReader.WriteTlgXmlData(_dataPath, _fileName, timHeader);
+            var xdoc = _xmlReader.WriteTlgXmlData(_dataPath, _fileName, tim);
             var actualPtn = xdoc.Element("TIM").Element("PTN");
 
             Assert.AreEqual("", actualPtn.Attribute("A").Value);
@@ -376,58 +387,95 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers.XmlReaders
         [Test]
         public void GivenTimHeaderWhenWriteThenPtnHasValues()
         {
-            var ptnHeader = new PTNHeader
+            var ptn = new PTN
             {
-                PositionNorth = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = -123 },
-                PositionEast = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 145},
-                PositionUp = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 123415 },
-                PositionStatus = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 7 },
-                PDOP = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 98.3 },
-                HDOP = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 33.2 },
-                NumberOfSatellites = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 231 },
-                GpsUtcTime = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 21344 },
-                GpsUtcDate = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 231 },
+                ASpecified = true,
+                A = -123,
+
+                BSpecified = true,
+                B = 145,
+
+                CSpecified = true,
+                C = 123415,
+
+                DSpecified = true,
+                D = 7,
+
+                ESpecified = true,
+                E = 98.3,
+
+                FSpecified = true,
+                F = 33.2,
+
+                GSpecified = true,
+                G = 231,
+
+                HSpecified = true,
+                H = 21344,
+
+                ISpecified = true,
+                I = 231
+
             };
-            var timHeader = new TIMHeader
+            var tim = new TIM
             {
-                PtnHeader = ptnHeader
+                Items = new List<IWriter> { ptn }.ToArray()
             };
 
-            var xdoc = _xmlReader.WriteTlgXmlData(_dataPath, _fileName, timHeader);
+            var xdoc = _xmlReader.WriteTlgXmlData(_dataPath, _fileName, tim);
             var actualPtn = xdoc.Element("TIM").Element("PTN");
 
-            Assert.AreEqual(ptnHeader.PositionNorth.Value.ToString(), actualPtn.Attribute("A").Value);
-            Assert.AreEqual(ptnHeader.PositionEast.Value.ToString(), actualPtn.Attribute("B").Value);
-            Assert.AreEqual(ptnHeader.PositionUp.Value.ToString(), actualPtn.Attribute("C").Value);
-            Assert.AreEqual(ptnHeader.PositionStatus.Value.ToString(), actualPtn.Attribute("D").Value);
-            Assert.AreEqual(ptnHeader.PDOP.Value.ToString(), actualPtn.Attribute("E").Value);
-            Assert.AreEqual(ptnHeader.HDOP.Value.ToString(), actualPtn.Attribute("F").Value);
-            Assert.AreEqual(ptnHeader.NumberOfSatellites.Value.ToString(), actualPtn.Attribute("G").Value);
-            Assert.AreEqual(ptnHeader.GpsUtcTime.Value.ToString(), actualPtn.Attribute("H").Value);
-            Assert.AreEqual(ptnHeader.GpsUtcDate.Value.ToString(), actualPtn.Attribute("I").Value);
+            Assert.AreEqual(ptn.A.Value.ToString(), actualPtn.Attribute("A").Value);
+            Assert.AreEqual(ptn.B.Value.ToString(), actualPtn.Attribute("B").Value);
+            Assert.AreEqual(ptn.C.Value.ToString(), actualPtn.Attribute("C").Value);
+            Assert.AreEqual(ptn.D.Value.ToString(), actualPtn.Attribute("D").Value);
+            Assert.AreEqual(ptn.E.Value.ToString(), actualPtn.Attribute("E").Value);
+            Assert.AreEqual(ptn.F.Value.ToString(), actualPtn.Attribute("F").Value);
+            Assert.AreEqual(ptn.G.Value.ToString(), actualPtn.Attribute("G").Value);
+            Assert.AreEqual(ptn.H.Value.ToString(), actualPtn.Attribute("H").Value);
+            Assert.AreEqual(ptn.I.Value.ToString(), actualPtn.Attribute("I").Value);
         }
 
         [Test]
         public void GivenTimHeaderWithIsNullStateWhenWriteThenPtnDoesntAddAtributes()
         {
-            var ptnHeader = new PTNHeader
+            var ptn = new PTN
             {
-                GpsUtcDate = new HeaderProperty { State = HeaderPropertyState.IsNull },
-                GpsUtcTime = new HeaderProperty { State = HeaderPropertyState.IsNull },
-                HDOP = new HeaderProperty { State = HeaderPropertyState.IsNull },
-                NumberOfSatellites = new HeaderProperty { State = HeaderPropertyState.IsNull },
-                PDOP = new HeaderProperty { State = HeaderPropertyState.IsNull },
-                PositionEast = new HeaderProperty { State = HeaderPropertyState.IsNull },
-                PositionNorth = new HeaderProperty { State = HeaderPropertyState.IsNull },
-                PositionStatus = new HeaderProperty { State = HeaderPropertyState.IsNull },
-                PositionUp = new HeaderProperty { State = HeaderPropertyState.IsNull },
+                ASpecified = false,
+                A = null,
+
+                BSpecified = false,
+                B = null,
+
+                CSpecified = false,
+                C = null,
+
+                DSpecified = false,
+                D = null,
+
+                ESpecified = false,
+                E = null,
+
+                FSpecified = false,
+                F = null,
+
+                GSpecified = false,
+                G = null,
+
+                HSpecified = false,
+                H = null,
+
+                ISpecified = false,
+                I = null
+
             };
-            var timHeader = new TIMHeader
+            var tim = new TIM
             {
-                PtnHeader = ptnHeader
+                Items = new List<IWriter> { ptn }.ToArray()
             };
 
-            var xdoc = _xmlReader.WriteTlgXmlData(_dataPath, _fileName, timHeader);
+           
+            var xdoc = _xmlReader.WriteTlgXmlData(_dataPath, _fileName, tim);
             var actualPtn = xdoc.Element("TIM").Element("PTN");
 
             Assert.IsNull(actualPtn.Attribute("A"));
@@ -444,15 +492,19 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers.XmlReaders
         [Test]
         public void GivenTimHeaderWhenMapThenTimHasAttributes()
         {
-            var timHeader = new TIMHeader
+            var tim = new TIM
             {
-                Start = new HeaderProperty { State = HeaderPropertyState.IsEmpty },
-                Stop = new HeaderProperty { State = HeaderPropertyState.IsEmpty },
-                Duration = new HeaderProperty { State = HeaderPropertyState.IsEmpty },
-                Type = new HeaderProperty { State = HeaderPropertyState.IsEmpty },
+                ASpecified = true,
+                A = null,
+                BSpecified = true,
+                B = null,
+                CSpecified = true,
+                C = null,
+                DSpecified = true,
+                D = null
             };
 
-            var xdoc = _xmlReader.WriteTlgXmlData(_dataPath, _fileName, timHeader);
+            var xdoc = _xmlReader.WriteTlgXmlData(_dataPath, _fileName, tim);
             var actualTim = xdoc.Element("TIM");
 
             Assert.AreEqual("", actualTim.Attribute("A").Value);
@@ -464,15 +516,18 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers.XmlReaders
         [Test]
         public void GivenTimHeaderWithIsNullStatesWhenMapThenTimAttributesAreNull()
         {
-            var timHeader = new TIMHeader
+            var tim = new TIM
             {
-                Start = new HeaderProperty { State = HeaderPropertyState.IsNull },
-                Stop = new HeaderProperty { State = HeaderPropertyState.IsNull },
-                Duration = new HeaderProperty { State = HeaderPropertyState.IsNull },
-                Type = new HeaderProperty { State = HeaderPropertyState.IsNull },
+                ASpecified = false,
+                A = null,
+                BSpecified = false,
+                B = null,
+                CSpecified = false,
+                C = null,
+                DSpecified = false,
             };
 
-            var xdoc = _xmlReader.WriteTlgXmlData(_dataPath, _fileName, timHeader);
+            var xdoc = _xmlReader.WriteTlgXmlData(_dataPath, _fileName, tim);
             var actualTim = xdoc.Element("TIM");
 
             Assert.IsNull(actualTim.Attribute("A"));
@@ -484,21 +539,25 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers.XmlReaders
         [Test]
         public void GivenTimHeaderWithIsNullStatesWhenMapThenTimAttributeHasValues()
         {
-            var timHeader = new TIMHeader
+            var tim = new TIM
             {
-                Start = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = DateTime.Now},
-                Stop = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = DateTime.Now.AddMinutes(15) },
-                Duration = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 12354127851 },
-                Type = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = TIMD.Item5 },
+                ASpecified = true,
+                A = DateTime.Now,
+                BSpecified = true,
+                B = DateTime.Now.AddMinutes(15),
+                CSpecified = true,
+                C = 12354127851,
+                DSpecified = true,
+                D = TIMD.Item5
             };
 
-            var xdoc = _xmlReader.WriteTlgXmlData(_dataPath, _fileName, timHeader);
+            var xdoc = _xmlReader.WriteTlgXmlData(_dataPath, _fileName, tim);
             var actualTim = xdoc.Element("TIM");
 
-            Assert.AreEqual(timHeader.Start.Value.ToString(), actualTim.Attribute("A").Value);
-            Assert.AreEqual(timHeader.Stop.Value.ToString(), actualTim.Attribute("B").Value);
-            Assert.AreEqual(timHeader.Duration.Value.ToString(), actualTim.Attribute("C").Value);
-            Assert.AreEqual(((int)((TIMD)timHeader.Type.Value)).ToString(), actualTim.Attribute("D").Value);
+            Assert.AreEqual(tim.A.Value.ToString(), actualTim.Attribute("A").Value);
+            Assert.AreEqual(tim.B.Value.ToString(), actualTim.Attribute("B").Value);
+            Assert.AreEqual(tim.C.Value.ToString(), actualTim.Attribute("C").Value);
+            Assert.AreEqual(((int)(tim.D.Value)).ToString(), actualTim.Attribute("D").Value);
         }
 
         [TearDown]

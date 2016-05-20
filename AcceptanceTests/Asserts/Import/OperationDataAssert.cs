@@ -39,7 +39,7 @@ namespace AcceptanceTests.Asserts.Import
             var xmlReader = new XmlReader();
             var timHeader = xmlReader.ReadTlgXmlData(currentPath, tlgA + ".xml");
             var binaryReader = new BinaryReader();
-            return binaryReader.Read(currentPath, tlgA + ".bin", timHeader).ToList();
+            return binaryReader.Read(currentPath, tlgA + ".bin", timHeader.First()).ToList();
         }
     }
 }

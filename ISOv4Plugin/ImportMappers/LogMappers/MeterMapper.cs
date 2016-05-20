@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
+using AgGateway.ADAPT.ISOv4Plugin.Models;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using AgGateway.ADAPT.ISOv4Plugin.Representation;
 
@@ -8,7 +10,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
 {
     public interface IMeterMapper
     {
-        List<Meter> Map(TIMHeader timHeader, IEnumerable<ISOSpatialRow> isoRecords, int sectionId);
+        List<Meter> Map(TIM tim, IEnumerable<ISOSpatialRow> isoRecords, int sectionId);
     }
 
     public class MeterMapper : IMeterMapper
@@ -31,26 +33,27 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             _ddis = DdiLoader.Ddis;
         }
 
-        public List<Meter> Map(TIMHeader timHeader, IEnumerable<ISOSpatialRow> isoSpatialRows, int sectionId)
+        public List<Meter> Map(TIM tim, IEnumerable<ISOSpatialRow> isoSpatialRows, int sectionId)
         {
             var meters = new List<Meter>();
-            for (int order = 0; order < timHeader.DLVs.Count; order++)
+            var dlvs = tim.Items.Where(x => (x as DLV) != null).Cast<DLV>();
+            for (int order = 0; order < dlvs.Count(); order++)
             {
-                var dlvHeader = timHeader.DLVs[order];
-                meters.AddRange(Map(dlvHeader, isoSpatialRows, sectionId, order));
+                var dlv = dlvs.ElementAt(order);
+                meters.AddRange(Map(dlv, isoSpatialRows, sectionId, order));
             }
             return meters;
         }
 
-        private IEnumerable<Meter> Map(DLVHeader dlv, IEnumerable<ISOSpatialRow> isoSpatialRows, int sectionId, int order)
+        private IEnumerable<Meter> Map(DLV dlv, IEnumerable<ISOSpatialRow> isoSpatialRows, int sectionId, int order)
         {
             var meters = new List<Meter>();
-            if (_ddis.ContainsKey(Convert.ToInt32(dlv.ProcessDataDDI.Value)))
+            if (_ddis.ContainsKey(Convert.ToInt32(dlv.A, 16)))
             {
                 meters.Add(MapNumericMeter(dlv, sectionId, order));
                 return meters;
             }
-            var meterCreator = _enumeratedMeterCreatorFactory.GetMeterCreator((int)dlv.ProcessDataDDI.Value);
+            var meterCreator = _enumeratedMeterCreatorFactory.GetMeterCreator(Convert.ToInt32(dlv.A, 16));
             if(meterCreator != null)
             {
                 var isoEnumeratedMeters = meterCreator.CreateMeters(isoSpatialRows);
@@ -60,13 +63,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             return meters;
         }
 
-        private NumericMeter MapNumericMeter(DLVHeader dlv, int sectionId, int order)
+        private NumericMeter MapNumericMeter(DLV dlv, int sectionId, int order)
         {
             var meter = new NumericMeter
             {
-                UnitOfMeasure = _representationMapper.GetUnitForDdi(Convert.ToInt32(dlv.ProcessDataDDI.Value)),
+                UnitOfMeasure = _representationMapper.GetUnitForDdi(Convert.ToInt32(dlv.A, 16)),
                 SectionId = sectionId,
-                Representation = _representationMapper.Map(Convert.ToInt32(dlv.ProcessDataDDI.Value))
+                Representation = _representationMapper.Map(Convert.ToInt32(dlv.A, 16))
             };
             meter.Id.UniqueIds.Add(_uniqueIdMapper.Map("DLV" + order));
             return meter;

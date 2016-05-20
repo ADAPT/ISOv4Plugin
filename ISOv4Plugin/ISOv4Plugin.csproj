@@ -97,6 +97,7 @@
     <Compile Include="ImportMappers\LogMappers\XmlReaders\PtnReader.cs" />
     <Compile Include="ImportMappers\LogMappers\XmlReaders\TimReader.cs" />
     <Compile Include="ImportMappers\LogMappers\XmlReaders\XmlReader.cs" />
+    <Compile Include="ImportMappers\LogMappers\XmlReaders\XmlReaderUtilities.cs" />
     <Compile Include="ImportMappers\ProductMappers\CropTypeMapper.cs" />
     <Compile Include="ImportMappers\TimeScopeMapper.cs" />
     <Compile Include="ImportMappers\UniqueIdMapper.cs" />
@@ -122,7 +123,9 @@
     <Compile Include="Loaders\TreatmentZoneLoader.cs" />
     <Compile Include="Loaders\UnitLoader.cs" />
     <Compile Include="Loaders\WorkerLoader.cs" />
+    <Compile Include="Models\DLV.cs" />
     <Compile Include="Models\IWriter.cs" />
+    <Compile Include="Models\PTN.cs" />
     <Compile Include="Models\PTND.cs" />
     <Compile Include="Models\TIMD.cs" />
     <Compile Include="Models\CodedComment.cs" />
@@ -155,13 +158,8 @@
     <Compile Include="Models\TSKG.cs" />
     <Compile Include="Models\TZN.cs" />
     <Compile Include="Models\ValuePresentation.cs" />
-    <Compile Include="ObjectModel\DLVHeader.cs" />
-    <Compile Include="ObjectModel\HeaderProperty.cs" />
     <Compile Include="ObjectModel\ISOSpatialRow.cs" />
-    <Compile Include="ObjectModel\HeaderPropertyState.cs" />
-    <Compile Include="ObjectModel\PTNHeader.cs" />
     <Compile Include="ObjectModel\SpatialValue.cs" />
-    <Compile Include="ObjectModel\TIMHeader.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Readers\TaskDataReader.cs" />

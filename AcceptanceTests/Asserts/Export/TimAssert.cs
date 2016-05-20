@@ -20,6 +20,8 @@ namespace AcceptanceTests.Asserts.Export
         {
             Assert.AreEqual(timeScope.Stamp1.TimeStamp, tim.A);
             Assert.AreEqual(timeScope.Stamp2.TimeStamp, tim.B);
+
+            // todo.  check other attributes and PTN, dlvs,....
         }
     }
 }

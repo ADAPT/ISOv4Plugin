@@ -4,6 +4,7 @@ using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers;
+using AgGateway.ADAPT.ISOv4Plugin.Models;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using AgGateway.ADAPT.ISOv4Plugin.Representation;
 using AgGateway.ADAPT.Representation.UnitSystem;
@@ -16,7 +17,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
     public class MeterMapperTest
     {
         private MeterMapper _meterMapper;
-        private TIMHeader _timHeader;
+        private TIM _tim;
         private Mock<IRepresentationMapper> _representationMapperMock;
         private Mock<IEnumeratedMeterFactory> _enumeratorMeterFactoryMock;
         private Mock<IUniqueIdMapper> _uniqueIdMapperMock;
@@ -25,7 +26,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [SetUp]
         public void Setup()
         {
-            _timHeader = new TIMHeader();
+            _tim = new TIM();
             _isoSpatialRows = new List<ISOSpatialRow>();
             _representationMapperMock = new Mock<IRepresentationMapper>();
             _enumeratorMeterFactoryMock = new Mock<IEnumeratedMeterFactory>();
@@ -36,23 +37,23 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenTimHeaderWithDlvsWhenMapThenEachDlvIsMeter()
         {
-            _timHeader.DLVs = new List<DLVHeader>
+            _tim.Items = new List<DLV>
             {
-                new DLVHeader { ProcessDataDDI = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 1 } },
-                new DLVHeader { ProcessDataDDI = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 1 } },
-                new DLVHeader { ProcessDataDDI = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 1 } }
-            };
+                new DLV { A = "1" },
+                new DLV { A = "1" },
+                new DLV { A = "1" },
+            }.ToArray();
 
             var result = Map();
 
-            Assert.AreEqual(_timHeader.DLVs.Count, result.Count);
+            Assert.AreEqual(_tim.Items.Length, result.Count);
         }
 
         [Test]
         public void GivenTimHeaderWithDlvWhenMapThenUnitOfMeasureIsMapped()
         {
-            var dlvHeader = new DLVHeader { ProcessDataDDI = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 1 } };
-            _timHeader.DLVs = new List<DLVHeader> { dlvHeader };
+            var dlv = new DLV {A = "1"};
+            _tim.Items = new List<DLV> { dlv }.ToArray();
 
             _representationMapperMock.Setup(r => r.GetUnitForDdi(1)).Returns(UnitSystemManager.GetUnitOfMeasure("m"));
 
@@ -64,8 +65,8 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenTimeHeaderAndSectionIdWhenMapThenSectionIdSetOnMeter()
         {
-            var dlvHeader = new DLVHeader { ProcessDataDDI = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 1 } };
-            _timHeader.DLVs = new List<DLVHeader>{dlvHeader};
+            var dlv = new DLV { A = "1"};
+            _tim.Items = new List<DLV> {dlv}.ToArray();
 
             var result = MapSingle(-45);
 
@@ -75,8 +76,8 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenDlvWithDdiWhenMapThenCallsRepresentationMapper()
         {
-            var dlvHeader = new DLVHeader { ProcessDataDDI = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 7 }, };
-            _timHeader.DLVs = new List<DLVHeader>{dlvHeader};
+            var dlv = new DLV { A = "7" };
+            _tim.Items = new List<DLV> { dlv }.ToArray();
 
             MapSingle();
 
@@ -86,9 +87,9 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenDlvWhenMapThenStoresOrderInMeterCompoundId()
         {
-            var dlvHeader = new DLVHeader { ProcessDataDDI = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 1 }, };
-            var secondHeader = new DLVHeader { ProcessDataDDI = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 7 }, };
-            _timHeader.DLVs = new List<DLVHeader>{dlvHeader, secondHeader};
+            var dlv1 = new DLV { A = "1" };
+            var dlv2 = new DLV { A = "7" };
+            _tim.Items = new List<DLV> { dlv1, dlv2 }.ToArray();
 
             var uniqueId1 = new UniqueId();
             _uniqueIdMapperMock.Setup(x => x.Map("DLV0")).Returns(uniqueId1);
@@ -106,8 +107,8 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenEnumeratedDlvWhenMapThenEnumeratatedMeterCreatorReturnsFactory()
         {
             const int ddivalue = 98282;
-            var dlvHeader = new DLVHeader {ProcessDataDDI = new HeaderProperty{ Value =  ddivalue}};
-            _timHeader.DLVs = new List<DLVHeader>{dlvHeader};
+            var dlv = new DLV { A = ddivalue.ToString("x4") };
+            _tim.Items = new List<DLV> { dlv }.ToArray();
             Map();
 
             _enumeratorMeterFactoryMock.Verify(x => x.GetMeterCreator(ddivalue), Times.Once);
@@ -117,8 +118,8 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenEnumeratedDlvWhenMapThenEnumerateMeterIsMapped()
         {
             const int ddiValue = 131;
-            var dlvHeader = new DLVHeader { ProcessDataDDI = new HeaderProperty {Value = ddiValue} };
-            _timHeader.DLVs = new List<DLVHeader> { dlvHeader };
+            var dlv = new DLV { A = ddiValue.ToString("x4") };
+            _tim.Items = new List<DLV> { dlv }.ToArray();
 
             var expected = new ISOEnumeratedMeter { TriggerId = 8675309 };
             var meterCreator = new Mock<IEnumeratedMeterCreator>();
@@ -135,8 +136,8 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenEnumeratedDlvWhenMapThenEnumerateMeterHasId()
         {
             const int ddiValue = 131;
-            var dlvHeader = new DLVHeader { ProcessDataDDI = new HeaderProperty {Value = ddiValue} };
-            _timHeader.DLVs = new List<DLVHeader> { dlvHeader };
+            var dlv = new DLV { A = ddiValue.ToString("x4") };
+            _tim.Items = new List<DLV> { dlv }.ToArray();
 
             var expected = new ISOEnumeratedMeter { TriggerId = 8675309 };
             var meterCreator = new Mock<IEnumeratedMeterCreator>();
@@ -159,7 +160,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
 
         private List<Meter> Map(int sectionId = 0)
         {
-            return _meterMapper.Map(_timHeader, _isoSpatialRows, sectionId);
+            return _meterMapper.Map(_tim, _isoSpatialRows, sectionId);
         }
     }
 }

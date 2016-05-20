@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
+using AgGateway.ADAPT.ISOv4Plugin.Models;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
 {
     public interface ISectionMapper
     {
-        List<Section> Map(TIMHeader timHeader, List<ISOSpatialRow> isoRecords);
+        List<Section> Map(List<TIM> tims, List<ISOSpatialRow> isoRecords);
     }
 
     public class SectionMapper : ISectionMapper
@@ -23,13 +24,20 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             _meterMapper = meterMapper;
         }
 
-        public List<Section> Map(TIMHeader timHeader, List<ISOSpatialRow> isoRecords)
+        public List<Section> Map(List<TIM> tims, List<ISOSpatialRow> isoRecords)
         {
-            var section = new Section();
-            var meters = _meterMapper.Map(timHeader, isoRecords, section.Id.ReferenceId);
-            section.GetMeters = () => meters;
+            var sections = new List<Section>();
 
-            return new List<Section> { section };
+            foreach (var tim in tims)
+            {
+                var section = new Section();
+                var meters = _meterMapper.Map(tim, isoRecords, section.Id.ReferenceId);
+                section.GetMeters = () => meters;
+
+                sections.Add(section);
+            }
+
+            return sections;
         }
     }
 }

@@ -19,63 +19,66 @@ namespace ISOv4PluginLogTest.ExportMappers
         public void WhenMapThenGpsUtcDateIsMapped()
         {
             var result = _ptnHeaderMapper.Map();
-            Assert.AreEqual(HeaderPropertyState.IsNull, result.GpsUtcDate.State);
+            Assert.AreEqual(false, result.ISpecified);
         }
 
         [Test]
         public void WhenMapThenGpsUtcTimeIsMapped()
         {
             var result = _ptnHeaderMapper.Map();
-            Assert.AreEqual(HeaderPropertyState.IsNull, result.GpsUtcTime.State);
+            Assert.AreEqual(false, result.HSpecified);
         }
 
         [Test]
         public void WhenMapThenHDOPIsMapped()
         {
             var result = _ptnHeaderMapper.Map();
-            Assert.AreEqual(HeaderPropertyState.IsNull, result.HDOP.State);
+            Assert.AreEqual(false, result.FSpecified);
         }
 
         [Test]
         public void WhenMapThenNumberOfSatellitesIsMapped()
         {
             var result = _ptnHeaderMapper.Map();
-            Assert.AreEqual(HeaderPropertyState.IsNull, result.NumberOfSatellites.State);
+            Assert.AreEqual(false, result.GSpecified);
         }
 
         [Test]
         public void WhenMapThenPDOPIsMapped()
         {
             var result = _ptnHeaderMapper.Map();
-            Assert.AreEqual(HeaderPropertyState.IsNull, result.PDOP.State);
+            Assert.AreEqual(false, result.ESpecified);
         }
 
         [Test]
         public void WhenMapThenPositionStatusIsMapped()
         {
             var result = _ptnHeaderMapper.Map();
-            Assert.AreEqual(HeaderPropertyState.IsNull, result.PositionStatus.State);
+            Assert.AreEqual(false, result.DSpecified);
         }
 
         [Test]
         public void WhenMapThenPositionEastIsMapped()
         {
             var result = _ptnHeaderMapper.Map();
-            Assert.AreEqual(HeaderPropertyState.IsEmpty, result.PositionEast.State);
+            Assert.AreEqual(true, result.BSpecified);
+            Assert.IsNull(result.B);
         }
 
         [Test]
         public void WhenMapThenPositionNorthIsMapped()
         {
             var result = _ptnHeaderMapper.Map();
-            Assert.AreEqual(HeaderPropertyState.IsEmpty, result.PositionNorth.State);
+            Assert.AreEqual(true, result.ASpecified);
+            Assert.IsNull(result.A);
         }
 
         [Test]
         public void WhenMapThenPositionUpIsMapped()
         {
             var result = _ptnHeaderMapper.Map();
-            Assert.AreEqual(HeaderPropertyState.IsEmpty, result.PositionUp.State);
+            Assert.AreEqual(true, result.CSpecified);
+            Assert.IsNull(result.C);
         }
     }
 }

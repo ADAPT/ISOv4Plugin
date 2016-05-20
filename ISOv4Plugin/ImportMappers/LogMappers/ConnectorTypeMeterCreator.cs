@@ -33,7 +33,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
 
         public EnumeratedValue GetValueForMeter(SpatialValue value, EnumeratedMeter meter)
         {
-            if ((int)value.DlvHeader.ProcessDataDDI.Value != DDI)
+            if (Convert.ToInt32(value.Dlv.A, 16) != DDI)
                 return null;
 
             ApplicationDataModel.Representations.EnumerationMember enumMember = null;

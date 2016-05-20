@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
+using System.Xml;
 using System.Xml.Linq;
+using System.Xml.XPath;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders;
 using NUnit.Framework;
 
@@ -20,84 +24,94 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers.XmlReaders
         }
 
         [Test]
-        public void GivenXelementsWhenReadThenProcessDataDdiIsMapped()
+        public void GivenNavigatorWhenReadThenProcessDataDdiIsMapped()
         {
             var a = "0084";
-
-            var xElement = new XElement("DLV", new XAttribute("A", a));
-            var xElements = new List<XElement> {xElement};
-
-            var result = _dlvReader.Read(xElements);
+            var navigator = CreateNavigator("A", a);
+            var nodeIterator = navigator.SelectChildren(XPathNodeType.All);
+            var result = _dlvReader.Read(nodeIterator);
             var expected = Convert.ToInt32(Convert.ToByte(a, 16));
 
-            Assert.AreEqual(expected, result.First().ProcessDataDDI.Value);
+            Assert.AreEqual(expected.ToString("X4"), result.First().A);
         }
 
         [Test]
-        public void GivenXelementWhenReadThenProcessDataValueIsMapped()
+        public void GivenNavigatorWhenReadThenProcessDataValueIsMapped()
         {
             const long b = 84659;
-            var xElement = new XElement("DLV", new XAttribute("B", b));
-            var xElements = new List<XElement> {xElement};
+            var navigator = CreateNavigator("B", b.ToString());
+            var nodeIterator = navigator.SelectChildren(XPathNodeType.All);
+            var result = _dlvReader.Read(nodeIterator);
 
-            var result = _dlvReader.Read(xElements);
-
-            Assert.AreEqual(b.ToString(), result.First().ProcessDataValue.Value);
+            Assert.AreEqual(b.ToString(), result.First().B.Value.ToString());
         }
 
         [Test]
-        public void GivenXelementWhenReadThenDeviceElementIdRefIsMapped()
+        public void GivenNavigatorWhenReadThenDeviceElementIdRefIsMapped()
         {
             const string c = "bob";
-            var xElement = new XElement("DLV", new XAttribute("C", c));
-            var xElements = new List<XElement> {xElement};
+            var navigator = CreateNavigator("C", c);
+            var nodeIterator = navigator.SelectChildren(XPathNodeType.All);
+            var result = _dlvReader.Read(nodeIterator);
 
-            var result = _dlvReader.Read(xElements);
-
-            Assert.AreEqual(c, result.First().DeviceElementIdRef.Value);
+            Assert.AreEqual(c, result.First().C);
         }
 
         [Test]
-        public void GivenXelementWhenReadThenDataLogPGNIsMapped()
+        public void GivenNavigatorWhenReadThenDataLogPGNIsMapped()
         {
             const ulong d = 298632;
-            var xElement = new XElement("DLV", new XAttribute("D", d));
-            var xElements = new List<XElement> { xElement };
+            var navigator = CreateNavigator("D", d.ToString());
+            var nodeIterator = navigator.SelectChildren(XPathNodeType.All);
+            var result = _dlvReader.Read(nodeIterator);
 
-            var result = _dlvReader.Read(xElements);
-
-            Assert.AreEqual(d.ToString(), result.First().DataLogPGN.Value);
+            Assert.AreEqual(d.ToString(), result.First().D.ToString());
         }
 
         [Test]
-        public void GivenXelementWhenReadThenDataLogPGNStartBitIsMapped()
+        public void GivenNavigatorWhenReadThenDataLogPGNStartBitIsMapped()
         {
             const byte e = 4;
-            var xElement = new XElement("DLV", new XAttribute("E", e));
-            var xElements = new List<XElement> { xElement };
+            var navigator = CreateNavigator("E", e.ToString());
+            var nodeIterator = navigator.SelectChildren(XPathNodeType.All);
+            var result = _dlvReader.Read(nodeIterator);
 
-            var result = _dlvReader.Read(xElements);
-
-            Assert.AreEqual(e.ToString(), result.First().DataLogPGNStartBit.Value);
+            Assert.AreEqual(e.ToString(), result.First().E.Value.ToString());
         }
 
         [Test]
-        public void GivenXelementWhenReadThenDataLogPGNStopBitIsMapped()
+        public void GivenNavigatorWhenReadThenDataLogPGNStopBitIsMapped()
         {
             const byte f = 6;
-            var xElement = new XElement("DLV", new XAttribute("F", f));
-            var xElements = new List<XElement> { xElement };
+            var navigator = CreateNavigator("F", f.ToString());
+            var nodeIterator = navigator.SelectChildren(XPathNodeType.All);
+            var result = _dlvReader.Read(nodeIterator);
 
-            var result = _dlvReader.Read(xElements);
-
-            Assert.AreEqual(f.ToString(), result.First().DataLogPGNStopBit.Value);
+            Assert.AreEqual(f.ToString(), result.First().F.Value.ToString());
         }
 
         [Test]
-        public void GivenNullXelementWhenReadThenIsNull()
+        public void GivenNullNavigatorWhenReadThenIsNull()
         {
             var result = _dlvReader.Read(null);
             Assert.IsNull(result);
+        }
+
+        private XPathNavigator CreateNavigator(string attributeName, string attributeValue)
+        {
+            var memStream = new MemoryStream();
+            using (var xmlWriter = XmlWriter.Create(memStream, new XmlWriterSettings { Encoding = new UTF8Encoding(false) }))
+            {
+                xmlWriter.WriteStartElement("DLV");
+                xmlWriter.WriteAttributeString(attributeName, attributeValue);
+                xmlWriter.WriteEndElement();
+                xmlWriter.Flush();
+                xmlWriter.Close();
+            }
+
+            memStream.Position = 0;
+            var xpathDoc = new XPathDocument(memStream);
+            return xpathDoc.CreateNavigator();
         }
     }
 }

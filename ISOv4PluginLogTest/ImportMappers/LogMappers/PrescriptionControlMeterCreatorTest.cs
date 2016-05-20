@@ -3,6 +3,7 @@ using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers;
+using AgGateway.ADAPT.ISOv4Plugin.Models;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using AgGateway.ADAPT.Representation.RepresentationSystem;
 using AgGateway.ADAPT.Representation.RepresentationSystem.ExtensionMethods;
@@ -144,10 +145,10 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             return new SpatialValue
             {
                 Value = value,
-                DlvHeader = new DLVHeader
+                Dlv = new DLV
                 {
-                    ProcessDataDDI = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 158 }
-                }
+                    A = "158"
+                },
             };
         }
 

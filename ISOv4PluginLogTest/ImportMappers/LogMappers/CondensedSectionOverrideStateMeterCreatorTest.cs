@@ -2,6 +2,7 @@
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers;
+using AgGateway.ADAPT.ISOv4Plugin.Models;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using AgGateway.ADAPT.Representation.RepresentationSystem;
 using AgGateway.ADAPT.Representation.RepresentationSystem.ExtensionMethods;
@@ -56,7 +57,10 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             }
             var spatialValue = new SpatialValue
             {
-                DlvHeader = new DLVHeader { ProcessDataDDI = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 367 }  },
+                Dlv = new DLV
+                {
+                    A = "16F"
+                },
                 Value = value
             };
             spatialRow.SpatialValues = new List<SpatialValue> { spatialValue };
@@ -73,7 +77,10 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             const long value = 0xFFFFFFFF;
             var spatialValue = new SpatialValue
             {
-                DlvHeader = new DLVHeader { ProcessDataDDI = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 367 }  },
+                Dlv = new DLV
+                {
+                    A = "16F"
+                },
                 Value = value
             };
             spatialRow.SpatialValues = new List<SpatialValue> { spatialValue };
@@ -89,7 +96,10 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
 
             var spatialValue = new SpatialValue
             {
-                DlvHeader = new DLVHeader { ProcessDataDDI = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 367 }  },
+                Dlv = new DLV
+                {
+                    A = "16F"
+                },
                 Value = 1
             };
 
@@ -109,7 +119,10 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
 
             var spatialValue = new SpatialValue
             {
-                DlvHeader = new DLVHeader { ProcessDataDDI = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 367 }  },
+                Dlv = new DLV
+                {
+                    A = "16F"
+                },
                 Value = 0
             };
 
@@ -128,7 +141,10 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         {
             var spatialValue = new SpatialValue
             {
-                DlvHeader = new DLVHeader { ProcessDataDDI = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 367 }  },
+                Dlv = new DLV
+                {
+                    A = "16F"
+                },
                 Value = 2
             };
 
@@ -147,7 +163,10 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         {
             var spatialValue = new SpatialValue
             {
-                DlvHeader = new DLVHeader { ProcessDataDDI = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 367 }  },
+                Dlv = new DLV
+                {
+                    A = "16F"
+                },
                 Value = 3
             };
 

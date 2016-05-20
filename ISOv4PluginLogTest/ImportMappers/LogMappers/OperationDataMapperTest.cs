@@ -25,6 +25,8 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         private Mock<ISectionMapper> _sectionMapperMock;
         private Mock<IUniqueIdMapper> _uniqueIdMapperMock;
         private int _loggedDataId;
+        private TIM _tim;
+        private List<TIM> _tims;
 
         [SetUp]
         public void Setup()
@@ -32,6 +34,8 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             _datacardPath = "dataCardPath";
             _tlg = new TLG();
             _tlgs = new List<TLG>{ _tlg };
+            _tim = new TIM();
+            _tims = new List<TIM> {_tim};
 
             _spatialRecordMapperMock = new Mock<ISpatialRecordMapper>();
             _xmlReaderMock = new Mock<IXmlReader>();
@@ -45,9 +49,18 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenTlgsWhenMapThenListOfOperationData()
         {
-            _tlgs.Add(new TLG());
-            _tlgs.Add(new TLG());
-            _tlgs.Add(new TLG());
+            _tlg.A = "fileName";
+            _tlgs.Add(_tlg);
+            _tlgs.Add(_tlg);
+            _tlgs.Add(_tlg);
+
+            _xmlReaderMock.Setup(x => x.ReadTlgXmlData(_datacardPath, _tlg.A + ".xml")).Returns(_tims);
+
+            var isoSpatialRows = new List<ISOSpatialRow>();
+            _binaryReaderMock.Setup(x => x.Read(_datacardPath, _tlg.A + ".bin", _tim)).Returns(isoSpatialRows);
+
+            var sections = new List<Section>();
+            _sectionMapperMock.Setup(x => x.Map(_tims, isoSpatialRows)).Returns(sections);
 
             var result = Map();
 
@@ -59,6 +72,14 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         {
             _tlg.A = "fileName";
 
+            _xmlReaderMock.Setup(x => x.ReadTlgXmlData(_datacardPath, _tlg.A + ".xml")).Returns(_tims);
+
+            var isoSpatialRows = new List<ISOSpatialRow>();
+            _binaryReaderMock.Setup(x => x.Read(_datacardPath, _tlg.A + ".bin", _tim)).Returns(isoSpatialRows);
+
+            var sections = new List<Section>();
+            _sectionMapperMock.Setup(x => x.Map(_tims, isoSpatialRows)).Returns(sections);
+
             Map();
 
             _xmlReaderMock.Verify(x => x.ReadTlgXmlData(_datacardPath, _tlg.A + ".xml"), Times.Once());
@@ -69,12 +90,11 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         {
             _tlg.A = "fileName";
 
-            var timHeader = new TIMHeader();
-            _xmlReaderMock.Setup(x => x.ReadTlgXmlData(_datacardPath, _tlg.A + ".xml")).Returns(timHeader);
+            _xmlReaderMock.Setup(x => x.ReadTlgXmlData(_datacardPath, _tlg.A + ".xml")).Returns(_tims);
 
             Map();
 
-            _binaryReaderMock.Verify(x => x.Read(_datacardPath, _tlg.A + ".bin", timHeader), Times.Once());
+            _binaryReaderMock.Verify(x => x.Read(_datacardPath, _tlg.A + ".bin", _tim), Times.Once());
         }
 
         [Test]
@@ -82,11 +102,10 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         {
             _tlg.A = "fileName";
 
-            var timHeader = new TIMHeader();
-            _xmlReaderMock.Setup(x => x.ReadTlgXmlData(_datacardPath, _tlg.A + ".xml")).Returns(timHeader);
+            _xmlReaderMock.Setup(x => x.ReadTlgXmlData(_datacardPath, _tlg.A + ".xml")).Returns(_tims);
 
             var isoSpatialRows = new List<ISOSpatialRow>();
-            _binaryReaderMock.Setup(x => x.Read(_datacardPath, _tlg.A + ".bin", timHeader)).Returns(isoSpatialRows);
+            _binaryReaderMock.Setup(x => x.Read(_datacardPath, _tlg.A + ".bin", _tim)).Returns(isoSpatialRows);
 
             var spatialRecords = new List<SpatialRecord>();
             _spatialRecordMapperMock.Setup(x => x.Map(isoSpatialRows, new List<Meter>())).Returns(spatialRecords);
@@ -101,14 +120,13 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         {
             _tlg.A = "fileName";
 
-            var timHeader = new TIMHeader();
-            _xmlReaderMock.Setup(x => x.ReadTlgXmlData(_datacardPath, _tlg.A + ".xml")).Returns(timHeader);
+            _xmlReaderMock.Setup(x => x.ReadTlgXmlData(_datacardPath, _tlg.A + ".xml")).Returns(_tims);
 
             var isoSpatialRows = new List<ISOSpatialRow>();
-            _binaryReaderMock.Setup(x => x.Read(_datacardPath, _tlg.A + ".bin", timHeader)).Returns(isoSpatialRows);
+            _binaryReaderMock.Setup(x => x.Read(_datacardPath, _tlg.A + ".bin", _tim)).Returns(isoSpatialRows);
 
             var sections = new List<Section>();
-            _sectionMapperMock.Setup(x => x.Map(timHeader, isoSpatialRows)).Returns(sections);
+            _sectionMapperMock.Setup(x => x.Map(_tims, isoSpatialRows)).Returns(sections);
 
             var result = MapSingle();
 
@@ -119,6 +137,14 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenTlgWhenMapThenIdIsMapped()
         {
             _tlg.A = "fileName";
+
+            _xmlReaderMock.Setup(x => x.ReadTlgXmlData(_datacardPath, _tlg.A + ".xml")).Returns(_tims);
+
+            var isoSpatialRows = new List<ISOSpatialRow>();
+            _binaryReaderMock.Setup(x => x.Read(_datacardPath, _tlg.A + ".bin", _tim)).Returns(isoSpatialRows);
+
+            var sections = new List<Section>();
+            _sectionMapperMock.Setup(x => x.Map(_tims, isoSpatialRows)).Returns(sections);
 
             var uniqueId = new UniqueId();
             _uniqueIdMapperMock.Setup(x => x.Map(_tlg.A)).Returns(uniqueId);
@@ -132,6 +158,16 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenTlgAndLoggedDataIdWhenMapThenLoggedDataIdIsMapped()
         {
             _loggedDataId = 123;
+
+            _tlg.A = "fileName";
+
+            _xmlReaderMock.Setup(x => x.ReadTlgXmlData(_datacardPath, _tlg.A + ".xml")).Returns(_tims);
+
+            var isoSpatialRows = new List<ISOSpatialRow>();
+            _binaryReaderMock.Setup(x => x.Read(_datacardPath, _tlg.A + ".bin", _tim)).Returns(isoSpatialRows);
+
+            var sections = new List<Section>();
+            _sectionMapperMock.Setup(x => x.Map(_tims, isoSpatialRows)).Returns(sections);
 
             var result = MapSingle();
 

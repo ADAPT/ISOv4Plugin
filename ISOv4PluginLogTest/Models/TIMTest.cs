@@ -33,6 +33,7 @@ namespace ISOv4PluginLogTest.Models
         [Test]
         public void GivenTIMWhenWriteXMLThenAIsWritten()
         {
+            _tim.ASpecified = true;
             _tim.A = DateTime.Today;
 
             _tim.WriteXML(_xmlBuilder);
@@ -43,6 +44,7 @@ namespace ISOv4PluginLogTest.Models
         [Test]
         public void GivenTIMWhenWriteXMLThenBIsWritten()
         {
+            _tim.BSpecified = true;
             _tim.B = DateTime.Today;
 
             _tim.WriteXML(_xmlBuilder);
@@ -53,10 +55,14 @@ namespace ISOv4PluginLogTest.Models
         [Test]
         public void GivenTIMWhenWriteXMLThenDIsWritten()
         {
+            _tim.DSpecified = true;
             _tim.D = TIMD.Item3;
+
             _tim.WriteXML(_xmlBuilder);
             _xmlBuilder.Flush();
             Assert.True(_output.ToString().Contains("D=\"3\""));
         }
+
+        // Todo:  add tests for attributes that are not specified
     }
 }

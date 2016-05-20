@@ -1,55 +1,74 @@
-﻿using System.Xml.Linq;
+﻿using System.IO;
+using System.Text;
+using System.Xml;
+using System.Xml.Linq;
+using System.Xml.XPath;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using NUnit.Framework;
 
 namespace ISOv4PluginLogTest.ObjectModel
 {
-    [TestFixture]
-    public class ElementPropertyTest
-    {
-        [Test]
-        public void GivenNullXattributeWhenCreatedThenStateIsNull()
-        {
-            var result = new HeaderProperty(null);
-            Assert.AreEqual(HeaderPropertyState.IsNull, result.State);
-        }
+    //[TestFixture]
+    //public class ElementPropertyTest
+    //{
+    
+    //    private XPathNavigator CreateNavigator(string attributeName, string attributeValue)
+    //    {
+    //        var memStream = new MemoryStream();
+    //        using (var xmlWriter = XmlWriter.Create(memStream, new XmlWriterSettings { Encoding = new UTF8Encoding(false) }))
+    //        {
+    //            xmlWriter.WriteStartElement("TestElement");
+    //            xmlWriter.WriteAttributeString(attributeName, attributeValue);
+    //            xmlWriter.WriteEndElement();
+    //            xmlWriter.Flush();
+    //            xmlWriter.Close();
+    //        }
 
-        [Test]
-        public void GivenXattributeWithEmptyValueWhenCreatedThenStateIsEmpty()
-        {
-            var attribute = new XAttribute("Test", "");
+    //        memStream.Position = 0;
+    //        var xpathDoc = new XPathDocument(memStream);
+    //        return xpathDoc.CreateNavigator().SelectSingleNode("TestElement");
+    //    }
 
-            var result = new HeaderProperty(attribute);
+    //    [Test]
+    //    public void GivenNullNavigatorWhenCreatedThenStateIsNull()
+    //    {
+    //        var result = new HeaderProperty(null, "");
+    //        Assert.AreEqual(HeaderPropertyState.IsNull, result.State);
+    //    }
 
-            Assert.AreEqual(HeaderPropertyState.IsEmpty, result.State);
-        }
+    //    [Test]
+    //    public void GivenNavigatorWithEmptyValueWhenCreatedThenStateIsEmpty()
+    //    {
+    //        var navigator = CreateNavigator("Test", "");
+    //        var result = new HeaderProperty(navigator, "Test");
 
-        [Test]
-        public void GivenXattributeWithEmptyValueWhenCreatedThenStateHasValue()
-        {
-            var attribute = new XAttribute("Test", "what");
+    //        Assert.AreEqual(HeaderPropertyState.IsEmpty, result.State);
+    //    }
 
-            var result = new HeaderProperty(attribute);
+    //    [Test]
+    //    public void GivenNavigatorWithEmptyValueWhenCreatedThenStateHasValue()
+    //    {
+    //        var navigator = CreateNavigator("Test", "what");
+    //        var result = new HeaderProperty(navigator, "Test");
 
-            Assert.AreEqual(HeaderPropertyState.HasValue, result.State);
-        }
+    //        Assert.AreEqual(HeaderPropertyState.HasValue, result.State);
+    //    }
 
-        [Test]
-        public void GivenXattributeWithValueWhenCreatedThenValueIsSet()
-        {
-            var attribute = new XAttribute("Test", "Hello");
+    //    [Test]
+    //    public void GivenNavigatorWithValueWhenCreatedThenValueIsSet()
+    //    {
+    //        var navigator = CreateNavigator("Test", "Hello");
+    //        var result = new HeaderProperty(navigator, "Test");
 
-            var result = new HeaderProperty(attribute);
+    //        Assert.AreEqual("Hello", result.Value);
+    //    }
 
-            Assert.AreEqual(attribute.Value, result.Value);
-        }
+    //    [Test]
+    //    public void GivenNullNavigatorWhenCreatedThenValueIsNull()
+    //    {
+    //        var result = new HeaderProperty(null, "");
+    //        Assert.IsNull(result.Value);
+    //    }
 
-        [Test]
-        public void GivenNullXattributeWhenCreatedThenValueIsNull()
-        {
-            var result = new HeaderProperty(null);
-            Assert.IsNull(result.Value);
-        }
-
-    }
+    //}
 }

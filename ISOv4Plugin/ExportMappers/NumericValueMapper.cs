@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
+using AgGateway.ADAPT.ISOv4Plugin.Extensions;
 using AgGateway.ADAPT.ISOv4Plugin.Representation;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers

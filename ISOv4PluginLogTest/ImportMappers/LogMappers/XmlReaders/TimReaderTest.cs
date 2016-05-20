@@ -1,6 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Xml;
 using System.Xml.Linq;
+using System.Xml.XPath;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
@@ -15,6 +21,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers.XmlReaders
         private Mock<IPtnReader> _ptnReaderMock;
         private Mock<IDlvReader> _dlvReaderMock;
         private TimReader _timReader;
+        private MemoryStream _memStream;
 
         [SetUp]
         public void Setup()
@@ -29,84 +36,143 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers.XmlReaders
         public void GivenXdocumentWhenReadThenStartTimeIsMapped()
         {
             var a = new DateTime(2015, 05, 15);
-            var xDocument = new XDocument ( new XElement("TIM", new XAttribute("A", a)) );
+            CreateTimMemStream("A", a.ToString(CultureInfo.InvariantCulture));
+            var xpathDoc = CreateXDoc();
 
-            var result = _timReader.Read(xDocument);
+            var result = _timReader.Read(xpathDoc).First();
 
-            Assert.AreEqual(a, Convert.ToDateTime(result.Start.Value));
+            Assert.AreEqual(a, Convert.ToDateTime(result.A.Value));
         }
 
         [Test]
         public void GivenXdocumentWhenReadThenStopIsMapped()
         {
             var b = new DateTime(2015, 05, 15);
-            var xDocument = new XDocument ( new XElement("TIM", new XAttribute("B", b)) );
+            CreateTimMemStream("B", b.ToString(CultureInfo.InvariantCulture));
+            var xpathDoc = CreateXDoc();
 
-            var result = _timReader.Read(xDocument);
+            var result = _timReader.Read(xpathDoc).First();
 
-            Assert.AreEqual(b, Convert.ToDateTime(result.Stop.Value));
+            Assert.AreEqual(b, Convert.ToDateTime(result.B.Value));
         }
 
         [Test]
         public void GivenXdocumentWhenReadThenDurationIsMapped()
         {
             var c = 1500;
-            var xDocument = new XDocument ( new XElement("TIM", new XAttribute("C", c)) );
+            CreateTimMemStream("C", c.ToString(CultureInfo.InvariantCulture));
+            var xpathDoc = CreateXDoc();
 
-            var result = _timReader.Read(xDocument);
+            var result = _timReader.Read(xpathDoc).First();
 
-            Assert.AreEqual(c.ToString(), result.Duration.Value);
+            Assert.AreEqual(c, result.C.Value);
         }
 
         [Test]
         public void GivenXdocumentWhenReadThenTypeIsMapped()
         {
             var d = TIMD.Item4;
-            var xDocument = new XDocument ( new XElement("TIM", new XAttribute("D", d)) );
+            CreateTimMemStream("D", d.ToString());
+            var xpathDoc = CreateXDoc();
 
-            var result = _timReader.Read(xDocument);
+            var result = _timReader.Read(xpathDoc).First();
 
-            Assert.AreEqual(d.ToString(), result.Type.Value);
+            Assert.AreEqual(d, result.D.Value);
         }
 
         [Test]
         public void GivenXdocumentWhenReadThenPtnHeaderIsMapped()
         {
-            var ptnElement = new XElement("PTN");
-            var xDocument = new XDocument(new XElement("TIM", ptnElement));
+            _memStream = new MemoryStream();
+            using (var xmlWriter = XmlWriter.Create(_memStream, new XmlWriterSettings { Encoding = new UTF8Encoding(false) }))
+            {
+                xmlWriter.WriteStartElement("TIM");
+                xmlWriter.WriteStartElement("PTN");
+                xmlWriter.WriteEndElement();
+                xmlWriter.WriteEndElement();
+                xmlWriter.Flush();
+                xmlWriter.Close();
+            }
 
-            var ptnHeader = new PTNHeader();
-            _ptnReaderMock.Setup(x => x.Read(ptnElement)).Returns(ptnHeader);
+            var xpathDoc = CreateXDoc();
 
-            var result = _timReader.Read(xDocument);
-            Assert.AreSame(ptnHeader, result.PtnHeader);
+            var ptn = new PTN();
+            _ptnReaderMock.Setup(x => x.Read(It.IsAny<XPathNodeIterator>())).Returns(new List<PTN> {ptn});
+
+            var result = _timReader.Read(xpathDoc).First();
+            var ptnResult = result.Items[0];
+            Assert.AreSame(ptn, ptnResult);
         }
 
         [Test]
         public void GivenXdocumentWhenReadThenDlvsAreMapped()
         {
-            var dlvElement1 = new XElement("DLV");
-            var dlvElement2 = new XElement("DLV");
-            var dlvElement3 = new XElement("DLV");
-            var xDocument = new XDocument(new XElement("TIM", dlvElement1, dlvElement2, dlvElement3));
+            _memStream = new MemoryStream();
+            using (var xmlWriter = XmlWriter.Create(_memStream, new XmlWriterSettings { Encoding = new UTF8Encoding(false) }))
+            {
+                xmlWriter.WriteStartElement("TIM");
+                xmlWriter.WriteStartElement("DLV");
+                xmlWriter.WriteEndElement();
+                xmlWriter.WriteStartElement("DLV");
+                xmlWriter.WriteEndElement();
+                xmlWriter.WriteStartElement("DLV");
+                xmlWriter.WriteEndElement();
+                xmlWriter.WriteEndElement();
+                xmlWriter.Flush();
+                xmlWriter.Close();
+            }
 
-            var dlvs = new List<DLVHeader> { new DLVHeader(), new DLVHeader(), new DLVHeader() };
-            _dlvReaderMock.Setup(x => x.Read(new List<XElement>{dlvElement1, dlvElement2, dlvElement3})).Returns(dlvs);
+            var xpathDoc = CreateXDoc();
 
-            var result = _timReader.Read(xDocument);
-            Assert.AreSame(dlvs[0], result.DLVs[0]);
-            Assert.AreSame(dlvs[1], result.DLVs[1]);
-            Assert.AreSame(dlvs[2], result.DLVs[2]);
+            var dlvs = new List<DLV> { new DLV(), new DLV(), new DLV() };
+            _dlvReaderMock.Setup(x => x.Read(It.Is<XPathNodeIterator>( y => y.Count == 3))).Returns(dlvs);
+
+            var result = _timReader.Read(xpathDoc).First();
+            Assert.AreSame(dlvs[0], result.Items[0]);
+            Assert.AreSame(dlvs[1], result.Items[1]);
+            Assert.AreSame(dlvs[2], result.Items[2]);
         }
 
+        //todo both ptn and dlvs test
         [Test]
         public void GivenXdocumentWithoutTimWhenReadThenIsNull()
         {
-            var xDocument = new XDocument();
+            _memStream = new MemoryStream();
+            using (var xmlWriter = XmlWriter.Create(_memStream, new XmlWriterSettings { Encoding = new UTF8Encoding(false) }))
+            {
+                xmlWriter.WriteStartElement("NOTTIM");
+                xmlWriter.WriteAttributeString("A", "AValue");
+                xmlWriter.WriteEndElement();
+                xmlWriter.Flush();
+                xmlWriter.Close();
+            }
 
+            var xDocument = CreateXDoc();
             var result = _timReader.Read(xDocument);
 
             Assert.IsNull(result);
+        }
+
+
+        private void CreateTimMemStream(string attributeName, string attributeValue)
+        {
+
+            _memStream = new MemoryStream();
+            using (var xmlWriter = XmlWriter.Create(_memStream, new XmlWriterSettings { Encoding = new UTF8Encoding(false) }))
+            {
+                xmlWriter.WriteStartElement("TIM");
+                xmlWriter.WriteAttributeString(attributeName, attributeValue);
+                xmlWriter.WriteEndElement();
+                xmlWriter.Flush();
+                xmlWriter.Close();
+            }
+        }
+
+        private XPathDocument CreateXDoc()
+        {
+            _memStream.Position = 0;
+            var xpathDoc = new XPathDocument(_memStream);
+            return xpathDoc;
         }
     }
 }

@@ -153,12 +153,12 @@ namespace ISOv4PluginLogTest.ExportMappers
             _operationData.GetSections = x => sectionsByDepth[x];
             _operationData.MaxDepth = 0;
 
-            var timHeader = new TIMHeader();
-            _timHeaderMock.Setup(x => x.Map(meters)).Returns(timHeader);
+            var tim = new TIM();
+            _timHeaderMock.Setup(x => x.Map(meters)).Returns(tim);
 
             MapSingle();
 
-            _xmlReaderMock.Verify(x => x.WriteTlgXmlData(_datacardPath, "TLG00016.xml",  timHeader));
+            _xmlReaderMock.Verify(x => x.WriteTlgXmlData(_datacardPath, "TLG00016.xml",  tim));
         }
 
         private TLG MapSingle()
