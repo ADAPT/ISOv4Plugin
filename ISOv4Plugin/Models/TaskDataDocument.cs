@@ -85,7 +85,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Models
             if (linkedIds == null || linkedIds.Count == 0)
                 return;
 
-            id.UniqueIds = linkedIds.ToList();
+            id.UniqueIds.AddRange(linkedIds);
         }
 
         public bool LoadFromFile(string taskDataFile)

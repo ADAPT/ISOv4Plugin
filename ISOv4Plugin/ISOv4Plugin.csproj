@@ -65,7 +65,6 @@
     <Compile Include="ExportMappers\GrowerFarmFieldMapper.cs" />
     <Compile Include="ExportMappers\NumericValueMapper.cs" />
     <Compile Include="ExportMappers\PrescriptionMapper.cs" />
-    <Compile Include="ExportMappers\ProductsMapper.cs" />
     <Compile Include="ExportMappers\PtnHeaderMapper.cs" />
     <Compile Include="ExportMappers\TaskMapper.cs" />
     <Compile Include="ExportMappers\TimeMapper.cs" />
@@ -113,6 +112,7 @@
     <Compile Include="Loaders\GuidanceAllocationLoader.cs" />
     <Compile Include="Loaders\GuidanceGroupLoader.cs" />
     <Compile Include="Loaders\GuidancePatternLoader.cs" />
+    <Compile Include="Loaders\LinkGroupLoader.cs" />
     <Compile Include="Loaders\LinkListLoader.cs" />
     <Compile Include="Loaders\PrescriptionLoader.cs" />
     <Compile Include="Loaders\ProductLoader.cs" />
@@ -181,6 +181,7 @@
     <Compile Include="Exporter.cs" />
     <Compile Include="Importer.cs" />
     <Compile Include="UnitFactory.cs" />
+    <Compile Include="Writers\AttachedFileWriter.cs" />
     <Compile Include="Writers\BaseWriter.cs" />
     <Compile Include="Writers\CommentListWriter.cs" />
     <Compile Include="Writers\CommentWriter.cs" />

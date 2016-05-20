@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
+using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.Prescriptions;
 using AgGateway.ADAPT.ApplicationDataModel.Products;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders;

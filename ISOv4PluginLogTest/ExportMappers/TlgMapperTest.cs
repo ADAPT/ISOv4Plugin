@@ -164,6 +164,15 @@ namespace ISOv4PluginLogTest.ExportMappers
             _xmlReaderMock.Verify(x => x.WriteTlgXmlData(Path.Combine(_datacardPath, "TASKDATA"), "TLG00016.xml", timHeader));
         }
 
+        [Test]
+        public void GivenNullListOfOperationDataWhenMapThenReturnsEmptyList()
+        {
+            _operationDatas = null;
+            var result = Map();
+
+            Assert.IsEmpty(result);
+        }
+
         private TLG MapSingle()
         {
             return Map().First();

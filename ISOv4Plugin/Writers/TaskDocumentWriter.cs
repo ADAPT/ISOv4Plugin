@@ -77,9 +77,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
 
         public void Dispose()
         {
-            using (RootWriter)
-            {
-            }
+            RootWriter.Dispose();
+            XmlStream.Dispose();
         }
     }
 }

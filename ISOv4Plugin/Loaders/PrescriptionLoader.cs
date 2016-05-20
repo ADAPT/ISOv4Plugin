@@ -206,7 +206,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
             var productIds = new List<int>();
             foreach (var dataVariable in treatmentZone.Variables)
             {
-                var product = _taskDocument.Products.FindById(dataVariable.ProductId) ?? _taskDocument.ProductMixes.FindById(dataVariable.ProductId);
+                var product = _taskDocument.Products.FindById(dataVariable.ProductId) ?? _taskDocument.ProductMixes.FindById(dataVariable.ProductId); 
+                product = product ?? _taskDocument.CropVarieties.FindById(dataVariable.ProductId);
                 productIds.Add(product == null ? 0 : product.Id.ReferenceId);
             }
             prescription.ProductIds = productIds;

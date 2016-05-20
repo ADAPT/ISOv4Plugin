@@ -34,6 +34,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
 
         public IEnumerable<TLG> Map(IEnumerable<OperationData> operationDatas, string datacardPath, TaskDocumentWriter taskDocumentWriter)
         {
+            if (operationDatas == null)
+                return Enumerable.Empty<TLG>();
             return operationDatas.Select(x => Map(x, datacardPath, taskDocumentWriter));
         }
 
