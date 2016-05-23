@@ -74,11 +74,18 @@
     <Compile Include="Asserts\Export\TimHeaderAssert.cs" />
     <Compile Include="Asserts\Export\TlgAssert.cs" />
     <Compile Include="Asserts\Export\TskAssert.cs" />
+    <Compile Include="Asserts\Import\ApplicationDataModelAssert.cs" />
+    <Compile Include="Asserts\Import\CatalogAssert.cs" />
+    <Compile Include="Asserts\Import\CropAssert.cs" />
+    <Compile Include="Asserts\Import\CropVarietyAssert.cs" />
+    <Compile Include="Asserts\Import\DocumentsAssert.cs" />
+    <Compile Include="Asserts\Import\GrowerAssert.cs" />
     <Compile Include="Asserts\Import\LoggedDataAssert.cs" />
     <Compile Include="Asserts\Import\OperationDataAssert.cs" />
     <Compile Include="Asserts\Import\SpatialRecordAssert.cs" />
     <Compile Include="Asserts\Import\SpatialValueAssert.cs" />
     <Compile Include="Asserts\Import\TimeScopeAssert.cs" />
+    <Compile Include="Asserts\Import\UniqueIdAssert.cs" />
     <Compile Include="Features\ImportLogData.feature.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Xml;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
 using TechTalk.SpecFlow;
@@ -32,12 +33,12 @@ namespace AcceptanceTests
             scenarioContext.Set(exportPath, ExportPathKey);
         }
 
-        public static ISO11783_TaskData OriginalIsoTaskData(this ScenarioContext scenarioContext)
+        public static XmlNode OriginalIsoTaskData(this ScenarioContext scenarioContext)
         {
-            return scenarioContext.SafeGet<ISO11783_TaskData>(OriginalIsoTaskDataKey);
+            return scenarioContext.SafeGet<XmlNode>(OriginalIsoTaskDataKey);
         }
 
-        public static void OriginalIsoTaskData(this ScenarioContext scenarioContext, ISO11783_TaskData taskData)
+        public static void OriginalIsoTaskData(this ScenarioContext scenarioContext, XmlNode taskData)
         {
             scenarioContext.Set(taskData, OriginalIsoTaskDataKey);
         }
