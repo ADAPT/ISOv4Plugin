@@ -18,7 +18,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
         {
             if (taskWriter.DataModel.Catalog.FertilizerProducts == null &&
                 taskWriter.DataModel.Catalog.CropProtectionProducts == null &&
-                taskWriter.DataModel.Catalog.CropVarieties == null &&
                 taskWriter.DataModel.Catalog.ProductMixes == null)
                 return;
 
@@ -30,7 +29,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
         {
             WriteProducts(writer, TaskWriter.DataModel.Catalog.FertilizerProducts);
             WriteProducts(writer, TaskWriter.DataModel.Catalog.CropProtectionProducts);
-            WriteProducts(writer, TaskWriter.DataModel.Catalog.CropVarieties);
             WriteProductMixes(writer, TaskWriter.DataModel.Catalog.ProductMixes);
         }
 

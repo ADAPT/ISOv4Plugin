@@ -131,7 +131,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
 
             foreach (var productId in prescription.ProductIds)
             {
-                var isoProductId = TaskWriter.Products.FindById(productId);
+                var isoProductId = TaskWriter.Products.FindById(productId) ?? TaskWriter.CropVarieties.FindById(productId);
 
                 AddDataVariable(lossOfSignalTreatmentZone, prescription.LossOfGpsRate, isoProductId, isoUnit);
                 AddDataVariable(outOfFieldTreatmentZone, prescription.OutOfFieldRate, isoProductId, isoUnit);

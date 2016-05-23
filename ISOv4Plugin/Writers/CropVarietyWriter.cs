@@ -31,6 +31,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
             writer.WriteAttributeString("A", cropVarietyId);
             writer.WriteAttributeString("B", cropVariety.Description);
             writer.WriteEndElement();
+
+            TaskWriter.CropVarieties[cropVariety.Id.ReferenceId] = cropVarietyId;
         }
     }
 }

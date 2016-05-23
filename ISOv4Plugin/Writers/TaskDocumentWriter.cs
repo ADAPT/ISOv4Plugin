@@ -21,6 +21,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
         public Dictionary<int, string> Farms { get; private set; }
         public Dictionary<int, string> Fields { get; private set; }
         public Dictionary<int, string> Crops { get; private set; }
+        public Dictionary<int, string> CropVarieties { get; private set; }
         public Dictionary<int, string> Products { get; private set; }
         public Dictionary<int, string> Workers { get; private set; }
         public Dictionary<int, IsoUnit> UserUnits { get; private set; }
@@ -32,6 +33,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
             Farms = new Dictionary<int, string>();
             Fields = new Dictionary<int, string>();
             Crops = new Dictionary<int, string>();
+            CropVarieties = new Dictionary<int, string>();
             Products = new Dictionary<int, string>();
             Workers = new Dictionary<int, string>();
             UserUnits = new Dictionary<int, IsoUnit>();
