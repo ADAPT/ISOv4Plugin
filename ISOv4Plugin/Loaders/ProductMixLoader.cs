@@ -88,9 +88,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
         {
             var productType = inputNode.GetXmlNodeValue("@F");
 
-            return !string.IsNullOrEmpty(productType) &&
-                string.Equals(productType, "2", StringComparison.OrdinalIgnoreCase) &&
-                inputNode.SelectNodes("PRN").Count > 0;
+            return !string.IsNullOrEmpty(productType) 
+                && string.Equals(productType, "2", StringComparison.OrdinalIgnoreCase) 
+                && inputNode.SelectNodes("PRN").Count > 0;
         }
 
         private ProductMix GetProduct(XmlNode inputNode)

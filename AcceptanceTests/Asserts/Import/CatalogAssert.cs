@@ -13,6 +13,7 @@ namespace AcceptanceTests.Asserts.Import
             FarmAssert.AreEqual(taskData.SelectNodes("FRM"), catalog.Farms, catalog, linkList);
             FieldAssert.AreEqual(taskData.SelectNodes("PFD"), catalog.Fields, catalog, linkList);
             GrowerAssert.AreEqual(taskData.SelectNodes("CTR"), catalog.Growers, linkList);
+            ProductAssert.AreEqual(taskData.SelectNodes("PDT"), catalog, linkList);
         }
     }
 }

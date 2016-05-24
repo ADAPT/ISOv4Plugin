@@ -75,6 +75,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
 
             // Required fields. Do not proceed if they are missing
             productId = inputNode.GetXmlNodeValue("@A");
+            product.Id.UniqueIds.Add(ImportHelper.CreateUniqueId(productId));
             product.Description = inputNode.GetXmlNodeValue("@B");
             if (productId == null || product.Description == null)
                 return null;
@@ -111,8 +112,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
 
         private XmlNode GetGroupNode(string groupId)
         {
-            var groupNode = _taskDocument.RootNode.SelectSingleNode(
-                string.Format(CultureInfo.InvariantCulture, "PGP[@A='{0}']", groupId));
+            var groupNode = _taskDocument.RootNode.SelectSingleNode(string.Format(CultureInfo.InvariantCulture, "PGP[@A='{0}']", groupId));
 
             if (groupNode == null)
             {
