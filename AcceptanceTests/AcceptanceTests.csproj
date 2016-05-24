@@ -79,9 +79,15 @@
     <Compile Include="Asserts\Import\CropAssert.cs" />
     <Compile Include="Asserts\Import\CropVarietyAssert.cs" />
     <Compile Include="Asserts\Import\DocumentsAssert.cs" />
+    <Compile Include="Asserts\Import\FarmAssert.cs" />
+    <Compile Include="Asserts\Import\FieldAssert.cs" />
     <Compile Include="Asserts\Import\GrowerAssert.cs" />
+    <Compile Include="Asserts\Import\GuidanceGroupAssert.cs" />
     <Compile Include="Asserts\Import\LoggedDataAssert.cs" />
+    <Compile Include="Asserts\Import\MultiPolygonAssert.cs" />
     <Compile Include="Asserts\Import\OperationDataAssert.cs" />
+    <Compile Include="Asserts\Import\PointAssert.cs" />
+    <Compile Include="Asserts\Import\RingAssert.cs" />
     <Compile Include="Asserts\Import\SpatialRecordAssert.cs" />
     <Compile Include="Asserts\Import\SpatialValueAssert.cs" />
     <Compile Include="Asserts\Import\TimeScopeAssert.cs" />
