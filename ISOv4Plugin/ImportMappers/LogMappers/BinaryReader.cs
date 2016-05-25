@@ -153,7 +153,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
 
             var resolution = 1d;
             if (matchingDlv.A != null && ddis.ContainsKey(Convert.ToInt32(matchingDlv.A, 16)))
-                resolution = ddis[Convert.ToInt32(matchingDlv.A)].Resolution; 
+                resolution = ddis[Convert.ToInt32(matchingDlv.A, 16)].Resolution; 
 
             var spatialValue = new SpatialValue
             {

@@ -567,8 +567,8 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenBinaryWhenReadThenResolutionIsApplied()
         {
 
-            var dlv1 = new DLV { A = "10" };
-            var dlv2 = new DLV { A = "11" };
+            var dlv1 = new DLV { A = "0A" };
+            var dlv2 = new DLV { A = "0B" };
             
             _tim.Items = new List<DLV> { dlv1, dlv2 }.ToArray();
 

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
@@ -49,9 +50,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
             if (!IsValidPrescription(prescription))
                 return;
 
-            writer.WriteStartElement(XmlPrefix);
+            var prescriptionId = GenerateId();
 
-            writer.WriteAttributeString("A", GenerateId());
+            writer.WriteStartElement(XmlPrefix);
+            writer.WriteAttributeString("A", prescriptionId);
             writer.WriteAttributeString("B", prescription.Description);
 
             WriteFieldMeta(writer, prescription.FieldId);
@@ -70,15 +72,23 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
             if (matchingLoggedData != null)
             {
                 var taskMapper = new TaskMapper();
+                var isoInt = Convert.ToInt32(prescriptionId.Remove(0, 3))-1;
+
+
                 var mappedTsk =
                     taskMapper.Map(new List<LoggedData> { matchingLoggedData }, taskWriter.DataModel.Catalog,
-                        taskWriter.BaseFolder, 0).First();
+                        taskWriter.BaseFolder, isoInt, taskWriter).First();
 
                 foreach (var item in mappedTsk.Items)
                 {
                     item.WriteXML(taskWriter.RootWriter);
                 }
             }
+            else
+            {
+                TaskWriter.Ids.Add(prescriptionId, prescription.Id);
+            }
+
             writer.WriteEndElement();
         }
 
@@ -149,7 +159,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
 
             foreach (var productId in prescription.ProductIds)
             {
-                var isoProductId = TaskWriter.Products.FindById(productId);
+                var isoProductId = TaskWriter.Products.FindById(productId) ?? TaskWriter.CropVarieties.FindById(productId);
 
                 AddDataVariable(lossOfSignalTreatmentZone, prescription.LossOfGpsRate, isoProductId, isoUnit);
                 AddDataVariable(outOfFieldTreatmentZone, prescription.OutOfFieldRate, isoProductId, isoUnit);

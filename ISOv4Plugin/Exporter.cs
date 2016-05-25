@@ -30,21 +30,20 @@ namespace AgGateway.ADAPT.ISOv4Plugin
         public XmlWriter Export(ApplicationDataModel.ADM.ApplicationDataModel applicationDataModel, string datacardPath, TaskDocumentWriter writer)
         {
             var isoTaskData = writer.Write(datacardPath, applicationDataModel);
-            var xmlStream = writer.XmlStream;
 
             if (applicationDataModel != null)
             {
-
-                var numberOfExistingTasks = GetNumberOfExistingTasks(isoTaskData, xmlStream);
+            
+                var numberOfExistingTasks = GetNumberOfExistingTasks(isoTaskData, writer);
                 var tasks = applicationDataModel.Documents == null
                     ? null
                     : _taskMapper.Map(applicationDataModel.Documents.LoggedData, applicationDataModel.Catalog,
-                        datacardPath, numberOfExistingTasks, false);
-                if (tasks != null)
-                {
-                    var taskList = tasks.ToList();
-                    taskList.ForEach(t => t.WriteXML(isoTaskData));
-                }
+                        datacardPath, numberOfExistingTasks, writer, false);
+            if (tasks != null)
+            {
+                var taskList = tasks.ToList();
+                taskList.ForEach(t => t.WriteXML(isoTaskData));
+            }
             }
 
             //Close the root element with </ISO11783_TaskData>
@@ -53,10 +52,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin
             return isoTaskData;
         }
 
-        private static int GetNumberOfExistingTasks(XmlWriter data, MemoryStream isoTaskData)
+        private static int GetNumberOfExistingTasks(XmlWriter data, TaskDocumentWriter isoTaskData)
         {
             data.Flush();
-            var xml = Encoding.UTF8.GetString(isoTaskData.ToArray());
+            var xml = Encoding.UTF8.GetString(isoTaskData.XmlStream.ToArray());
             if(!xml.EndsWith(">"))
                 xml += ">";
             xml += "</ISO11783_TaskData>";

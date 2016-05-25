@@ -8,6 +8,7 @@ using AgGateway.ADAPT.ISOv4Plugin.ImportMappers;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
+using AgGateway.ADAPT.ISOv4Plugin.Writers;
 using Moq;
 using NUnit.Framework;
 
@@ -23,6 +24,7 @@ namespace ISOv4PluginLogTest.ExportMappers
         private Mock<IBinaryWriter> _binaryWriterMock;
         private Mock<IXmlReader> _xmlReaderMock;  
         private Mock<ITimHeaderMapper> _timHeaderMock;
+        private TaskDocumentWriter _taskDocumentWriter;
         private string _datacardPath;
 
         [SetUp]
@@ -35,6 +37,7 @@ namespace ISOv4PluginLogTest.ExportMappers
             _xmlReaderMock = new Mock<IXmlReader>();
             _timHeaderMock = new Mock<ITimHeaderMapper>();
             _datacardPath = "";
+            _taskDocumentWriter = new TaskDocumentWriter();
 
             _tlgMapper = new TlgMapper(_xmlReaderMock.Object, _timHeaderMock.Object, _binaryWriterMock.Object);
         }
@@ -58,7 +61,7 @@ namespace ISOv4PluginLogTest.ExportMappers
 
             var result = Map();
 
-            Assert.IsNull(result);
+            Assert.IsEmpty(result);
         }
 
         [Test]
@@ -168,7 +171,7 @@ namespace ISOv4PluginLogTest.ExportMappers
 
             MapSingle();
 
-            _xmlReaderMock.Verify(x => x.WriteTlgXmlData(_datacardPath, "TLG00016.xml",  tim));
+            _xmlReaderMock.Verify(x => x.WriteTlgXmlData(_datacardPath, "TLG00016.xml", tim));
         }
 
         private TLG MapSingle()
@@ -178,7 +181,7 @@ namespace ISOv4PluginLogTest.ExportMappers
 
         private IEnumerable<TLG> Map()
         {
-            return _tlgMapper.Map(_operationDatas, _datacardPath);
+            return _tlgMapper.Map(_operationDatas, _datacardPath, _taskDocumentWriter);
         }
     }
 }

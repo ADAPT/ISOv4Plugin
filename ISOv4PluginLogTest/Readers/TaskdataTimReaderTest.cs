@@ -28,7 +28,7 @@ namespace ISOv4PluginLogTest.Readers
         public void Setup()
         {
             var cardPath = DataCardUtility.WriteDataCard("KV");
-            var taskDataPath = Path.Combine(cardPath, "TASKDATA.XML");
+            var taskDataPath = Path.Combine(cardPath, "TASKDATA", "TASKDATA.XML");
             var xDocument = new XPathDocument(taskDataPath);
             var navigator = xDocument.CreateNavigator();
             var taskDataNode = navigator.SelectSingleNode("ISO11783_TaskData");

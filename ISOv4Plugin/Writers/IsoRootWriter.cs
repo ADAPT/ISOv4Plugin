@@ -24,6 +24,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
 
         private static void WriteMetaItems(TaskDocumentWriter writer)
         {
+            AttachedFileWriter.Write(writer);
             CropWriter.Write(writer);
             CustomerWriter.Write(writer);
             FarmWriter.Write(writer);

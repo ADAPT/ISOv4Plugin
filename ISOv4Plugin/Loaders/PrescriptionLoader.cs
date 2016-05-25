@@ -4,6 +4,7 @@ using System.Linq;
 using System.Xml;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.Prescriptions;
+using AgGateway.ADAPT.ApplicationDataModel.Products;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
 using AgGateway.ADAPT.ApplicationDataModel.Shapes;
 using AgGateway.ADAPT.ISOv4Plugin.Extensions;
@@ -210,7 +211,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
             var productIds = new List<int>();
             foreach (var dataVariable in treatmentZone.Variables)
             {
-                var product = _taskDocument.Products.FindById(dataVariable.ProductId) ?? _taskDocument.ProductMixes.FindById(dataVariable.ProductId);
+                Product product = _taskDocument.CropVarieties.FindById(dataVariable.ProductId) 
+                                    ?? (_taskDocument.Products.FindById(dataVariable.ProductId) 
+                                    ?? _taskDocument.ProductMixes.FindById(dataVariable.ProductId));
                 productIds.Add(product == null ? 0 : product.Id.ReferenceId);
             }
             prescription.ProductIds = productIds;

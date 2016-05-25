@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml;
+using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Writers
@@ -20,10 +21,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
         public Dictionary<int, string> Farms { get; private set; }
         public Dictionary<int, string> Fields { get; private set; }
         public Dictionary<int, string> Crops { get; private set; }
+        public Dictionary<int, string> CropVarieties { get; private set; }
         public Dictionary<int, string> Products { get; private set; }
         public Dictionary<int, string> Workers { get; private set; }
         public Dictionary<int, IsoUnit> UserUnits { get; private set; }
-
+        public Dictionary<string, CompoundIdentifier> Ids { get; set; } 
 
         public TaskDocumentWriter()
         {
@@ -31,9 +33,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
             Farms = new Dictionary<int, string>();
             Fields = new Dictionary<int, string>();
             Crops = new Dictionary<int, string>();
+            CropVarieties = new Dictionary<int, string>();
             Products = new Dictionary<int, string>();
             Workers = new Dictionary<int, string>();
             UserUnits = new Dictionary<int, IsoUnit>();
+            Ids = new Dictionary<string, CompoundIdentifier>();
         }
 
         public XmlWriter Write(string exportPath, ApplicationDataModel.ADM.ApplicationDataModel dataModel)
@@ -49,6 +53,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
 
             IsoRootWriter.Write(this);
             RootWriter.Flush();
+
             return RootWriter;
         }
 
@@ -74,9 +79,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
 
         public void Dispose()
         {
-            using (RootWriter)
-            {
-            }
+            if(RootWriter != null)
+                RootWriter.Dispose();
+
+            if(XmlStream != null)
+                XmlStream.Dispose();
         }
     }
 }

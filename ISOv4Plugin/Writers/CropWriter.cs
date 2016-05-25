@@ -12,7 +12,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
         private CropWriter(TaskDocumentWriter taskWriter)
             :base(taskWriter, "CTP")
         {
-            _cropVarietyWriter = new CropVarietyWriter();
+            _cropVarietyWriter = new CropVarietyWriter(taskWriter);
         }
 
         public static void Write(TaskDocumentWriter taskWriter)
@@ -37,6 +37,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
         private string WriteCrop(XmlWriter writer, Crop crop)
         {
             var cropId = GenerateId();
+            TaskWriter.Ids.Add(cropId, crop.Id);
+
             writer.WriteStartElement(XmlPrefix);
             writer.WriteAttributeString("A", cropId);
             writer.WriteAttributeString("B", crop.Name);

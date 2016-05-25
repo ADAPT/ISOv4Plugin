@@ -41,7 +41,7 @@ namespace ISOv4PluginLogTest
             _cropZoneMapperMock = new Mock<ICropZoneMapper>();
             _cropTypeMapperMock = new Mock<ICropTypeMapper>();
             _taskMapperMock = new Mock<ITaskMapper>();
-            
+
             _exporter = new Exporter(_taskMapperMock.Object);
         }
 
@@ -145,7 +145,7 @@ namespace ISOv4PluginLogTest
             _applicationDataModel.Documents.LoggedData = new List<LoggedData>();
 
             var tasks = new List<TSK>{ new TSK(), new TSK()};
-            _taskMapperMock.Setup(x => x.Map(_applicationDataModel.Documents.LoggedData, _applicationDataModel.Catalog, _datacardPath, It.IsAny<int>(), It.IsAny<bool>())).Returns(tasks);
+            _taskMapperMock.Setup(x => x.Map(_applicationDataModel.Documents.LoggedData, _applicationDataModel.Catalog, _datacardPath, It.IsAny<int>(), It.IsAny<TaskDocumentWriter>(), It.IsAny<bool>())).Returns(tasks);
 
             var result = Export();
             var tskXml = new StringBuilder();
@@ -196,7 +196,7 @@ namespace ISOv4PluginLogTest
         public void GivenNullApplicationDataModelWhenExportThenTasksNotMapped()
         {
             _exporter.Export(null, _datacardPath, new TaskDocumentWriter());
-            _taskMapperMock.Verify(x => x.Map(It.IsAny<IEnumerable<LoggedData>>(), It.IsAny<Catalog>(), It.IsAny<String>(), It.IsAny<int>(), It.IsAny<bool>()), Times.Never);
+            _taskMapperMock.Verify(x => x.Map(It.IsAny<IEnumerable<LoggedData>>(), It.IsAny<Catalog>(), It.IsAny<String>(), It.IsAny<int>(), It.IsAny<TaskDocumentWriter>(), It.IsAny<bool>()), Times.Never);
         }
 
         [Test]
@@ -220,7 +220,7 @@ namespace ISOv4PluginLogTest
 
             Export();
 
-            _taskMapperMock.Verify(x => x.Map(null, null, _datacardPath, It.IsAny<int>(), It.IsAny<bool>()), Times.Never());
+            _taskMapperMock.Verify(x => x.Map(null, null, _datacardPath, It.IsAny<int>(), It.IsAny<TaskDocumentWriter>(), It.IsAny<bool>()), Times.Never());
         }
 
         private string Export()

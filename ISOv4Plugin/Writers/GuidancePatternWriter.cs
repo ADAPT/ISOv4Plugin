@@ -47,8 +47,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
             if (string.IsNullOrEmpty(patternType))
                 return;
 
+            var guidancePatternId = GenerateId();
+            TaskWriter.Ids.Add(guidancePatternId, guidancePattern.Id);
+
             writer.WriteStartElement(XmlPrefix);
-            writer.WriteAttributeString("A", GenerateId());
+            writer.WriteAttributeString("A", guidancePatternId);
             writer.WriteXmlAttribute("B", guidancePattern.Description);
             writer.WriteAttributeString("C", patternType);
             writer.WriteXmlAttribute("D", GetPropagationDirection(guidancePattern.PropagationDirection));

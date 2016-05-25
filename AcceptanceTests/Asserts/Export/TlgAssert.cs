@@ -30,7 +30,7 @@ namespace AcceptanceTests.Asserts.Export
         private static void AreEqual(OperationData operationData, List<TimeScope> timeScopes, TLG tlg, string cardPath)
         {
             var fileName = tlg.A + ".xml";
-            var tlgXmlHeaderFilePath = Path.Combine(cardPath, fileName);
+            var tlgXmlHeaderFilePath = Path.Combine(cardPath, "TASKDATA", fileName);
             Assert.IsTrue(File.Exists(tlgXmlHeaderFilePath));
 
             var tims = new XmlReader().ReadTlgXmlData(cardPath, fileName);
@@ -43,7 +43,6 @@ namespace AcceptanceTests.Asserts.Export
             var binaryReader = new BinaryReader();
             var isoSpatialRecords =  binaryReader.Read(cardPath, tlg.A + ".bin", tims.First());
 
-            Debug.WriteLine("Asserting " + fileName);
             IsoSpatialRecordAssert.AreEqual(adaptSpatialRecords, meters, isoSpatialRecords);
         }
     }

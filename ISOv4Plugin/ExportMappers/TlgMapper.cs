@@ -5,12 +5,13 @@ using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ISOv4Plugin.Extensions;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
+using AgGateway.ADAPT.ISOv4Plugin.Writers;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
 {
     public interface ITlgMapper
     {
-        IEnumerable<TLG> Map(IEnumerable<OperationData> operationDatas, string datacardPath);
+        IEnumerable<TLG> Map(IEnumerable<OperationData> operationDatas, string datacardPath, TaskDocumentWriter taskDocumentWriter);
     }
 
     public class TlgMapper : ITlgMapper
@@ -31,16 +32,19 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
             _binaryWriter = binaryWriter;
         }
 
-        public IEnumerable<TLG> Map(IEnumerable<OperationData> operationDatas, string datacardPath)
+        public IEnumerable<TLG> Map(IEnumerable<OperationData> operationDatas, string datacardPath, TaskDocumentWriter taskDocumentWriter)
         {
             if (operationDatas == null)
-                return null;
-            return operationDatas.Select(x => Map(x, datacardPath));
+                return Enumerable.Empty<TLG>();
+            return operationDatas.Select(x => Map(x, datacardPath, taskDocumentWriter));
         }
 
-        private TLG Map(OperationData operationData, string datacardPath)
+        private TLG Map(OperationData operationData, string datacardPath, TaskDocumentWriter taskDocumentWriter)
         {
-            var tlg = new TLG { A = operationData.Id.FindIsoId()};
+            var tlgId = operationData.Id.FindIsoId() ?? "TLG" + operationData.Id.ReferenceId;
+            taskDocumentWriter.Ids.Add(tlgId, operationData.Id);
+
+            var tlg = new TLG { A = tlgId};
             var sections = operationData.GetAllSections();
             var meters = sections.SelectMany(x => x.GetMeters()).ToList();
             var spatialRecords = operationData.GetSpatialRecords != null ? operationData.GetSpatialRecords() : null;

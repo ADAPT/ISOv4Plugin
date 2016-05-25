@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
@@ -79,7 +80,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
 
         private void SetNumericMeterValue(ISOSpatialRow isoSpatialRow, NumericMeter meter, SpatialRecord spatialRecord)
         {
+
             var isoValue = isoSpatialRow.SpatialValues.SingleOrDefault(v => v.Id == meter.Id.FindIntIsoId());
+
+            
             if (isoValue != null)
             {
                 var value = new NumericRepresentationValue(meter.Representation as NumericRepresentation, meter.UnitOfMeasure, new NumericValue(meter.UnitOfMeasure, isoValue.Value));
@@ -92,7 +96,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             {
                 var value = _representationValueInterpolator.Interpolate(meter) as NumericRepresentationValue;
                 spatialRecord.SetMeterValue(meter, value);
-
             }
         }
     }

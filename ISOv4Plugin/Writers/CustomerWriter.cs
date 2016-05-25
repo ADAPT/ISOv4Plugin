@@ -28,6 +28,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
             {
                 var customerId = WriteCustomer(writer, grower);
                 TaskWriter.Customers[grower.Id.ReferenceId] = customerId;
+                TaskWriter.Ids.Add(customerId, grower.Id);
             }
         }
 

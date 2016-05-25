@@ -25,8 +25,8 @@ namespace AcceptanceTests.Asserts.Import
             Assert.AreEqual(isoSpatialRow.TimeStart, adaptSpatialRecord.Timestamp);
 
             var point = adaptSpatialRecord.Geometry as Point;
-            Assert.AreEqual(isoSpatialRow.EastPosition * CoordinateMultiplier, point.X);
-            Assert.AreEqual(isoSpatialRow.NorthPosition * CoordinateMultiplier, point.Y);
+            Assert.AreEqual(isoSpatialRow.EastPosition * CoordinateMultiplier, point.X, 0.000001);
+            Assert.AreEqual(isoSpatialRow.NorthPosition * CoordinateMultiplier, point.Y, 0.000001);
             Assert.AreEqual(isoSpatialRow.Elevation, point.Z);
 
             SpatialValueAssert.AreEqual(isoSpatialRow, adaptSpatialRecord, meters);

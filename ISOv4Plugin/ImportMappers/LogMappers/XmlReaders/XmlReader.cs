@@ -58,7 +58,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders
             var xPathDocument = new XPathDocument(file);
 
             return _timReader.Read(xPathDocument);
-        }
+            }
 
         public void Write(string dataPath, ISO11783_TaskData taskData)
         {

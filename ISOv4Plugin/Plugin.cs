@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
+using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.Prescriptions;
 using AgGateway.ADAPT.ApplicationDataModel.Products;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders;
@@ -87,13 +88,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin
         {
             using (var taskWriter = new TaskDocumentWriter())
             {
-                var iso11783TaskData = _exporter.Export(dataModel, exportPath, taskWriter);
+                var taskDataPath = Path.Combine(exportPath, "TASKDATA");
+                var iso11783TaskData = _exporter.Export(dataModel, taskDataPath, taskWriter);
 
-                var filePath = Path.Combine(exportPath, "TASKDATA", FileName);
+                var filePath = Path.Combine(taskDataPath, "TASKDATA.XML");
                 if (iso11783TaskData != null)
                 {
                     var xml = Encoding.UTF8.GetString(taskWriter.XmlStream.ToArray());
                     File.WriteAllText(filePath, xml);
+                    LinkListWriter.Write(exportPath, taskWriter.Ids);
                 }
             }
         }

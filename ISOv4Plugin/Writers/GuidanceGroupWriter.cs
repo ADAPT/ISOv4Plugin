@@ -27,7 +27,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
         private void WriteGuidacenGroup(XmlWriter writer, GuidanceGroup guidanceGroup)
         {
             writer.WriteStartElement(XmlPrefix);
-            writer.WriteAttributeString("A", GenerateId());
+            var guidanceGroupId = GenerateId();
+            TaskWriter.Ids.Add(guidanceGroupId, guidanceGroup.Id);
+            
+            writer.WriteAttributeString("A", guidanceGroupId);
             writer.WriteXmlAttribute("B", guidanceGroup.Description);
 
             WriteGuidancePatterns(writer, guidanceGroup.GuidancePatternIds);

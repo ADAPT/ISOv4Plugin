@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
@@ -110,6 +111,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
                 {
                     var value = _numericValueMapper.Map(numericMeter, spatialRecord);
                     binaryWriter.Write(value);
+
                 }
 
                 var isoEnumerateMeter = meter as ISOEnumeratedMeter;

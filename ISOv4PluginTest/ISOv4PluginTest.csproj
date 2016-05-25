@@ -69,6 +69,7 @@
   <ItemGroup>
     <Compile Include="Loaders\AllocationTimestampLoaderTests.cs" />
     <Compile Include="Loaders\CommentLoaderTests.cs" />
+    <Compile Include="Loaders\LinkGroupLoaderTest.cs" />
     <Compile Include="Loaders\PrescriptionLoaderTest.cs" />
     <Compile Include="Loaders\ProductMixLoaderTests.cs" />
     <Compile Include="Loaders\ProductLoaderTests.cs" />
@@ -83,6 +84,7 @@
       <DependentUpon>TestData.resx</DependentUpon>
     </Compile>
     <Compile Include="TestHelpers.cs" />
+    <Compile Include="Writers\LinkListWriterTest.cs" />
     <Compile Include="Writers\TreatmentZoneWriterTests.cs" />
     <Compile Include="Writers\ShapeWriterTests.cs" />
     <Compile Include="Writers\WorkerWriterTests.cs" />
@@ -395,6 +397,7 @@
     <EmbeddedResource Include="TestData\TestData.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>TestData.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

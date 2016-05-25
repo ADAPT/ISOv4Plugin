@@ -7,6 +7,7 @@ using AgGateway.ADAPT.ApplicationDataModel.Logistics;
 using AgGateway.ADAPT.ISOv4Plugin.ExportMappers;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
+using AgGateway.ADAPT.ISOv4Plugin.Writers;
 using Moq;
 using NUnit.Framework;
 
@@ -22,6 +23,7 @@ namespace ISOv4PluginLogTest.ExportMappers
         private Mock<ITimeMapper> _timeMapperMock;
         private TaskMapper _taskMapper;
         private Mock<ITlgMapper> _tlgMapperMock;
+        private TaskDocumentWriter _taskDocumentWriter;
 
         [SetUp]
         public void Setup()
@@ -30,6 +32,7 @@ namespace ISOv4PluginLogTest.ExportMappers
             _loggedDatas = new List<LoggedData>{ _loggedData };
             _catalog = new Catalog();
             _datacardPath = "";
+            _taskDocumentWriter = new TaskDocumentWriter();
 
             _timeMapperMock = new Mock<ITimeMapper>();
             _tlgMapperMock = new Mock<ITlgMapper>();
@@ -127,7 +130,7 @@ namespace ISOv4PluginLogTest.ExportMappers
             _loggedData.OperationData = new List<OperationData>();
 
             var tlgs = new List<TLG>{ new TLG(), new TLG() };
-            _tlgMapperMock.Setup(x => x.Map(_loggedData.OperationData, _datacardPath)).Returns(tlgs);
+            _tlgMapperMock.Setup(x => x.Map(_loggedData.OperationData, _datacardPath, _taskDocumentWriter)).Returns(tlgs);
 
             var result = MapSingle();
             Assert.Contains(tlgs[0], result.Items);
@@ -137,7 +140,7 @@ namespace ISOv4PluginLogTest.ExportMappers
         [Test]
         public void GivenLoggedDataWhenMapThenAIsExistingTasksPlusOne()
         {
-            var result = _taskMapper.Map(_loggedDatas, _catalog, _datacardPath, 0).First();
+            var result = _taskMapper.Map(_loggedDatas, _catalog, _datacardPath, 0, _taskDocumentWriter).First();
             Assert.AreEqual("TSK1", result.A);
         }
 
@@ -145,7 +148,7 @@ namespace ISOv4PluginLogTest.ExportMappers
         public void GivenLoggedDataWhenMapThenBIsMapped()
         {
             _loggedData.Description = "Winston";
-            var result = _taskMapper.Map(_loggedDatas, _catalog, _datacardPath, 0).First();
+            var result = _taskMapper.Map(_loggedDatas, _catalog, _datacardPath, 0, _taskDocumentWriter).First();
             Assert.AreEqual(_loggedData.Description, result.B);
         }
 
@@ -160,7 +163,7 @@ namespace ISOv4PluginLogTest.ExportMappers
         [Test]
         public void GivenNullLoggedDataWhenMapThenIsEmpty()
         {
-            var result = _taskMapper.Map(null, _catalog, _datacardPath, 0);
+            var result = _taskMapper.Map(null, _catalog, _datacardPath, 0, _taskDocumentWriter);
             Assert.IsEmpty(result);
         }
 
@@ -171,7 +174,7 @@ namespace ISOv4PluginLogTest.ExportMappers
 
         private IEnumerable<TSK> Map()
         {
-            return _taskMapper.Map(_loggedDatas, _catalog, _datacardPath, 0);
+            return _taskMapper.Map(_loggedDatas, _catalog, _datacardPath, 0, _taskDocumentWriter);
         }
     }
 }

@@ -10,7 +10,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
 {
     public interface ITaskMapper
     {
-        IEnumerable<TSK> Map(IEnumerable<LoggedData> loggedData, Catalog catalog, string datacardPath, int numberOfExistingTasks, bool includeIfPrescription = true);
+        IEnumerable<TSK> Map(IEnumerable<LoggedData> loggedData, Catalog catalog, string datacardPath, int numberOfExistingTasks, TaskDocumentWriter writer, bool includeIfPrescription = true);
     }
 
     public class TaskMapper : ITaskMapper
@@ -29,7 +29,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
             _tlgMapper = tlgMapper;
         }
 
-        public IEnumerable<TSK> Map(IEnumerable<LoggedData> loggedData, Catalog catalog, string datacardPath, int numberOfExistingTasks, bool includeIfPrescription = true)
+        public IEnumerable<TSK> Map(IEnumerable<LoggedData> loggedData, Catalog catalog, string datacardPath, int numberOfExistingTasks, TaskDocumentWriter writer, bool includeIfPrescription = true)
         {
             if (loggedData == null)
                 yield break;
@@ -42,32 +42,33 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
 
             for (int i = 0; i < loggedDataList.Count(); ++i)
             {
-                yield return Map(loggedDataList[i], catalog, datacardPath, numberOfExistingTasks + (i+1));
+                yield return Map(loggedDataList[i], catalog, datacardPath, numberOfExistingTasks + (i+1), writer);
             }
         }
 
-        private TSK Map(LoggedData loggedData, Catalog catalog, string datacardPath, int taskNumber)
+        private TSK Map(LoggedData loggedData, Catalog catalog, string datacardPath, int taskNumber, TaskDocumentWriter taskDocumentWriter)
         {
-            var tskID = "TSK" + taskNumber;
+            var taskId = "TSK" + taskNumber;
+            taskDocumentWriter.Ids.Add(taskId, loggedData.Id);
 
             var tsk = new TSK
             {
-                A = tskID,
+                A = taskId,
                 B = loggedData.Description,
                 C = FindGrowerId(loggedData.GrowerId, catalog),
                 D = FindFarmId(loggedData.FarmId, catalog),
                 E = FindFieldId(loggedData.FieldId, catalog),
                 G = TSKG.Item4,
-                Items = MapItems(loggedData, catalog, datacardPath)
+                Items = MapItems(loggedData, catalog, datacardPath, taskDocumentWriter)
             };
 
             return tsk;
         }
 
-        private IWriter[] MapItems(LoggedData loggedData, Catalog catalog, string datacardPath)
+        private IWriter[] MapItems(LoggedData loggedData, Catalog catalog, string datacardPath, TaskDocumentWriter taskDocumentWriter)
         {
             var times = FindAndMapTimes(loggedData.TimeScopeIds, catalog);
-            var tlgs = _tlgMapper.Map(loggedData.OperationData, datacardPath);
+            var tlgs = _tlgMapper.Map(loggedData.OperationData, datacardPath, taskDocumentWriter);
 
             var items = new List<IWriter>();
             

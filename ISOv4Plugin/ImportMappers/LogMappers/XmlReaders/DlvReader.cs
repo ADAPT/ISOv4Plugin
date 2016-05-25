@@ -21,12 +21,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders
         {
             if(nodeIterator == null)
                 return null;
-
+                
             var dvls = new List<DLV>();
             foreach (XPathNavigator node in nodeIterator)
             {
                 dvls.Add(Read(node));
-            }
+        }
             return dvls;
         }
 
@@ -48,7 +48,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders
         private T GetDlvAttribute<T>(XPathNavigator navigator, string attributeName) 
         {
             if (navigator.SelectSingleNode("@" + attributeName) == null)
-            {
+        {
                 return default(T);
             }
 
@@ -58,7 +58,5 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders
         }
 
 
-
-        
     }
 }

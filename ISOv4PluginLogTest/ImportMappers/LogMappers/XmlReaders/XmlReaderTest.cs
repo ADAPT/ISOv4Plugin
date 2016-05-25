@@ -27,7 +27,8 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers.XmlReaders
         [SetUp]
         public void Setup()
         {
-            _dataPath = Path.GetTempPath();
+            _dataPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(Path.Combine(_dataPath, "TASKDATA"));
             _fileName = "test.xml";
 
             _timReaderMock = new Mock<ITimReader>();
@@ -39,12 +40,12 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers.XmlReaders
         public void GivenDataPathAndFileNameWhenReadThenTaskDataReturned()
         {
             _xml = "<ISO11783_TaskData></ISO11783_TaskData>";
-            File.AppendAllText(Path.Combine(_dataPath, _fileName), _xml);
+            File.AppendAllText(Path.Combine(_dataPath, "TASKDATA", _fileName), _xml);
 
             var taskData = new ISO11783_TaskData();
             _taskDataReaderMock.Setup(x => x.Read(It.IsAny<XPathNavigator>(), It.IsAny<String>())).Returns(taskData);
 
-            var result = _xmlReader.Read(_dataPath, _fileName);
+            var result = _xmlReader.Read(Path.Combine(_dataPath, "TASKDATA"), _fileName);
             Assert.AreSame(taskData, result);
         }
 
@@ -52,12 +53,12 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers.XmlReaders
         public void GivenDataPathAndFileNameWhenReadTlgXmlDataThenTimReturned()
         {
             _xml = "<TIM></TIM>";
-            File.AppendAllText(Path.Combine(_dataPath, _fileName), _xml);
+            File.AppendAllText(Path.Combine(_dataPath, "TASKDATA", _fileName), _xml);
 
             var tim = new TIM();
             _timReaderMock.Setup(x => x.Read(It.IsAny<XPathDocument>())).Returns(new List<TIM>{tim});
 
-            var result = _xmlReader.ReadTlgXmlData(_dataPath, _fileName);
+            var result = _xmlReader.ReadTlgXmlData(Path.Combine(_dataPath, "TASKDATA"), _fileName);
             Assert.AreEqual(1, result.Count);
             Assert.AreSame(tim, result[0]);
         }
