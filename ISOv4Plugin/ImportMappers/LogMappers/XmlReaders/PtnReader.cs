@@ -16,27 +16,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders
 
     public class PtnReader : IPtnReader
     {
-        //public PTNHeader Read(XElement navigator)
-        //{
-        //    if (navigator == null)
-        //        return null;
-
-        //    return new PTNHeader
-        //    {
-        //        PositionNorth = new HeaderProperty(navigator.Attribute("A")),
-        //        PositionEast = new HeaderProperty(navigator.Attribute("B")),
-        //        PositionUp = new HeaderProperty(navigator.Attribute("C")),
-        //        PositionStatus = new HeaderProperty(navigator.Attribute("D")),
-        //        PDOP = new HeaderProperty(navigator.Attribute("E")),
-        //        HDOP = new HeaderProperty(navigator.Attribute("F")),
-        //        NumberOfSatellites = new HeaderProperty(navigator.Attribute("G")),
-        //        GpsUtcTime = new HeaderProperty(navigator.Attribute("H")),
-        //        GpsUtcDate = new HeaderProperty(navigator.Attribute("I")),
-        //    };
-
-        //}
- 
-
 
         public PTN Read(XPathNavigator navigator)
         {

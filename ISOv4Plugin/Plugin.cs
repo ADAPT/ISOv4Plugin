@@ -75,7 +75,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin
 
                 ConvertTaskDataFileToModel(taskDataFile, dataModel);
 
-
                 var iso11783TaskData = _xmlReader.Read(taskDataFile);
                 _importer.Import(iso11783TaskData, dataPath, dataModel);
                 adms.Add(dataModel);
@@ -88,14 +87,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin
         {
             using (var taskWriter = new TaskDocumentWriter())
             {
-                var xmlWriter = taskWriter.Write(exportPath, dataModel);
-
-                var iso11783TaskData = _exporter.Export(dataModel, exportPath, xmlWriter, taskWriter.XmlStream);
+                var iso11783TaskData = _exporter.Export(dataModel, exportPath, taskWriter);
 
                 var filePath = Path.Combine(exportPath, "TASKDATA", FileName);
                 if (iso11783TaskData != null)
                 {
-                    xmlWriter.Flush();
                     var xml = Encoding.UTF8.GetString(taskWriter.XmlStream.ToArray());
                     File.WriteAllText(filePath, xml);
                 }

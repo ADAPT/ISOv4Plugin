@@ -5,7 +5,6 @@ using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ApplicationDataModel.Logistics;
 using AgGateway.ADAPT.ISOv4Plugin.ExportMappers;
-using AgGateway.ADAPT.ISOv4Plugin.Extensions;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
 using Moq;
@@ -136,19 +135,20 @@ namespace ISOv4PluginLogTest.ExportMappers
         }
 
         [Test]
-        public void GivenLoggedDataWhenMapThenAIsMapped()
+        public void GivenLoggedDataWhenMapThenAIsExistingTasksPlusOne()
         {
-            _loggedData.Id.UniqueIds.Add(new UniqueId
-            {
-                Id = "TSK1",
-                CiTypeEnum = CompoundIdentifierTypeEnum.String,
-                Source = UniqueIdMapper.IsoSource,
-                SourceType = IdSourceTypeEnum.URI
-            });
-
-            var result = MapSingle();
-            Assert.AreEqual(_loggedData.Id.FindIsoId(), result.A);
+            var result = _taskMapper.Map(_loggedDatas, _catalog, _datacardPath, 0).First();
+            Assert.AreEqual("TSK1", result.A);
         }
+
+        [Test]
+        public void GivenLoggedDataWhenMapThenBIsMapped()
+        {
+            _loggedData.Description = "Winston";
+            var result = _taskMapper.Map(_loggedDatas, _catalog, _datacardPath, 0).First();
+            Assert.AreEqual(_loggedData.Description, result.B);
+        }
+
 
         [Test]
         public void GivenLoggedDataWhenMapThenGIsCompleted()

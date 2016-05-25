@@ -73,9 +73,9 @@ namespace ISOv4PluginTest.TestData {
         /// <summary>
         ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
         ///&lt;ISO11783_TaskData VersionMajor=&quot;4&quot; VersionMinor=&quot;0&quot; ManagementSoftwareManufacturer=&quot;AgGateway&quot; ManagementSoftwareVersion=&quot;1.0&quot; DataTransferOrigin=&quot;1&quot; TaskControllerManufacturer=&quot;&quot; TaskControllerVersion=&quot;&quot;&gt;
-        ///  &lt;PFD A=&quot;PFD1&quot; C=&quot;Field&quot; D=&quot;0&quot;&gt;
-        ///    &lt;GGP A=&quot;GGP1&quot; B=&quot;guidance group&quot;&gt;
-        ///      &lt;GPN A=&quot;GPN1&quot; B=&quot;AbLine&quot; C=&quot;1&quot; E=&quot;1&quot;&gt;
+        ///  &lt;PFD A=&quot;PFD0&quot; C=&quot;Field&quot; D=&quot;0&quot;&gt;
+        ///    &lt;GGP A=&quot;GGP0&quot; B=&quot;guidance group&quot;&gt;
+        ///      &lt;GPN A=&quot;GPN0&quot; B=&quot;AbLine&quot; C=&quot;1&quot; E=&quot;1&quot;&gt;
         ///        &lt;LSG A=&quot;5&quot;&gt;
         ///          &lt;PNT A=&quot;2&quot; B=&quot;start&quot; C=&quot;2&quot; D=&quot;1&quot; /&gt;
         ///          &lt;PNT A=&quot;2&quot; B=&quot;end&quot; C=&quot;4&quot; D=&quot;3&quot; /&gt;
@@ -991,10 +991,10 @@ namespace ISOv4PluginTest.TestData {
         /// <summary>
         ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
         ///&lt;ISO11783_TaskData VersionMajor=&quot;4&quot; VersionMinor=&quot;0&quot; ManagementSoftwareManufacturer=&quot;AgGateway&quot; ManagementSoftwareVersion=&quot;1.0&quot; DataTransferOrigin=&quot;1&quot; TaskControllerManufacturer=&quot;&quot; TaskControllerVersion=&quot;&quot;&gt;
-        ///  &lt;PFD A=&quot;PFD1&quot; C=&quot;Field&quot; D=&quot;0&quot;&gt;
-        ///    &lt;GGP A=&quot;GGP1&quot; B=&quot;guidance group 1&quot; /&gt;
-        ///    &lt;GGP A=&quot;GGP2&quot; B=&quot;guidance group 2&quot; /&gt;
-        ///    &lt;GGP A=&quot;GGP3&quot; B=&quot;guidance group 3&quot; /&gt;
+        ///  &lt;PFD A=&quot;PFD0&quot; C=&quot;Field&quot; D=&quot;0&quot;&gt;
+        ///    &lt;GGP A=&quot;GGP0&quot; B=&quot;guidance group 1&quot; /&gt;
+        ///    &lt;GGP A=&quot;GGP1&quot; B=&quot;guidance group 2&quot; /&gt;
+        ///    &lt;GGP A=&quot;GGP2&quot; B=&quot;guidance group 3&quot; /&gt;
         ///  &lt;/PFD&gt;
         ///&lt;/ISO11783_TaskData&gt;.
         /// </summary>
@@ -1017,15 +1017,15 @@ namespace ISOv4PluginTest.TestData {
         /// <summary>
         ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
         ///&lt;ISO11783_TaskData VersionMajor=&quot;4&quot; VersionMinor=&quot;0&quot; ManagementSoftwareManufacturer=&quot;AgGateway&quot; ManagementSoftwareVersion=&quot;1.0&quot; DataTransferOrigin=&quot;1&quot; TaskControllerManufacturer=&quot;&quot; TaskControllerVersion=&quot;&quot;&gt;
-        ///  &lt;PFD A=&quot;PFD1&quot; C=&quot;Field&quot; D=&quot;0&quot;&gt;
-        ///    &lt;GGP A=&quot;GGP1&quot; B=&quot;guidance group 1&quot;&gt;
+        ///  &lt;PFD A=&quot;PFD0&quot; C=&quot;Field&quot; D=&quot;0&quot;&gt;
+        ///    &lt;GGP A=&quot;GGP0&quot; B=&quot;guidance group 1&quot;&gt;
         ///      &lt;PLN A=&quot;1&quot;&gt;
         ///        &lt;LSG A=&quot;1&quot;&gt;
         ///          &lt;PNT A=&quot;2&quot; B=&quot;start&quot; C=&quot;2&quot; D=&quot;1&quot; /&gt;
         ///        &lt;/LSG&gt;
         ///      &lt;/PLN&gt;
         ///    &lt;/GGP&gt;
-        ///    &lt;GGP A=&quot;GGP2&quot; B=&quot;guidance group 2&quot;&gt;
+        ///    &lt;GGP A=&quot;GGP1&quot; B=&quot;guidance group 2&quot;&gt;
         ///      &lt;PLN A=&quot;1&quot;&gt;
         /// [rest of string was truncated]&quot;;.
         /// </summary>
@@ -1048,9 +1048,9 @@ namespace ISOv4PluginTest.TestData {
         /// <summary>
         ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
         ///&lt;ISO11783_TaskData VersionMajor=&quot;4&quot; VersionMinor=&quot;0&quot; ManagementSoftwareManufacturer=&quot;AgGateway&quot; ManagementSoftwareVersion=&quot;1.0&quot; DataTransferOrigin=&quot;1&quot; TaskControllerManufacturer=&quot;&quot; TaskControllerVersion=&quot;&quot;&gt;
-        ///  &lt;PFD A=&quot;PFD1&quot; C=&quot;Field&quot; D=&quot;0&quot;&gt;
-        ///    &lt;GGP A=&quot;GGP1&quot; B=&quot;guidance group 1&quot;&gt;
-        ///      &lt;GPN A=&quot;GPN1&quot; B=&quot;AbLine&quot; C=&quot;1&quot; E=&quot;1&quot;&gt;
+        ///  &lt;PFD A=&quot;PFD0&quot; C=&quot;Field&quot; D=&quot;0&quot;&gt;
+        ///    &lt;GGP A=&quot;GGP0&quot; B=&quot;guidance group 1&quot;&gt;
+        ///      &lt;GPN A=&quot;GPN0&quot; B=&quot;AbLine&quot; C=&quot;1&quot; E=&quot;1&quot;&gt;
         ///        &lt;LSG A=&quot;5&quot;&gt;
         ///          &lt;PNT A=&quot;2&quot; B=&quot;start&quot; C=&quot;2&quot; D=&quot;1&quot; /&gt;
         ///          &lt;PNT A=&quot;2&quot; B=&quot;end&quot; C=&quot;4&quot; D=&quot;3&quot; /&gt;
@@ -1497,10 +1497,10 @@ namespace ISOv4PluginTest.TestData {
         /// <summary>
         ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
         ///&lt;ISO11783_TaskData VersionMajor=&quot;4&quot; VersionMinor=&quot;0&quot; ManagementSoftwareManufacturer=&quot;AgGateway&quot; ManagementSoftwareVersion=&quot;1.0&quot; DataTransferOrigin=&quot;1&quot; TaskControllerManufacturer=&quot;&quot; TaskControllerVersion=&quot;&quot;&gt;
-        ///  &lt;PDT A=&quot;PDT1&quot; B=&quot;product&quot; /&gt;
-        ///  &lt;TSK A=&quot;TSK1&quot; B=&quot;test&quot; G=&quot;1&quot;&gt;
+        ///  &lt;PDT A=&quot;PDT0&quot; B=&quot;product&quot; /&gt;
+        ///  &lt;TSK A=&quot;TSK0&quot; B=&quot;test&quot; G=&quot;1&quot;&gt;
         ///    &lt;TZN A=&quot;1&quot; B=&quot;Default&quot;&gt;
-        ///      &lt;PDV A=&quot;0006&quot; B=&quot;0&quot; C=&quot;PDT1&quot; /&gt;
+        ///      &lt;PDV A=&quot;0006&quot; B=&quot;0&quot; C=&quot;PDT0&quot; /&gt;
         ///    &lt;/TZN&gt;
         ///    &lt;GRD A=&quot;2&quot; B=&quot;1&quot; C=&quot;0.00020000000000&quot; D=&quot;0.00010000000000&quot; E=&quot;3&quot; F=&quot;3&quot; G=&quot;GRD00000&quot; I=&quot;2&quot; J=&quot;1&quot; /&gt;
         ///  &lt;/TSK&gt;
@@ -1714,8 +1714,8 @@ namespace ISOv4PluginTest.TestData {
         /// <summary>
         ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
         ///&lt;ISO11783_TaskData VersionMajor=&quot;4&quot; VersionMinor=&quot;0&quot; ManagementSoftwareManufacturer=&quot;AgGateway&quot; ManagementSoftwareVersion=&quot;1.0&quot; DataTransferOrigin=&quot;1&quot; TaskControllerManufacturer=&quot;&quot; TaskControllerVersion=&quot;&quot;&gt;
-        ///  &lt;WKR A=&quot;WKR1&quot; B=&quot;last&quot; C=&quot;first&quot; D=&quot;line&quot; E=&quot;po box&quot; F=&quot;postal code&quot; G=&quot;city&quot; H=&quot;state&quot; I=&quot;country&quot; J=&quot;Fixed&quot; K=&quot;Mobile&quot; L=&quot;Fax&quot; M=&quot;Email&quot; /&gt;
-        ///  &lt;WKR A=&quot;WKR2&quot; B=&quot;last2&quot; C=&quot;first2&quot; D=&quot;line2&quot; E=&quot;po box2&quot; F=&quot;postal code2&quot; G=&quot;city2&quot; H=&quot;state2&quot; I=&quot;country2&quot; J=&quot;Fixed2 [rest of string was truncated]&quot;;.
+        ///  &lt;WKR A=&quot;WKR0&quot; B=&quot;last&quot; C=&quot;first&quot; D=&quot;line&quot; E=&quot;po box&quot; F=&quot;postal code&quot; G=&quot;city&quot; H=&quot;state&quot; I=&quot;country&quot; J=&quot;Fixed&quot; K=&quot;Mobile&quot; L=&quot;Fax&quot; M=&quot;Email&quot; /&gt;
+        ///  &lt;WKR A=&quot;WKR1&quot; B=&quot;last2&quot; C=&quot;first2&quot; D=&quot;line2&quot; E=&quot;po box2&quot; F=&quot;postal code2&quot; G=&quot;city2&quot; H=&quot;state2&quot; I=&quot;country2&quot; J=&quot;Fixed2 [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string WorkersWithAllDataOutput {
             get {
@@ -1736,9 +1736,9 @@ namespace ISOv4PluginTest.TestData {
         /// <summary>
         ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
         ///&lt;ISO11783_TaskData VersionMajor=&quot;4&quot; VersionMinor=&quot;0&quot; ManagementSoftwareManufacturer=&quot;AgGateway&quot; ManagementSoftwareVersion=&quot;1.0&quot; DataTransferOrigin=&quot;1&quot; TaskControllerManufacturer=&quot;&quot; TaskControllerVersion=&quot;&quot;&gt;
-        ///  &lt;WKR A=&quot;WKR1&quot; B=&quot;last&quot; C=&quot;first&quot; /&gt;
-        ///  &lt;WKR A=&quot;WKR2&quot; B=&quot;last2&quot; C=&quot;first2&quot; /&gt;
-        ///  &lt;WKR A=&quot;WKR3&quot; B=&quot;last3&quot; C=&quot;first3&quot; /&gt;
+        ///  &lt;WKR A=&quot;WKR0&quot; B=&quot;last&quot; C=&quot;first&quot; /&gt;
+        ///  &lt;WKR A=&quot;WKR1&quot; B=&quot;last2&quot; C=&quot;first2&quot; /&gt;
+        ///  &lt;WKR A=&quot;WKR2&quot; B=&quot;last3&quot; C=&quot;first3&quot; /&gt;
         ///&lt;/ISO11783_TaskData&gt;.
         /// </summary>
         internal static string WorkersWithNoContactsOutput {

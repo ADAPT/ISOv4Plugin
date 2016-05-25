@@ -17,13 +17,14 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             var tsks = new List<TSK>();
             var dataPath = Path.GetTempPath();
             var documents = new Documents();
+            var dataModel = new ApplicationDataModel {Documents = documents};
 
             var loggedDataMapperMock = new Mock<ILoggedDataMapper>();
 
             var documentMapper = new DocumentMapper(loggedDataMapperMock.Object);
-            documentMapper.Map(tsks, dataPath, documents);
+            documentMapper.Map(tsks, dataPath, dataModel);
 
-            loggedDataMapperMock.Verify(x => x.Map(tsks, dataPath, documents), Times.Once);
+            loggedDataMapperMock.Verify(x => x.Map(tsks, dataPath, dataModel), Times.Once);
         }
     }
 }

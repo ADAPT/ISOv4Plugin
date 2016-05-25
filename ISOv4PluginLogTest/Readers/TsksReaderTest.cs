@@ -16,6 +16,7 @@ namespace ISOv4PluginLogTest.Readers
         private TsksReader _tsksReader;
         private Mock<ITaskdataTimReader> _timReaderMock;
         private Mock<ITlgReader> _tlgReaderMock;
+        private Mock<IGrdReader> _grdReaderMock;
         private XPathNodeIterator _children;
 
         [SetUp]
@@ -31,7 +32,8 @@ namespace ISOv4PluginLogTest.Readers
 
             _timReaderMock = new Mock<ITaskdataTimReader>();
             _tlgReaderMock = new Mock<ITlgReader>();
-            _tsksReader = new TsksReader(_timReaderMock.Object, _tlgReaderMock.Object);
+            _grdReaderMock = new Mock<IGrdReader>();
+            _tsksReader = new TsksReader(_timReaderMock.Object, _tlgReaderMock.Object, _grdReaderMock.Object);
         }
 
         [Test]
@@ -44,24 +46,24 @@ namespace ISOv4PluginLogTest.Readers
         }
 
         [Test]
-        public void GivenIteratorWhenReadThenAllTasksAreRead()
+        public void GivenIteratorWhenReadThenAllTasksWithTlgsAreRead()
         {
             var result = _tsksReader.Read(_iterator);
-            Assert.AreEqual(4, result.Count);
+            Assert.AreEqual(1, result.Count);
         }
 
         [Test]
         public void GivenIteratorWhenReadThenAIsPopulated()
         {
             var result = _tsksReader.Read(_iterator).First();
-            Assert.AreEqual("TSK1", result.A);
+            Assert.AreEqual("TSK4", result.A);
         }
 
         [Test]
         public void GivenIteratorWhenReadThenBIsPopulated()
         {
             var result = _tsksReader.Read(_iterator).First();
-            Assert.AreEqual("Anhydrous", result.B);
+            Assert.AreEqual("PostSprayMod", result.B);
         }
 
         [Test]
@@ -82,7 +84,7 @@ namespace ISOv4PluginLogTest.Readers
         public void GivenIteratorWhenReadThenEIsPopulated()
         {
             var result = _tsksReader.Read(_iterator).First();
-            Assert.AreEqual("PFD3", result.E);
+            Assert.AreEqual("PFD2", result.E);
         }
 
         [Test]
@@ -96,7 +98,7 @@ namespace ISOv4PluginLogTest.Readers
         public void GivenIteratorWhenReadThenGIsPopulated()
         {
             var result = _tsksReader.Read(_iterator).First();
-            Assert.AreEqual(TSKG.Item1, result.G);
+            Assert.AreEqual(TSKG.Item3, result.G);
         }
 
         [Test]
@@ -120,6 +122,8 @@ namespace ISOv4PluginLogTest.Readers
             Assert.AreEqual(3, result.J);
         }
 
+
+
         [Test]
         public void GivenIteratorWhenReadThenItemsArePopulated()
         {
@@ -134,6 +138,7 @@ namespace ISOv4PluginLogTest.Readers
             _tsksReader.Read(_iterator);
             _tlgReaderMock.Verify(x => x.Read(It.IsAny<XPathNodeIterator>()));
             _timReaderMock.Verify(x => x.Read(It.IsAny<XPathNodeIterator>()));
+            _grdReaderMock.Verify(x => x.Read(It.IsAny<XPathNodeIterator>()));
         }
     }
 }

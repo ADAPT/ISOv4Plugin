@@ -41,13 +41,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin
             if (dataModel.Documents == null)
                 dataModel.Documents = CreateDocuments();
 
+            if(dataModel.Documents.LoggedData == null)
+                dataModel.Documents.LoggedData = new List<LoggedData>();
+
             var isoObjects = iso11783TaskData.Items;
             if (isoObjects == null || isoObjects.Length == 0)
                 return dataModel;
 
             var tasks = isoObjects.GetItemsOfType<TSK>();
 
-            _documentMapper.Map(tasks, dataPath, dataModel.Documents);
+            _documentMapper.Map(tasks, dataPath, dataModel);
             return dataModel;
         }
 

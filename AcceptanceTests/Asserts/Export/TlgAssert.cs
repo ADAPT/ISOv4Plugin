@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
@@ -41,6 +43,7 @@ namespace AcceptanceTests.Asserts.Export
             var binaryReader = new BinaryReader();
             var isoSpatialRecords =  binaryReader.Read(cardPath, tlg.A + ".bin", tims.First());
 
+            Debug.WriteLine("Asserting " + fileName);
             IsoSpatialRecordAssert.AreEqual(adaptSpatialRecords, meters, isoSpatialRecords);
         }
     }

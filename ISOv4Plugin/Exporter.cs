@@ -4,12 +4,13 @@ using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using AgGateway.ADAPT.ISOv4Plugin.ExportMappers;
+using AgGateway.ADAPT.ISOv4Plugin.Writers;
 
 namespace AgGateway.ADAPT.ISOv4Plugin
 {
     public interface IExporter
     {
-        XmlWriter Export(ApplicationDataModel.ADM.ApplicationDataModel applicationDataModel, string datacardPath, XmlWriter isoTaskData, MemoryStream xmlStream);
+        XmlWriter Export(ApplicationDataModel.ADM.ApplicationDataModel applicationDataModel, string datacardPath, TaskDocumentWriter writer);
     }
 
     public class Exporter : IExporter
@@ -26,20 +27,29 @@ namespace AgGateway.ADAPT.ISOv4Plugin
             _taskMapper = taskMapper;
         }
 
-        public XmlWriter Export(ApplicationDataModel.ADM.ApplicationDataModel applicationDataModel, string datacardPath, XmlWriter isoTaskData, MemoryStream xmlStream)
+        public XmlWriter Export(ApplicationDataModel.ADM.ApplicationDataModel applicationDataModel, string datacardPath, TaskDocumentWriter writer)
         {
-            if (applicationDataModel == null)
-                return isoTaskData;
-            
-            var numberOfExistingTasks = GetNumberOfExistingTasks(isoTaskData, xmlStream);
-            var tasks = applicationDataModel.Documents == null ? null : _taskMapper.Map(applicationDataModel.Documents.LoggedData, applicationDataModel.Catalog, datacardPath, numberOfExistingTasks);
-            if (tasks != null)
+            var isoTaskData = writer.Write(datacardPath, applicationDataModel);
+            var xmlStream = writer.XmlStream;
+
+            if (applicationDataModel != null)
             {
-                var taskList = tasks.ToList();
-                taskList.ForEach(t => t.WriteXML(isoTaskData));
+
+                var numberOfExistingTasks = GetNumberOfExistingTasks(isoTaskData, xmlStream);
+                var tasks = applicationDataModel.Documents == null
+                    ? null
+                    : _taskMapper.Map(applicationDataModel.Documents.LoggedData, applicationDataModel.Catalog,
+                        datacardPath, numberOfExistingTasks, false);
+                if (tasks != null)
+                {
+                    var taskList = tasks.ToList();
+                    taskList.ForEach(t => t.WriteXML(isoTaskData));
+                }
             }
+
             //Close the root element with </ISO11783_TaskData>
             isoTaskData.WriteEndElement();
+            isoTaskData.Close();
             return isoTaskData;
         }
 

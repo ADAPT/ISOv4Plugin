@@ -143,7 +143,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
 
         private static SpatialValue CreateSpatialValue(TIM tim, byte order, int value)
         {
-            var dlvs = tim.Items.Where(x => x.GetType() == typeof (DLV)); // Todo: change to DLV
+            var dlvs = tim.Items.Where(x => x.GetType() == typeof (DLV));
             var matchingDlv = dlvs.ElementAtOrDefault(order) as DLV;
 
             if (matchingDlv == null)

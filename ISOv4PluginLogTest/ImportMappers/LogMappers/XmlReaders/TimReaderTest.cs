@@ -133,6 +133,41 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers.XmlReaders
             Assert.AreSame(dlvs[2], result.Items[2]);
         }
 
+        [Test]
+        public void GivenXdocumentWhenReadThenDlvAndPtnsAreMapped()
+        {
+            _memStream = new MemoryStream();
+            using (var xmlWriter = XmlWriter.Create(_memStream, new XmlWriterSettings { Encoding = new UTF8Encoding(false) }))
+            {
+                xmlWriter.WriteStartElement("TIM");
+                xmlWriter.WriteStartElement("PTN");
+                xmlWriter.WriteEndElement();
+                xmlWriter.WriteStartElement("DLV");
+                xmlWriter.WriteEndElement();
+                xmlWriter.WriteStartElement("DLV");
+                xmlWriter.WriteEndElement();
+                xmlWriter.WriteStartElement("DLV");
+                xmlWriter.WriteEndElement();
+                xmlWriter.WriteEndElement();
+                xmlWriter.Flush();
+                xmlWriter.Close();
+            }
+
+            var xpathDoc = CreateXDoc();
+
+            var ptn = new PTN();
+            _ptnReaderMock.Setup(x => x.Read(It.IsAny<XPathNodeIterator>())).Returns(new List<PTN> { ptn });
+
+            var dlvs = new List<DLV> { new DLV(), new DLV(), new DLV() };
+            _dlvReaderMock.Setup(x => x.Read(It.Is<XPathNodeIterator>(y => y.Count == 3))).Returns(dlvs);
+
+            var result = _timReader.Read(xpathDoc).First();
+            Assert.AreSame(ptn, result.Items[0]);
+            Assert.AreSame(dlvs[0], result.Items[1]);
+            Assert.AreSame(dlvs[1], result.Items[2]);
+            Assert.AreSame(dlvs[2], result.Items[3]);
+        }
+
         //todo both ptn and dlvs test
         [Test]
         public void GivenXdocumentWithoutTimWhenReadThenIsNull()

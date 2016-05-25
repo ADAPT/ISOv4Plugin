@@ -124,6 +124,7 @@
     <Compile Include="Loaders\UnitLoader.cs" />
     <Compile Include="Loaders\WorkerLoader.cs" />
     <Compile Include="Models\DLV.cs" />
+    <Compile Include="Models\GRD.cs" />
     <Compile Include="Models\IWriter.cs" />
     <Compile Include="Models\PTN.cs" />
     <Compile Include="Models\PTND.cs" />
@@ -162,6 +163,7 @@
     <Compile Include="ObjectModel\SpatialValue.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Readers\GrdReader.cs" />
     <Compile Include="Readers\TaskDataReader.cs" />
     <Compile Include="Readers\TaskdataTimReader.cs" />
     <Compile Include="Readers\TlgReader.cs" />

@@ -14,15 +14,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Readers
     {
         private readonly ITaskdataTimReader _taskdataTimReader;
         private readonly ITlgReader _tlgReader;
+        private readonly IGrdReader _grdReader;
 
-        public TsksReader() : this(new TaskdataTimReader(), new TlgReader())
+        public TsksReader() : this(new TaskdataTimReader(), new TlgReader(), new GrdReader())
         {
             
         }
-        public TsksReader(ITaskdataTimReader taskdataTimReader, ITlgReader tlgReader)
+        public TsksReader(ITaskdataTimReader taskdataTimReader, ITlgReader tlgReader, IGrdReader grdReader)
         {
             _taskdataTimReader = taskdataTimReader;
             _tlgReader = tlgReader;
+            _grdReader = grdReader;
         }
 
         public List<TSK> Read(XPathNodeIterator iterator)
@@ -33,6 +35,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Readers
 
             foreach (XPathNavigator node in iterator)
             {
+                if (node.SelectChildren("TLG", node.NamespaceURI).Count == 0)
+                    continue;
+
                 var tsk = new TSK
                 {
                     A = GetStringValue(node, "A"),
@@ -74,10 +79,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Readers
             var children = node.SelectChildren(XPathNodeType.Element);
             var tims = _taskdataTimReader.Read(children.Current.Select("./" + "TIM"));
             var tlgs = _tlgReader.Read(children.Current.Select("./"+"TLG"));
+            var grds = _grdReader.Read(children.Current.Select("./" + "GRD"));
 
             var items = new List<IWriter>();
             items.AddRange(tims);
             items.AddRange(tlgs);
+            items.AddRange(grds);
             return items.ToArray();
         }
 

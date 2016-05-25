@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Xml;
@@ -40,7 +41,7 @@ namespace ISOv4PluginLogTest
             _cropZoneMapperMock = new Mock<ICropZoneMapper>();
             _cropTypeMapperMock = new Mock<ICropTypeMapper>();
             _taskMapperMock = new Mock<ITaskMapper>();
-
+            
             _exporter = new Exporter(_taskMapperMock.Object);
         }
 
@@ -144,7 +145,7 @@ namespace ISOv4PluginLogTest
             _applicationDataModel.Documents.LoggedData = new List<LoggedData>();
 
             var tasks = new List<TSK>{ new TSK(), new TSK()};
-            _taskMapperMock.Setup(x => x.Map(_applicationDataModel.Documents.LoggedData, _applicationDataModel.Catalog, _datacardPath, It.IsAny<int>())).Returns(tasks);
+            _taskMapperMock.Setup(x => x.Map(_applicationDataModel.Documents.LoggedData, _applicationDataModel.Catalog, _datacardPath, It.IsAny<int>(), It.IsAny<bool>())).Returns(tasks);
 
             var result = Export();
             var tskXml = new StringBuilder();
@@ -192,11 +193,10 @@ namespace ISOv4PluginLogTest
         }
 
         [Test]
-        public void GivenNullApplicationDataModelWhenExportThenIsNotChanged()
+        public void GivenNullApplicationDataModelWhenExportThenTasksNotMapped()
         {
-            var iso11783TaskData = XmlWriter.Create(new StringBuilder());
-            var result = _exporter.Export(null, _datacardPath, iso11783TaskData, new MemoryStream());
-            Assert.AreEqual(iso11783TaskData, result);
+            _exporter.Export(null, _datacardPath, new TaskDocumentWriter());
+            _taskMapperMock.Verify(x => x.Map(It.IsAny<IEnumerable<LoggedData>>(), It.IsAny<Catalog>(), It.IsAny<String>(), It.IsAny<int>(), It.IsAny<bool>()), Times.Never);
         }
 
         [Test]
@@ -220,15 +220,14 @@ namespace ISOv4PluginLogTest
 
             Export();
 
-            _taskMapperMock.Verify(x => x.Map(null, null, _datacardPath, It.IsAny<int>()), Times.Never());
+            _taskMapperMock.Verify(x => x.Map(null, null, _datacardPath, It.IsAny<int>(), It.IsAny<bool>()), Times.Never());
         }
 
         private string Export()
         {
             using (var taskDocumentWriter = new TaskDocumentWriter())
             {
-                var isoTaskData = taskDocumentWriter.Write(Path.GetTempPath(), _applicationDataModel);
-                var xmlWriter = _exporter.Export(_applicationDataModel, _datacardPath, isoTaskData, taskDocumentWriter.XmlStream);
+                var xmlWriter = _exporter.Export(_applicationDataModel, _datacardPath, taskDocumentWriter);
                 xmlWriter.Flush();
                 return Encoding.UTF8.GetString(taskDocumentWriter.XmlStream.ToArray());
             }

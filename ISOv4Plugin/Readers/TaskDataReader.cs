@@ -89,7 +89,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Readers
 
         private IEnumerable<IWriter> ReadTsks(XPathNodeIterator children)
         {
-            return _tsksReader.Read(children.Current.Select("./" + TSK));
+            var tsks = children.Current.Select("./" + TSK);
+            return _tsksReader.Read(tsks);
         }
 
         private List<TSK> GetExternalTasks(string path, XPathNodeIterator externalChildren)

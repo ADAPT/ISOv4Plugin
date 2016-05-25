@@ -55,6 +55,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
         {
             foreach (XmlNode inputNode in inputNodes)
             {
+                if(inputNode.SelectNodes("TLG").Count == 0)
+                    continue;
+
                 var task = LoadTask(inputNode);
                 if (task != null)
                     _tasks.Add(task);

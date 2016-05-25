@@ -2,8 +2,10 @@
 using System.Linq;
 using System.Xml;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
+using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ApplicationDataModel.Prescriptions;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
+using AgGateway.ADAPT.ISOv4Plugin.ExportMappers;
 using AgGateway.ADAPT.ISOv4Plugin.Extensions;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
 using AgGateway.ADAPT.Representation.UnitSystem.ExtensionMethods;
@@ -29,10 +31,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
                 return;
 
             var writer = new PrescriptionWriter(taskWriter);
-            writer.WritePrescriptions(taskWriter.RootWriter);
+            writer.WritePrescriptions(taskWriter);
         }
 
-        private void WritePrescriptions(XmlWriter writer)
+        private void WritePrescriptions(TaskDocumentWriter writer)
         {
             foreach (var prescription in TaskWriter.DataModel.Catalog.Prescriptions.OfType<RasterGridPrescription>())
             {
@@ -40,12 +42,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
             }
         }
 
-        private void WritePrescription(XmlWriter writer, RasterGridPrescription prescription)
+        private void WritePrescription(TaskDocumentWriter taskWriter, RasterGridPrescription prescription)
         {
+            var writer = taskWriter.RootWriter;
+
             if (!IsValidPrescription(prescription))
                 return;
 
             writer.WriteStartElement(XmlPrefix);
+
             writer.WriteAttributeString("A", GenerateId());
             writer.WriteAttributeString("B", prescription.Description);
 
@@ -57,7 +62,23 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
             var defaultTreatmentZone = WriteTreatmentZones(writer, prescription);
 
             _gridWriter.Write(writer, prescription, defaultTreatmentZone);
+            var matchingLoggedData = null as LoggedData;
 
+            if (taskWriter.DataModel.Documents != null && taskWriter.DataModel.Documents.LoggedData != null)
+                matchingLoggedData = taskWriter.DataModel.Documents.LoggedData.SingleOrDefault(x => x.OperationData.FirstOrDefault(y => y.PrescriptionId == prescription.Id.ReferenceId) != null);
+
+            if (matchingLoggedData != null)
+            {
+                var taskMapper = new TaskMapper();
+                var mappedTsk =
+                    taskMapper.Map(new List<LoggedData> { matchingLoggedData }, taskWriter.DataModel.Catalog,
+                        taskWriter.BaseFolder, 0).First();
+
+                foreach (var item in mappedTsk.Items)
+                {
+                    item.WriteXML(taskWriter.RootWriter);
+                }
+            }
             writer.WriteEndElement();
         }
 

@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
+using AgGateway.ADAPT.ApplicationDataModel.Representations;
+using AgGateway.ADAPT.ISOv4Plugin.Extensions;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
@@ -9,7 +11,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
 {
     public interface IOperationDataMapper
     {
-        IEnumerable<OperationData> Map(List<TLG> tlgs, string datacardPath, int loggedDataReferenceId);
+        IEnumerable<OperationData> Map(List<TLG> tlgs, int? prescrptionId, string datacardPath, int loggedDataReferenceId);
     }
 
     public class OperationDataMapper : IOperationDataMapper
@@ -34,12 +36,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             _binaryReader = binaryReader;
         }
 
-        public IEnumerable<OperationData> Map(List<TLG> tlgs, string datacardPath, int loggedDataReferenceId)
+        public IEnumerable<OperationData> Map(List<TLG> tlgs, int? prescrptionId, string datacardPath, int loggedDataReferenceId)
         {
-            return tlgs.Select(x => Map(x, datacardPath, loggedDataReferenceId)).ToList();
+            return tlgs.Select(x => Map(x, prescrptionId, datacardPath, loggedDataReferenceId)).ToList();
         }
 
-        private OperationData Map(TLG tlg, string datacardPath, int loggedDataReferenceId)
+        private OperationData Map(TLG tlg, int? prescrptionId, string datacardPath, int loggedDataReferenceId)
         {
             var tim = _xmlReader.ReadTlgXmlData(datacardPath, tlg.A + ".xml").First();
             var isoRecords = _binaryReader.Read(datacardPath, tlg.A + ".bin", tim).ToList();
@@ -52,6 +54,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
                 GetSpatialRecords = () => _spatialRecordMapper.Map(isoRecords, meters),
                 MaxDepth = 0,
                 GetSections = x => x == 0 ? sections : new List<Section>(),
+                PrescriptionId = prescrptionId
             };
             operationData.Id.UniqueIds.Add(_uniqueIdMapper.Map(tlg.A));
 

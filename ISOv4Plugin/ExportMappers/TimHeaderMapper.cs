@@ -40,19 +40,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
                 C = null,
                 DSpecified = true,
                 D = TIMD.Item4,
-                
-                
-                
-
-
-                //Start = new HeaderProperty {State = HeaderPropertyState.IsEmpty},
-                //Stop = new HeaderProperty{ State = HeaderPropertyState.IsNull},
-                //Duration = new HeaderProperty{ State = HeaderPropertyState.IsNull},
-                //Type = new HeaderProperty{ State = HeaderPropertyState.HasValue, Value = (int)TIMD.Item4},
-                //PtnHeader = _ptnHeaderMapper.Map(),
-                //DLVs = _dlvHeaderMapper.Map(meters).ToList()
             };
 
+            // TODO:  This is not mapping the PTN Header?
             var ptn = _ptnHeaderMapper.Map();
             var dlvs = _dlvHeaderMapper.Map(meters).ToList();
             var iWriters = new List<IWriter>();

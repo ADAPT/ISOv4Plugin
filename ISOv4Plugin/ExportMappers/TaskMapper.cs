@@ -4,12 +4,13 @@ using AgGateway.ADAPT.ApplicationDataModel.ADM;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ISOv4Plugin.Extensions;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
+using AgGateway.ADAPT.ISOv4Plugin.Writers;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
 {
     public interface ITaskMapper
     {
-        IEnumerable<TSK> Map(IEnumerable<LoggedData> loggedData, Catalog catalog, string datacardPath, int numberOfExistingTasks);
+        IEnumerable<TSK> Map(IEnumerable<LoggedData> loggedData, Catalog catalog, string datacardPath, int numberOfExistingTasks, bool includeIfPrescription = true);
     }
 
     public class TaskMapper : ITaskMapper
@@ -28,23 +29,31 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
             _tlgMapper = tlgMapper;
         }
 
-        public IEnumerable<TSK> Map(IEnumerable<LoggedData> loggedData, Catalog catalog, string datacardPath, int numberOfExistingTasks)
+        public IEnumerable<TSK> Map(IEnumerable<LoggedData> loggedData, Catalog catalog, string datacardPath, int numberOfExistingTasks, bool includeIfPrescription = true)
         {
             if (loggedData == null)
                 yield break;
 
-            var loggedDataList = loggedData.ToList();
+            var loggedDataList = null as List<LoggedData>; 
+            if(includeIfPrescription)
+                loggedDataList = loggedData.ToList();
+            else
+                loggedDataList = loggedData.Where(x => x.OperationData != null && x.OperationData.All(y => y.PrescriptionId == null)).ToList();
+
             for (int i = 0; i < loggedDataList.Count(); ++i)
             {
-                yield return Map(loggedDataList[i], catalog, datacardPath, numberOfExistingTasks + (i + 1));
+                yield return Map(loggedDataList[i], catalog, datacardPath, numberOfExistingTasks + (i+1));
             }
         }
 
         private TSK Map(LoggedData loggedData, Catalog catalog, string datacardPath, int taskNumber)
         {
+            var tskID = "TSK" + taskNumber;
+
             var tsk = new TSK
             {
-                A = "TSK" + taskNumber,
+                A = tskID,
+                B = loggedData.Description,
                 C = FindGrowerId(loggedData.GrowerId, catalog),
                 D = FindFarmId(loggedData.FarmId, catalog),
                 E = FindFieldId(loggedData.FieldId, catalog),

@@ -1,11 +1,10 @@
 ﻿using System;
 using System.IO;
-using System.Text;
-using System.Xml;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
 using AgGateway.ADAPT.ISOv4Plugin;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
+using AgGateway.ADAPT.ISOv4Plugin.Writers;
 using Moq;
 using NUnit.Framework;
 
@@ -49,7 +48,7 @@ namespace ISOv4PluginLogTest
             var adm = new ApplicationDataModel();
 
             _plugin.Export(adm, _dataPath);
-            _exporterMock.Verify(x => x.Export(adm, _dataPath, It.IsAny<XmlWriter>(), It.IsAny<MemoryStream>()), Times.Once);
+            _exporterMock.Verify(x => x.Export(adm, _dataPath, It.IsAny<TaskDocumentWriter>()), Times.Once);
         }
 
         [TearDown]

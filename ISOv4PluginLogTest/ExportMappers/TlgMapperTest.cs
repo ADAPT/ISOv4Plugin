@@ -52,6 +52,16 @@ namespace ISOv4PluginLogTest.ExportMappers
         }
 
         [Test]
+        public void GivenOperationDatasNullWhenMapThenTlgsAreMapped()
+        {
+            _operationDatas = null;
+
+            var result = Map();
+
+            Assert.IsNull(result);
+        }
+
+        [Test]
         public void GivenOperationDatasWhenMapThenAIsMapped()
         {
             _operationData.Id.UniqueIds.Add(new UniqueId
