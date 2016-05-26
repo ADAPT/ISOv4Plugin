@@ -32,20 +32,20 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
                 return;
 
             var writer = new PrescriptionWriter(taskWriter);
-            writer.WritePrescriptions(taskWriter);
+            writer.WritePrescriptions();
         }
 
-        private void WritePrescriptions(TaskDocumentWriter writer)
+        private void WritePrescriptions()
         {
             foreach (var prescription in TaskWriter.DataModel.Catalog.Prescriptions.OfType<RasterGridPrescription>())
             {
-                WritePrescription(writer, prescription);
+                WritePrescription(prescription);
             }
         }
 
-        private void WritePrescription(TaskDocumentWriter taskWriter, RasterGridPrescription prescription)
+        private void WritePrescription(RasterGridPrescription prescription)
         {
-            var writer = taskWriter.RootWriter;
+            var writer = TaskWriter.RootWriter;
 
             if (!IsValidPrescription(prescription))
                 return;
@@ -66,8 +66,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
             _gridWriter.Write(writer, prescription, defaultTreatmentZone);
             var matchingLoggedData = null as LoggedData;
 
-            if (taskWriter.DataModel.Documents != null && taskWriter.DataModel.Documents.LoggedData != null)
-                matchingLoggedData = taskWriter.DataModel.Documents.LoggedData.Where(ld => ld.OperationData != null).SingleOrDefault(x => x.OperationData.FirstOrDefault(y => y.PrescriptionId == prescription.Id.ReferenceId) != null);
+            if (TaskWriter.DataModel.Documents != null && TaskWriter.DataModel.Documents.LoggedData != null)
+                matchingLoggedData = TaskWriter.DataModel.Documents.LoggedData.Where(ld => ld.OperationData != null).SingleOrDefault(x => x.OperationData.FirstOrDefault(y => y.PrescriptionId == prescription.Id.ReferenceId) != null);
 
             if (matchingLoggedData != null)
             {
@@ -75,13 +75,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
                 var isoInt = Convert.ToInt32(prescriptionId.Remove(0, 3))-1;
 
 
-                var mappedTsk =
-                    taskMapper.Map(new List<LoggedData> { matchingLoggedData }, taskWriter.DataModel.Catalog,
-                        taskWriter.BaseFolder, isoInt, taskWriter).First();
+                var mappedTsk = taskMapper.Map(new List<LoggedData> { matchingLoggedData }, TaskWriter.DataModel.Catalog, TaskWriter.BaseFolder, isoInt, TaskWriter).First();
 
                 foreach (var item in mappedTsk.Items)
                 {
-                    item.WriteXML(taskWriter.RootWriter);
+                    item.WriteXML(TaskWriter.RootWriter);
                 }
             }
             else

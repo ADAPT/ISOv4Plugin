@@ -12,7 +12,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin
         private static UnitFactory _instance;
         private static readonly object InstanceLock = new object();
 
-        static readonly Dictionary<UnitOfMeasureDimensionEnum, int> DimensionToDdi =
+        public static readonly Dictionary<UnitOfMeasureDimensionEnum, int> DimensionToDdi =
             new Dictionary<UnitOfMeasureDimensionEnum, int>
             {
                 { UnitOfMeasureDimensionEnum.VolumePerArea, 1 },
@@ -25,7 +25,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin
                 { UnitOfMeasureDimensionEnum.MassPerTime, 41 },
                 { UnitOfMeasureDimensionEnum.PerTime, 46 },
                 { UnitOfMeasureDimensionEnum.Mass, 74 },
-                { UnitOfMeasureDimensionEnum.Count, 77 }
+                { UnitOfMeasureDimensionEnum.Count, 77 },
+                { UnitOfMeasureDimensionEnum.PerVolume, 89 },
+                { UnitOfMeasureDimensionEnum.Volume, 89 }
             };
 
         private class Interval : IComparable<Interval>

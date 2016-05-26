@@ -78,7 +78,7 @@
     <Compile Include="Loaders\FarmLoaderTests.cs" />
     <Compile Include="Loaders\CustomerLoaderTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TestData\TestData.Designer.cs">
+    <Compile Include="TestData\TestData1.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>TestData.resx</DependentUpon>
@@ -396,8 +396,8 @@
   <ItemGroup>
     <EmbeddedResource Include="TestData\TestData.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>TestData.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
+      <LastGenOutput>TestData1.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
