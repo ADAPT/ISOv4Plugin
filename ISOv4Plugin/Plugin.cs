@@ -74,10 +74,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin
             {
                 var dataModel = new ApplicationDataModel.ADM.ApplicationDataModel();
 
-                ConvertTaskDataFileToModel(taskDataFile, dataModel);
+                var taskDataDocument = ConvertTaskDataFileToModel(taskDataFile, dataModel);
 
                 var iso11783TaskData = _xmlReader.Read(taskDataFile);
-                _importer.Import(iso11783TaskData, dataPath, dataModel);
+                _importer.Import(iso11783TaskData, dataPath, dataModel, taskDataDocument.LinkedIds);
                 adms.Add(dataModel);
             }
 
@@ -124,11 +124,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin
             return taskDataFiles;
         }
 
-        private static void ConvertTaskDataFileToModel(string taskDataFile, ApplicationDataModel.ADM.ApplicationDataModel dataModel)
+        private static TaskDataDocument ConvertTaskDataFileToModel(string taskDataFile, ApplicationDataModel.ADM.ApplicationDataModel dataModel)
         {
             var taskDocument = new TaskDataDocument();
             if (taskDocument.LoadFromFile(taskDataFile) == false)
-                return;
+                return taskDocument;
 
             var catalog = new Catalog();
             catalog.Growers = taskDocument.Customers.Values.ToList();
@@ -154,6 +154,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin
             documents.LoggedData = taskDocument.Tasks;
 
             dataModel.Documents = documents;
+
+            return taskDocument;
         }
     }
 }

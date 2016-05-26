@@ -67,7 +67,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
             var matchingLoggedData = null as LoggedData;
 
             if (taskWriter.DataModel.Documents != null && taskWriter.DataModel.Documents.LoggedData != null)
-                matchingLoggedData = taskWriter.DataModel.Documents.LoggedData.SingleOrDefault(x => x.OperationData.FirstOrDefault(y => y.PrescriptionId == prescription.Id.ReferenceId) != null);
+                matchingLoggedData = taskWriter.DataModel.Documents.LoggedData.Where(ld => ld.OperationData != null).SingleOrDefault(x => x.OperationData.FirstOrDefault(y => y.PrescriptionId == prescription.Id.ReferenceId) != null);
 
             if (matchingLoggedData != null)
             {

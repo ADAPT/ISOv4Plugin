@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
@@ -29,6 +30,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         private List<TIM> _tims;
         private List<ISOSpatialRow> _isoSpatialRows;
         private List<Section> _sections;
+        private Dictionary<string, List<UniqueId>> _linkedIds;
 
         [SetUp]
         public void Setup()
@@ -38,6 +40,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             _tlgs = new List<TLG>{ _tlg };
             _tim = new TIM();
             _tims = new List<TIM> {_tim};
+            _linkedIds = new Dictionary<string, List<UniqueId>>();
 
             _spatialRecordMapperMock = new Mock<ISpatialRecordMapper>();
             _xmlReaderMock = new Mock<IXmlReader>();
@@ -126,7 +129,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenTlgAndPrescriptionIdWhenMapThenPrescriptionIdIsSet()
         {
-            var result = _operationDataMapper.Map(_tlgs, 5, _datacardPath, _loggedDataId).ToList().First();
+            var result = _operationDataMapper.Map(_tlgs, 5, _datacardPath, _loggedDataId, _linkedIds).ToList().First();
 
             Assert.AreEqual(5, result.PrescriptionId);
         }
@@ -138,6 +141,24 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             Assert.IsNull(result.PrescriptionId);
         }
 
+        [Test]
+        public void GivenTlgWithIdsInLinkListThenIdsAreAdded()
+        {
+            var uniqueId = new UniqueId
+            {
+                CiTypeEnum = CompoundIdentifierTypeEnum.UUID,
+                Source = "source1",
+                Id = Guid.NewGuid().ToString(),
+                SourceType = IdSourceTypeEnum.GLN
+            };
+            _linkedIds.Add(_tlg.A, new List<UniqueId>{ uniqueId });
+
+            var result = MapSingle();
+
+            Assert.Contains(uniqueId, result.Id.UniqueIds);
+
+        }
+
         public OperationData MapSingle()
         {
             return Map().First();
@@ -145,7 +166,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
 
         public List<OperationData> Map()
         {
-            return _operationDataMapper.Map(_tlgs, null, _datacardPath, _loggedDataId).ToList();
+            return _operationDataMapper.Map(_tlgs, null, _datacardPath, _loggedDataId, _linkedIds).ToList();
         }
     }
 }

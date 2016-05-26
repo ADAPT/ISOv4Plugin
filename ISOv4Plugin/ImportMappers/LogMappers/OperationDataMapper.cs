@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
 using AgGateway.ADAPT.ISOv4Plugin.Extensions;
@@ -11,7 +12,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
 {
     public interface IOperationDataMapper
     {
-        IEnumerable<OperationData> Map(List<TLG> tlgs, int? prescrptionId, string datacardPath, int loggedDataReferenceId);
+        IEnumerable<OperationData> Map(List<TLG> tlgs, int? prescrptionId, string datacardPath, int loggedDataReferenceId, Dictionary<string, List<UniqueId>> linkedIds);
     }
 
     public class OperationDataMapper : IOperationDataMapper
@@ -36,12 +37,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             _binaryReader = binaryReader;
         }
 
-        public IEnumerable<OperationData> Map(List<TLG> tlgs, int? prescrptionId, string datacardPath, int loggedDataReferenceId)
+        public IEnumerable<OperationData> Map(List<TLG> tlgs, int? prescrptionId, string datacardPath, int loggedDataReferenceId, Dictionary<string, List<UniqueId>> linkedIds)
         {
-            return tlgs.Select(x => Map(x, prescrptionId, datacardPath, loggedDataReferenceId)).ToList();
+            return tlgs.Select(x => Map(x, prescrptionId, datacardPath, loggedDataReferenceId, linkedIds)).ToList();
         }
 
-        private OperationData Map(TLG tlg, int? prescrptionId, string datacardPath, int loggedDataReferenceId)
+        private OperationData Map(TLG tlg, int? prescrptionId, string datacardPath, int loggedDataReferenceId, Dictionary<string, List<UniqueId>> linkedIds)
         {
             var tim = _xmlReader.ReadTlgXmlData(datacardPath, tlg.A + ".xml").First();
             var isoRecords = _binaryReader.Read(datacardPath, tlg.A + ".bin", tim).ToList();
@@ -57,6 +58,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
                 PrescriptionId = prescrptionId
             };
             operationData.Id.UniqueIds.Add(_uniqueIdMapper.Map(tlg.A));
+
+            if(linkedIds.ContainsKey(tlg.A))
+            {
+                foreach (var linkedId in linkedIds[tlg.A])
+                    operationData.Id.UniqueIds.Add(linkedId);
+            }
 
             return operationData;
         }

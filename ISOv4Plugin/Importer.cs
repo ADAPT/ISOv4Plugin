@@ -18,7 +18,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin
 {
     public interface IImporter
     {
-        ApplicationDataModel.ADM.ApplicationDataModel Import(ISO11783_TaskData iso11783TaskData, string dataPath, ApplicationDataModel.ADM.ApplicationDataModel dataModel);
+        ApplicationDataModel.ADM.ApplicationDataModel Import(ISO11783_TaskData iso11783TaskData, string dataPath, ApplicationDataModel.ADM.ApplicationDataModel dataModel, Dictionary<string, List<UniqueId>> linkedIds);
     }
 
     public class Importer : IImporter
@@ -34,7 +34,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin
             _documentMapper = documentMapper;
         }
 
-        public ApplicationDataModel.ADM.ApplicationDataModel Import(ISO11783_TaskData iso11783TaskData, string dataPath, ApplicationDataModel.ADM.ApplicationDataModel dataModel)
+        public ApplicationDataModel.ADM.ApplicationDataModel Import(ISO11783_TaskData iso11783TaskData, string dataPath, ApplicationDataModel.ADM.ApplicationDataModel dataModel, Dictionary<string, List<UniqueId>> linkedIds)
         {
             if (dataModel.Catalog == null)
                 dataModel.Catalog = CreateCatalog();
@@ -50,7 +50,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin
 
             var tasks = isoObjects.GetItemsOfType<TSK>();
 
-            _documentMapper.Map(tasks, dataPath, dataModel);
+            _documentMapper.Map(tasks, dataPath, dataModel, linkedIds);
             return dataModel;
         }
 

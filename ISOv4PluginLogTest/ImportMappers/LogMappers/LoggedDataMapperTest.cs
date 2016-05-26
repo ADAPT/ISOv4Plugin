@@ -24,6 +24,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         private Documents _documents;
         private Mock<IOperationDataMapper> _operationDataMapper;
         private LoggedDataMapper _loggedDataMapper;
+        private Dictionary<string, List<UniqueId>> _linkIds;
 
         [SetUp]
         public void Setup()
@@ -33,6 +34,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             _dataPath = Path.GetTempPath();
             _documents = new Documents();
             _catalog = new Catalog();
+            _linkIds = new Dictionary<string, List<UniqueId>>();
 
             _dataModel = new ApplicationDataModel();
             _dataModel.Documents = _documents;
@@ -69,7 +71,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             _tsk.A = taskName;
 
             var operationDatas = new List<OperationData>();
-            _operationDataMapper.Setup(x => x.Map(tlgs, null, _dataPath, It.IsAny<int>())).Returns(operationDatas);
+            _operationDataMapper.Setup(x => x.Map(tlgs, null, _dataPath, It.IsAny<int>(), _linkIds)).Returns(operationDatas);
 
             var result = MapSingle();
             Assert.AreSame(operationDatas, result.OperationData);
@@ -78,7 +80,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenNullTsksWhenMapThenNull()
         {
-            var result = _loggedDataMapper.Map(null, _dataPath, _dataModel);
+            var result = _loggedDataMapper.Map(null, _dataPath, _dataModel, _linkIds);
             Assert.IsNull(result);
         }
 
@@ -137,7 +139,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
 
             MapSingle();
 
-            _operationDataMapper.Verify(x => x.Map(It.IsAny<List<TLG>>(), prescription.Id.ReferenceId, _dataPath,existingLoggedData.Id.ReferenceId ), Times.Once);
+            _operationDataMapper.Verify(x => x.Map(It.IsAny<List<TLG>>(), prescription.Id.ReferenceId, _dataPath,existingLoggedData.Id.ReferenceId, _linkIds ), Times.Once);
         }
 
         [Test]
@@ -151,7 +153,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
 
             MapSingle();
 
-            _operationDataMapper.Verify(x => x.Map(It.IsAny<List<TLG>>(), null, _dataPath, existingLoggedData.Id.ReferenceId), Times.Once);
+            _operationDataMapper.Verify(x => x.Map(It.IsAny<List<TLG>>(), null, _dataPath, existingLoggedData.Id.ReferenceId, _linkIds), Times.Once);
         }
 
         [Test]
@@ -164,7 +166,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
 
             MapSingle();
 
-            _operationDataMapper.Verify(x => x.Map(It.IsAny<List<TLG>>(), null, _dataPath, existingLoggedData.Id.ReferenceId), Times.Once);
+            _operationDataMapper.Verify(x => x.Map(It.IsAny<List<TLG>>(), null, _dataPath, existingLoggedData.Id.ReferenceId, _linkIds), Times.Once);
         }
 
         
@@ -176,7 +178,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
 
         public List<LoggedData> Map()
         {
-            return _loggedDataMapper.Map(_tsks, _dataPath, _dataModel).ToList();
+            return _loggedDataMapper.Map(_tsks, _dataPath, _dataModel, _linkIds).ToList();
         }
 
     }

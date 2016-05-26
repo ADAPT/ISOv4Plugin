@@ -64,7 +64,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Models
         // Helper property to allow lookup of VPN data based on id
         public Dictionary<string, ValuePresentation> Units { get; private set; }
         // Helper property to store linked ids by object id
-        private Dictionary<string, List<UniqueId>> LinkedIds { get; set; }
+        public Dictionary<string, List<UniqueId>> LinkedIds { get; set; }
 
 
         public TaskDataDocument()

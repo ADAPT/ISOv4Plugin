@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
+using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ISOv4Plugin;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
@@ -39,7 +41,7 @@ namespace ISOv4PluginLogTest
             _xmlReaderMock.Setup(x => x.Read(Path.Combine(_dataPath, "taskdata.xml"))).Returns(iso11783TaskData);
 
             _plugin.Import(_dataPath);
-            _importerMock.Verify(x => x.Import(iso11783TaskData, _dataPath, It.IsAny<ApplicationDataModel>()), Times.Once);
+            _importerMock.Verify(x => x.Import(iso11783TaskData, _dataPath, It.IsAny<ApplicationDataModel>(), It.IsAny<Dictionary<string, List<UniqueId>>>()), Times.Once);
         }
 
         [Test]
