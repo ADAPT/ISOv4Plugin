@@ -48,8 +48,7 @@ namespace ISOv4PluginLogTest
             var adm = new ApplicationDataModel();
 
             _plugin.Export(adm, _dataPath);
-            var exportPath = Path.Combine(_dataPath, "TASKDATA");
-            _exporterMock.Verify(x => x.Export(adm, exportPath, It.IsAny<TaskDocumentWriter>()), Times.Once);
+            _exporterMock.Verify(x => x.Export(adm, Path.Combine(_dataPath, "TASKDATA"), It.IsAny<TaskDocumentWriter>()), Times.Once);
         }
 
         [TearDown]

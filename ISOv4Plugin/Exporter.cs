@@ -10,7 +10,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin
 {
     public interface IExporter
     {
-        XmlWriter Export(ApplicationDataModel.ADM.ApplicationDataModel applicationDataModel, string datacardPath, TaskDocumentWriter writer);
+        XmlWriter Export(ApplicationDataModel.ADM.ApplicationDataModel applicationDataModel, string taskDataPath, TaskDocumentWriter writer);
     }
 
     public class Exporter : IExporter
@@ -27,9 +27,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin
             _taskMapper = taskMapper;
         }
 
-        public XmlWriter Export(ApplicationDataModel.ADM.ApplicationDataModel applicationDataModel, string datacardPath, TaskDocumentWriter writer)
+        public XmlWriter Export(ApplicationDataModel.ADM.ApplicationDataModel applicationDataModel, string taskDataPath, TaskDocumentWriter writer)
         {
-            var isoTaskData = writer.Write(datacardPath, applicationDataModel);
+            var isoTaskData = writer.Write(taskDataPath, applicationDataModel);
 
             if (applicationDataModel != null)
             {
@@ -38,7 +38,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin
                 var tasks = applicationDataModel.Documents == null
                     ? null
                     : _taskMapper.Map(applicationDataModel.Documents.LoggedData, applicationDataModel.Catalog,
-                        datacardPath, numberOfExistingTasks, writer, false);
+                        taskDataPath, numberOfExistingTasks, writer, false);
             if (tasks != null)
             {
                 var taskList = tasks.ToList();

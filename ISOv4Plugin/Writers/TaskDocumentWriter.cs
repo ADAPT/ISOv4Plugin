@@ -40,9 +40,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
             Ids = new Dictionary<string, CompoundIdentifier>();
         }
 
-        public XmlWriter Write(string exportPath, ApplicationDataModel.ADM.ApplicationDataModel dataModel)
+        public XmlWriter Write(string taskDataPath, ApplicationDataModel.ADM.ApplicationDataModel dataModel)
         {
-            BaseFolder = exportPath;
+            BaseFolder = taskDataPath;
             DataModel = dataModel;
 
             CreateFolderStructure();

@@ -34,7 +34,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
 
         private string WriteCustomer(XmlWriter writer, Grower grower)
         {
-            var customerId = GenerateId();
+            var customerId = grower.Id.FindIsoId() ?? GenerateId();
 
             writer.WriteStartElement(XmlPrefix);
             writer.WriteAttributeString("A", customerId);

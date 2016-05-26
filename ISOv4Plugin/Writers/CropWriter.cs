@@ -2,6 +2,7 @@
 using System.Xml;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.Products;
+using AgGateway.ADAPT.ISOv4Plugin.Extensions;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Writers
 {
@@ -36,7 +37,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
 
         private string WriteCrop(XmlWriter writer, Crop crop)
         {
-            var cropId = GenerateId();
+            var cropId = crop.Id.FindIsoId() ?? GenerateId();
             TaskWriter.Ids.Add(cropId, crop.Id);
 
             writer.WriteStartElement(XmlPrefix);

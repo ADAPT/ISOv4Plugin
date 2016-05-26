@@ -1,23 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using System.Xml.XPath;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
-using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using AgGateway.ADAPT.ISOv4Plugin.Readers;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders
 {
     public interface IXmlReader
     {
-        ISO11783_TaskData Read(string dataPath, string fileName);
-        ISO11783_TaskData Read(string filePath);
-        List<TIM> ReadTlgXmlData(string dataPath, string fileName);
-        void Write(string dataPath, ISO11783_TaskData taskData);
+        ISO11783_TaskData Read(string taskDataFile);
+        List<TIM> ReadTlgXmlData(string datacardPath, string fileName);
         XDocument WriteTlgXmlData(string datacardPath, string fileName, TIM timHeader);
     }
 
@@ -37,32 +33,20 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders
             _taskDataReader = taskDataReader;
         }
 
-        public ISO11783_TaskData Read(string dataPath, string fileName)
+        public ISO11783_TaskData Read(string taskDataFile)
         {
-            var file = Path.Combine(dataPath, fileName);
-
-            return Read(file);
-        }
-
-        public ISO11783_TaskData Read(string file)
-        {
-            var xpathReader = new XPathDocument(file);
+            var xpathReader = new XPathDocument(taskDataFile);
             var navigator = xpathReader.CreateNavigator();
 
-            return _taskDataReader.Read(navigator, Path.GetDirectoryName(file));
+            return _taskDataReader.Read(navigator, Path.GetDirectoryName(taskDataFile));
         }
 
-        public List<TIM> ReadTlgXmlData(string dataPath, string fileName)
+        public List<TIM> ReadTlgXmlData(string datacardPath, string fileName)
         {
-            var file = Path.Combine(dataPath, fileName);
+            var file = Path.Combine(datacardPath, "TASKDATA", fileName);
             var xPathDocument = new XPathDocument(file);
 
             return _timReader.Read(xPathDocument);
-            }
-
-        public void Write(string dataPath, ISO11783_TaskData taskData)
-        {
-
         }
 
         public XDocument WriteTlgXmlData(string datacardPath, string fileName, TIM timHeader)

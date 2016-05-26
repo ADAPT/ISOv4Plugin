@@ -31,7 +31,7 @@ namespace AcceptanceTests.Steps
             var taskData = xmlDocument.SelectSingleNode("ISO11783_TaskData");
             ScenarioContext.Current.OriginalIsoTaskData(taskData);
 
-            var dataModel = _plugin.Import(taskDataXmlFile);
+            var dataModel = _plugin.Import(ScenarioContext.Current.DataCardPath());
             ScenarioContext.Current.ApplicationDataModel(dataModel);
         }
 
@@ -51,7 +51,7 @@ namespace AcceptanceTests.Steps
         [Then(@"iso is imported to adapt")]
         public void ThenIsoIsImportedToAdapt()
         {
-            var currentPath = Path.Combine(ScenarioContext.Current.DataCardPath(), "TASKDATA");
+            var currentPath = ScenarioContext.Current.DataCardPath();
             
             var linkList = LoadLinkList(currentPath);
 
@@ -64,7 +64,7 @@ namespace AcceptanceTests.Steps
         [Then(@"Adapt is exported to ISO")]
         public void ThenAdaptIsExportedToIso()
         {
-            var currentPath = Path.Combine(ScenarioContext.Current.ExportPath(), "TASKDATA");
+            var currentPath = ScenarioContext.Current.ExportPath();
             
             var linkList = LoadLinkList(currentPath);
             foreach (var applicationDataModel in ScenarioContext.Current.ApplicationDataModel())

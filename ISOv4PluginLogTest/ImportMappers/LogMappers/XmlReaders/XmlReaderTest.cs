@@ -37,19 +37,6 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers.XmlReaders
         }
 
         [Test]
-        public void GivenDataPathAndFileNameWhenReadThenTaskDataReturned()
-        {
-            _xml = "<ISO11783_TaskData></ISO11783_TaskData>";
-            File.AppendAllText(Path.Combine(_dataPath, "TASKDATA", _fileName), _xml);
-
-            var taskData = new ISO11783_TaskData();
-            _taskDataReaderMock.Setup(x => x.Read(It.IsAny<XPathNavigator>(), It.IsAny<String>())).Returns(taskData);
-
-            var result = _xmlReader.Read(Path.Combine(_dataPath, "TASKDATA"), _fileName);
-            Assert.AreSame(taskData, result);
-        }
-
-        [Test]
         public void GivenDataPathAndFileNameWhenReadTlgXmlDataThenTimReturned()
         {
             _xml = "<TIM></TIM>";
@@ -58,7 +45,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers.XmlReaders
             var tim = new TIM();
             _timReaderMock.Setup(x => x.Read(It.IsAny<XPathDocument>())).Returns(new List<TIM>{tim});
 
-            var result = _xmlReader.ReadTlgXmlData(Path.Combine(_dataPath, "TASKDATA"), _fileName);
+            var result = _xmlReader.ReadTlgXmlData(_dataPath, _fileName);
             Assert.AreEqual(1, result.Count);
             Assert.AreSame(tim, result[0]);
         }
@@ -185,9 +172,9 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers.XmlReaders
         public void GivenPathAndTimHeaderWhenWriteTlgXmlDataThenTlgFileIsCreated()
         {
             var tim = new TIM();
-            _xmlReader.WriteTlgXmlData(_dataPath, _fileName, tim);
+            _xmlReader.WriteTlgXmlData(Path.Combine(_dataPath, "TASKDATA"), _fileName, tim);
 
-            var expectedPath = Path.Combine(_dataPath, _fileName);
+            var expectedPath = Path.Combine(_dataPath, "TASKDATA", _fileName);
             Assert.IsTrue(File.Exists(expectedPath));
         }
 

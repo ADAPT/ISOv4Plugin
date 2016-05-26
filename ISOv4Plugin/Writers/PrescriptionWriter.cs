@@ -50,7 +50,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
             if (!IsValidPrescription(prescription))
                 return;
 
-            var prescriptionId = GenerateId();
+            var prescriptionId = prescription.Id.FindIsoId() ?? GenerateId();
 
             writer.WriteStartElement(XmlPrefix);
             writer.WriteAttributeString("A", prescriptionId);

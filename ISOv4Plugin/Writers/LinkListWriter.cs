@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
+using AgGateway.ADAPT.ISOv4Plugin.ImportMappers;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Writers
@@ -49,6 +50,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
             var currentGroupId = 1;
             foreach (var gln in allUniqueSources)
             {
+                if(gln == "http://dictionary.isobus.net/isobus/")
+                    return;
+
                 var uuidKvps = ids.Where(x => x.Value.UniqueIds.Any(ui => ui.CiTypeEnum == CompoundIdentifierTypeEnum.UUID));
                 WriteGroup(currentGroupId, "1", gln, uuidKvps, writer, true);
                 currentGroupId ++;

@@ -66,6 +66,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Readers
         private DateTime CreateDateTime(XPathNavigator node, string attribute)
         {
             var value = node.GetAttribute(attribute, node.NamespaceURI);
+            if (String.IsNullOrEmpty(value))
+                return DateTime.MinValue;
             return DateTime.Parse(value);
         }
     }
