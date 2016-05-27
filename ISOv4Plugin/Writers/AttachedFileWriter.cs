@@ -12,10 +12,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
 
         public static void Write(TaskDocumentWriter taskWriter)
         {
-            if (taskWriter.DataModel.Catalog.Crops == null ||
-                taskWriter.DataModel.Catalog.Crops.Count == 0)
-                return;
-
             var writer = new AttachedFileWriter(taskWriter);
             writer.WriteAttachedFile(taskWriter.RootWriter);
         }

@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ISO11783_TaskData VersionMajor="4" VersionMinor="0" ManagementSoftwareManufacturer="AgGateway" ManagementSoftwareVersion="1.0" DataTransferOrigin="1" TaskControllerManufacturer="" TaskControllerVersion="">
+  <AFE A="LINKLIST.XML" B="1" C="" D="1" />
   <PDT A="PDT1" B="product" />
   <TSK A="TSK1" B="test" G="1">
     <TZN A="1" B="Default">
