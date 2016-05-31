@@ -2,10 +2,8 @@
 using System.Xml;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.Guidance;
-using AgGateway.ADAPT.ApplicationDataModel.Representations;
 using AgGateway.ADAPT.ISOv4Plugin.Extensions;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
-using AgGateway.ADAPT.Representation.UnitSystem;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
 {
@@ -23,64 +21,37 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
         public static List<GuidanceAllocation> Load(XmlNode inputNode, TaskDataDocument taskDocument)
         {
             var loader = new GuidanceAllocationLoader(taskDocument);
-            return loader.Load(inputNode.SelectNodes("GAS"));
+            return loader.Load(inputNode.SelectNodes("GAN"));
         }
 
         private List<GuidanceAllocation> Load(XmlNodeList inputNodes)
         {
             foreach (XmlNode inputNode in inputNodes)
             {
-                _allocations.AddRange(LoadGuidanceAllocations(inputNode));
+                var guidanceAllocation = LoadGuidanceAllocations(inputNode);
+                if(guidanceAllocation != null)
+                    _allocations.Add(guidanceAllocation);
             }
 
             return _allocations;
         }
 
-        private List<GuidanceAllocation> LoadGuidanceAllocations(XmlNode inputNode)
+        private GuidanceAllocation LoadGuidanceAllocations(XmlNode inputNode)
         {
-            List<GuidanceAllocation> allocations = new List<GuidanceAllocation>();
-
             var groupId = inputNode.GetXmlNodeValue("@A");
             if (string.IsNullOrEmpty(groupId))
-                return allocations;
-
-            var group = _taskDocument.GuidanceGroups.FindById(groupId);
-            if (group == null)
-                return allocations;
-
-            var baseTimeScope = AllocationTimestampLoader.Load(inputNode);
-
-            foreach (XmlNode shiftNode in inputNode.SelectNodes("GST"))
-            {
-                var allocation = LoadGuidanceShift(shiftNode, group, baseTimeScope);
-                if (allocation == null)
-                    continue;
-
-                allocations.Add(allocation);
-            }
-
-            return allocations;
-        }
-
-        private GuidanceAllocation LoadGuidanceShift(XmlNode inputNode, GuidanceGroupDescriptor group, TimeScope baseTimeScope)
-        {
-            var groupId = inputNode.GetXmlNodeValue("@A");
-            var patternId = inputNode.GetXmlNodeValue("@B");
-            if (string.IsNullOrEmpty(groupId) && string.IsNullOrEmpty(patternId))
                 return null;
 
-            group = FindGuidanceGroup(groupId) ?? group;
+            var group = FindGuidanceGroup(groupId);
+            var gsts = inputNode.SelectNodes("GST");
+
             var allocation = new GuidanceAllocation
             {
                 GuidanceGroupId = group.Group.Id.ReferenceId,
-                GuidancePatternId = FindGuidancePattern(group, patternId),
-               
-//                EastShift = GetShiftValue(inputNode.GetXmlNodeValue("@C")),
-//                NorthShift = GetShiftValue(inputNode.GetXmlNodeValue("@D")),
-//                PropagationOffset = GetShiftValue(inputNode.GetXmlNodeValue("@E")),
-
-                TimeScopes = new List<TimeScope>{ AllocationTimestampLoader.Load(inputNode) ?? baseTimeScope }
+                GuidanceShift = GuidanceShiftLoader.Load(gsts, _taskDocument),
+                TimeScopes = new List<TimeScope> { AllocationTimestampLoader.Load(inputNode) ?? AllocationTimestampLoader.Load(inputNode) }
             };
+            
             return allocation;
         }
 
@@ -100,17 +71,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
                     return pattern.Id.ReferenceId;
             }
             return 0;
-        }
-
-        private static NumericRepresentationValue GetShiftValue(string inputValue)
-        {
-            long shift;
-            if (!inputValue.ParseValue(out shift))
-                return null;
-
-            var shiftUnitOfMeasure = UnitSystemManager.GetUnitOfMeasure("mm");
-            var numericValue = new NumericValue(shiftUnitOfMeasure, shift);
-            return new NumericRepresentationValue(null, numericValue.UnitOfMeasure, numericValue);
         }
     }
 }

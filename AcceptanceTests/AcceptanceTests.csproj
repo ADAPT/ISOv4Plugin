@@ -34,15 +34,15 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="AgGateway.ADAPT.ApplicationDataModel, Version=1.0.0.1, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\AgGatewayADAPTFramework.1.0.0.40\lib\AgGateway.ADAPT.ApplicationDataModel.dll</HintPath>
+      <HintPath>..\packages\AgGatewayADAPTFramework.1.0.0.41\lib\AgGateway.ADAPT.ApplicationDataModel.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="AgGateway.ADAPT.PluginManager, Version=1.0.0.1, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\AgGatewayADAPTFramework.1.0.0.40\lib\AgGateway.ADAPT.PluginManager.dll</HintPath>
+      <HintPath>..\packages\AgGatewayADAPTFramework.1.0.0.41\lib\AgGateway.ADAPT.PluginManager.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="AgGateway.ADAPT.Representation, Version=1.0.0.1, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\AgGatewayADAPTFramework.1.0.0.40\lib\AgGateway.ADAPT.Representation.dll</HintPath>
+      <HintPath>..\packages\AgGatewayADAPTFramework.1.0.0.41\lib\AgGateway.ADAPT.Representation.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Moq, Version=4.2.1510.2205, Culture=neutral, PublicKeyToken=69f491c39445e920, processorArchitecture=MSIL">
@@ -125,12 +125,12 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Resources\RepresentationSystem.xml">
+    <None Include="Resources\RepresentationSystem.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Resources\UnitSystem.xml">
+    </None>
+    <None Include="Resources\UnitSystem.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
