@@ -45,7 +45,7 @@ namespace ISOv4PluginTest.Loaders
             Assert.AreEqual("PO Box", farm.Value.ContactInfo.PoBoxNumber);
             Assert.AreEqual("PostalCode", farm.Value.ContactInfo.PostalCode);
             Assert.AreEqual("State", farm.Value.ContactInfo.StateOrProvince);
-            Assert.IsNull(farm.Value.ContactInfo.Contacts);
+            Assert.IsEmpty(farm.Value.ContactInfo.Contacts);
             Assert.IsNotNull(farm.Value.GrowerId);
             Assert.AreEqual(taskDocument.Customers["CTR1"].Id.ReferenceId, farm.Value.GrowerId);
         }
@@ -96,7 +96,7 @@ namespace ISOv4PluginTest.Loaders
             Assert.IsNull(farm.Value.ContactInfo.PoBoxNumber);
             Assert.IsNull(farm.Value.ContactInfo.PostalCode);
             Assert.IsNull(farm.Value.ContactInfo.StateOrProvince);
-            Assert.IsNull(farm.Value.ContactInfo.Contacts);
+            Assert.IsEmpty(farm.Value.ContactInfo.Contacts);
             Assert.IsNull(farm.Value.GrowerId);
         }
 
@@ -125,7 +125,7 @@ namespace ISOv4PluginTest.Loaders
             Assert.IsNull(farm.Value.ContactInfo.PoBoxNumber);
             Assert.IsNull(farm.Value.ContactInfo.PostalCode);
             Assert.IsNull(farm.Value.ContactInfo.StateOrProvince);
-            Assert.IsNull(farm.Value.ContactInfo.Contacts);
+            Assert.IsEmpty(farm.Value.ContactInfo.Contacts);
             Assert.IsNull(farm.Value.GrowerId);
         }
 
@@ -157,7 +157,7 @@ namespace ISOv4PluginTest.Loaders
             Assert.AreEqual("PO Box1", farm.ContactInfo.PoBoxNumber);
             Assert.AreEqual("PostalCode1", farm.ContactInfo.PostalCode);
             Assert.AreEqual("State1", farm.ContactInfo.StateOrProvince);
-            Assert.IsNull(farm.ContactInfo.Contacts);
+            Assert.IsEmpty(farm.ContactInfo.Contacts);
             Assert.AreEqual(taskDocument.Customers["CTR1"].Id.ReferenceId, farm.GrowerId.Value);
 
             farm = taskDocument.Farms["FRM2"];
@@ -170,7 +170,7 @@ namespace ISOv4PluginTest.Loaders
             Assert.AreEqual("PO Box2", farm.ContactInfo.PoBoxNumber);
             Assert.AreEqual("PostalCode2", farm.ContactInfo.PostalCode);
             Assert.AreEqual("State2", farm.ContactInfo.StateOrProvince);
-            Assert.IsNull(farm.ContactInfo.Contacts);
+            Assert.IsEmpty(farm.ContactInfo.Contacts);
             Assert.AreEqual(taskDocument.Customers["CTR2"].Id.ReferenceId, farm.GrowerId.Value);
         }
 

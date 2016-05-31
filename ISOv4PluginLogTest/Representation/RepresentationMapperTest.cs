@@ -20,8 +20,8 @@ namespace ISOv4PluginLogTest.Representation
         [Test]
         public void GivenDdiWhenMapThenNumericRepresentationIsReturned()
         {
-            var result = _representationMapper.Map(7);
-            Assert.AreEqual(RepresentationInstanceList.vrAppRateMassMetered.DomainId, result.Code);
+            var result = _representationMapper.Map(183);
+            Assert.AreEqual(RepresentationInstanceList.vrYieldMass.DomainId, result.Code);
         }
 
         [Test]

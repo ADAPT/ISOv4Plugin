@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
@@ -20,16 +21,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers
 
         private TimeScope Map(TIM tim, Catalog catalog)
         {
-            var stamp1 = new DateWithContext { DateContext = DateContextEnum.ActualStart};
+            DateTime? stamp1 = null;
             if (tim.A.HasValue)
-                stamp1.TimeStamp = tim.A.Value;
+                stamp1 = tim.A.Value;
 
-            var stamp2 = new DateWithContext {DateContext = DateContextEnum.ActualEnd};
+            DateTime? stamp2 = null;
             if (tim.B.HasValue)
-                stamp2.TimeStamp = tim.B.Value;
+                stamp2 = tim.B.Value;
 
-
-            var timeScope = new TimeScope {Stamp1 = stamp1, Stamp2 = stamp2};
+            var timeScope = new TimeScope {TimeStamp1 = stamp1, TimeStamp2 = stamp2, DateContext = DateContextEnum.ActualStart};
             
             if(catalog.TimeScopes == null)
                 catalog.TimeScopes = new List<TimeScope>();

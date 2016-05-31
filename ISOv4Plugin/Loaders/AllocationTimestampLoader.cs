@@ -38,8 +38,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
 
             return new TimeScope
             {
-                Stamp1 = GetDateWithContext(timeStamp1, typeValue, true, location),
-                Stamp2 = GetDateWithContext(timeStamp2, typeValue, false, location)
+                TimeStamp1 = timeStamp1,
+                TimeStamp2 = timeStamp2,
+                Location1 = location,
+                Location2 = location,
+                DateContext = typeValue == "1" ? DateContextEnum.ProposedStart : DateContextEnum.ActualStart,
+                Duration = timeStamp1.GetValueOrDefault() - timeStamp2.GetValueOrDefault(),
             };
         }
 
@@ -64,23 +68,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
                 return null;
 
             return TimeSpan.FromSeconds(duration);
-        }
-
-        private static DateWithContext GetDateWithContext(DateTime? timeStamp, string typeValue, bool isStart, Location location)
-        {
-            if (!timeStamp.HasValue)
-                return null;
-
-            bool isPlanned = string.Equals(typeValue, "1", StringComparison.OrdinalIgnoreCase);
-
-            return new DateWithContext
-            {
-                TimeStamp = timeStamp.Value,
-                DateContext = isPlanned ?
-                    (isStart ? DateContextEnum.ProposedStart : DateContextEnum.ProposedEnd) :
-                    (isStart ? DateContextEnum.ActualStart : DateContextEnum.ActualEnd),
-                Location = location
-            };
         }
 
         private static Location LoadLocation(XmlNode inputNode)
@@ -116,9 +103,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
 
         private static GpsSource GetGpsSource(XmlNode inputNode)
         {
-            var gpsSource = new GpsSource();
-
-            gpsSource.SourceType = GetSourceType(inputNode.GetXmlNodeValue("@D"));
+            var gpsSource = new GpsSource
+            {
+                SourceType = GetSourceType(inputNode.GetXmlNodeValue("@D"))
+            };
 
             int satelliteCount;
             if (inputNode.GetXmlNodeValue("@G").ParseValue(out satelliteCount))

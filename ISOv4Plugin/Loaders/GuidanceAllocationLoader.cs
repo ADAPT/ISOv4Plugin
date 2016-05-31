@@ -74,10 +74,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
             {
                 GuidanceGroupId = group.Group.Id.ReferenceId,
                 GuidancePatternId = FindGuidancePattern(group, patternId),
-
-                EastShift = GetShiftValue(inputNode.GetXmlNodeValue("@C")),
-                NorthShift = GetShiftValue(inputNode.GetXmlNodeValue("@D")),
-                PropagationOffset = GetShiftValue(inputNode.GetXmlNodeValue("@E")),
+               
+//                EastShift = GetShiftValue(inputNode.GetXmlNodeValue("@C")),
+//                NorthShift = GetShiftValue(inputNode.GetXmlNodeValue("@D")),
+//                PropagationOffset = GetShiftValue(inputNode.GetXmlNodeValue("@E")),
 
                 TimeScopes = new List<TimeScope>{ AllocationTimestampLoader.Load(inputNode) ?? baseTimeScope }
             };

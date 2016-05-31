@@ -143,7 +143,7 @@ namespace ISOv4PluginTest.Loaders
 
             Assert.AreEqual("Comment 1", comment.Comment.Description);
             Assert.AreEqual(2, comment.Scope);
-            Assert.IsNull(comment.Comment.EnumeratedMembers);
+            Assert.IsEmpty(comment.Comment.EnumeratedMembers);
             Assert.IsNull(comment.Values);
         }
 
@@ -167,7 +167,7 @@ namespace ISOv4PluginTest.Loaders
 
             Assert.AreEqual("Comment 1", comment.Comment.Description);
             Assert.AreEqual(2, comment.Scope);
-            Assert.IsNull(comment.Comment.EnumeratedMembers);
+            Assert.IsEmpty(comment.Comment.EnumeratedMembers);
             Assert.IsNull(comment.Values);
         }
     }

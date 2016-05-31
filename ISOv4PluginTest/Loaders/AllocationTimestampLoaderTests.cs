@@ -25,10 +25,10 @@ namespace ISOv4PluginTest.Loaders
 
             // Verify
             Assert.IsNotNull(result);
-            Assert.AreEqual(DateTime.Parse("2016-02-02 14:01:01.111", CultureInfo.InvariantCulture), result.Stamp1.TimeStamp);
-            Assert.IsNull(result.Stamp1.Location);
-            Assert.AreEqual(DateContextEnum.ProposedStart, result.Stamp1.DateContext);
-            Assert.IsNull(result.Stamp2);
+            Assert.AreEqual(DateTime.Parse("2016-02-02 14:01:01.111", CultureInfo.InvariantCulture), result.TimeStamp1);
+            Assert.IsNull(result.Location1);
+            Assert.AreEqual(DateContextEnum.ProposedStart, result.DateContext);
+            Assert.IsNull(result.TimeStamp2);
         }
 
         [Test]
@@ -44,13 +44,12 @@ namespace ISOv4PluginTest.Loaders
 
             // Verify
             Assert.IsNotNull(result);
-            Assert.AreEqual(DateTime.Parse("2016-02-02 14:01:01.111", CultureInfo.InvariantCulture), result.Stamp1.TimeStamp);
-            Assert.IsNull(result.Stamp1.Location);
-            Assert.AreEqual(DateContextEnum.ProposedStart, result.Stamp1.DateContext);
+            Assert.AreEqual(DateTime.Parse("2016-02-02 14:01:01.111", CultureInfo.InvariantCulture), result.TimeStamp1);
+            Assert.IsNull(result.Location1);
+            Assert.AreEqual(DateContextEnum.ProposedStart, result.DateContext);
 
-            Assert.AreEqual(TimeSpan.FromSeconds(1000), result.Stamp2.TimeStamp - result.Stamp1.TimeStamp);
-            Assert.IsNull(result.Stamp2.Location);
-            Assert.AreEqual(DateContextEnum.ProposedEnd, result.Stamp2.DateContext);
+            Assert.AreEqual(TimeSpan.FromSeconds(1000), result.TimeStamp2 - result.TimeStamp1);
+            Assert.IsNull(result.Location2);
         }
 
         [Test]
@@ -66,13 +65,12 @@ namespace ISOv4PluginTest.Loaders
 
             // Verify
             Assert.IsNotNull(result);
-            Assert.AreEqual(DateTime.Parse("2016-02-02 14:01:01.111", CultureInfo.InvariantCulture), result.Stamp1.TimeStamp);
-            Assert.IsNull(result.Stamp1.Location);
-            Assert.AreEqual(DateContextEnum.ProposedStart, result.Stamp1.DateContext);
+            Assert.AreEqual(DateTime.Parse("2016-02-02 14:01:01.111", CultureInfo.InvariantCulture), result.TimeStamp1);
+            Assert.IsNull(result.Location1);
+            Assert.AreEqual(DateContextEnum.ProposedStart, result.DateContext);
 
-            Assert.AreEqual(DateTime.Parse("2016-02-02 14:02:01.111", CultureInfo.InvariantCulture), result.Stamp2.TimeStamp);
-            Assert.IsNull(result.Stamp2.Location);
-            Assert.AreEqual(DateContextEnum.ProposedEnd, result.Stamp2.DateContext);
+            Assert.AreEqual(DateTime.Parse("2016-02-02 14:02:01.111", CultureInfo.InvariantCulture), result.TimeStamp2);
+            Assert.IsNull(result.Location2);
         }
 
         [Test]
@@ -88,13 +86,12 @@ namespace ISOv4PluginTest.Loaders
 
             // Verify
             Assert.IsNotNull(result);
-            Assert.AreEqual(DateTime.Parse("2016-02-02 14:01:01.111", CultureInfo.InvariantCulture), result.Stamp1.TimeStamp);
-            Assert.IsNull(result.Stamp1.Location);
-            Assert.AreEqual(DateContextEnum.ActualStart, result.Stamp1.DateContext);
+            Assert.AreEqual(DateTime.Parse("2016-02-02 14:01:01.111", CultureInfo.InvariantCulture), result.TimeStamp1);
+            Assert.IsNull(result.Location1);
+            Assert.AreEqual(DateContextEnum.ActualStart, result.DateContext);
 
-            Assert.AreEqual(DateTime.Parse("2016-02-02 14:02:01.111", CultureInfo.InvariantCulture), result.Stamp2.TimeStamp);
-            Assert.IsNull(result.Stamp2.Location);
-            Assert.AreEqual(DateContextEnum.ActualEnd, result.Stamp2.DateContext);
+            Assert.AreEqual(DateTime.Parse("2016-02-02 14:02:01.111", CultureInfo.InvariantCulture), result.TimeStamp2);
+            Assert.IsNull(result.Location2);
         }
 
         [Test]
@@ -129,13 +126,13 @@ namespace ISOv4PluginTest.Loaders
 
             // Verify
             Assert.IsNotNull(result);
-            Assert.IsNotNull(result.Stamp1.Location);
-            Assert.AreEqual(9.989209, result.Stamp1.Location.Position.X);
-            Assert.AreEqual(54.588945, result.Stamp1.Location.Position.Y);
-            Assert.IsNotNull(result.Stamp1.Location.GpsSource);
-            Assert.AreEqual(2, result.Stamp1.Location.GpsSource.NumberOfSatellites);
-            Assert.AreEqual(GpsSourceEnum.PreciseGNSS, result.Stamp1.Location.GpsSource.SourceType);
-            Assert.AreEqual(DateTime.Parse("1981-05-15 00:00:10", CultureInfo.InvariantCulture), result.Stamp1.Location.GpsSource.GpsUtcTime);
+            Assert.IsNotNull(result.Location1);
+            Assert.AreEqual(9.989209, result.Location1.Position.X);
+            Assert.AreEqual(54.588945, result.Location1.Position.Y);
+            Assert.IsNotNull(result.Location1.GpsSource);
+            Assert.AreEqual(2, result.Location1.GpsSource.NumberOfSatellites);
+            Assert.AreEqual(GpsSourceEnum.PreciseGNSS, result.Location1.GpsSource.SourceType);
+            Assert.AreEqual(DateTime.Parse("1981-05-15 00:00:10", CultureInfo.InvariantCulture), result.Location1.GpsSource.GpsUtcTime);
         }
 
         [Test]
@@ -155,7 +152,7 @@ namespace ISOv4PluginTest.Loaders
 
                 // Verify
                 Assert.IsNotNull(result);
-                Assert.IsNull(result.Stamp1.Location);
+                Assert.IsNull(result.Location1);
             }
         }
 
@@ -176,8 +173,8 @@ namespace ISOv4PluginTest.Loaders
 
                 // Verify
                 Assert.IsNotNull(result);
-                Assert.IsNotNull(result.Stamp1.Location);
-                Assert.AreEqual(DateTime.MinValue, result.Stamp1.Location.GpsSource.GpsUtcTime);
+                Assert.IsNotNull(result.Location1);
+                Assert.AreEqual(DateTime.MinValue, result.Location1.GpsSource.GpsUtcTime);
             }
         }
     }
