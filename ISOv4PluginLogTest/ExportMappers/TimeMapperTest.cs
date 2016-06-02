@@ -38,37 +38,28 @@ namespace ISOv4PluginLogTest.ExportMappers
         [Test]
         public void GivenTimeScopeWIthStampOneWhenMapThenTimAIsMapped()
         {
-            _timeScope.Stamp1 = new DateWithContext
-            {
-                DateContext = DateContextEnum.ActualStart,
-                TimeStamp = DateTime.Now
-            };
+            _timeScope.TimeStamp1 = DateTime.Now;
+            _timeScope.DateContext = DateContextEnum.ActualStart;
 
             var result = MapSingle();
-            Assert.AreEqual(_timeScope.Stamp1.TimeStamp, result.A);
+            Assert.AreEqual(_timeScope.TimeStamp1, result.A);
         }
 
         [Test]
         public void GivenTimeScopeWithStamp2WhenMapThenBIsMapped()
         {
-            _timeScope.Stamp2 = new DateWithContext
-            {
-                DateContext = DateContextEnum.ActualEnd,
-                TimeStamp = DateTime.Now
-            };
+            _timeScope.TimeStamp2 = DateTime.Now;
+            _timeScope.DateContext = DateContextEnum.ActualStart;
 
             var result = MapSingle();
-            Assert.AreEqual(_timeScope.Stamp2.TimeStamp, result.B);
+            Assert.AreEqual(_timeScope.TimeStamp2, result.B);
         }
 
         [Test]
         public void GivenTimeScopeWithStamp2WhenMapThenBSpecifiedIsTrue()
         {
-            _timeScope.Stamp2 = new DateWithContext
-            {
-                DateContext = DateContextEnum.ActualEnd,
-                TimeStamp = DateTime.Now
-            };
+            _timeScope.TimeStamp2 = DateTime.Now;
+            _timeScope.DateContext = DateContextEnum.ActualStart;
 
             var result = MapSingle();
             Assert.IsTrue(result.BSpecified);
@@ -77,7 +68,7 @@ namespace ISOv4PluginLogTest.ExportMappers
         [Test]
         public void GivenTimeScopeWithoutStamp2WhenMapThenBSpecifiedIsFalse()
         {
-            _timeScope.Stamp2 = null;
+            _timeScope.TimeStamp2 = null;
 
             var result = MapSingle();
             Assert.IsFalse(result.BSpecified);

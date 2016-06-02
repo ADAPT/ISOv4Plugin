@@ -14,10 +14,9 @@ namespace AcceptanceTests.Asserts.Import
 
             for (int i = 0; i < tims.Count; i++)
             {
-                Assert.AreEqual(tims[i].A, timescopeList[i].Stamp1.TimeStamp);
-                Assert.AreEqual(DateContextEnum.ActualStart, timescopeList[i].Stamp1.DateContext);
-                Assert.AreEqual(tims[i].B, timescopeList[i].Stamp2.TimeStamp);
-                Assert.AreEqual(DateContextEnum.ActualEnd, timescopeList[i].Stamp2.DateContext);
+                Assert.AreEqual(tims[i].A, timescopeList[i].TimeStamp1);
+                Assert.AreEqual(DateContextEnum.ActualStart, timescopeList[i].DateContext);
+                Assert.AreEqual(tims[i].B, timescopeList[i].TimeStamp2);
             }
         }
     }

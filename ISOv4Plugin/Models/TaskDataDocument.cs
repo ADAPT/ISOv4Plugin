@@ -54,6 +54,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Models
 
         public List<LoggedData> Tasks { get; private set; }
         public List<GuidanceAllocation> GuidanceAllocations { get; private set; }
+        public List<GuidanceShift> GuidanceShifts { get; private set; }
 
         public Dictionary<string, Person> Workers { get; private set; }
         public Dictionary<string, CodedComment> Comments { get; private set; }

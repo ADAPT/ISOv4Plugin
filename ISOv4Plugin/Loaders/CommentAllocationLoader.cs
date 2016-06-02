@@ -49,8 +49,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
 
             var noteTimeStamp = AllocationTimestampLoader.Load(inputNode);
             note.TimeStamps.Add(noteTimeStamp);
-            if (noteTimeStamp != null && noteTimeStamp.Stamp1.Location != null)
-                note.SpatialContext = noteTimeStamp.Stamp1.Location.Position;
+            if (noteTimeStamp != null && noteTimeStamp.Location1 != null)
+                note.SpatialContext = noteTimeStamp.Location1.Position;
 
             _allocations.Add(note);
         }

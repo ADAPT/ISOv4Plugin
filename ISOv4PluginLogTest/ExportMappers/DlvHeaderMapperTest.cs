@@ -67,7 +67,7 @@ namespace ISOv4PluginLogTest.ExportMappers
                 CiTypeEnum = CompoundIdentifierTypeEnum.String,
                 Source = UniqueIdMapper.IsoSource
            });
-            _meter.Representation = RepresentationInstanceList.vrAppRateVolumeControl.ToModelRepresentation();
+            _meter.Representation = RepresentationInstanceList.vrYieldMass.ToModelRepresentation();
             _representationMapperMock.Setup(x => x.Map(_meter.Representation)).Returns(5);
             _meters.Add(_meter);
 
@@ -78,7 +78,7 @@ namespace ISOv4PluginLogTest.ExportMappers
                 CiTypeEnum = CompoundIdentifierTypeEnum.String,
                 Source = UniqueIdMapper.IsoSource
             });
-            meter1.Representation = RepresentationInstanceList.vrAppRateMassMetered.ToModelRepresentation();
+            meter1.Representation = RepresentationInstanceList.vrYieldMass.ToModelRepresentation();
             _representationMapperMock.Setup(x => x.Map(meter1.Representation)).Returns(8);
             _meters.Add(meter1);
 

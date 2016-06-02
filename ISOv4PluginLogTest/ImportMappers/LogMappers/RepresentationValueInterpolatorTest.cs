@@ -82,7 +82,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenNumericRepresentationValueOfRateTypeWhenInterpolateThenRepresentationValueIsSameAsPrevious()
         {
-            var previousRepresentationValue = new NumericRepresentationValue(RepresentationInstanceList.vrSeedRateMassMeasured.ToModelRepresentation(), new NumericValue(UnitSystemManager.GetUnitOfMeasure("m2"), 1.0));
+            var previousRepresentationValue = new NumericRepresentationValue(RepresentationInstanceList.vrYieldMass.ToModelRepresentation(), new NumericValue(UnitSystemManager.GetUnitOfMeasure("m2"), 1.0));
             _interpolator.SetMostRecentMeterValue(_numericMeter, previousRepresentationValue);
 
             var result = _interpolator.Interpolate(_numericMeter);
