@@ -73,6 +73,26 @@ namespace TestUtilities {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] agco_c100_tc___jd_sprayer_900_short {
+            get {
+                object obj = ResourceManager.GetObject("agco_c100_tc___jd_sprayer_900_short", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] Agco_MicroTrak {
+            get {
+                object obj = ResourceManager.GetObject("Agco_MicroTrak", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] KV {
             get {
                 object obj = ResourceManager.GetObject("KV", resourceCulture);

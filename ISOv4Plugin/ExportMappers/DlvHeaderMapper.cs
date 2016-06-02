@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ISOv4Plugin.Extensions;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
@@ -32,9 +33,31 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
             if (meters == null)
                 return null;
 
-            var sortedMeters = meters.OrderBy(x => x.Id.FindIntIsoId());
+            return MapNotNullMeters(meters);
+        }
 
-            return sortedMeters.Select(Map);
+        private IEnumerable<DLV> MapNotNullMeters(IEnumerable<Meter> meters)
+        {
+            var dlvOrders = meters.Select(x => x.Id.FindIntIsoId()).Distinct().OrderBy(y => y);
+
+            if (dlvOrders.Contains(-1))
+            {
+                var sortedMeters = meters.OrderBy(x => x.Id.FindIntIsoId());
+
+                foreach (var meter in sortedMeters)
+                {
+                    yield return Map(meter);
+                }
+            }
+            else
+            {
+                foreach (var order in dlvOrders)
+                {
+                    var dlvMeter = meters.Where(x => x.Id.FindIntIsoId() == order).First();
+                    yield return Map(dlvMeter);
+
+                }
+            }
         }
 
         public DLV Map(Meter meter)
@@ -44,24 +67,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
             var dlv = new DLV();
             if (representation == null)
             {
-                // to do:  add state 
                 dlv.A = null;
             }
             else
             {
-                dlv.A = representation.ToString();
+                if (meter.Representation != null && meter.Representation.Code == "dtRecordingStatus" && meter.SectionId != 0)
+                    dlv.A = "161";
+                else
+                    dlv.A = representation.ToString();
             }
 
             return dlv;
-            //return new DLV
-            //{
-
-            //    ProcessDataDDI = new HeaderProperty
-            //    {
-            //        State = representation == null ? HeaderPropertyState.IsNull : HeaderPropertyState.HasValue,
-            //        Value = representation
-            //    }
-            //};
         }
     }
 }

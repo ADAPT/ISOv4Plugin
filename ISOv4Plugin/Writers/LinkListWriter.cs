@@ -14,7 +14,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
     {
         public static void Write(string exportPath, Dictionary<string, CompoundIdentifier> ids)
         {
-            var linkFile = Path.Combine(exportPath, "TASKDATA", "LINKLIST.xml");
+            var linkFile = Path.Combine(exportPath, "LINKLIST.xml");
 
             using(var stream = new MemoryStream())
             using (var writer = XmlWriter.Create(stream))

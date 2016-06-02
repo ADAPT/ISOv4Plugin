@@ -67,6 +67,7 @@ namespace AcceptanceTests.Features
         [NUnit.Framework.DescriptionAttribute("Import ISO to Adapt")]
         [NUnit.Framework.TestCaseAttribute("agco_c100_tc___jd_sprayer_900", new string[0])]
         [NUnit.Framework.TestCaseAttribute("KV", new string[0])]
+        [NUnit.Framework.TestCaseAttribute("Agco_MicroTrak", new string[0])]
         public virtual void ImportISOToAdapt(string cardname, string[] exampleTags)
         {
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Import ISO to Adapt", exampleTags);
@@ -86,18 +87,20 @@ this.ScenarioSetup(scenarioInfo);
         [NUnit.Framework.DescriptionAttribute("Import ISO to Adapt Export Adapt to ISO")]
         [NUnit.Framework.TestCaseAttribute("agco_c100_tc___jd_sprayer_900", new string[0])]
         [NUnit.Framework.TestCaseAttribute("KV", new string[0])]
+        [NUnit.Framework.TestCaseAttribute("Agco_MicroTrak", new string[0])]
+        [NUnit.Framework.TestCaseAttribute("agco_c100_tc___jd_sprayer_900_short", new string[0])]
         public virtual void ImportISOToAdaptExportAdaptToISO(string cardname, string[] exampleTags)
         {
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Import ISO to Adapt Export Adapt to ISO", exampleTags);
-#line 12
-this.ScenarioSetup(scenarioInfo);
 #line 13
- testRunner.Given(string.Format("I have datacard {0}", cardname), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+this.ScenarioSetup(scenarioInfo);
 #line 14
- testRunner.When("I import with the plugin", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+ testRunner.Given(string.Format("I have datacard {0}", cardname), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line 15
- testRunner.And("I export to Iso", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+ testRunner.When("I import with the plugin", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line 16
+ testRunner.And("I export to Iso", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line 17
  testRunner.Then("Adapt is exported to ISO", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
             this.ScenarioCleanup();

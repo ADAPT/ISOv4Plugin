@@ -27,7 +27,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             Representation = RepresentationInstanceList.dtRecordingStatus.ToModelRepresentation();
         }
 
-        public new UInt32 GetMetersValue(List<Meter> meters, SpatialRecord spatialRecord)
+        public override UInt32 GetMetersValue(List<Meter> meters, SpatialRecord spatialRecord)
         {
             var returnValue = new UInt32();
             for (int i = 0; i < meters.Count; i++)
@@ -67,7 +67,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             Representation = RepresentationInstanceList.dtPrescriptionState.ToModelRepresentation();
         }
 
-        public new UInt32 GetMetersValue(List<Meter> meters, SpatialRecord spatialRecord)
+        public override UInt32 GetMetersValue(List<Meter> meters, SpatialRecord spatialRecord)
         {
             var returnValue = new UInt32();
             for (int i = 0; i < meters.Count; i++)
@@ -139,10 +139,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             };
         }
 
-        public UInt32 GetMetersValue(List<Meter> meters, SpatialRecord spatialRecord)
-        {
-            throw new NotImplementedException();
-        }
+        public abstract UInt32 GetMetersValue(List<Meter> meters, SpatialRecord spatialRecord);
 
         private int GetNumberOfInstalledSections(SpatialValue spatialValue)
         {

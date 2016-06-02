@@ -17,6 +17,10 @@ namespace AcceptanceTests.Asserts.Import
             foreach (var meter in meters)
             {
                 var isoValue = isoSpatialRow.SpatialValues.SingleOrDefault(v => v.Id == meter.Id.FindIntIsoId());
+
+                if(isoValue == null)
+                    continue;
+                
                 if (meter is NumericMeter)
                 {
                     var numericMeter = meter as NumericMeter;

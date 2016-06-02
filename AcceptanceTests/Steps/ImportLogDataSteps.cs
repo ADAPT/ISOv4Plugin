@@ -31,7 +31,8 @@ namespace AcceptanceTests.Steps
             var taskData = xmlDocument.SelectSingleNode("ISO11783_TaskData");
             ScenarioContext.Current.OriginalIsoTaskData(taskData);
 
-            var dataModel = _plugin.Import(ScenarioContext.Current.DataCardPath());
+            var path = Path.Combine(ScenarioContext.Current.DataCardPath(), "TASKDATA");
+            var dataModel = _plugin.Import(path);
             ScenarioContext.Current.ApplicationDataModel(dataModel);
         }
 
@@ -52,12 +53,13 @@ namespace AcceptanceTests.Steps
         public void ThenIsoIsImportedToAdapt()
         {
             var currentPath = ScenarioContext.Current.DataCardPath();
-            
+            var cardPath = Path.Combine(currentPath, "TASKDATA");
+
             var linkList = LoadLinkList(currentPath);
 
             foreach (var applicationDataModel in ScenarioContext.Current.ApplicationDataModel())
             {
-                ApplicationDataModelAssert.AreEqual(ScenarioContext.Current.OriginalIsoTaskData(), applicationDataModel, currentPath, linkList);
+                ApplicationDataModelAssert.AreEqual(ScenarioContext.Current.OriginalIsoTaskData(), applicationDataModel, cardPath, linkList);
             }
         }
 
@@ -65,11 +67,12 @@ namespace AcceptanceTests.Steps
         public void ThenAdaptIsExportedToIso()
         {
             var currentPath = ScenarioContext.Current.ExportPath();
-            
+            var cardPath = Path.Combine(currentPath, "TASKDATA");
+
             var linkList = LoadLinkList(currentPath);
             foreach (var applicationDataModel in ScenarioContext.Current.ApplicationDataModel())
             {
-                ApplicationDataModelAssert.AreEqual(ScenarioContext.Current.OriginalIsoTaskData(), applicationDataModel, currentPath, linkList);
+                ApplicationDataModelAssert.AreEqual(ScenarioContext.Current.OriginalIsoTaskData(), applicationDataModel, cardPath, linkList);
             }
         }
 

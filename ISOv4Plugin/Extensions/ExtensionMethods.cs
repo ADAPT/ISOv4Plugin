@@ -138,7 +138,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Extensions
             var isoId = FindIsoId(adaptId);
 
             if (isoId == null)
-                return 0;
+                return -1;
 
             var digitsOnly = new Regex(@"[^\d]");
             return int.Parse(digitsOnly.Replace(isoId, ""));

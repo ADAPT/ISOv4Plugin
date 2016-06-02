@@ -4,6 +4,7 @@ using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
+using AgGateway.ADAPT.ISOv4Plugin.ImportMappers;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using AgGateway.ADAPT.Representation.RepresentationSystem;
@@ -68,7 +69,8 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             var uniqueId = new UniqueId
             {
                 CiTypeEnum = CompoundIdentifierTypeEnum.String,
-                Id = "DLV0"
+                Id = "DLV0",
+                Source = UniqueIdMapper.IsoSource
             };
             meter.Id.UniqueIds.Add(uniqueId);
             _meters.Add(meter);
@@ -95,13 +97,14 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
                 Representation = RepresentationInstanceList.dtSectionControlMasterState.ToModelRepresentation(),
                 ValueCodes = new List<int> { 1, 2, 3 },
                 SectionId = 1,
-                GetEnumeratedValue = (sv, im) => new EnumeratedValue { Value = new AgGateway.ADAPT.ApplicationDataModel.Representations.EnumerationMember { Code = 3 } }
+                GetEnumeratedValue = (sv, im) => new EnumeratedValue { Value = new AgGateway.ADAPT.ApplicationDataModel.Representations.EnumerationMember { Code = 3 } },
             };
 
             var uniqueId = new UniqueId
             {
                 CiTypeEnum = CompoundIdentifierTypeEnum.String,
-                Id = "DLV0"
+                Id = "DLV0",
+                Source = UniqueIdMapper.IsoSource
             };
             meter.Id.UniqueIds.Add(uniqueId);
             _meters.Add(meter);

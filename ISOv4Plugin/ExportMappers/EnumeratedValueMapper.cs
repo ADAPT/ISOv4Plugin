@@ -35,6 +35,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
             var matchingMeters = meters.Where(x => x.Id.FindIntIsoId() == currentMeter.Id.FindIntIsoId()).ToList();
             var ddi = _representationMapper.Map(currentMeter.Representation);
 
+            if (ddi == 141 && currentMeter.SectionId != 0)
+                ddi = 161;
+
             var creator = _enumeratedMeterFactory.GetMeterCreator(ddi.GetValueOrDefault());
             return creator.GetMetersValue(matchingMeters, spatialRecord);
         }

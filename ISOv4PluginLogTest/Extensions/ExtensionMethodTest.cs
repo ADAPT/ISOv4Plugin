@@ -98,7 +98,7 @@ namespace ISOv4PluginLogTest.Extensions
 
             var result = compoundIdentifier.FindIntIsoId();
 
-            Assert.AreEqual(0, result);
+            Assert.AreEqual(-1, result);
         }
 
 

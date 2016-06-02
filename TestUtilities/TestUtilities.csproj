@@ -58,7 +58,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Datacards\agco c100 tc &amp; jd sprayer 900-short.zip" />
     <None Include="Datacards\agco c100 tc &amp; jd sprayer 900.zip" />
+    <None Include="Datacards\Agco-MicroTrak.zip" />
     <None Include="Datacards\KV.zip" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

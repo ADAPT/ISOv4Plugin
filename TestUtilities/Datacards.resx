@@ -124,4 +124,10 @@
   <data name="KV" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>datacards\kv.zip;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="Agco_MicroTrak" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>datacards\agco-microtrak.zip;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="agco_c100_tc___jd_sprayer_900_short" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>datacards\agco c100 tc &amp; jd sprayer 900-short.zip;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
 </root>

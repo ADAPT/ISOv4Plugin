@@ -8,6 +8,7 @@ Examples:
 | cardname                      |
 | agco_c100_tc___jd_sprayer_900 |
 | KV                            |
+| Agco_MicroTrak                |
 
 Scenario Outline: Import ISO to Adapt Export Adapt to ISO
 	Given I have datacard <cardname>
@@ -15,6 +16,8 @@ Scenario Outline: Import ISO to Adapt Export Adapt to ISO
 	And I export to Iso
 	Then Adapt is exported to ISO
 Examples:
-| cardname                      |
-| agco_c100_tc___jd_sprayer_900 |
-| KV                            |
+| cardname                            |
+| agco_c100_tc___jd_sprayer_900       |
+| KV                                  |
+| Agco_MicroTrak                      |
+| agco_c100_tc___jd_sprayer_900_short |
