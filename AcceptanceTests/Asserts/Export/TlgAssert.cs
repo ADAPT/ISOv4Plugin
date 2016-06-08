@@ -38,7 +38,7 @@ namespace AcceptanceTests.Asserts.Export
             //TimAssert.AreEqual(timeScopes,  tims);    
 
             var sections = operationData.GetAllSections();
-            var meters = sections.SelectMany(x => x.GetMeters()).ToList();
+            var meters = sections.SelectMany(x => x.GetWorkingDatas()).ToList();
             var adaptSpatialRecords = operationData.GetSpatialRecords();
             var binaryReader = new BinaryReader();
             var isoSpatialRecords =  binaryReader.Read(cardPath, tlg.A + ".bin", tims.First());

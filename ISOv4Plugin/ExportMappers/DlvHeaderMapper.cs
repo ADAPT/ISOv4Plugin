@@ -1,17 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ISOv4Plugin.Extensions;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
-using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using AgGateway.ADAPT.ISOv4Plugin.Representation;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
 {
     public interface IDlvHeaderMapper
     {
-        IEnumerable<DLV> Map(IEnumerable<Meter> meters);
+        IEnumerable<DLV> Map(IEnumerable<WorkingData> meters);
     }
 
     public class DlvHeaderMapper : IDlvHeaderMapper
@@ -28,7 +26,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
             _representationMapper = representationMapper;
         }
 
-        public IEnumerable<DLV> Map(IEnumerable<Meter> meters)
+        public IEnumerable<DLV> Map(IEnumerable<WorkingData> meters)
         {
             if (meters == null)
                 return null;
@@ -36,7 +34,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
             return MapNotNullMeters(meters);
         }
 
-        private IEnumerable<DLV> MapNotNullMeters(IEnumerable<Meter> meters)
+        private IEnumerable<DLV> MapNotNullMeters(IEnumerable<WorkingData> meters)
         {
             var dlvOrders = meters.Select(x => x.Id.FindIntIsoId()).Distinct().OrderBy(y => y);
 
@@ -60,7 +58,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
             }
         }
 
-        public DLV Map(Meter meter)
+        public DLV Map(WorkingData meter)
         {
             var representation = _representationMapper.Map(meter.Representation);
 
@@ -71,7 +69,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
             }
             else
             {
-                if (meter.Representation != null && meter.Representation.Code == "dtRecordingStatus" && meter.SectionId != 0)
+                if (meter.Representation != null && meter.Representation.Code == "dtRecordingStatus" && meter.DeviceElementUseId != 0)
                     dlv.A = "161";
                 else
                     dlv.A = representation.ToString();

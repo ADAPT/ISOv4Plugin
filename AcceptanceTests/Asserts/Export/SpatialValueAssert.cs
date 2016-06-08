@@ -13,7 +13,7 @@ namespace AcceptanceTests.Asserts.Export
 {
     public class SpatialValueAssert
     {
-        public static void AreEqual(ISOSpatialRow isoSpatialRow, SpatialRecord adaptSpatialRecord, List<Meter> meters)
+        public static void AreEqual(ISOSpatialRow isoSpatialRow, SpatialRecord adaptSpatialRecord, List<WorkingData> meters)
         {
             foreach (var meter in meters)
             {

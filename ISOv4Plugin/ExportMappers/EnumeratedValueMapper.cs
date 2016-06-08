@@ -11,7 +11,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
 {
     public interface IEnumeratedValueMapper
     {
-        UInt32 Map(ISOEnumeratedMeter currentMeter, List<Meter> meters, SpatialRecord spatialRecord);
+        UInt32 Map(ISOEnumeratedMeter currentMeter, List<WorkingData> meters, SpatialRecord spatialRecord);
     }
 
     public class EnumeratedValueMapper : IEnumeratedValueMapper
@@ -30,12 +30,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
             _representationMapper = representationMapper;
         }
 
-        public UInt32 Map(ISOEnumeratedMeter currentMeter, List<Meter> meters, SpatialRecord spatialRecord)
+        public UInt32 Map(ISOEnumeratedMeter currentMeter, List<WorkingData> meters, SpatialRecord spatialRecord)
         {
             var matchingMeters = meters.Where(x => x.Id.FindIntIsoId() == currentMeter.Id.FindIntIsoId()).ToList();
             var ddi = _representationMapper.Map(currentMeter.Representation);
 
-            if (ddi == 141 && currentMeter.SectionId != 0)
+            if (ddi == 141 && currentMeter.DeviceElementUseId != 0)
                 ddi = 161;
 
             var creator = _enumeratedMeterFactory.GetMeterCreator(ddi.GetValueOrDefault());

@@ -21,12 +21,12 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
 
             var meterMapperMock = new Mock<IMeterMapper>();
 
-            var meters = new List<Meter>();
+            var meters = new List<WorkingData>();
             meterMapperMock.Setup(x => x.Map(tim, isoSpatialRows, It.IsAny<int>())).Returns(meters);
 
             var result = new SectionMapper(meterMapperMock.Object).Map(tims, isoSpatialRows).First();
 
-            Assert.AreSame(meters, result.GetMeters());
+            Assert.AreSame(meters, result.GetWorkingDatas());
         }
 
         [Test]
@@ -39,16 +39,16 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
 
             var meterMapperMock = new Mock<IMeterMapper>();
 
-            var meters1 = new List<Meter>();
-            var meters2 = new List<Meter>();
+            var meters1 = new List<WorkingData>();
+            var meters2 = new List<WorkingData>();
             meterMapperMock.Setup(x => x.Map(tim1, isoSpatialRows, It.IsAny<int>())).Returns(meters1);
             meterMapperMock.Setup(x => x.Map(tim2, isoSpatialRows, It.IsAny<int>())).Returns(meters2);
 
             var result = new SectionMapper(meterMapperMock.Object).Map(tims, isoSpatialRows);
 
             Assert.AreEqual(2, result.Count);
-            Assert.AreSame(meters1, result.ElementAt(0).GetMeters());
-            Assert.AreSame(meters2, result.ElementAt(1).GetMeters());
+            Assert.AreSame(meters1, result.ElementAt(0).GetWorkingDatas());
+            Assert.AreSame(meters2, result.ElementAt(1).GetWorkingDatas());
         }
     }
 }

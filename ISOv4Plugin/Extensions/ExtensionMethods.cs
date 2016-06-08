@@ -32,16 +32,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Extensions
             return itemsOfType;
         }
 
-        public static List<Section> GetAllSections(this OperationData operationData)
+        public static List<DeviceElementUse> GetAllSections(this OperationData operationData)
         {
-            if(operationData.GetSections == null)
-                return new List<Section>();
+            if(operationData.GetDeviceElementUses == null)
+                return new List<DeviceElementUse>();
 
-            var allSections = new List<Section>();
+            var allSections = new List<DeviceElementUse>();
 
             for (var i = 0; i <= operationData.MaxDepth; i++)
             {
-                var sections = operationData.GetSections(i);
+                var sections = operationData.GetDeviceElementUses(i);
                 if(sections != null)
                     allSections.AddRange(sections);
             }

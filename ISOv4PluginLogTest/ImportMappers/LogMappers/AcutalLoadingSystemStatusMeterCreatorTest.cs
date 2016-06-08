@@ -115,13 +115,13 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         {
             var enumeratedMeter1 = new ISOEnumeratedMeter
             {
-                SectionId = 1,
+                DeviceElementUseId = 1,
             };
             var enumeratedMeter2 = new ISOEnumeratedMeter
             {
-                SectionId = 2,
+                DeviceElementUseId = 2,
             };
-            var meters = new List<Meter> { enumeratedMeter1, enumeratedMeter2 };
+            var meters = new List<WorkingData> { enumeratedMeter1, enumeratedMeter2 };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter1, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiUnloadingAugerStateDisabled.ToModelEnumMember() });
@@ -136,13 +136,13 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         {
             var enumeratedMeter1 = new ISOEnumeratedMeter
             {
-                SectionId = 1,
+                DeviceElementUseId = 1,
             };
             var enumeratedMeter2 = new ISOEnumeratedMeter
             {
-                SectionId = 2,
+                DeviceElementUseId = 2,
             };
-            var meters = new List<Meter> { enumeratedMeter1, enumeratedMeter2 };
+            var meters = new List<WorkingData> { enumeratedMeter1, enumeratedMeter2 };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter1, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiUnloadingAugerStateError.ToModelEnumMember() });
@@ -157,13 +157,13 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         {
             var enumeratedMeter1 = new ISOEnumeratedMeter
             {
-                SectionId = 1,
+                DeviceElementUseId = 1,
             };
             var enumeratedMeter2 = new ISOEnumeratedMeter
             {
-                SectionId = 2,
+                DeviceElementUseId = 2,
             };
-            var meters = new List<Meter> { enumeratedMeter1, enumeratedMeter2 };
+            var meters = new List<WorkingData> { enumeratedMeter1, enumeratedMeter2 };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter1, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiSunny.ToModelEnumMember() });

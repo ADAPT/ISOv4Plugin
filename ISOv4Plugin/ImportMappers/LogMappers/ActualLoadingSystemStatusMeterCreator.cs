@@ -24,14 +24,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
         {
             var unloadingMeter = new ISOEnumeratedMeter
             {
-                SectionId = 1,
+                DeviceElementUseId = 1,
                 Representation = RepresentationInstanceList.dtUnloadingAugerState.ToModelRepresentation(),
                 GetEnumeratedValue = GetValueForMeter
             };
 
             var loadingMeter = new ISOEnumeratedMeter
             {
-                SectionId = 2,
+                DeviceElementUseId = 2,
                 Representation = RepresentationInstanceList.dtUnloadingAugerState.ToModelRepresentation(),
                 GetEnumeratedValue = GetValueForMeter
             };
@@ -41,12 +41,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             return meters;
         }
 
-        public EnumeratedValue GetValueForMeter(SpatialValue value, EnumeratedMeter meter)
+        public EnumeratedValue GetValueForMeter(SpatialValue value, EnumeratedWorkingData meter)
         {
             if (Convert.ToInt32(value.Dlv.A, 16) != DDI)
                 return null;
 
-            byte twoBitsValue = GetValue((int)value.Value, meter.SectionId);
+            byte twoBitsValue = GetValue((int)value.Value, meter.DeviceElementUseId);
 
             ApplicationDataModel.Representations.EnumerationMember enumMember = DefinedTypeEnumerationInstanceList.dtiUnloadingAugerStateError.ToModelEnumMember();
 
@@ -67,12 +67,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             };
         }
 
-        public UInt32 GetMetersValue(List<Meter> meters, SpatialRecord spatialRecord)
+        public UInt32 GetMetersValue(List<WorkingData> meters, SpatialRecord spatialRecord)
         {
-            var section1Meter = (ISOEnumeratedMeter)meters.SingleOrDefault(x => x.SectionId == 1);
+            var section1Meter = (ISOEnumeratedMeter)meters.SingleOrDefault(x => x.DeviceElementUseId == 1);
             var section1Value = (EnumeratedValue)spatialRecord.GetMeterValue(section1Meter);
             var sectionOneIsoValue = ConvertToIsoValue(section1Value);
-            var section2Meter = (ISOEnumeratedMeter)meters.SingleOrDefault(x => x.SectionId == 2);
+            var section2Meter = (ISOEnumeratedMeter)meters.SingleOrDefault(x => x.DeviceElementUseId == 2);
             var section2Value = (EnumeratedValue)spatialRecord.GetMeterValue(section2Meter);
             var sectionTwoIsoValue = ConvertToIsoValue(section2Value);
 

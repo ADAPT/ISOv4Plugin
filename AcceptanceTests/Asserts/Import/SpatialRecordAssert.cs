@@ -11,7 +11,7 @@ namespace AcceptanceTests.Asserts.Import
     {
         private const double CoordinateMultiplier = 0.0000001;
 
-        public static void AreEqual(IEnumerable<ISOSpatialRow> isoSpatialRows, IEnumerable<SpatialRecord> adaptSpatialRecords, IEnumerable<Meter> meters)
+        public static void AreEqual(IEnumerable<ISOSpatialRow> isoSpatialRows, IEnumerable<SpatialRecord> adaptSpatialRecords, IEnumerable<WorkingData> meters)
         {
             Assert.AreEqual(isoSpatialRows.Count(), adaptSpatialRecords.Count());
             for (int i = 0; i < isoSpatialRows.Count(); i++)
@@ -20,7 +20,7 @@ namespace AcceptanceTests.Asserts.Import
             }
         }
 
-        private static void AreEqual(ISOSpatialRow isoSpatialRow, SpatialRecord adaptSpatialRecord, IEnumerable<Meter> meters)
+        private static void AreEqual(ISOSpatialRow isoSpatialRow, SpatialRecord adaptSpatialRecord, IEnumerable<WorkingData> meters)
         {
             Assert.AreEqual(isoSpatialRow.TimeStart, adaptSpatialRecord.Timestamp);
 

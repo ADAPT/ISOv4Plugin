@@ -84,7 +84,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
                     Value = DefinedTypeEnumerationInstanceList.dtiDrawbar.ToModelEnumMember(),
                 },
             };
-            var meters = new List<Meter> { enumeratedMeter1 };
+            var meters = new List<WorkingData> { enumeratedMeter1 };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter1, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiDrawbar.ToModelEnumMember() });
@@ -103,7 +103,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
                     Value = DefinedTypeEnumerationInstanceList.dtiRearTwoPoint.ToModelEnumMember(),
                 },
             };
-            var meters = new List<Meter> { enumeratedMeter1 };
+            var meters = new List<WorkingData> { enumeratedMeter1 };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter1, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiRearTwoPoint.ToModelEnumMember() });
@@ -116,7 +116,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenMetersWithThreePointWhenGetMetersValueThenThree()
         {
             var enumeratedMeter1 = new ISOEnumeratedMeter();
-            var meters = new List<Meter> { enumeratedMeter1 };
+            var meters = new List<WorkingData> { enumeratedMeter1 };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter1, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiThreePoint.ToModelEnumMember() });
@@ -129,7 +129,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenMetersWithRearPivotWagonHitchWhenGetMetersValueThenSeven()
         {
             var enumeratedMeter1 = new ISOEnumeratedMeter();
-            var meters = new List<Meter> { enumeratedMeter1 };
+            var meters = new List<WorkingData> { enumeratedMeter1 };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter1, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiRearPivotWagonHitch.ToModelEnumMember() });
@@ -142,7 +142,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenMetersWithUnknownHitchWhenGetMetersValueThenZero()
         {
             var enumeratedMeter1 = new ISOEnumeratedMeter();
-            var meters = new List<Meter> { enumeratedMeter1 };
+            var meters = new List<WorkingData> { enumeratedMeter1 };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter1, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiUnload.ToModelEnumMember() });
@@ -163,7 +163,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             };
         }
 
-        private EnumeratedMeter CreateMeter()
+        private EnumeratedWorkingData CreateMeter()
         {
             return _creator.CreateMeters(null).Single();
         }

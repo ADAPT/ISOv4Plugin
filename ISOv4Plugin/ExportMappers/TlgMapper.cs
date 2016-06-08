@@ -46,7 +46,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
 
             var tlg = new TLG { A = tlgId};
             var sections = operationData.GetAllSections();
-            var meters = sections.SelectMany(x => x.GetMeters()).ToList();
+            var meters = sections.SelectMany(x => x.GetWorkingDatas()).ToList();
             var spatialRecords = operationData.GetSpatialRecords != null ? operationData.GetSpatialRecords() : null;
 
             var timHeader = _timHeaderMapper.Map(meters);

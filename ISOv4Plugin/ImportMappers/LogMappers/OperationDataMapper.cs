@@ -39,22 +39,21 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
 
         public IEnumerable<OperationData> Map(List<TLG> tlgs, int? prescrptionId, string datacardPath, int loggedDataReferenceId, Dictionary<string, List<UniqueId>> linkedIds)
         {
-            return tlgs.Select(x => Map(x, prescrptionId, datacardPath, loggedDataReferenceId, linkedIds)).ToList();
+            return tlgs.Select(x => Map(x, prescrptionId, datacardPath, linkedIds)).ToList();
         }
 
-        private OperationData Map(TLG tlg, int? prescrptionId, string datacardPath, int loggedDataReferenceId, Dictionary<string, List<UniqueId>> linkedIds)
+        private OperationData Map(TLG tlg, int? prescrptionId, string datacardPath, Dictionary<string, List<UniqueId>> linkedIds)
         {
             var tim = _xmlReader.ReadTlgXmlData(datacardPath, tlg.A + ".xml").First();
             var isoRecords = _binaryReader.Read(datacardPath, tlg.A + ".bin", tim).ToList();
             var sections = _sectionMapper.Map(new List<TIM> {tim}, isoRecords); 
-            var meters = sections != null ? sections.SelectMany(x => x.GetMeters()).ToList() : new List<Meter>();
+            var meters = sections != null ? sections.SelectMany(x => x.GetWorkingDatas()).ToList() : new List<WorkingData>();
 
             var operationData = new OperationData
             {
-                LoggedDataId = loggedDataReferenceId,
                 GetSpatialRecords = () => _spatialRecordMapper.Map(isoRecords, meters),
                 MaxDepth = 0,
-                GetSections = x => x == 0 ? sections : new List<Section>(),
+                GetDeviceElementUses = x => x == 0 ? sections : new List<DeviceElementUse>(),
                 PrescriptionId = prescrptionId
             };
             operationData.Id.UniqueIds.Add(_uniqueIdMapper.Map(tlg.A));

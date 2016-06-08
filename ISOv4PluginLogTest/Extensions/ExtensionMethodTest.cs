@@ -152,12 +152,12 @@ namespace ISOv4PluginLogTest.Extensions
         {
             var operationData = new OperationData { MaxDepth = 3 };
 
-            var depth0Sections = new List<Section> { new Section() };
-            var depth1Sections = new List<Section> { new Section() };
-            var depth2Sections = new List<Section> { new Section() };
-            var depth3Sections = new List<Section> { new Section() };
+            var depth0Sections = new List<DeviceElementUse> { new DeviceElementUse() };
+            var depth1Sections = new List<DeviceElementUse> { new DeviceElementUse() };
+            var depth2Sections = new List<DeviceElementUse> { new DeviceElementUse() };
+            var depth3Sections = new List<DeviceElementUse> { new DeviceElementUse() };
 
-            operationData.GetSections = depth =>
+            operationData.GetDeviceElementUses = depth =>
             {
                 if (depth == 0)
                     return depth0Sections;
@@ -185,12 +185,12 @@ namespace ISOv4PluginLogTest.Extensions
         {
             var operationData = new OperationData { MaxDepth = 2 };
 
-            var depth0Sections = new List<Section> { new Section() };
-            var depth1Sections = new List<Section> { new Section() };
-            var depth2Sections = new List<Section> { new Section() };
-            var depth3Sections = new List<Section> { new Section() };
+            var depth0Sections = new List<DeviceElementUse> { new DeviceElementUse() };
+            var depth1Sections = new List<DeviceElementUse> { new DeviceElementUse() };
+            var depth2Sections = new List<DeviceElementUse> { new DeviceElementUse() };
+            var depth3Sections = new List<DeviceElementUse> { new DeviceElementUse() };
 
-            operationData.GetSections = depth =>
+            operationData.GetDeviceElementUses = depth =>
             {
                 if (depth == 0)
                     return depth0Sections;
@@ -217,12 +217,12 @@ namespace ISOv4PluginLogTest.Extensions
         {
             var operationData = new OperationData { MaxDepth = 1 };
 
-            var depth0Sections = new List<Section> { new Section() };
-            var depth1Sections = new List<Section> { new Section() };
-            var depth2Sections = new List<Section> { new Section() };
-            var depth3Sections = new List<Section> { new Section() };
+            var depth0Sections = new List<DeviceElementUse> { new DeviceElementUse() };
+            var depth1Sections = new List<DeviceElementUse> { new DeviceElementUse() };
+            var depth2Sections = new List<DeviceElementUse> { new DeviceElementUse() };
+            var depth3Sections = new List<DeviceElementUse> { new DeviceElementUse() };
 
-            operationData.GetSections = depth =>
+            operationData.GetDeviceElementUses = depth =>
             {
                 if (depth == 0)
                     return depth0Sections;
@@ -248,12 +248,12 @@ namespace ISOv4PluginLogTest.Extensions
         {
             var operationData = new OperationData { MaxDepth = 0 };
 
-            var depth0Sections = new List<Section> { new Section() };
-            var depth1Sections = new List<Section> { new Section() };
-            var depth2Sections = new List<Section> { new Section() };
-            var depth3Sections = new List<Section> { new Section() };
+            var depth0Sections = new List<DeviceElementUse> { new DeviceElementUse() };
+            var depth1Sections = new List<DeviceElementUse> { new DeviceElementUse() };
+            var depth2Sections = new List<DeviceElementUse> { new DeviceElementUse() };
+            var depth3Sections = new List<DeviceElementUse> { new DeviceElementUse() };
 
-            operationData.GetSections = depth =>
+            operationData.GetDeviceElementUses = depth =>
             {
                 if (depth == 0)
                     return depth0Sections;
@@ -276,7 +276,7 @@ namespace ISOv4PluginLogTest.Extensions
         [Test]
         public void GivenNullGetSectionsWhenGetAllSectionsThenEmptyList()
         {
-            var operationData = new OperationData {GetSections = null};
+            var operationData = new OperationData {GetDeviceElementUses = null};
             var result = operationData.GetAllSections();
 
             Assert.AreEqual(0, result.Count);

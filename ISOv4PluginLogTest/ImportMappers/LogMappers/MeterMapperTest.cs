@@ -57,7 +57,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
 
             _representationMapperMock.Setup(r => r.GetUnitForDdi(1)).Returns(UnitSystemManager.GetUnitOfMeasure("m"));
 
-            var result = (NumericMeter)MapSingle();
+            var result = (NumericWorkingData)MapSingle();
 
             Assert.AreEqual("m", result.UnitOfMeasure.Code);
         }
@@ -70,7 +70,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
 
             var result = MapSingle(-45);
 
-            Assert.AreEqual(-45, result.SectionId);
+            Assert.AreEqual(-45, result.DeviceElementUseId);
         }
 
         [Test]
@@ -153,12 +153,12 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             Assert.Contains(uniqueId, result.Id.UniqueIds);
         }
 
-        private Meter MapSingle(int sectionId = 0)
+        private WorkingData MapSingle(int sectionId = 0)
         {
             return Map(sectionId).First();
         }
 
-        private List<Meter> Map(int sectionId = 0)
+        private List<WorkingData> Map(int sectionId = 0)
         {
             return _meterMapper.Map(_tim, _isoSpatialRows, sectionId);
         }

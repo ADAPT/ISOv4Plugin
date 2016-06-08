@@ -83,9 +83,9 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
                 {
                     Value = DefinedTypeEnumerationInstanceList.dtiRecordingStatusOn.ToModelEnumMember(),
                 },
-                SectionId = 1,
+                DeviceElementUseId = 1,
             };
-            var meters = new List<Meter> { enumeratedMeter1 };
+            var meters = new List<WorkingData> { enumeratedMeter1 };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter1, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiRecordingStatusOn.ToModelEnumMember() });
@@ -103,9 +103,9 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
                 {
                     Value = DefinedTypeEnumerationInstanceList.dtiRecordingStatusOff.ToModelEnumMember(),
                 },
-                SectionId = 1,
+                DeviceElementUseId = 1,
             };
-            var meters = new List<Meter> { enumeratedMeter1 };
+            var meters = new List<WorkingData> { enumeratedMeter1 };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter1, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiRecordingStatusOff.ToModelEnumMember() });
@@ -118,7 +118,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenMetersWithUnknownWhenGetMetersValueThenThree()
         {
             var enumeratedMeter1 = new ISOEnumeratedMeter();
-            var meters = new List<Meter> { enumeratedMeter1 };
+            var meters = new List<WorkingData> { enumeratedMeter1 };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter1, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiSunny.ToModelEnumMember() });
@@ -139,7 +139,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             };
         }
 
-        private EnumeratedMeter CreateMeter()
+        private EnumeratedWorkingData CreateMeter()
         {
             return _creator.CreateMeters(null).Single();
         }

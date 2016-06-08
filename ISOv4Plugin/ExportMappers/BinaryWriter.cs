@@ -13,7 +13,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
 {
     public interface IBinaryWriter
     {
-        IEnumerable<ISOSpatialRow> Write(string fileName, List<Meter> meters, IEnumerable<SpatialRecord> spatialRecords);
+        IEnumerable<ISOSpatialRow> Write(string fileName, List<WorkingData> meters, IEnumerable<SpatialRecord> spatialRecords);
     }
 
     public class BinaryWriter : IBinaryWriter
@@ -35,7 +35,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
             _numericValueMapper = numericValueMapper;
         }
 
-        public IEnumerable<ISOSpatialRow> Write(string fileName, List<Meter> meters, IEnumerable<SpatialRecord> spatialRecords)
+        public IEnumerable<ISOSpatialRow> Write(string fileName, List<WorkingData> meters, IEnumerable<SpatialRecord> spatialRecords)
         {
             Debug.WriteLine("Writing file " + fileName);
 
@@ -54,7 +54,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
             return null;
         }
 
-        private void WriteSpatialRecord(SpatialRecord spatialRecord, List<Meter> meters, MemoryStream memoryStream)
+        private void WriteSpatialRecord(SpatialRecord spatialRecord, List<WorkingData> meters, MemoryStream memoryStream)
         {
             WriteTimeStart(spatialRecord.Timestamp, memoryStream);
             WritePosition(spatialRecord.Geometry, memoryStream);
@@ -100,7 +100,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
 
         private readonly Dictionary<int, uint> previousDlvs = new Dictionary<int, uint>();
 
-        private void WriteMeterValues(SpatialRecord spatialRecord, List<Meter> meters, MemoryStream memoryStream)
+        private void WriteMeterValues(SpatialRecord spatialRecord, List<WorkingData> meters, MemoryStream memoryStream)
         {
             var dlvOrders = meters.Select(x => x.Id.FindIntIsoId()).Distinct();
             var dlvsToWrite = new Dictionary<int, uint>();
@@ -127,7 +127,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
             }
         }
 
-        private Dictionary<int, uint> GetMeterValues(SpatialRecord spatialRecord, List<Meter> meters)
+        private Dictionary<int, uint> GetMeterValues(SpatialRecord spatialRecord, List<WorkingData> meters)
         {
             var dlvsToWrite = new Dictionary<int, uint>();
             var metersWithValues = meters.Where(x => spatialRecord.GetMeterValue(x) != null);
@@ -136,7 +136,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
             foreach (var order in dlvOrders)
             {
                 var dlvMeters = meters.Where(x => x.Id.FindIntIsoId() == order);
-                var numericMeter = dlvMeters.First() as NumericMeter;
+                var numericMeter = dlvMeters.First() as NumericWorkingData;
                 UInt32? value = null;
                 if (numericMeter != null && spatialRecord.GetMeterValue(numericMeter) != null)
                 {
@@ -167,14 +167,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
             return dlvsToWrite;
         }
 
-        private Dictionary<int, uint> GetMeterValuesAndAssignDlvNumbers(SpatialRecord spatialRecord, List<Meter> meters)
+        private Dictionary<int, uint> GetMeterValuesAndAssignDlvNumbers(SpatialRecord spatialRecord, List<WorkingData> meters)
         {
             var dlvValues = new Dictionary<int, uint>();
 
             for (int meterIndex = 0; meterIndex < meters.Count; meterIndex++)
             {
                 var meter = meters[meterIndex];
-                var numericMeter = meter as NumericMeter;
+                var numericMeter = meter as NumericWorkingData;
                 UInt32? value = null;
                 if (numericMeter != null && spatialRecord.GetMeterValue(numericMeter) != null)
                 {
@@ -184,7 +184,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
                 var isoEnumerateMeter = meter as ISOEnumeratedMeter;
                 if (isoEnumerateMeter != null && spatialRecord.GetMeterValue(isoEnumerateMeter) != null)
                 {
-                    value = _enumeratedValueMapper.Map(isoEnumerateMeter, new List<Meter> {meter}, spatialRecord);
+                    value = _enumeratedValueMapper.Map(isoEnumerateMeter, new List<WorkingData> {meter}, spatialRecord);
                 }
 
                 if (value == null)

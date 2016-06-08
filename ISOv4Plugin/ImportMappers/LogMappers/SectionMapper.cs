@@ -7,7 +7,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
 {
     public interface ISectionMapper
     {
-        List<Section> Map(List<TIM> tims, List<ISOSpatialRow> isoRecords);
+        List<DeviceElementUse> Map(List<TIM> tims, List<ISOSpatialRow> isoRecords);
     }
 
     public class SectionMapper : ISectionMapper
@@ -24,15 +24,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             _meterMapper = meterMapper;
         }
 
-        public List<Section> Map(List<TIM> tims, List<ISOSpatialRow> isoRecords)
+        public List<DeviceElementUse> Map(List<TIM> tims, List<ISOSpatialRow> isoRecords)
         {
-            var sections = new List<Section>();
+            var sections = new List<DeviceElementUse>();
 
             foreach (var tim in tims)
             {
-                var section = new Section();
+                var section = new DeviceElementUse();
                 var meters = _meterMapper.Map(tim, isoRecords, section.Id.ReferenceId);
-                section.GetMeters = () => meters;
+                section.GetWorkingDatas = () => meters;
 
                 sections.Add(section);
             }

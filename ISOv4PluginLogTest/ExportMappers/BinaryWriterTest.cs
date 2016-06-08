@@ -25,9 +25,9 @@ namespace ISOv4PluginLogTest.ExportMappers
         private string _dataPath;
         private string _fileName;
         private BinaryWriter _binaryWriter;
-        private List<Meter> _meters;
+        private List<WorkingData> _meters;
         private List<SpatialRecord> _spatialRecords;
-        private NumericMeter _numericMeter;
+        private NumericWorkingData _numericMeter;
         private ISOEnumeratedMeter _enumeratedMeter;
         private Mock<INumericValueMapper> _numericValueMapperMock;
         private Mock<IEnumeratedValueMapper> _enumeratedMeterMapperMock;
@@ -39,21 +39,21 @@ namespace ISOv4PluginLogTest.ExportMappers
             _dataPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             Directory.CreateDirectory(_dataPath);
             _fileName = "test.bin";
-            _meters = new List<Meter>();
+            _meters = new List<WorkingData>();
             _spatialRecord = new SpatialRecord {Geometry = new Point {X = 93.6208, Y = 41.5908}};
             _spatialRecords = new List<SpatialRecord> {_spatialRecord};
 
-            _numericMeter = new NumericMeter
+            _numericMeter = new NumericWorkingData
             {
                 Representation = RepresentationInstanceList.vrAvgHarvestMoisture.ToModelRepresentation(),
                 UnitOfMeasure = UnitSystemManager.GetUnitOfMeasure("prcnt"),
-                SectionId = 1
+                DeviceElementUseId = 1
             };
 
             _enumeratedMeter = new ISOEnumeratedMeter
             {
                 Representation = RepresentationInstanceList.dtSkyCondition.ToModelRepresentation(),
-                SectionId = 1,
+                DeviceElementUseId = 1,
                 ValueCodes = new List<int> {0, 1, 2}
             };
 
@@ -67,7 +67,7 @@ namespace ISOv4PluginLogTest.ExportMappers
         {
             var filename = Path.Combine(_dataPath, _fileName);
 
-            _binaryWriter.Write(filename, new List<Meter>(), new List<SpatialRecord>());
+            _binaryWriter.Write(filename, new List<WorkingData>(), new List<SpatialRecord>());
 
             Assert.IsTrue(File.Exists(filename));
         }
@@ -113,7 +113,7 @@ namespace ISOv4PluginLogTest.ExportMappers
         public void GivenSpatialRowWithNumericMeterWhenWriteThenDlvIsWritten()
         {
             _numericMeter.Id.UniqueIds.Add(GenerateUniqueId(0));
-            _meters.AddRange(new List<Meter> {_numericMeter});
+            _meters.AddRange(new List<WorkingData> { _numericMeter });
 
             _spatialRecord.SetMeterValue(_numericMeter, new NumericRepresentationValue());
 
@@ -130,7 +130,7 @@ namespace ISOv4PluginLogTest.ExportMappers
         public void GivenSpatialRowWithEnumeratedMeterWhenWriteThenDlvIsWritten()
         {
             _enumeratedMeter.Id.UniqueIds.Add(GenerateUniqueId(0));
-            _meters.AddRange(new List<Meter> {_enumeratedMeter});
+            _meters.AddRange(new List<WorkingData> { _enumeratedMeter });
 
             _spatialRecord.SetMeterValue(_enumeratedMeter, new EnumeratedValue());
             _enumeratedMeterMapperMock.Setup(x => x.Map(_enumeratedMeter, _meters, _spatialRecord)).Returns(1);
@@ -146,12 +146,12 @@ namespace ISOv4PluginLogTest.ExportMappers
         {
             _enumeratedMeter.Id.UniqueIds.Add(GenerateUniqueId(0));
             _numericMeter.Id.UniqueIds.Add(GenerateUniqueId(1));
-            _meters.AddRange(new List<Meter> {_enumeratedMeter, _numericMeter});
+            _meters.AddRange(new List<WorkingData> { _enumeratedMeter, _numericMeter });
 
             _spatialRecord.SetMeterValue(_enumeratedMeter, new EnumeratedValue());
             _spatialRecord.SetMeterValue(_numericMeter, new NumericRepresentationValue());
 
-            _enumeratedMeterMapperMock.Setup(x => x.Map(_enumeratedMeter, It.IsAny<List<Meter>>(), _spatialRecord)).Returns(1);
+            _enumeratedMeterMapperMock.Setup(x => x.Map(_enumeratedMeter, It.IsAny<List<WorkingData>>(), _spatialRecord)).Returns(1);
             _numericValueMapperMock.Setup(x => x.Map(_numericMeter, _spatialRecord)).Returns(20);
 
             Write();
@@ -177,12 +177,12 @@ namespace ISOv4PluginLogTest.ExportMappers
         [Test]
         public void GivenSpatialRowWithMetersWithoutIsoUniqueIdWhenWriteThenDlvsStartNumberingAtZero()
         {
-            _meters.AddRange(new List<Meter> { _enumeratedMeter, _numericMeter });
+            _meters.AddRange(new List<WorkingData> { _enumeratedMeter, _numericMeter });
 
             _spatialRecord.SetMeterValue(_enumeratedMeter, new EnumeratedValue());
             _spatialRecord.SetMeterValue(_numericMeter, new NumericRepresentationValue());
 
-            _enumeratedMeterMapperMock.Setup(x => x.Map(_enumeratedMeter, It.IsAny<List<Meter>>(), _spatialRecord)).Returns(1);
+            _enumeratedMeterMapperMock.Setup(x => x.Map(_enumeratedMeter, It.IsAny<List<WorkingData>>(), _spatialRecord)).Returns(1);
             _numericValueMapperMock.Setup(x => x.Map(_numericMeter, _spatialRecord)).Returns(20);
 
             Write();
@@ -210,7 +210,7 @@ namespace ISOv4PluginLogTest.ExportMappers
         {
             _enumeratedMeter.Id.UniqueIds.Add(GenerateUniqueId(0));
             _numericMeter.Id.UniqueIds.Add(GenerateUniqueId(1));
-            _meters.AddRange(new List<Meter> { _enumeratedMeter, _numericMeter });
+            _meters.AddRange(new List<WorkingData> { _enumeratedMeter, _numericMeter });
 
             var spatialRecord1 = new SpatialRecord
             {
@@ -241,8 +241,8 @@ namespace ISOv4PluginLogTest.ExportMappers
             _numericValueMapperMock.Setup(x => x.Map(_numericMeter, spatialRecord2)).Returns(30);
 
             _spatialRecords = new List<SpatialRecord> { spatialRecord1, spatialRecord2 };
-            _enumeratedMeterMapperMock.Setup(x => x.Map(_enumeratedMeter, It.IsAny<List<Meter>>(), spatialRecord1)).Returns(1);
-            _enumeratedMeterMapperMock.Setup(x => x.Map(_enumeratedMeter, It.IsAny<List<Meter>>(), spatialRecord2)).Returns(1);
+            _enumeratedMeterMapperMock.Setup(x => x.Map(_enumeratedMeter, It.IsAny<List<WorkingData>>(), spatialRecord1)).Returns(1);
+            _enumeratedMeterMapperMock.Setup(x => x.Map(_enumeratedMeter, It.IsAny<List<WorkingData>>(), spatialRecord2)).Returns(1);
 
             Write();
 
@@ -274,7 +274,7 @@ namespace ISOv4PluginLogTest.ExportMappers
        {
            _enumeratedMeter.Id.UniqueIds.Add(GenerateUniqueId(0));
            _numericMeter.Id.UniqueIds.Add(GenerateUniqueId(1));
-           _meters.AddRange(new List<Meter> { _enumeratedMeter, _numericMeter });
+           _meters.AddRange(new List<WorkingData> { _enumeratedMeter, _numericMeter });
 
            var spatialRecord1 = new SpatialRecord
            {
@@ -305,8 +305,8 @@ namespace ISOv4PluginLogTest.ExportMappers
            _numericValueMapperMock.Setup(x => x.Map(_numericMeter, spatialRecord2)).Returns(20);
 
            _spatialRecords = new List<SpatialRecord> { spatialRecord1, spatialRecord2 };
-           _enumeratedMeterMapperMock.Setup(x => x.Map(_enumeratedMeter, It.IsAny<List<Meter>>(), spatialRecord1)).Returns(1);
-           _enumeratedMeterMapperMock.Setup(x => x.Map(_enumeratedMeter, It.IsAny<List<Meter>>(), spatialRecord2)).Returns(0);
+           _enumeratedMeterMapperMock.Setup(x => x.Map(_enumeratedMeter, It.IsAny<List<WorkingData>>(), spatialRecord1)).Returns(1);
+           _enumeratedMeterMapperMock.Setup(x => x.Map(_enumeratedMeter, It.IsAny<List<WorkingData>>(), spatialRecord2)).Returns(0);
 
 
            Write();
@@ -338,7 +338,7 @@ namespace ISOv4PluginLogTest.ExportMappers
         public void GivenSpatialRecordWithEnumeratedMetersWithSameIdsWhenWriteThenEnumeratedMeterIsCombined()
         {
             var isoEnumeratedMeter = new ISOEnumeratedMeter();
-            _meters.AddRange(new List<Meter> {isoEnumeratedMeter});
+            _meters.AddRange(new List<WorkingData> { isoEnumeratedMeter });
 
             var spatialRecord = new SpatialRecord
             {

@@ -78,7 +78,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenMetersWithUnStableWhenGetMetersValueThenIsZero()
         {
             var enumeratedMeter = new ISOEnumeratedMeter();
-            var meters = new List<Meter> { enumeratedMeter };
+            var meters = new List<WorkingData> { enumeratedMeter };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiWeightUnStable.ToModelEnumMember() });
@@ -91,7 +91,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenMetersWithUnStableWhenGetMetersValueThenIsOne()
         {
             var enumeratedMeter = new ISOEnumeratedMeter();
-            var meters = new List<Meter> { enumeratedMeter };
+            var meters = new List<WorkingData> { enumeratedMeter };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiWeightStable.ToModelEnumMember() });
@@ -104,7 +104,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenMetersWithUnStableWhenGetMetersValueThenIsTwo()
         {
             var enumeratedMeter = new ISOEnumeratedMeter();
-            var meters = new List<Meter> { enumeratedMeter };
+            var meters = new List<WorkingData> { enumeratedMeter };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiWeightError.ToModelEnumMember() });
@@ -125,7 +125,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             };
         }
 
-        private EnumeratedMeter CreateMeter()
+        private EnumeratedWorkingData CreateMeter()
         {
             return _creator.CreateMeters(null).Single();
         }

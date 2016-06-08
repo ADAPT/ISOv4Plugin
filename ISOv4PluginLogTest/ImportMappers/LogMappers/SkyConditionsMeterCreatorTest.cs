@@ -124,7 +124,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenMetersWithClearWhenGetMetersValueThenIsCorrect()
         {
             var enumeratedMeter = new ISOEnumeratedMeter();
-            var meters = new List<Meter> { enumeratedMeter };
+            var meters = new List<WorkingData> { enumeratedMeter };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiClear.ToModelEnumMember() });
@@ -137,7 +137,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenMetersWithSunnyWhenGetMetersValueThenIsCorrect()
         {
             var enumeratedMeter = new ISOEnumeratedMeter();
-            var meters = new List<Meter> { enumeratedMeter };
+            var meters = new List<WorkingData> { enumeratedMeter };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiSunny.ToModelEnumMember() });
@@ -150,7 +150,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenMetersWithPartlyCloudyWhenGetMetersValueThenIsCorrect()
         {
             var enumeratedMeter = new ISOEnumeratedMeter();
-            var meters = new List<Meter> { enumeratedMeter };
+            var meters = new List<WorkingData> { enumeratedMeter };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiPartlyCloudy.ToModelEnumMember() });
@@ -163,7 +163,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenMetersWithCloudyWhenGetMetersValueThenIsCorrect()
         {
             var enumeratedMeter = new ISOEnumeratedMeter();
-            var meters = new List<Meter> { enumeratedMeter };
+            var meters = new List<WorkingData> { enumeratedMeter };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiCloudy.ToModelEnumMember() });
@@ -184,7 +184,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             };
         }
 
-        private EnumeratedMeter CreateMeter()
+        private EnumeratedWorkingData CreateMeter()
         {
             return _creator.CreateMeters(null).Single();
         }

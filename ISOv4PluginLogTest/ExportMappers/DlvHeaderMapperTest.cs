@@ -17,8 +17,8 @@ namespace ISOv4PluginLogTest.ExportMappers
     [TestFixture]
     public class DlvHeaderMapperTest
     {
-        private Meter _meter;
-        private List<Meter> _meters; 
+        private WorkingData _meter;
+        private List<WorkingData> _meters; 
         private DlvHeaderMapper _dlvHeaderMapper;
 
         private Mock<IRepresentationMapper> _representationMapperMock;
@@ -27,8 +27,8 @@ namespace ISOv4PluginLogTest.ExportMappers
         [SetUp]
         public void Setup()
         {
-            _meter = new NumericMeter();
-            _meters = new List<Meter>();
+            _meter = new NumericWorkingData();
+            _meters = new List<WorkingData>();
 
             _representationMapperMock = new Mock<IRepresentationMapper>();
             _dlvHeaderMapper = new DlvHeaderMapper(_representationMapperMock.Object);
@@ -37,10 +37,10 @@ namespace ISOv4PluginLogTest.ExportMappers
         [Test]
         public void GivenMetersWhenMapThenDlvForEachMeter()
         {
-            _meters.Add(new NumericMeter());
-            _meters.Add(new NumericMeter());
-            _meters.Add(new NumericMeter());
-            _meters.Add(new NumericMeter());
+            _meters.Add(new NumericWorkingData());
+            _meters.Add(new NumericWorkingData());
+            _meters.Add(new NumericWorkingData());
+            _meters.Add(new NumericWorkingData());
 
             var result = Map();
             Assert.AreEqual(_meters.Count, result.Count());
@@ -49,7 +49,7 @@ namespace ISOv4PluginLogTest.ExportMappers
         [Test]
         public void GivenMeterWhenMapThenProcessDataDdiIsMapped()
         {
-            _meters = new List<Meter> { _meter };
+            _meters = new List<WorkingData> { _meter };
 
             _representationMapperMock.Setup(x => x.Map(_meter.Representation)).Returns(5);
 
@@ -71,7 +71,7 @@ namespace ISOv4PluginLogTest.ExportMappers
             _representationMapperMock.Setup(x => x.Map(_meter.Representation)).Returns(5);
             _meters.Add(_meter);
 
-            var meter1 = new NumericMeter();
+            var meter1 = new NumericWorkingData();
             meter1.Id.UniqueIds.Add(new UniqueId
             {
                 Id = "DLV1",

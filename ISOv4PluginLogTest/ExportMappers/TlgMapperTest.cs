@@ -88,19 +88,19 @@ namespace ISOv4PluginLogTest.ExportMappers
                 Source = UniqueIdMapper.IsoSource
             });
 
-            var meters = new List<Meter>{ new NumericMeter() };
-            var sections = new List<Section>
+            var meters = new List<WorkingData>{ new NumericWorkingData() };
+            var sections = new List<DeviceElementUse>
             {
-                new Section
+                new DeviceElementUse
                 {
-                    GetMeters = () => meters
+                    GetWorkingDatas = () => meters
                 }
             };
-            var sectionsByDepth = new Dictionary<int, IEnumerable<Section>>
+            var sectionsByDepth = new Dictionary<int, IEnumerable<DeviceElementUse>>
             {
                 { 0, sections }
             };
-            _operationData.GetSections = x => sectionsByDepth[x];
+            _operationData.GetDeviceElementUses = x => sectionsByDepth[x];
             _operationData.MaxDepth = 0;
 
             var spatialRecords = new List<SpatialRecord>{ new SpatialRecord() };
@@ -121,19 +121,19 @@ namespace ISOv4PluginLogTest.ExportMappers
                 CiTypeEnum = CompoundIdentifierTypeEnum.String,
             });
 
-            var meters = new List<Meter> { new NumericMeter() };
-            var sections = new List<Section>
+            var meters = new List<WorkingData> { new NumericWorkingData() };
+            var sections = new List<DeviceElementUse>
             {
-                new Section
+                new DeviceElementUse
                 {
-                    GetMeters = () => meters
+                    GetWorkingDatas = () => meters
                 }
             };
-            var sectionsByDepth = new Dictionary<int, IEnumerable<Section>>
+            var sectionsByDepth = new Dictionary<int, IEnumerable<DeviceElementUse>>
             {
                 { 0, sections }
             };
-            _operationData.GetSections = x => sectionsByDepth[x];
+            _operationData.GetDeviceElementUses = x => sectionsByDepth[x];
             _operationData.MaxDepth = 0;
 
             MapSingle();
@@ -151,19 +151,19 @@ namespace ISOv4PluginLogTest.ExportMappers
                 Source = UniqueIdMapper.IsoSource
             });
 
-            var meters = new List<Meter> { new NumericMeter() };
-            var sections = new List<Section>
+            var meters = new List<WorkingData> { new NumericWorkingData() };
+            var sections = new List<DeviceElementUse>
             {
-                new Section
+                new DeviceElementUse
                 {
-                    GetMeters = () => meters
+                    GetWorkingDatas = () => meters
                 }
             };
-            var sectionsByDepth = new Dictionary<int, IEnumerable<Section>>
+            var sectionsByDepth = new Dictionary<int, IEnumerable<DeviceElementUse>>
             {
                 { 0, sections }
             };
-            _operationData.GetSections = x => sectionsByDepth[x];
+            _operationData.GetDeviceElementUses = x => sectionsByDepth[x];
             _operationData.MaxDepth = 0;
 
             var tim = new TIM();

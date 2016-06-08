@@ -11,7 +11,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
 {
     public interface ISpatialRecordMapper
     {
-        IEnumerable<SpatialRecord> Map(IEnumerable<ISOSpatialRow> isoSpatialRows, List<Meter> meters);
+        IEnumerable<SpatialRecord> Map(IEnumerable<ISOSpatialRow> isoSpatialRows, List<WorkingData> meters);
     }
 
     public class SpatialRecordMapper : ISpatialRecordMapper
@@ -29,22 +29,22 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
 
         }
 
-        public IEnumerable<SpatialRecord> Map(IEnumerable<ISOSpatialRow> isoSpatialRows, List<Meter> meters)
+        public IEnumerable<SpatialRecord> Map(IEnumerable<ISOSpatialRow> isoSpatialRows, List<WorkingData> meters)
         {
             _representationValueInterpolator.Clear();
             return isoSpatialRows.Select(r => Map(r, meters));
         }
 
-        public SpatialRecord Map(ISOSpatialRow isoSpatialRow, List<Meter> meters)
+        public SpatialRecord Map(ISOSpatialRow isoSpatialRow, List<WorkingData> meters)
         {
             var spatialRecord = new SpatialRecord();
 
-            foreach (var meter in meters.OfType<NumericMeter>())
+            foreach (var meter in meters.OfType<NumericWorkingData>())
             {
                 SetNumericMeterValue(isoSpatialRow, meter, spatialRecord);
             }
 
-            foreach (var meter in meters.OfType<EnumeratedMeter>())
+            foreach (var meter in meters.OfType<EnumeratedWorkingData>())
             {
                 SetEnumeratedMeterValue(isoSpatialRow, meter, spatialRecord);
             }
@@ -61,7 +61,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             return spatialRecord;
         }
 
-        private void SetEnumeratedMeterValue(ISOSpatialRow isoSpatialRow, EnumeratedMeter meter, SpatialRecord spatialRecord)
+        private void SetEnumeratedMeterValue(ISOSpatialRow isoSpatialRow, EnumeratedWorkingData meter, SpatialRecord spatialRecord)
         {
             var isoValue = isoSpatialRow.SpatialValues.SingleOrDefault(v => v.Id == meter.Id.FindIntIsoId());
             if (isoValue != null)
@@ -78,7 +78,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             }
         }
 
-        private void SetNumericMeterValue(ISOSpatialRow isoSpatialRow, NumericMeter meter, SpatialRecord spatialRecord)
+        private void SetNumericMeterValue(ISOSpatialRow isoSpatialRow, NumericWorkingData meter, SpatialRecord spatialRecord)
         {
 
             var isoValue = isoSpatialRow.SpatialValues.SingleOrDefault(v => v.Id == meter.Id.FindIntIsoId());

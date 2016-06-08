@@ -78,7 +78,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenMetersWithManualOffWhenGetMetersValueThenZero()
         {
             var enumeratedMeter = new ISOEnumeratedMeter();
-            var meters = new List<Meter> {enumeratedMeter};
+            var meters = new List<WorkingData> { enumeratedMeter };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiSCMasterManualOff.ToModelEnumMember() });
@@ -91,7 +91,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenMetersWithAutoOnWhenGetMetersValueThenOne()
         {
             var enumeratedMeter = new ISOEnumeratedMeter();
-            var meters = new List<Meter> {enumeratedMeter};
+            var meters = new List<WorkingData> { enumeratedMeter };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiSCMasterAutoOn.ToModelEnumMember() });
@@ -104,7 +104,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenMetersWithErrorWhenGetMetersValueThenTwo()
         {
             var enumeratedMeter = new ISOEnumeratedMeter();
-            var meters = new List<Meter> {enumeratedMeter};
+            var meters = new List<WorkingData> { enumeratedMeter };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiSCMasterError.ToModelEnumMember() });
@@ -117,7 +117,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenMetersWithUndefinedWhenGetMetersValueThenThree()
         {
             var enumeratedMeter = new ISOEnumeratedMeter();
-            var meters = new List<Meter> {enumeratedMeter};
+            var meters = new List<WorkingData> { enumeratedMeter };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiSCMasterUndefined.ToModelEnumMember() });
@@ -138,7 +138,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             };
         }
 
-        private EnumeratedMeter CreateMeter()
+        private EnumeratedWorkingData CreateMeter()
         {
             return _creator.CreateMeters(null).Single();
         }

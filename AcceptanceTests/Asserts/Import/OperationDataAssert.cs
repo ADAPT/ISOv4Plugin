@@ -28,7 +28,7 @@ namespace AcceptanceTests.Asserts.Import
             var adaptSpatialRecords = operationData.GetSpatialRecords().ToList();
 
             var sections = operationData.GetAllSections();
-            var meters = sections.SelectMany(x => x.GetMeters()).ToList();
+            var meters = sections.SelectMany(x => x.GetWorkingDatas()).ToList();
 
             SpatialRecordAssert.AreEqual(isoSpatialRecords, adaptSpatialRecords, meters);
         }

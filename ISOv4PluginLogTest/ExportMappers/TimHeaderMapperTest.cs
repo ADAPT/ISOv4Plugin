@@ -12,7 +12,7 @@ namespace ISOv4PluginLogTest.ExportMappers
     [TestFixture]
     public class TimHeaderMapperTest
     {
-        private List<Meter> _meters;
+        private List<WorkingData> _meters;
         private Mock<IPtnHeaderMapper> _ptnHeaderMapperMock;
         private Mock<IDlvHeaderMapper> _dlvHeaderMapperMock;
         private TimHeaderMapper _timHeaderMapper;
@@ -20,7 +20,7 @@ namespace ISOv4PluginLogTest.ExportMappers
         [SetUp]
         public void Setup()
         {
-            _meters = new List<Meter>();
+            _meters = new List<WorkingData>();
 
             _ptnHeaderMapperMock = new Mock<IPtnHeaderMapper>();
             _dlvHeaderMapperMock = new Mock<IDlvHeaderMapper>();

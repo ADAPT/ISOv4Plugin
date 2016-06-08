@@ -9,7 +9,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
 {
     public interface ITimHeaderMapper
     {
-        TIM Map(IEnumerable<Meter> meters);
+        TIM Map(IEnumerable<WorkingData> workingData);
     }
 
     public class TimHeaderMapper : ITimHeaderMapper
@@ -28,7 +28,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
             _dlvHeaderMapper = dlvHeaderMapper;
         }
 
-        public TIM Map(IEnumerable<Meter> meters)
+        public TIM Map(IEnumerable<WorkingData> workingData)
         {
             var tim =  new TIM
             {
@@ -44,7 +44,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
 
             // TODO:  This is not mapping the PTN Header?
             var ptn = _ptnHeaderMapper.Map();
-            var dlvs = _dlvHeaderMapper.Map(meters).ToList();
+            var dlvs = _dlvHeaderMapper.Map(workingData).ToList();
             var iWriters = new List<IWriter>();
 
             if(ptn != null)

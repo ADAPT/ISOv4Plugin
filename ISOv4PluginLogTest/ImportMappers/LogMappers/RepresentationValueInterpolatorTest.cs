@@ -13,18 +13,18 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
     public class RepresentationValueInterpolatorTest
     {
         private RepresentationValueInterpolator _interpolator;
-        private NumericMeter _numericMeter;
-        private EnumeratedMeter _enumeratedMeter;
+        private NumericWorkingData _numericMeter;
+        private EnumeratedWorkingData _enumeratedMeter;
 
         [SetUp]
         public void Setup()
         {
             _interpolator = new RepresentationValueInterpolator();
 
-            _numericMeter = new NumericMeter
+            _numericMeter = new NumericWorkingData
             {
                 Representation = RepresentationInstanceList.vrAvgHarvestMoisture.ToModelRepresentation(),
-                SectionId = 1,
+                DeviceElementUseId = 1,
                 UnitOfMeasure = UnitSystemManager.GetUnitOfMeasure("prcnt")
             };
 
@@ -32,7 +32,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             {
                 Representation = RepresentationInstanceList.dtSectionControlMasterState.ToModelRepresentation(),
                 ValueCodes = new List<int> { 1, 2, 3 },
-                SectionId = 1,
+                DeviceElementUseId = 1,
                 GetEnumeratedValue = (sv, im) => new EnumeratedValue { Value = new AgGateway.ADAPT.ApplicationDataModel.Representations.EnumerationMember { Code = 3 } }
             };
         }

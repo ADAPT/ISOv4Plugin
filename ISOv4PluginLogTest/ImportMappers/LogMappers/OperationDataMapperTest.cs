@@ -29,7 +29,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         private TIM _tim;
         private List<TIM> _tims;
         private List<ISOSpatialRow> _isoSpatialRows;
-        private List<Section> _sections;
+        private List<DeviceElementUse> _sections;
         private Dictionary<string, List<UniqueId>> _linkedIds;
 
         [SetUp]
@@ -54,7 +54,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             _isoSpatialRows = new List<ISOSpatialRow>();
             _binaryReaderMock.Setup(x => x.Read(_datacardPath, _tlg.A + ".bin", _tim)).Returns(_isoSpatialRows);
 
-            _sections = new List<Section>();
+            _sections = new List<DeviceElementUse>();
             _sectionMapperMock.Setup(x => x.Map(_tims, _isoSpatialRows)).Returns(_sections);
 
             _operationDataMapper = new OperationDataMapper(_xmlReaderMock.Object, _binaryReaderMock.Object, _spatialRecordMapperMock.Object, _sectionMapperMock.Object, _uniqueIdMapperMock.Object);
@@ -91,7 +91,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenTlgWhenMapThenSpatialRecordsAreMapped()
         {
             var spatialRecords = new List<SpatialRecord>();
-            _spatialRecordMapperMock.Setup(x => x.Map(_isoSpatialRows, new List<Meter>())).Returns(spatialRecords);
+            _spatialRecordMapperMock.Setup(x => x.Map(_isoSpatialRows, new List<WorkingData>())).Returns(spatialRecords);
 
             var result = MapSingle();
 
@@ -102,7 +102,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenTlgWhenMapThenGetSectionsIsMapped()
         {
             var result = MapSingle();
-            Assert.AreSame(_sections, result.GetSections(0));
+            Assert.AreSame(_sections, result.GetDeviceElementUses(0));
         }
 
         [Test]
@@ -114,16 +114,6 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             var result = MapSingle();
 
             Assert.Contains(uniqueId, result.Id.UniqueIds);
-        }
-
-        [Test]
-        public void GivenTlgAndLoggedDataIdWhenMapThenLoggedDataIdIsMapped()
-        {
-            _loggedDataId = 123;
-
-            var result = MapSingle();
-
-            Assert.AreEqual(_loggedDataId, result.LoggedDataId);
         }
 
         [Test]

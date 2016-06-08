@@ -10,7 +10,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
 {
     public interface IMeterMapper
     {
-        List<Meter> Map(TIM tim, IEnumerable<ISOSpatialRow> isoRecords, int sectionId);
+        List<WorkingData> Map(TIM tim, IEnumerable<ISOSpatialRow> isoRecords, int sectionId);
     }
 
     public class MeterMapper : IMeterMapper
@@ -33,9 +33,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             _ddis = DdiLoader.Ddis;
         }
 
-        public List<Meter> Map(TIM tim, IEnumerable<ISOSpatialRow> isoSpatialRows, int sectionId)
+        public List<WorkingData> Map(TIM tim, IEnumerable<ISOSpatialRow> isoSpatialRows, int sectionId)
         {
-            var meters = new List<Meter>();
+            var meters = new List<WorkingData>();
             var dlvs = tim.Items.Where(x => (x as DLV) != null).Cast<DLV>();
             for (int order = 0; order < dlvs.Count(); order++)
             {
@@ -45,9 +45,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             return meters;
         }
 
-        private IEnumerable<Meter> Map(DLV dlv, IEnumerable<ISOSpatialRow> isoSpatialRows, int sectionId, int order)
+        private IEnumerable<WorkingData> Map(DLV dlv, IEnumerable<ISOSpatialRow> isoSpatialRows, int sectionId, int order)
         {
-            var meters = new List<Meter>();
+            var meters = new List<WorkingData>();
             if (_ddis.ContainsKey(Convert.ToInt32(dlv.A, 16)))
             {
                 meters.Add(MapNumericMeter(dlv, sectionId, order));
@@ -63,12 +63,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             return meters;
         }
 
-        private NumericMeter MapNumericMeter(DLV dlv, int sectionId, int order)
+        private NumericWorkingData MapNumericMeter(DLV dlv, int sectionId, int order)
         {
-            var meter = new NumericMeter
+            var meter = new NumericWorkingData
             {
                 UnitOfMeasure = _representationMapper.GetUnitForDdi(Convert.ToInt32(dlv.A, 16)),
-                SectionId = sectionId,
+                DeviceElementUseId = sectionId,
                 Representation = _representationMapper.Map(Convert.ToInt32(dlv.A, 16))
             };
             meter.Id.UniqueIds.Add(_uniqueIdMapper.Map("DLV" + order));

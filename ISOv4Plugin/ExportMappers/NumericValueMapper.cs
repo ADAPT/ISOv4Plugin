@@ -9,7 +9,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
 {
     public interface INumericValueMapper
     {
-        UInt32 Map(NumericMeter meter, SpatialRecord spatialRecord);
+        UInt32 Map(NumericWorkingData meter, SpatialRecord spatialRecord);
     }
 
     public class NumericValueMapper : INumericValueMapper
@@ -28,7 +28,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
             _ddis = DdiLoader.Ddis;
         }
 
-        public uint Map(NumericMeter meter, SpatialRecord spatialRecord)
+        public uint Map(NumericWorkingData meter, SpatialRecord spatialRecord)
         {
             var value = (NumericRepresentationValue)spatialRecord.GetMeterValue(meter);
             if (value == null)
