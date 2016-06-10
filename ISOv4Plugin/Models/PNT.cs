@@ -1,25 +1,25 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Xml;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Models
 {
     public class PNT : IWriter
     {
-        public PNTA A { get; set; }
+        public PNTA? A { get; set; }
         public decimal C { get; set; }
         public decimal D { get; set; }
         public long E { get; set; }
 
-        public string WriteXML()
+        public XmlWriter WriteXML(XmlWriter xmlBuilder)
         {
-            var xmlBuilder = new StringBuilder();
-            xmlBuilder.Append("<PNT ");
-            xmlBuilder.Append(string.Format("A=\"{0}\" ", (int)A));
-            xmlBuilder.Append(string.Format("C=\"{0}\" ", C));
-            xmlBuilder.Append(string.Format("D=\"{0}\" ", D));
-            xmlBuilder.Append(string.Format("E=\"{0}\" ", E));
-            xmlBuilder.Append(">");
-            xmlBuilder.Append("</PNT>");
-            return xmlBuilder.ToString();
+            xmlBuilder.WriteStartElement("PNT");
+            if(A != null)
+                xmlBuilder.WriteAttributeString("A", ((int)A).ToString(CultureInfo.InvariantCulture));
+            xmlBuilder.WriteAttributeString("C", C.ToString(CultureInfo.InvariantCulture));
+            xmlBuilder.WriteAttributeString("D", D.ToString(CultureInfo.InvariantCulture));
+            xmlBuilder.WriteAttributeString("E", E.ToString(CultureInfo.InvariantCulture));
+            xmlBuilder.WriteEndElement();
+            return xmlBuilder;
         }
     }
 }

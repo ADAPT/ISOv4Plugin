@@ -3,6 +3,7 @@ using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers;
+using AgGateway.ADAPT.ISOv4Plugin.Models;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using AgGateway.ADAPT.Representation.RepresentationSystem;
 using AgGateway.ADAPT.Representation.RepresentationSystem.ExtensionMethods;
@@ -82,9 +83,9 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
                 {
                     Value = DefinedTypeEnumerationInstanceList.dtiRecordingStatusOn.ToModelEnumMember(),
                 },
-                SectionId = 1,
+                DeviceElementUseId = 1,
             };
-            var meters = new List<Meter> { enumeratedMeter1 };
+            var meters = new List<WorkingData> { enumeratedMeter1 };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter1, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiRecordingStatusOn.ToModelEnumMember() });
@@ -102,9 +103,9 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
                 {
                     Value = DefinedTypeEnumerationInstanceList.dtiRecordingStatusOff.ToModelEnumMember(),
                 },
-                SectionId = 1,
+                DeviceElementUseId = 1,
             };
-            var meters = new List<Meter> { enumeratedMeter1 };
+            var meters = new List<WorkingData> { enumeratedMeter1 };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter1, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiRecordingStatusOff.ToModelEnumMember() });
@@ -117,7 +118,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenMetersWithUnknownWhenGetMetersValueThenThree()
         {
             var enumeratedMeter1 = new ISOEnumeratedMeter();
-            var meters = new List<Meter> { enumeratedMeter1 };
+            var meters = new List<WorkingData> { enumeratedMeter1 };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter1, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiSunny.ToModelEnumMember() });
@@ -131,14 +132,14 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             return new SpatialValue
             {
                 Value = value,
-                DlvHeader = new DLVHeader
+                Dlv = new DLV
                 {
-                    ProcessDataDDI = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 141 }
-                }
+                    A = "141"
+                },
             };
         }
 
-        private EnumeratedMeter CreateMeter()
+        private EnumeratedWorkingData CreateMeter()
         {
             return _creator.CreateMeters(null).Single();
         }

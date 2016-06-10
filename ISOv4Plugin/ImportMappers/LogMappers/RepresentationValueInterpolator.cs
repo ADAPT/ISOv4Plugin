@@ -9,19 +9,19 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
 {
     public interface IRepresentationValueInterpolator
     {
-        RepresentationValue Interpolate(Meter meter);
-        void SetMostRecentMeterValue(Meter meter, RepresentationValue value);
+        RepresentationValue Interpolate(WorkingData meter);
+        void SetMostRecentMeterValue(WorkingData meter, RepresentationValue value);
         void Clear();
     }
 
     public class RepresentationValueInterpolator : IRepresentationValueInterpolator
     {
         private readonly List<string> _numericRepresentationTotals;
-        private Dictionary<Meter, RepresentationValue> _meterToPreviousValue; 
+        private Dictionary<WorkingData, RepresentationValue> _meterToPreviousValue; 
 
         public RepresentationValueInterpolator()
         {
-            _meterToPreviousValue = new Dictionary<Meter, RepresentationValue>();
+            _meterToPreviousValue = new Dictionary<WorkingData, RepresentationValue>();
 
             _numericRepresentationTotals = new List<string>
             {
@@ -32,7 +32,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             };
         }
         
-        public void SetMostRecentMeterValue(Meter meter, RepresentationValue value)
+        public void SetMostRecentMeterValue(WorkingData meter, RepresentationValue value)
         {
             if (_meterToPreviousValue.ContainsKey(meter))
             {
@@ -49,7 +49,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             _meterToPreviousValue.Clear();
         }
 
-        public RepresentationValue Interpolate(Meter meter)
+        public RepresentationValue Interpolate(WorkingData meter)
         {
             if (!_meterToPreviousValue.ContainsKey(meter))
                 return null;

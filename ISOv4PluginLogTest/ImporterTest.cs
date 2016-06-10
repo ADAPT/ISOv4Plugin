@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
+using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ISOv4Plugin;
 using AgGateway.ADAPT.ISOv4Plugin.Extensions;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers;
@@ -19,11 +20,12 @@ namespace ISOv4PluginLogTest
         private ISO11783_TaskData _taskData;
         private Mock<IDocumentMapper> _documentMapperMock;
         private Importer _importer;
-
-
+        private Dictionary<string, List<UniqueId>> _linkIds;
+        
         [SetUp]
         public void Setup()
         {
+            _linkIds = new Dictionary<string, List<UniqueId>>();
             _taskData = new ISO11783_TaskData();
             _dataPath = Path.GetTempPath();
             _applicationDataModel = new ApplicationDataModel();
@@ -35,12 +37,12 @@ namespace ISOv4PluginLogTest
         [Test]
         public void GivenTaskDataWhenImportThenDocumentsAreMapped()
         {
-            _taskData.Items = new object[] {new TSK(), new TSK(), new PDT(), new TSK(), new TLG()};
+            _taskData.Items = new IWriter[] {new TSK(), new TSK(), new PDT(), new TSK(), new TLG()};
             var tasks = _taskData.Items.GetItemsOfType<TSK>();
 
-            _importer.Import(_taskData, _dataPath, _applicationDataModel);
+            _importer.Import(_taskData, _dataPath, _applicationDataModel, _linkIds);
 
-            _documentMapperMock.Verify(x => x.Map(tasks, _dataPath, _applicationDataModel.Documents), Times.Once());
+            _documentMapperMock.Verify(x => x.Map(tasks, _dataPath, _applicationDataModel, _linkIds), Times.Once());
         }
 
         [Test]
@@ -48,19 +50,19 @@ namespace ISOv4PluginLogTest
         {
             _taskData.Items = null;
 
-            _importer.Import(_taskData, _dataPath, _applicationDataModel);
+            _importer.Import(_taskData, _dataPath, _applicationDataModel, _linkIds);
 
-            _documentMapperMock.Verify(x => x.Map(It.IsAny<List<TSK>>(), _dataPath, _applicationDataModel.Documents), Times.Never);
+            _documentMapperMock.Verify(x => x.Map(It.IsAny<List<TSK>>(), _dataPath, _applicationDataModel, _linkIds), Times.Never);
         }
 
         [Test]
         public void GivenTaskDataWithEmptyItemsWhenImportThenDocumentsNotMapped()
         {
-            _taskData.Items = new object[] {};
+            _taskData.Items = new IWriter[] {};
 
-            _importer.Import(_taskData, _dataPath, _applicationDataModel);
+            _importer.Import(_taskData, _dataPath, _applicationDataModel, _linkIds);
 
-            _documentMapperMock.Verify(x => x.Map(It.IsAny<List<TSK>>(), _dataPath, _applicationDataModel.Documents), Times.Never);
+            _documentMapperMock.Verify(x => x.Map(It.IsAny<List<TSK>>(), _dataPath, _applicationDataModel, _linkIds), Times.Never);
         }
 
         [Test]
@@ -68,7 +70,7 @@ namespace ISOv4PluginLogTest
         {
             _applicationDataModel.Catalog = null;
 
-            _importer.Import(_taskData, _dataPath, _applicationDataModel);
+            _importer.Import(_taskData, _dataPath, _applicationDataModel, _linkIds);
 
             Assert.IsEmpty(_applicationDataModel.Catalog.Brands);
             Assert.IsEmpty(_applicationDataModel.Catalog.Connectors);
@@ -107,7 +109,7 @@ namespace ISOv4PluginLogTest
         {
             _applicationDataModel.Documents = null;
 
-            _importer.Import(_taskData, _dataPath, _applicationDataModel);
+            _importer.Import(_taskData, _dataPath, _applicationDataModel, _linkIds);
 
             Assert.IsEmpty(_applicationDataModel.Documents.GuidanceAllocations);
             Assert.IsEmpty(_applicationDataModel.Documents.LoggedData);

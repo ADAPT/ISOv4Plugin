@@ -47,8 +47,8 @@ namespace ISOv4PluginLogTest.ImportMappers
             _tims.Add(tim);
 
             var timescope = MapSingle();
-            Assert.AreEqual(tim.A, timescope.Stamp1.TimeStamp);
-            Assert.AreEqual(DateContextEnum.ActualStart, timescope.Stamp1.DateContext);
+            Assert.AreEqual(tim.A, timescope.TimeStamp1);
+            Assert.AreEqual(DateContextEnum.ActualStart, timescope.DateContext);
         }
 
         [Test]
@@ -62,8 +62,8 @@ namespace ISOv4PluginLogTest.ImportMappers
             _tims.Add(tim);
 
             var timescope = MapSingle();
-            Assert.AreEqual(tim.B, timescope.Stamp2.TimeStamp);
-            Assert.AreEqual(DateContextEnum.ActualEnd, timescope.Stamp2.DateContext);
+            Assert.AreEqual(tim.B, timescope.TimeStamp2);
+            Assert.AreEqual(DateContextEnum.ActualStart, timescope.DateContext);
         }
 
         [Test]

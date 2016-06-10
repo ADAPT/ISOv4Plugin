@@ -35,18 +35,18 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
 
         private DateTime FindActualEndTime(TimeScope timeScope)
         {
-            if (timeScope.Stamp2 == null || timeScope.Stamp2.DateContext != DateContextEnum.ActualEnd)
+            if (timeScope.TimeStamp2 == null)
                 return DateTime.MinValue;
 
-            return timeScope.Stamp2.TimeStamp;
+            return timeScope.TimeStamp2.GetValueOrDefault();
         }
 
         private DateTime FindActualStartTime(TimeScope timeScope)
         {
-            if (timeScope.Stamp1 == null || timeScope.Stamp1.DateContext != DateContextEnum.ActualStart)
+            if (timeScope.TimeStamp1 == null)
                 return DateTime.MinValue;
 
-            return timeScope.Stamp1.TimeStamp;
+            return timeScope.TimeStamp1.GetValueOrDefault();
         }
     }
 }

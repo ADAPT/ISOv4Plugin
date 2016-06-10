@@ -1,49 +1,62 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Configuration;
 using System.Linq;
 using System.Xml.Linq;
+using System.Xml.XPath;
+using AgGateway.ADAPT.ISOv4Plugin.Models;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders
 {
     public interface IDlvReader
     {
-        IEnumerable<DLVHeader> Read(List<XElement> dlvElement);
+        IEnumerable<DLV> Read(XPathNodeIterator nodeIterator);
     }
 
     public class DlvReader : IDlvReader
     {
-        public IEnumerable<DLVHeader> Read(List<XElement> dlvElements)
+        public IEnumerable<DLV> Read(XPathNodeIterator nodeIterator)
         {
-            if(dlvElements == null)
+            if(nodeIterator == null)
                 return null;
                 
-            return dlvElements.Select(Read);
+            var dvls = new List<DLV>();
+            foreach (XPathNavigator node in nodeIterator)
+            {
+                dvls.Add(Read(node));
+        }
+            return dvls;
         }
 
-        private DLVHeader Read(XElement dlvElement)
+        private DLV Read(XPathNavigator navigator)
         {
-            return new DLVHeader
+            return new DLV
             {
-                ProcessDataDDI = GetProcessDataDdi(dlvElement),
-                ProcessDataValue = new HeaderProperty(dlvElement.Attribute("B")),
-                DeviceElementIdRef = new HeaderProperty(dlvElement.Attribute("C")),
-                DataLogPGN = new HeaderProperty(dlvElement.Attribute("D")),
-                DataLogPGNStartBit = new HeaderProperty(dlvElement.Attribute("E")),
-                DataLogPGNStopBit = new HeaderProperty(dlvElement.Attribute("F"))
+                A = GetDlvAttribute<string>(navigator, "A"),
+                B = GetDlvAttribute<long?>(navigator, "B"),
+                C = GetDlvAttribute<string>(navigator, "C"),
+                D = GetDlvAttribute<ulong?>(navigator, "D"),
+                E = GetDlvAttribute<byte?>(navigator, "E"),
+                F = GetDlvAttribute<byte?>(navigator, "F")
             };
         }
 
-        private static HeaderProperty GetProcessDataDdi(XElement dlvElement)
+
+
+        private T GetDlvAttribute<T>(XPathNavigator navigator, string attributeName) 
         {
-            if(dlvElement.Attribute("A") == null)
-                return new HeaderProperty{ State = HeaderPropertyState.IsNull };
+            if (navigator.SelectSingleNode("@" + attributeName) == null)
+        {
+                return default(T);
+            }
 
-            var stringDdi = dlvElement.Attribute("A").Value;
-            var byteDdi = Convert.ToByte(stringDdi, 16);
-            var intDdi = Convert.ToInt32(byteDdi);
-
-            return new HeaderProperty { State = HeaderPropertyState.HasValue, Value = intDdi };
+            var value = navigator.GetAttribute(attributeName, navigator.NamespaceURI);
+            TypeConverter conv = TypeDescriptor.GetConverter(typeof(T));
+            return (T)conv.ConvertFrom(value);
         }
+
+
     }
 }

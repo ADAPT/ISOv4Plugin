@@ -28,12 +28,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
             {
                 var customerId = WriteCustomer(writer, grower);
                 TaskWriter.Customers[grower.Id.ReferenceId] = customerId;
+                TaskWriter.Ids.Add(customerId, grower.Id);
             }
         }
 
         private string WriteCustomer(XmlWriter writer, Grower grower)
         {
-            var customerId = GenerateId();
+            var customerId = grower.Id.FindIsoId() ?? GenerateId();
 
             writer.WriteStartElement(XmlPrefix);
             writer.WriteAttributeString("A", customerId);

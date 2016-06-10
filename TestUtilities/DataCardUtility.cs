@@ -11,7 +11,7 @@ namespace TestUtilities
             var directory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             Directory.CreateDirectory(directory);
             WriteDataCard(resource, directory);
-            return Path.Combine(directory, "TASKDATA");
+            return directory;
         }
 
         public static void WriteDataCard(string resource, string directory)

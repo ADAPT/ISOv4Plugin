@@ -31,7 +31,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             return new List<ISOEnumeratedMeter> {meter};
         }
 
-        public EnumeratedValue GetValueForMeter(SpatialValue value, EnumeratedMeter meter)
+        public EnumeratedValue GetValueForMeter(SpatialValue value, EnumeratedWorkingData meter)
         {
             var enumMember = value != null && value.Value == 1
                 ? DefinedTypeEnumerationInstanceList.dtiRecordingStatusOn.ToModelEnumMember()
@@ -44,7 +44,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             };
         }
 
-        public UInt32 GetMetersValue(List<Meter> meters, SpatialRecord spatialRecord)
+        public UInt32 GetMetersValue(List<WorkingData> meters, SpatialRecord spatialRecord)
         {
             var meter = (ISOEnumeratedMeter) meters.SingleOrDefault();
             var value = (EnumeratedValue)spatialRecord.GetMeterValue(meter);

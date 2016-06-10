@@ -4,7 +4,7 @@
   <include buildfile="./properties.build" failonerror="true"/>
 
   <target name="updateVersion" description="updates version file">
-	<version buildtype="NoIncrement" revisiontype="Increment" path="${versionPath}${versionFile}" failonerror="true" prefix="admplugin"/>
+	<version buildtype="NoIncrement" revisiontype="Increment" path="${versionPath}${versionFile}" failonerror="true" prefix="isoplugin"/>
   </target>
   
   <target name="unittest" description="Execute unit tests using nUnit" basdir=".">

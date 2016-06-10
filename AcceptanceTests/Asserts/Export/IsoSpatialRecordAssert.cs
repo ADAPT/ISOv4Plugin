@@ -10,7 +10,7 @@ namespace AcceptanceTests.Asserts.Export
     {
         private const double CoordinateMultiplier = 0.0000001;
 
-        public static void AreEqual(IEnumerable<SpatialRecord> adaptSpatialRecords, List<Meter> meters, IEnumerable<ISOSpatialRow> isoSpatialRecords)
+        public static void AreEqual(IEnumerable<SpatialRecord> adaptSpatialRecords, List<WorkingData> meters, IEnumerable<ISOSpatialRow> isoSpatialRecords)
         {
             using (var adaptSpatialRecordEnumerator = adaptSpatialRecords.GetEnumerator())
             using (var isoSpatialRecordEnumerator = isoSpatialRecords.GetEnumerator())
@@ -23,7 +23,7 @@ namespace AcceptanceTests.Asserts.Export
             }
         }
 
-        private static void AreEqual(SpatialRecord adaptSpatialRecord, ISOSpatialRow isoSpatialRow, List<Meter> meters)
+        private static void AreEqual(SpatialRecord adaptSpatialRecord, ISOSpatialRow isoSpatialRow, List<WorkingData> meters)
         {
             Assert.AreEqual(adaptSpatialRecord.Timestamp, isoSpatialRow.TimeStart);
 

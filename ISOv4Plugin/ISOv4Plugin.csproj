@@ -9,10 +9,11 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>AgGateway.ADAPT.ISOv4Plugin</RootNamespace>
     <AssemblyName>AgGateway.ADAPT.ISOv4Plugin</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -33,15 +34,15 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="AgGateway.ADAPT.ApplicationDataModel, Version=1.0.0.1, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\AgGatewayADAPTFramework.1.0.0.38\lib\AgGateway.ADAPT.ApplicationDataModel.dll</HintPath>
+      <HintPath>..\packages\AgGatewayADAPTFramework.1.0.0.42\lib\AgGateway.ADAPT.ApplicationDataModel.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="AgGateway.ADAPT.PluginManager, Version=1.0.0.1, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\AgGatewayADAPTFramework.1.0.0.38\lib\AgGateway.ADAPT.PluginManager.dll</HintPath>
+      <HintPath>..\packages\AgGatewayADAPTFramework.1.0.0.42\lib\AgGateway.ADAPT.PluginManager.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="AgGateway.ADAPT.Representation, Version=1.0.0.1, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\AgGatewayADAPTFramework.1.0.0.38\lib\AgGateway.ADAPT.Representation.dll</HintPath>
+      <HintPath>..\packages\AgGatewayADAPTFramework.1.0.0.42\lib\AgGateway.ADAPT.Representation.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Moq, Version=4.2.1510.2205, Culture=neutral, PublicKeyToken=69f491c39445e920, processorArchitecture=MSIL">
@@ -63,8 +64,8 @@
     <Compile Include="ExportMappers\DlvHeaderMapper.cs" />
     <Compile Include="ExportMappers\EnumeratedValueMapper.cs" />
     <Compile Include="ExportMappers\GrowerFarmFieldMapper.cs" />
+    <Compile Include="ExportMappers\NumericValueMapper.cs" />
     <Compile Include="ExportMappers\PrescriptionMapper.cs" />
-    <Compile Include="ExportMappers\ProductsMapper.cs" />
     <Compile Include="ExportMappers\PtnHeaderMapper.cs" />
     <Compile Include="ExportMappers\TaskMapper.cs" />
     <Compile Include="ExportMappers\TimeMapper.cs" />
@@ -96,6 +97,7 @@
     <Compile Include="ImportMappers\LogMappers\XmlReaders\PtnReader.cs" />
     <Compile Include="ImportMappers\LogMappers\XmlReaders\TimReader.cs" />
     <Compile Include="ImportMappers\LogMappers\XmlReaders\XmlReader.cs" />
+    <Compile Include="ImportMappers\LogMappers\XmlReaders\XmlReaderUtilities.cs" />
     <Compile Include="ImportMappers\ProductMappers\CropTypeMapper.cs" />
     <Compile Include="ImportMappers\TimeScopeMapper.cs" />
     <Compile Include="ImportMappers\UniqueIdMapper.cs" />
@@ -112,6 +114,8 @@
     <Compile Include="Loaders\GuidanceAllocationLoader.cs" />
     <Compile Include="Loaders\GuidanceGroupLoader.cs" />
     <Compile Include="Loaders\GuidancePatternLoader.cs" />
+    <Compile Include="Loaders\GuidanceShiftLoader.cs" />
+    <Compile Include="Loaders\LinkGroupLoader.cs" />
     <Compile Include="Loaders\LinkListLoader.cs" />
     <Compile Include="Loaders\PrescriptionLoader.cs" />
     <Compile Include="Loaders\ProductLoader.cs" />
@@ -121,7 +125,10 @@
     <Compile Include="Loaders\TreatmentZoneLoader.cs" />
     <Compile Include="Loaders\UnitLoader.cs" />
     <Compile Include="Loaders\WorkerLoader.cs" />
+    <Compile Include="Models\DLV.cs" />
+    <Compile Include="Models\GRD.cs" />
     <Compile Include="Models\IWriter.cs" />
+    <Compile Include="Models\PTN.cs" />
     <Compile Include="Models\PTND.cs" />
     <Compile Include="Models\TIMD.cs" />
     <Compile Include="Models\CodedComment.cs" />
@@ -154,15 +161,11 @@
     <Compile Include="Models\TSKG.cs" />
     <Compile Include="Models\TZN.cs" />
     <Compile Include="Models\ValuePresentation.cs" />
-    <Compile Include="ObjectModel\DLVHeader.cs" />
-    <Compile Include="ObjectModel\HeaderProperty.cs" />
     <Compile Include="ObjectModel\ISOSpatialRow.cs" />
-    <Compile Include="ObjectModel\HeaderPropertyState.cs" />
-    <Compile Include="ObjectModel\PTNHeader.cs" />
     <Compile Include="ObjectModel\SpatialValue.cs" />
-    <Compile Include="ObjectModel\TIMHeader.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Readers\GrdReader.cs" />
     <Compile Include="Readers\TaskDataReader.cs" />
     <Compile Include="Readers\TaskdataTimReader.cs" />
     <Compile Include="Readers\TlgReader.cs" />
@@ -180,6 +183,7 @@
     <Compile Include="Exporter.cs" />
     <Compile Include="Importer.cs" />
     <Compile Include="UnitFactory.cs" />
+    <Compile Include="Writers\AttachedFileWriter.cs" />
     <Compile Include="Writers\BaseWriter.cs" />
     <Compile Include="Writers\CommentListWriter.cs" />
     <Compile Include="Writers\CommentWriter.cs" />
@@ -192,13 +196,13 @@
     <Compile Include="Writers\GuidanceGroupWriter.cs" />
     <Compile Include="Writers\GuidancePatternWriter.cs" />
     <Compile Include="Writers\IsoRootWriter.cs" />
+    <Compile Include="Writers\LinkListWriter.cs" />
     <Compile Include="Writers\PrescriptionWriter.cs" />
     <Compile Include="Writers\ProductWriter.cs" />
     <Compile Include="Writers\ShapeWriter.cs" />
     <Compile Include="Writers\TaskDocumentWriter.cs" />
     <Compile Include="Writers\TreatmentZoneWriter.cs" />
     <Compile Include="Writers\WorkerWriter.cs" />
-    <Compile Include="Writers\XpathFileWriter.cs" />
     <Compile Include="XmlSerializer.cs" />
   </ItemGroup>
   <ItemGroup>

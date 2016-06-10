@@ -4,6 +4,7 @@ using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
+using AgGateway.ADAPT.ISOv4Plugin.ImportMappers;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using AgGateway.ADAPT.Representation.RepresentationSystem;
@@ -20,7 +21,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
     {
         private ISOSpatialRow _isoSpatialRow;
         private List<ISOSpatialRow> _isoSpatialRows;
-        private List<Meter> _meters;
+        private List<WorkingData> _meters;
         private Mock<IRepresentationValueInterpolator> _spatialValueInterpolator;
         private SpatialRecordMapper _spatialRecordMapper;
 
@@ -29,7 +30,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         {
             _isoSpatialRow = new ISOSpatialRow();
             _isoSpatialRows = new List<ISOSpatialRow> { _isoSpatialRow };
-            _meters = new List<Meter>();
+            _meters = new List<WorkingData>();
 
             _spatialValueInterpolator = new Mock<IRepresentationValueInterpolator>();
             _spatialRecordMapper = new SpatialRecordMapper(_spatialValueInterpolator.Object);
@@ -58,17 +59,18 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             _isoSpatialRow.SpatialValues = new List<SpatialValue> { spatialValue };
             _isoSpatialRows.Add(_isoSpatialRow);
 
-            Meter meter = new NumericMeter
+            WorkingData meter = new NumericWorkingData
             {
                 Representation = RepresentationInstanceList.vrAvgHarvestMoisture.ToModelRepresentation(),
-                SectionId = 1,
+                DeviceElementUseId = 1,
                 UnitOfMeasure = UnitSystemManager.GetUnitOfMeasure("prcnt")
             };
 
             var uniqueId = new UniqueId
             {
                 CiTypeEnum = CompoundIdentifierTypeEnum.String,
-                Id = "DLV0"
+                Id = "DLV0",
+                Source = UniqueIdMapper.IsoSource
             };
             meter.Id.UniqueIds.Add(uniqueId);
             _meters.Add(meter);
@@ -94,14 +96,15 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             {
                 Representation = RepresentationInstanceList.dtSectionControlMasterState.ToModelRepresentation(),
                 ValueCodes = new List<int> { 1, 2, 3 },
-                SectionId = 1,
-                GetEnumeratedValue = (sv, im) => new EnumeratedValue { Value = new AgGateway.ADAPT.ApplicationDataModel.Representations.EnumerationMember { Code = 3 } }
+                DeviceElementUseId = 1,
+                GetEnumeratedValue = (sv, im) => new EnumeratedValue { Value = new AgGateway.ADAPT.ApplicationDataModel.Representations.EnumerationMember { Code = 3 } },
             };
 
             var uniqueId = new UniqueId
             {
                 CiTypeEnum = CompoundIdentifierTypeEnum.String,
-                Id = "DLV0"
+                Id = "DLV0",
+                Source = UniqueIdMapper.IsoSource
             };
             meter.Id.UniqueIds.Add(uniqueId);
             _meters.Add(meter);
@@ -198,10 +201,10 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
 
             _isoSpatialRows = new List<ISOSpatialRow> {_isoSpatialRow, isoSpatialRow2};
 
-            Meter meter = new NumericMeter
+            var meter = new NumericWorkingData
             {
                 Representation = RepresentationInstanceList.vrAvgHarvestMoisture.ToModelRepresentation(),
-                SectionId = 1,
+                DeviceElementUseId = 1,
                 UnitOfMeasure = UnitSystemManager.GetUnitOfMeasure("prcnt")
             };
 
@@ -214,7 +217,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             _meters.Add(meter);
 
             Map().ToList();
-            _spatialValueInterpolator.Verify(s => s.Interpolate(It.IsAny<Meter>()));
+            _spatialValueInterpolator.Verify(s => s.Interpolate(It.IsAny<WorkingData>()));
         }
 
         [Test]
@@ -231,10 +234,10 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
 
             _isoSpatialRows = new List<ISOSpatialRow> {_isoSpatialRow, isoSpatialRow2};
 
-            var meter = new NumericMeter
+            var meter = new NumericWorkingData
             {
                 Representation = RepresentationInstanceList.vrAvgHarvestMoisture.ToModelRepresentation(),
-                SectionId = 1,
+                DeviceElementUseId = 1,
                 UnitOfMeasure = UnitSystemManager.GetUnitOfMeasure("prcnt")
             };
 
@@ -273,7 +276,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             {
                 Representation = RepresentationInstanceList.dtSectionControlMasterState.ToModelRepresentation(),
                 ValueCodes = new List<int> { 1, 2, 3 },
-                SectionId = 1,
+                DeviceElementUseId = 1,
                 GetEnumeratedValue = (sv, im) => new EnumeratedValue { Value = new AgGateway.ADAPT.ApplicationDataModel.Representations.EnumerationMember { Code = 3 } }
             };
 

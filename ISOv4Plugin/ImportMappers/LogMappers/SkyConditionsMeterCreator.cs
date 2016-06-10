@@ -32,9 +32,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
         }
 
         
-        public EnumeratedValue GetValueForMeter(SpatialValue value, EnumeratedMeter meter)
+        public EnumeratedValue GetValueForMeter(SpatialValue value, EnumeratedWorkingData meter)
         {
-            if ((int)value.DlvHeader.ProcessDataDDI.Value != DDI)
+            if (Convert.ToInt32(value.Dlv.A, 16) != DDI)
                 return null;
 
             const int clear = 0x20524C43;        
@@ -69,7 +69,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             };
         }
 
-        public UInt32 GetMetersValue(List<Meter> meters, SpatialRecord spatialRecord)
+        public UInt32 GetMetersValue(List<WorkingData> meters, SpatialRecord spatialRecord)
         {
             var meter = (ISOEnumeratedMeter) meters.FirstOrDefault();
             var value = (EnumeratedValue) spatialRecord.GetMeterValue(meter);

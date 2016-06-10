@@ -1,7 +1,9 @@
-﻿namespace AgGateway.ADAPT.ISOv4Plugin.Models
+﻿using System.Xml;
+
+namespace AgGateway.ADAPT.ISOv4Plugin.Models
 {
     public interface IWriter
     {
-        string WriteXML();
+        XmlWriter WriteXML(XmlWriter xmlBuilder);
     }
 }

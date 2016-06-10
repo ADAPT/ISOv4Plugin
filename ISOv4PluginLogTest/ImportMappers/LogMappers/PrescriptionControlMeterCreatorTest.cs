@@ -3,6 +3,7 @@ using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers;
+using AgGateway.ADAPT.ISOv4Plugin.Models;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using AgGateway.ADAPT.Representation.RepresentationSystem;
 using AgGateway.ADAPT.Representation.RepresentationSystem.ExtensionMethods;
@@ -78,7 +79,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenMetersWithManualOffWhenGetMetersValueThenZero()
         {
             var enumeratedMeter1 = new ISOEnumeratedMeter();
-            var meters = new List<Meter> { enumeratedMeter1 };
+            var meters = new List<WorkingData> { enumeratedMeter1 };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter1, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiPrscMasterManualOff.ToModelEnumMember() });
@@ -91,7 +92,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenMetersWithAutoOnWhenGetMetersValueThenOne()
         {
             var enumeratedMeter1 = new ISOEnumeratedMeter();
-            var meters = new List<Meter> { enumeratedMeter1 };
+            var meters = new List<WorkingData> { enumeratedMeter1 };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter1, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiPrscMasterAutoOn.ToModelEnumMember() });
@@ -104,7 +105,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenMetersWithErrorWhenGetMetersValueThenTwo()
         {
             var enumeratedMeter1 = new ISOEnumeratedMeter();
-            var meters = new List<Meter> { enumeratedMeter1 };
+            var meters = new List<WorkingData> { enumeratedMeter1 };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter1, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiPrscMasterError.ToModelEnumMember() });
@@ -117,7 +118,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenMetersWithUndefinedWhenGetMetersValueThenThree()
         {
             var enumeratedMeter1 = new ISOEnumeratedMeter();
-            var meters = new List<Meter> { enumeratedMeter1 };
+            var meters = new List<WorkingData> { enumeratedMeter1 };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter1, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiPrscMasterUndefined.ToModelEnumMember() });
@@ -130,7 +131,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenMetersWithUnknownWhenGetMetersValueThenThree()
         {
             var enumeratedMeter1 = new ISOEnumeratedMeter();
-            var meters = new List<Meter> { enumeratedMeter1 };
+            var meters = new List<WorkingData> { enumeratedMeter1 };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter1, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiSunny.ToModelEnumMember() });
@@ -144,14 +145,14 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             return new SpatialValue
             {
                 Value = value,
-                DlvHeader = new DLVHeader
+                Dlv = new DLV
                 {
-                    ProcessDataDDI = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 158 }
-                }
+                    A = "158"
+                },
             };
         }
 
-        private EnumeratedMeter CreateMeter()
+        private EnumeratedWorkingData CreateMeter()
         {
             return _creator.CreateMeters(null).Single();
         }

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml;
+using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Writers
@@ -11,6 +12,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
     public class TaskDocumentWriter : IDisposable
     {
         public XmlWriter RootWriter { get; private set; }
+        public MemoryStream XmlStream { get; private set; }
         public string BaseFolder { get; private set; }
         public ApplicationDataModel.ADM.ApplicationDataModel DataModel { get; private set; }
 
@@ -19,10 +21,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
         public Dictionary<int, string> Farms { get; private set; }
         public Dictionary<int, string> Fields { get; private set; }
         public Dictionary<int, string> Crops { get; private set; }
+        public Dictionary<int, string> CropVarieties { get; private set; }
         public Dictionary<int, string> Products { get; private set; }
         public Dictionary<int, string> Workers { get; private set; }
         public Dictionary<int, IsoUnit> UserUnits { get; private set; }
-
+        public Dictionary<string, CompoundIdentifier> Ids { get; set; } 
 
         public TaskDocumentWriter()
         {
@@ -30,24 +33,28 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
             Farms = new Dictionary<int, string>();
             Fields = new Dictionary<int, string>();
             Crops = new Dictionary<int, string>();
+            CropVarieties = new Dictionary<int, string>();
             Products = new Dictionary<int, string>();
             Workers = new Dictionary<int, string>();
             UserUnits = new Dictionary<int, IsoUnit>();
+            Ids = new Dictionary<string, CompoundIdentifier>();
         }
 
-        public StringBuilder Write(string exportPath, ApplicationDataModel.ADM.ApplicationDataModel dataModel)
+        public XmlWriter Write(string taskDataPath, ApplicationDataModel.ADM.ApplicationDataModel dataModel)
         {
-            BaseFolder = exportPath;
+            BaseFolder = taskDataPath;
             DataModel = dataModel;
 
             CreateFolderStructure();
 
-            var xmlString = new StringBuilder();
-            RootWriter = CreateWriter("TASKDATA.XML", xmlString);
+            XmlStream = new MemoryStream();
+            RootWriter = CreateWriter("TASKDATA.XML", XmlStream);
+            RootWriter.WriteStartDocument();
 
             IsoRootWriter.Write(this);
             RootWriter.Flush();
-            return xmlString;
+
+            return RootWriter;
         }
 
         private void CreateFolderStructure()
@@ -60,14 +67,23 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
             Directory.CreateDirectory(BaseFolder);
         }
 
-        public XmlWriter CreateWriter(string fileName, StringBuilder xmlString)
+        public XmlWriter CreateWriter(string fileName, MemoryStream xmlString)
         {
-            return XmlWriter.Create(xmlString, new XmlWriterSettings { Indent = true });
+            var settings = new XmlWriterSettings
+            {
+                Encoding = new UTF8Encoding(false),
+                Indent = true
+            };
+            return XmlWriter.Create(xmlString, settings);
         }
 
         public void Dispose()
         {
-            using (RootWriter) { }
+            if(RootWriter != null)
+                RootWriter.Dispose();
+
+            if(XmlStream != null)
+                XmlStream.Dispose();
         }
     }
 }

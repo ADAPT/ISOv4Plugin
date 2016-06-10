@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
+using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
 {
     public interface IDocumentMapper
     {
-        Documents Map(List<TSK> tsks, string dataPath, Documents documents);
+        Documents Map(List<TSK> tsks, string dataPath, ApplicationDataModel.ADM.ApplicationDataModel dataModel, Dictionary<string, List<UniqueId>> linkedIds);
     }
 
     public class DocumentMapper : IDocumentMapper
@@ -23,11 +24,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             _loggedDataMapper = loggedDataMapper;
         }
 
-        public Documents Map(List<TSK> tsks, string dataPath, Documents documents)
+        public Documents Map(List<TSK> tsks, string dataPath, ApplicationDataModel.ADM.ApplicationDataModel dataModel, Dictionary<string, List<UniqueId>> linkedIds)
         {           
-            _loggedDataMapper.Map(tsks, dataPath, documents);
+            _loggedDataMapper.Map(tsks, dataPath, dataModel, linkedIds);
 
-            return documents;
+            return dataModel.Documents;
         }
     }
 }

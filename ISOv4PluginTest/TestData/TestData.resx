@@ -1,0 +1,409 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="AllPatterns" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>guidance\allpatterns.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="CCT00002" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>comment\cct00002.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Comment1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>comment\comment1.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Comment10" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>comment\comment10.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Comment2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>comment\comment2.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Comment3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>comment\comment3.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Comment4" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>comment\comment4.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Comment5" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>comment\comment5.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Comment6" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>comment\comment6.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Comment7" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>comment\comment7.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Comment8" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>comment\comment8.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Comment9" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>comment\comment9.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Crop1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>crop\crop1.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Crop2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>crop\crop2.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Crop3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>crop\crop3.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Crop4" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>crop\crop4.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Crop5" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>crop\crop5.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Crop6" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>crop\crop6.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="CTP00003" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>crop\ctp00003.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="CTR00005" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>customer\ctr00005.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Customer1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>customer\customer1.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Customer2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>customer\customer2.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Customer3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>customer\customer3.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Customer4" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>customer\customer4.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Customer5" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>customer\customer5.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Customer6" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>customer\customer6.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Customer7" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>customer\customer7.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Customer8" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>customer\customer8.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Farm1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>farm\farm1.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Farm2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>farm\farm2.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Farm3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>farm\farm3.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Farm4" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>farm\farm4.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Farm5" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>farm\farm5.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Farm6" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>farm\farm6.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Farm7" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>farm\farm7.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Field1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>field\field1.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Field10" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>field\field10.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Field11" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>field\field11.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Field12" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>field\field12.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Field3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>field\field3.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Field5" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>field\field5.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Field6" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>field\field6.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Field7" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>field\field7.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Field8" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>field\field8.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Field9" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>field\field9.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="FRM00004" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>farm\frm00004.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="GroupsNoPatternsOrBoundary" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>guidance\groupsnopatternsorboundary.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="GroupsWithBoundaryAndNoPatterns" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>guidance\groupswithboundaryandnopatterns.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="GroupsWithBoundaryAndPatterns" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>guidance\groupswithboundaryandpatterns.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="MissingUnit" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>treatmentzone\missingunit.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="MissingUnitOutput" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>treatmentzone\missingunitoutput.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-16</value>
+  </data>
+  <data name="MultipleVariables" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>treatmentzone\multiplevariables.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="MultipleVariablesOutput" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>treatmentzone\multiplevariablesoutput.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-16</value>
+  </data>
+  <data name="NoVariables" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>treatmentzone\novariables.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="NoVariablesOutput" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>treatmentzone\novariablesoutput.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-16</value>
+  </data>
+  <data name="NoWorkersPresent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>worker\noworkerspresent.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="PDT00002" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>productmix\pdt00002.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="PDT00005" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>product\pdt00005.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="PFD00006" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>field\pfd00006.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Product1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>product\product1.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Product2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>product\product2.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Product3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>product\product3.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Product4" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>product\product4.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Product5" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>product\product5.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Product6" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>product\product6.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Product7" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>product\product7.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Product8" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>product\product8.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="ProductMix1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>productmix\productmix1.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="ProductMix2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>productmix\productmix2.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="ProductMix3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>productmix\productmix3.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="ProductMix4" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>productmix\productmix4.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="SingleProduct" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>prescription\singleproduct.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="SingleProductOutputTxt" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>prescription\singleproductoutput.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Timestamp1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>allocationtimestamp\timestamp1.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Timestamp2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>allocationtimestamp\timestamp2.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Timestamp3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>allocationtimestamp\timestamp3.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Timestamp4" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>allocationtimestamp\timestamp4.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Timestamp5" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>allocationtimestamp\timestamp5.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Timestamp6" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>allocationtimestamp\timestamp6.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Timestamp7" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>allocationtimestamp\timestamp7.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Timestamp8" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>allocationtimestamp\timestamp8.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="UnsupportedUnitDimension" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>treatmentzone\unsupportedunitdimension.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="UnsupportedUnitDimensionOutput" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>treatmentzone\unsupportedunitdimensionoutput.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-16</value>
+  </data>
+  <data name="WorkersWithAllData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>worker\workerswithalldata.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="WorkersWithNoContacts" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>worker\workerswithnocontacts.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="ZeroWorkersPresent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>worker\zeroworkerspresent.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="PGP00001" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>product\pgp00001.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="PGP00002" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>product\pgp00002.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="Product9" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>product\product9.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="AllPatternsOutput" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>guidance\allpatternsoutput.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="GroupsNoPatternsOrBoundaryOutput" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>guidance\groupsnopatternsorboundaryoutput.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="GroupsWithBoundaryAndNoPatternsOutput" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>guidance\groupswithboundaryandnopatternsoutput.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="GroupsWithBoundaryAndPatternsOutput" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>guidance\groupswithboundaryandpatternsoutput.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="SingleProductOutputXml" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>prescription\singleproductoutput.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="WorkersWithAllDataOutput" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>worker\workerswithalldataoutput.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="WorkersWithNoContactsOutput" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>worker\workerswithnocontactsoutput.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+</root>

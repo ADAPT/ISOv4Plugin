@@ -1,10 +1,10 @@
-﻿using System.IO;
-using System.Linq;
-using AcceptanceTests.Asserts.Export;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Xml;
 using AcceptanceTests.Asserts.Import;
+using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ISOv4Plugin;
-using AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders;
-using AgGateway.ADAPT.ISOv4Plugin.Models;
+using AgGateway.ADAPT.ISOv4Plugin.Loaders;
 using TechTalk.SpecFlow;
 using TestUtilities;
 
@@ -25,23 +25,15 @@ namespace AcceptanceTests.Steps
         [When(@"I import with the plugin")]
         public void WhenIImportWithThePlugin()
         {
-            var isoTaskData = new XmlReader().Read(ScenarioContext.Current.DataCardPath(), "TASKDATA.XML");
-            ScenarioContext.Current.OriginalIsoTaskData(isoTaskData);
+            var taskDataXmlFile = Path.Combine(ScenarioContext.Current.DataCardPath(),"TASKDATA");
+            var xmlDocument = new XmlDocument();
+            xmlDocument.Load(Path.Combine(taskDataXmlFile, "TASKDATA.xml"));
+            var taskData = xmlDocument.SelectSingleNode("ISO11783_TaskData");
+            ScenarioContext.Current.OriginalIsoTaskData(taskData);
 
-            var dataModel = _plugin.Import(ScenarioContext.Current.DataCardPath());
+            var path = Path.Combine(ScenarioContext.Current.DataCardPath(), "TASKDATA");
+            var dataModel = _plugin.Import(path);
             ScenarioContext.Current.ApplicationDataModel(dataModel);
-        }
-
-        [Then(@"iso is imported to adapt")]
-        public void ThenIsoIsImportedToAdapt()
-        {
-            var tsks = ScenarioContext.Current.OriginalIsoTaskData().Items.Where(x => x.GetType() == typeof(TSK)).Cast<TSK>().ToList();
-            var currentPath = ScenarioContext.Current.DataCardPath();
-
-            foreach (var applicationDataModel in ScenarioContext.Current.ApplicationDataModel())
-            {
-                LoggedDataAssert.AreEqual(tsks, currentPath, applicationDataModel.Documents.LoggedData.ToList(), applicationDataModel.Catalog);
-            }
         }
 
         [When(@"I export to Iso")]
@@ -57,22 +49,54 @@ namespace AcceptanceTests.Steps
             }
         }
 
+        [Then(@"iso is imported to adapt")]
+        public void ThenIsoIsImportedToAdapt()
+        {
+            var currentPath = ScenarioContext.Current.DataCardPath();
+            var cardPath = Path.Combine(currentPath, "TASKDATA");
+
+            var linkList = LoadLinkList(currentPath);
+
+            foreach (var applicationDataModel in ScenarioContext.Current.ApplicationDataModel())
+            {
+                ApplicationDataModelAssert.AreEqual(ScenarioContext.Current.OriginalIsoTaskData(), applicationDataModel, cardPath, linkList);
+            }
+        }
+
         [Then(@"Adapt is exported to ISO")]
         public void ThenAdaptIsExportedToIso()
         {
-            var isoTaskData = new XmlReader().Read(ScenarioContext.Current.ExportPath(), "TASKDATA.XML");
+            var currentPath = ScenarioContext.Current.ExportPath();
+            var cardPath = Path.Combine(currentPath, "TASKDATA");
+
+            var linkList = LoadLinkList(currentPath);
             foreach (var applicationDataModel in ScenarioContext.Current.ApplicationDataModel())
             {
-                TaskDataAssert.AreEqual(applicationDataModel, isoTaskData, ScenarioContext.Current.ExportPath()); 
+                ApplicationDataModelAssert.AreEqual(ScenarioContext.Current.OriginalIsoTaskData(), applicationDataModel, cardPath, linkList);
             }
         }
 
         [AfterScenario]
         public void AfterScenario()
         {
-            var directory = Directory.GetParent(ScenarioContext.Current.DataCardPath()).FullName;
+            var directory = ScenarioContext.Current.DataCardPath();
             if(Directory.Exists(directory))
                 Directory.Delete(directory, true);
+        }
+
+        private static Dictionary<string, List<UniqueId>> LoadLinkList(string currentPath)
+        {
+            var linkListFile = Path.Combine(currentPath, "TASKDATA", "LINKLIST.XML");
+            if (!File.Exists(linkListFile)) 
+                return new Dictionary<string, List<UniqueId>>();
+
+            var xmlDocument = new XmlDocument();
+            xmlDocument.Load(linkListFile);
+            var linkList = xmlDocument.SelectSingleNode("ISO11783_LinkList");
+
+            var lgpNodes = linkList.SelectNodes("LGP");
+
+            return LinkGroupLoader.Load(lgpNodes);
         }
     }
 }

@@ -2,6 +2,7 @@
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers;
+using AgGateway.ADAPT.ISOv4Plugin.Models;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using AgGateway.ADAPT.Representation.RepresentationSystem;
 using AgGateway.ADAPT.Representation.RepresentationSystem.ExtensionMethods;
@@ -56,7 +57,10 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             }
             var spatialValue = new SpatialValue
             {
-                DlvHeader = new DLVHeader { ProcessDataDDI = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 161 }  },
+                Dlv = new DLV
+                {
+                    A = "A1"   // need to set A specified true?
+                },
                 Value = value
             };
             spatialRow.SpatialValues = new List<SpatialValue> { spatialValue };
@@ -73,7 +77,10 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             const long value = 0xFFFFFFFF;
             var spatialValue = new SpatialValue
             {
-                DlvHeader = new DLVHeader { ProcessDataDDI = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 161 }  },
+                Dlv = new DLV
+                {
+                    A = "A1"
+                },
                 Value = value
             };
             spatialRow.SpatialValues = new List<SpatialValue> { spatialValue };
@@ -89,13 +96,16 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
 
             var spatialValue = new SpatialValue
             {
-                DlvHeader = new DLVHeader { ProcessDataDDI = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 161 }  },
+                Dlv = new DLV
+                {
+                    A = "A1"
+                },
                 Value = 1
             };
 
-            var meter = new EnumeratedMeter
+            var meter = new EnumeratedWorkingData
             {
-                SectionId = 1
+                DeviceElementUseId = 1
             };
 
             var result = new CondensedWorkStateMeterCreator(161, 161).GetValueForMeter(spatialValue, meter);
@@ -109,13 +119,16 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
 
             var spatialValue = new SpatialValue
             {
-                DlvHeader = new DLVHeader { ProcessDataDDI = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 161 }  },
+                Dlv = new DLV
+                {
+                    A = "A1"
+                },
                 Value = 0
             };
 
-            var meter = new EnumeratedMeter
+            var meter = new EnumeratedWorkingData
             {
-                SectionId = 1
+                DeviceElementUseId = 1
             };
 
             var result = new CondensedWorkStateMeterCreator(161, 161).GetValueForMeter(spatialValue, meter);
@@ -128,13 +141,16 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         {
             var spatialValue = new SpatialValue
             {
-                DlvHeader = new DLVHeader { ProcessDataDDI = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 161 }  },
+                Dlv = new DLV
+                {
+                    A = "A1"
+                },
                 Value = 2
             };
 
-            var meter = new EnumeratedMeter
+            var meter = new EnumeratedWorkingData
             {
-                SectionId = 1
+                DeviceElementUseId = 1
             };
 
             var result = new CondensedWorkStateMeterCreator(161, 161).GetValueForMeter(spatialValue, meter);
@@ -147,13 +163,16 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         {
             var spatialValue = new SpatialValue
             {
-                DlvHeader = new DLVHeader { ProcessDataDDI = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 161 }  },
+                Dlv = new DLV
+                {
+                    A = "A1"
+                },
                 Value = 3
             };
 
-            var meter = new EnumeratedMeter
+            var meter = new EnumeratedWorkingData
             {
-                SectionId = 1
+                DeviceElementUseId = 1
             };
 
             var result = new CondensedWorkStateMeterCreator(161, 161).GetValueForMeter(spatialValue, meter);
@@ -589,10 +608,10 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenMetersWithStartAt161AndUndefinedWhenGetMetersValueThenValuesCorrect()
         {
-            var meters = new List<Meter>();
+            var meters = new List<WorkingData>();
             for (int i = 1; i < 17; i++)
             {
-                meters.Add(new ISOEnumeratedMeter { SectionId = i });
+                meters.Add(new ISOEnumeratedMeter { DeviceElementUseId = i });
             }
 
             var spatialRecord = new SpatialRecord();
@@ -617,12 +636,12 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             Assert.AreEqual(0x77777777, result);
         }
 
-        private static List<Meter> CreateMeters(out SpatialRecord spatialRecord, int startSection)
+        private static List<WorkingData> CreateMeters(out SpatialRecord spatialRecord, int startSection)
         {
-            var meters = new List<Meter>();
+            var meters = new List<WorkingData>();
             for (int i = startSection; i < startSection + 16; i++)
             {
-                meters.Add(new ISOEnumeratedMeter {SectionId = i});
+                meters.Add(new ISOEnumeratedMeter {DeviceElementUseId = i});
             }
 
             spatialRecord = new SpatialRecord();
@@ -648,7 +667,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         {
             for (int i = 0; i < result.Count; i++)
             {
-                Assert.AreEqual(i + startingSectionNumber, result[i].SectionId);
+                Assert.AreEqual(i + startingSectionNumber, result[i].DeviceElementUseId);
             }
         }
     }

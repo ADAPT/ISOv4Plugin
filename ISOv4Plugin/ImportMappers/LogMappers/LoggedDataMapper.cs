@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
+using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ISOv4Plugin.Extensions;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
@@ -9,7 +11,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
 {
     public interface ILoggedDataMapper
     {
-        List<LoggedData> Map(List<TSK> tsks, string dataPath, Documents documents);
+        List<LoggedData> Map(List<TSK> tsks, string dataPath, ApplicationDataModel.ADM.ApplicationDataModel dataModel, Dictionary<string, List<UniqueId>> linkedIds);
     }
 
     public class LoggedDataMapper : ILoggedDataMapper
@@ -26,23 +28,29 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             _operationDataMapper = operationDataMapper;
         }
 
-        public List<LoggedData> Map(List<TSK> tsks, string dataPath, Documents documents)
+        public List<LoggedData> Map(List<TSK> tsks, string dataPath, ApplicationDataModel.ADM.ApplicationDataModel dataModel, Dictionary<string, List<UniqueId>> linkedIds)
         {
             return tsks == null 
                 ? null 
-                : tsks.Select(tsk => Map(tsk, dataPath, documents)).ToList();
+                : tsks.Select(tsk => Map(tsk, dataPath, dataModel, linkedIds)).ToList();
         }
 
-        private LoggedData Map(TSK tsk, string dataPath, Documents documents)
+        private LoggedData Map(TSK tsk, string dataPath, ApplicationDataModel.ADM.ApplicationDataModel dataModel, Dictionary<string, List<UniqueId>> linkedIds)
         {
-            if (tsk == null || documents.LoggedData == null)
+            if (tsk == null || dataModel.Documents.LoggedData == null)
                 return null;
 
-            var existingLoggedData = documents.LoggedData.FirstOrDefault(x => x.Id.FindIsoId() == tsk.A);
-            if (existingLoggedData == null) 
+            var existingLoggedData = dataModel.Documents.LoggedData.FirstOrDefault(x => x.Id.FindIsoId() == tsk.A);
+            if (existingLoggedData == null)
                 return null;
 
-            existingLoggedData.OperationData = _operationDataMapper.Map(tsk.Items.GetItemsOfType<TLG>(), dataPath, existingLoggedData.Id.ReferenceId);
+            var taskId = null as int?;
+            var grd = tsk.Items != null ? tsk.Items.FirstOrDefault(x => x.GetType() == typeof(GRD)) : null;
+            if (grd != null)
+            {
+                taskId = dataModel.Catalog.Prescriptions.Single(x => x.Id.FindIsoId() == tsk.A).Id.ReferenceId;
+            }
+            existingLoggedData.OperationData = _operationDataMapper.Map(tsk.Items.GetItemsOfType<TLG>(), taskId, dataPath, existingLoggedData.Id.ReferenceId, linkedIds);
             return existingLoggedData;
         }
     }

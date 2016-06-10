@@ -1,4 +1,8 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
 using NUnit.Framework;
 
@@ -7,14 +11,25 @@ namespace ISOv4PluginTest.Loaders
     [TestFixture]
     public class CommentLoaderTests
     {
+        private string _directory;
+
+        [SetUp]
+        public void Setup()
+        {
+            _directory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(_directory);
+        }
+
         [Test]
         public void LoadCommentTest()
         {
             // Setup
             var taskDocument = new  TaskDataDocument();
+            var path = Path.Combine(_directory, "comment1.xml");
+            File.WriteAllText(path, TestData.TestData.Comment1);
 
             // Act
-            var result = taskDocument.LoadFromFile(@"TestData\Comment\Comment1.xml");
+            var result = taskDocument.LoadFromFile(path);
 
             // Verify
             Assert.IsTrue(result);
@@ -39,9 +54,12 @@ namespace ISOv4PluginTest.Loaders
         {
             // Setup
             var taskDocument = new TaskDataDocument();
+            var path = Path.Combine(_directory, "comment2.xml");
+            File.WriteAllText(path, TestData.TestData.Comment2);
+            File.WriteAllText(Path.Combine(_directory, "CCT00002.xml"), TestData.TestData.CCT00002);
 
             // Act
-            var result = taskDocument.LoadFromFile(@"TestData\Comment\Comment2.xml");
+            var result = taskDocument.LoadFromFile(path);
 
             // Verify
             Assert.IsTrue(result);
@@ -75,24 +93,34 @@ namespace ISOv4PluginTest.Loaders
             Assert.AreEqual("Comment value 4", comment.Values["CCL4"].Value);
         }
 
-        [TestCase(@"TestData\Comment\Comment3.xml")]
-        [TestCase(@"TestData\Comment\Comment4.xml")]
-        [TestCase(@"TestData\Comment\Comment5.xml")]
-        [TestCase(@"TestData\Comment\Comment7.xml")]
-        [TestCase(@"TestData\Comment\Comment8.xml")]
-        [TestCase(@"TestData\Comment\Comment10.xml")]
-        public void CustomerWithMissingRequiredInfoTest(string testFileName)
+        [Test]
+        public void CustomerWithMissingRequiredInfoTest()
         {
-            // Setup
-            var taskDocument = new TaskDataDocument();
+            var comments = new List<String>
+            {
+                TestData.TestData.Comment3,
+                TestData.TestData.Comment4,
+                TestData.TestData.Comment5,
+                TestData.TestData.Comment7,
+                TestData.TestData.Comment8,
+                TestData.TestData.Comment10
+            };
 
-            // Act
-            var result = taskDocument.LoadFromFile(testFileName);
+            for (int i = 0; i < comments.Count; i++)
+            {
+                // Setup
+                var taskDocument = new TaskDataDocument();
+                var path = Path.Combine(_directory, String.Format("comment{0}.xml", i));
+                File.WriteAllText(path, comments[i]);
 
-            // Verify
-            Assert.IsTrue(result);
-            Assert.IsNotNull(taskDocument.Comments);
-            Assert.AreEqual(0, taskDocument.Comments.Count);
+                // Act
+                var result = taskDocument.LoadFromFile(path);
+
+                // Verify
+                Assert.IsTrue(result);
+                Assert.IsNotNull(taskDocument.Comments);
+                Assert.AreEqual(0, taskDocument.Comments.Count);
+            }
         }
 
         [Test]
@@ -100,9 +128,11 @@ namespace ISOv4PluginTest.Loaders
         {
             // Setup
             var taskDocument = new TaskDataDocument();
+            var path = Path.Combine(_directory, "comment6.xml");
+            File.WriteAllText(path, TestData.TestData.Comment6);
 
             // Act
-            var result = taskDocument.LoadFromFile(@"TestData\Comment\Comment6.xml");
+            var result = taskDocument.LoadFromFile(path);
 
             // Verify
             Assert.IsTrue(result);
@@ -113,7 +143,7 @@ namespace ISOv4PluginTest.Loaders
 
             Assert.AreEqual("Comment 1", comment.Comment.Description);
             Assert.AreEqual(2, comment.Scope);
-            Assert.IsNull(comment.Comment.EnumeratedMembers);
+            Assert.IsEmpty(comment.Comment.EnumeratedMembers);
             Assert.IsNull(comment.Values);
         }
 
@@ -122,9 +152,11 @@ namespace ISOv4PluginTest.Loaders
         {
             // Setup
             var taskDocument = new TaskDataDocument();
+            var path = Path.Combine(_directory, "comment6.xml");
+            File.WriteAllText(path, TestData.TestData.Comment9);
 
             // Act
-            var result = taskDocument.LoadFromFile(@"TestData\Comment\Comment9.xml");
+            var result = taskDocument.LoadFromFile(path);
 
             // Verify
             Assert.IsTrue(result);
@@ -135,7 +167,7 @@ namespace ISOv4PluginTest.Loaders
 
             Assert.AreEqual("Comment 1", comment.Comment.Description);
             Assert.AreEqual(2, comment.Scope);
-            Assert.IsNull(comment.Comment.EnumeratedMembers);
+            Assert.IsEmpty(comment.Comment.EnumeratedMembers);
             Assert.IsNull(comment.Values);
         }
     }

@@ -8,6 +8,8 @@ using AgGateway.ADAPT.ApplicationDataModel.ReferenceLayers;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
 using AgGateway.ADAPT.ISOv4Plugin.Extensions;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
+using AgGateway.ADAPT.Representation.RepresentationSystem;
+using AgGateway.ADAPT.Representation.RepresentationSystem.ExtensionMethods;
 using AgGateway.ADAPT.Representation.UnitSystem;
 using AgGateway.ADAPT.Representation.UnitSystem.ExtensionMethods;
 
@@ -98,7 +100,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
                 return;
 
             var numericValue = new NumericValue(new CompositeUnitOfMeasure("m2").ToModelUom(), areaValue);
-            field.Area = new NumericRepresentationValue(null, numericValue.UnitOfMeasure, numericValue);
+            field.Area = new NumericRepresentationValue(RepresentationInstanceList.vrReportedFieldArea.ToModelRepresentation(), numericValue.UnitOfMeasure, numericValue);
         }
 
         private void AssignFarm(XmlNode inputNode, Field field)

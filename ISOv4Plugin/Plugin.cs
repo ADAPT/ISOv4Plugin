@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
+using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.Prescriptions;
 using AgGateway.ADAPT.ApplicationDataModel.Products;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders;
@@ -13,19 +15,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin
     public class Plugin : IPlugin
     {
         private readonly IXmlReader _xmlReader;
-        private readonly IXpathFileWriter _xpathFileWriter;
         private readonly IImporter _importer;
         private readonly IExporter _exporter;
         private const string FileName = "TASKDATA.XML";
 
-        public Plugin() : this(new XmlReader(), new XpathFileWriter(), new Importer(), new Exporter())
+        public Plugin() : this(new XmlReader(), new Importer(), new Exporter())
         {
             
         }
-        public Plugin(IXmlReader xmlReader, IXpathFileWriter xpathFileWriter, IImporter importer, IExporter exporter)
+        public Plugin(IXmlReader xmlReader, IImporter importer, IExporter exporter)
         {
             _xmlReader = xmlReader;
-            _xpathFileWriter = xpathFileWriter;
             _importer = importer;
             _exporter = exporter;
             Name = "ISO Plugin";
@@ -74,11 +74,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin
             {
                 var dataModel = new ApplicationDataModel.ADM.ApplicationDataModel();
 
-                ConvertTaskDataFileToModel(taskDataFile, dataModel);
-
+                var taskDataDocument = ConvertTaskDataFileToModel(taskDataFile, dataModel);
 
                 var iso11783TaskData = _xmlReader.Read(taskDataFile);
-                _importer.Import(iso11783TaskData, dataPath, dataModel);
+                _importer.Import(iso11783TaskData, dataPath, dataModel, taskDataDocument.LinkedIds);
                 adms.Add(dataModel);
             }
 
@@ -89,16 +88,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin
         {
             using (var taskWriter = new TaskDocumentWriter())
             {
-                var xmlString = taskWriter.Write(exportPath, dataModel).ToString();
-                var serializer = new XmlSerializer();
-                var isoTaskData = serializer.Deserialize<ISO11783_TaskData>(xmlString);
+                var taskDataPath = Path.Combine(exportPath, "TASKDATA");
+                var iso11783TaskData = _exporter.Export(dataModel, taskDataPath, taskWriter);
 
-                
-                
-                var iso11783TaskData = _exporter.Export(dataModel, exportPath, isoTaskData);
-
-                var filePath = Path.Combine(exportPath, FileName);
-                _xpathFileWriter.WriteToFile(iso11783TaskData, filePath);
+                var filePath = Path.Combine(taskDataPath, "TASKDATA.XML");
+                if (iso11783TaskData != null)
+                {
+                    var xml = Encoding.UTF8.GetString(taskWriter.XmlStream.ToArray());
+                    File.WriteAllText(filePath, xml);
+                    LinkListWriter.Write(exportPath, taskWriter.Ids);
+                }
             }
         }
         
@@ -125,11 +124,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin
             return taskDataFiles;
         }
 
-        private static void ConvertTaskDataFileToModel(string taskDataFile, ApplicationDataModel.ADM.ApplicationDataModel dataModel)
+        private static TaskDataDocument ConvertTaskDataFileToModel(string taskDataFile, ApplicationDataModel.ADM.ApplicationDataModel dataModel)
         {
             var taskDocument = new TaskDataDocument();
             if (taskDocument.LoadFromFile(taskDataFile) == false)
-                return;
+                return taskDocument;
 
             var catalog = new Catalog();
             catalog.Growers = taskDocument.Customers.Values.ToList();
@@ -155,6 +154,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin
             documents.LoggedData = taskDocument.Tasks;
 
             dataModel.Documents = documents;
+
+            return taskDocument;
         }
     }
 }

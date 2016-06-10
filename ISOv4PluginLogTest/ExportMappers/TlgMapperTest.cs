@@ -8,6 +8,7 @@ using AgGateway.ADAPT.ISOv4Plugin.ImportMappers;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
+using AgGateway.ADAPT.ISOv4Plugin.Writers;
 using Moq;
 using NUnit.Framework;
 
@@ -23,6 +24,7 @@ namespace ISOv4PluginLogTest.ExportMappers
         private Mock<IBinaryWriter> _binaryWriterMock;
         private Mock<IXmlReader> _xmlReaderMock;  
         private Mock<ITimHeaderMapper> _timHeaderMock;
+        private TaskDocumentWriter _taskDocumentWriter;
         private string _datacardPath;
 
         [SetUp]
@@ -35,6 +37,7 @@ namespace ISOv4PluginLogTest.ExportMappers
             _xmlReaderMock = new Mock<IXmlReader>();
             _timHeaderMock = new Mock<ITimHeaderMapper>();
             _datacardPath = "";
+            _taskDocumentWriter = new TaskDocumentWriter();
 
             _tlgMapper = new TlgMapper(_xmlReaderMock.Object, _timHeaderMock.Object, _binaryWriterMock.Object);
         }
@@ -49,6 +52,16 @@ namespace ISOv4PluginLogTest.ExportMappers
             var result = Map();
 
             Assert.AreEqual(_operationDatas.Count, result.Count());
+        }
+
+        [Test]
+        public void GivenOperationDatasNullWhenMapThenTlgsAreMapped()
+        {
+            _operationDatas = null;
+
+            var result = Map();
+
+            Assert.IsEmpty(result);
         }
 
         [Test]
@@ -75,19 +88,19 @@ namespace ISOv4PluginLogTest.ExportMappers
                 Source = UniqueIdMapper.IsoSource
             });
 
-            var meters = new List<Meter>{ new NumericMeter() };
-            var sections = new List<Section>
+            var meters = new List<WorkingData>{ new NumericWorkingData() };
+            var sections = new List<DeviceElementUse>
             {
-                new Section
+                new DeviceElementUse
                 {
-                    GetMeters = () => meters
+                    GetWorkingDatas = () => meters
                 }
             };
-            var sectionsByDepth = new Dictionary<int, IEnumerable<Section>>
+            var sectionsByDepth = new Dictionary<int, IEnumerable<DeviceElementUse>>
             {
                 { 0, sections }
             };
-            _operationData.GetSections = x => sectionsByDepth[x];
+            _operationData.GetDeviceElementUses = x => sectionsByDepth[x];
             _operationData.MaxDepth = 0;
 
             var spatialRecords = new List<SpatialRecord>{ new SpatialRecord() };
@@ -96,7 +109,7 @@ namespace ISOv4PluginLogTest.ExportMappers
             MapSingle();
 
             var expectedPath = Path.Combine(_datacardPath, "TLG00016.bin");
-            _binaryWriterMock.Verify(x => x.Write(expectedPath, sections, meters, spatialRecords), Times.Once);
+            _binaryWriterMock.Verify(x => x.Write(expectedPath, meters, spatialRecords), Times.Once);
         }
 
         [Test]
@@ -108,19 +121,19 @@ namespace ISOv4PluginLogTest.ExportMappers
                 CiTypeEnum = CompoundIdentifierTypeEnum.String,
             });
 
-            var meters = new List<Meter> { new NumericMeter() };
-            var sections = new List<Section>
+            var meters = new List<WorkingData> { new NumericWorkingData() };
+            var sections = new List<DeviceElementUse>
             {
-                new Section
+                new DeviceElementUse
                 {
-                    GetMeters = () => meters
+                    GetWorkingDatas = () => meters
                 }
             };
-            var sectionsByDepth = new Dictionary<int, IEnumerable<Section>>
+            var sectionsByDepth = new Dictionary<int, IEnumerable<DeviceElementUse>>
             {
                 { 0, sections }
             };
-            _operationData.GetSections = x => sectionsByDepth[x];
+            _operationData.GetDeviceElementUses = x => sectionsByDepth[x];
             _operationData.MaxDepth = 0;
 
             MapSingle();
@@ -138,27 +151,27 @@ namespace ISOv4PluginLogTest.ExportMappers
                 Source = UniqueIdMapper.IsoSource
             });
 
-            var meters = new List<Meter> { new NumericMeter() };
-            var sections = new List<Section>
+            var meters = new List<WorkingData> { new NumericWorkingData() };
+            var sections = new List<DeviceElementUse>
             {
-                new Section
+                new DeviceElementUse
                 {
-                    GetMeters = () => meters
+                    GetWorkingDatas = () => meters
                 }
             };
-            var sectionsByDepth = new Dictionary<int, IEnumerable<Section>>
+            var sectionsByDepth = new Dictionary<int, IEnumerable<DeviceElementUse>>
             {
                 { 0, sections }
             };
-            _operationData.GetSections = x => sectionsByDepth[x];
+            _operationData.GetDeviceElementUses = x => sectionsByDepth[x];
             _operationData.MaxDepth = 0;
 
-            var timHeader = new TIMHeader();
-            _timHeaderMock.Setup(x => x.Map(meters)).Returns(timHeader);
+            var tim = new TIM();
+            _timHeaderMock.Setup(x => x.Map(meters)).Returns(tim);
 
             MapSingle();
 
-            _xmlReaderMock.Verify(x => x.WriteTlgXmlData(_datacardPath, "TLG00016.xml",  timHeader));
+            _xmlReaderMock.Verify(x => x.WriteTlgXmlData(_datacardPath, "TLG00016.xml", tim));
         }
 
         private TLG MapSingle()
@@ -168,7 +181,7 @@ namespace ISOv4PluginLogTest.ExportMappers
 
         private IEnumerable<TLG> Map()
         {
-            return _tlgMapper.Map(_operationDatas, _datacardPath);
+            return _tlgMapper.Map(_operationDatas, _datacardPath, _taskDocumentWriter);
         }
     }
 }

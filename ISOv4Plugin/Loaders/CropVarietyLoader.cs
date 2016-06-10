@@ -24,13 +24,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
         private static CropVariety LoadVariety(XmlNode inputNode, out string varietyId)
         {
             varietyId = inputNode.GetXmlNodeValue("@A");
-            if (string.IsNullOrEmpty(varietyId))
+            var description = inputNode.GetXmlNodeValue("@B");
+            if (string.IsNullOrEmpty(varietyId) || string.IsNullOrEmpty(description))
                 return null;
 
-            var variety = new CropVariety { ProductType = ProductTypeEnum.Variety };
-            variety.Description = inputNode.GetXmlNodeValue("@B");
-            if (string.IsNullOrEmpty(variety.Description))
-                return null;
+            var variety = new CropVariety
+            {
+                ProductType = ProductTypeEnum.Variety, 
+                Description = description
+            };
+            variety.Id.UniqueIds.Add(ImportHelper.CreateUniqueId(varietyId));
 
             return variety;
         }

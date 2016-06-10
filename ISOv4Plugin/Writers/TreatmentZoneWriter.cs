@@ -9,21 +9,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
 {
     public class TreatmentZoneWriter
     {
-        private static readonly Dictionary<UnitOfMeasureDimensionEnum, long> _dimensionToDdi = new Dictionary<UnitOfMeasureDimensionEnum, long>
-            {
-                { UnitOfMeasureDimensionEnum.VolumePerArea, 1 },
-                { UnitOfMeasureDimensionEnum.MassPerArea, 6 },
-                { UnitOfMeasureDimensionEnum.CountPerArea, 11 },
-                { UnitOfMeasureDimensionEnum.VolumePerVolume, 21 },
-                { UnitOfMeasureDimensionEnum.MassPerMass, 26 },
-                { UnitOfMeasureDimensionEnum.VolumePerMass, 31 },
-                { UnitOfMeasureDimensionEnum.VolumePerTime, 36 },
-                { UnitOfMeasureDimensionEnum.MassPerTime, 41 },
-                { UnitOfMeasureDimensionEnum.PerTime, 46 },
-                { UnitOfMeasureDimensionEnum.Mass, 74 },
-                { UnitOfMeasureDimensionEnum.Count, 77 }
-            };
-
         public static string Write(XmlWriter writer, string zoneId, TreatmentZone treatmentZone)
         {
             if (treatmentZone == null)
@@ -63,8 +48,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
                 return 6;
 
             var adaptUnit = dataVariable.IsoUnit.ToAdaptUnit();
-            if (_dimensionToDdi.ContainsKey(adaptUnit.Dimension))
-                return _dimensionToDdi[adaptUnit.Dimension];
+            if (UnitFactory.DimensionToDdi.ContainsKey(adaptUnit.Dimension))
+                return UnitFactory.DimensionToDdi[adaptUnit.Dimension];
 
             return 6;
         }

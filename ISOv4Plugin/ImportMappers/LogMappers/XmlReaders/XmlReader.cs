@@ -6,18 +6,15 @@ using System.Linq;
 using System.Xml.Linq;
 using System.Xml.XPath;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
-using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using AgGateway.ADAPT.ISOv4Plugin.Readers;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders
 {
     public interface IXmlReader
     {
-        ISO11783_TaskData Read(string dataPath, string fileName);
-        ISO11783_TaskData Read(string filePath);
-        TIMHeader ReadTlgXmlData(string dataPath, string fileName);
-        void Write(string dataPath, ISO11783_TaskData taskData);
-        XDocument WriteTlgXmlData(string datacardPath, string fileName, TIMHeader timHeader);
+        ISO11783_TaskData Read(string taskDataFile);
+        List<TIM> ReadTlgXmlData(string datacardPath, string fileName);
+        XDocument WriteTlgXmlData(string datacardPath, string fileName, TIM timHeader);
     }
 
     public class XmlReader : IXmlReader
@@ -36,46 +33,26 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders
             _taskDataReader = taskDataReader;
         }
 
-        public ISO11783_TaskData Read(string dataPath, string fileName)
+        public ISO11783_TaskData Read(string taskDataFile)
         {
-            var file = Path.Combine(dataPath, fileName);
-
-            return Read(file);
-        }
-
-        public ISO11783_TaskData Read(string file)
-        {
-            var xpathReader = new XPathDocument(file);
+            var xpathReader = new XPathDocument(taskDataFile);
             var navigator = xpathReader.CreateNavigator();
 
-            return _taskDataReader.Read(navigator);
+            return _taskDataReader.Read(navigator, Path.GetDirectoryName(taskDataFile));
         }
 
-        public TIMHeader ReadTlgXmlData(string dataPath, string fileName)
+        public List<TIM> ReadTlgXmlData(string datacardPath, string fileName)
         {
-            var file = Path.Combine(dataPath, fileName);
+            var file = Path.Combine(datacardPath, fileName);
+            var xPathDocument = new XPathDocument(file);
 
-            using (var streamReader = new StreamReader(file))
-            {
-                var xDocument = XDocument.Load(streamReader);
-
-                var tim = _timReader.Read(xDocument);
-
-                return tim;
-            }
+            return _timReader.Read(xPathDocument);
         }
 
-        public void Write(string dataPath, ISO11783_TaskData taskData)
-        {
-
-        }
-
-        public XDocument WriteTlgXmlData(string datacardPath, string fileName, TIMHeader timHeader)
+        public XDocument WriteTlgXmlData(string datacardPath, string fileName, TIM timHeader)
         {
             var filePath = Path.Combine(datacardPath, fileName);
-
             var timElement = CreateTimElement(timHeader);
-
             var xdoc = new XDocument(timElement);
 
             xdoc.Save(filePath);
@@ -83,71 +60,77 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders
             return xdoc;
         }
 
-        private static XElement CreateTimElement(TIMHeader timHeader)
+        private static XElement CreateTimElement(TIM tim)
         {
-            var dlvElements = CreateDlvElements(timHeader);
-            var ptnElement = CreatePtnElement(timHeader.PtnHeader);
+            var dlvElements = CreateDlvElements(tim);
+
+            var ptn = tim.Items.FirstOrDefault(x => x.GetType() == typeof (PTN)) as PTN;
+            var ptnElement = CreatePtnElement(ptn);
 
             var timElement = new XElement("TIM", ptnElement, dlvElements);
 
-            timElement.SetAttributeValue("A", GetAttributeValue(timHeader.Start));
-            timElement.SetAttributeValue("B", GetAttributeValue(timHeader.Stop));
-            timElement.SetAttributeValue("C", GetAttributeValue(timHeader.Duration));
-            timElement.SetAttributeValue("D", GetAttributeValue(timHeader.Type));
+            SetAttribute(timElement, tim.ASpecified, "A", tim.A);
+            SetAttribute(timElement, tim.BSpecified, "B", tim.B);
+            SetAttribute(timElement, tim.CSpecified, "C", tim.C);
+            SetAttribute(timElement, tim.DSpecified, "D", tim.D == null ? null : (int?)tim.D);
 
             return timElement;
         }
 
-        private static XElement CreatePtnElement(PTNHeader ptnHeader)
+        private static void SetAttribute<T>(XElement timElement, bool specified, string attributeName, T attributeValue)
         {
-            if(ptnHeader == null)
-                return null;
-
-            var ptn = new XElement("PTN");
-
-            ptn.SetAttributeValue("A", GetAttributeValue(ptnHeader.PositionNorth));
-            ptn.SetAttributeValue("B", GetAttributeValue(ptnHeader.PositionEast));
-            ptn.SetAttributeValue("C", GetAttributeValue(ptnHeader.PositionUp));
-            ptn.SetAttributeValue("D", GetAttributeValue(ptnHeader.PositionStatus));
-            ptn.SetAttributeValue("E", GetAttributeValue(ptnHeader.PDOP));
-            ptn.SetAttributeValue("F", GetAttributeValue(ptnHeader.HDOP));
-            ptn.SetAttributeValue("G", GetAttributeValue(ptnHeader.NumberOfSatellites));
-            ptn.SetAttributeValue("H", GetAttributeValue(ptnHeader.GpsUtcTime));
-            ptn.SetAttributeValue("I", GetAttributeValue(ptnHeader.GpsUtcDate));
-
-            return ptn;
-        }
-
-        private static string GetAttributeValue(HeaderProperty property)
-        {
-            if (property == null || property.State == HeaderPropertyState.IsNull)
-                return null;
-            if(property.Value is TIMD)
-                return property.State == HeaderPropertyState.IsEmpty ? "" : ((int)(TIMD)property.Value).ToString();
-            return property.State == HeaderPropertyState.IsEmpty ? "" : property.Value.ToString();
-        }
-
-        private static IEnumerable<XElement> CreateDlvElements(TIMHeader timHeader)
-        {
-            if (timHeader.DLVs != null)
+            if (specified)
             {
-                return timHeader.DLVs.Select(x =>
+                if(attributeValue == null)
+                    timElement.SetAttributeValue(attributeName, "");
+                else
+                    timElement.SetAttributeValue(attributeName, attributeValue.ToString());
+            }
+        }
+
+        private static XElement CreatePtnElement(PTN ptn)
+        {
+            if(ptn == null)
+                return null;
+
+            var ptnElement = new XElement("PTN");
+
+            SetAttribute(ptnElement, ptn.ASpecified, "A", ptn.A);
+            SetAttribute(ptnElement, ptn.BSpecified, "B", ptn.B);
+            SetAttribute(ptnElement, ptn.CSpecified, "C", ptn.C);
+            SetAttribute(ptnElement, ptn.DSpecified, "D", ptn.D);
+            SetAttribute(ptnElement, ptn.ESpecified, "E", ptn.E);
+            SetAttribute(ptnElement, ptn.FSpecified, "F", ptn.F);
+            SetAttribute(ptnElement, ptn.GSpecified, "G", ptn.G);
+            SetAttribute(ptnElement, ptn.HSpecified, "H", ptn.H);
+            SetAttribute(ptnElement, ptn.ISpecified, "I", ptn.I);
+
+            return ptnElement;
+        }
+
+        private static IEnumerable<XElement> CreateDlvElements(TIM tim)
+        {
+            var dlvs = tim.Items.Where(x => x.GetType() == typeof (DLV)).Cast<DLV>().ToList();
+
+            if (dlvs.Any())
+            {
+                return dlvs.Select(x =>
                 {
-                    var dlv = new XElement("DLV");
-                    var ddi = GetAttributeValue(x.ProcessDataDDI);
+                    var dlvElement = new XElement("DLV");
+                    var ddi = x.A;
                     if (String.IsNullOrEmpty(ddi))
-                        dlv.SetAttributeValue("A", ddi);
+                        dlvElement.SetAttributeValue("A", ddi);
                     else
                     {
                         var value = int.Parse(ddi).ToString("X4");
-                        dlv.SetAttributeValue("A", value);
+                        dlvElement.SetAttributeValue("A", value);
                     }
-                    dlv.SetAttributeValue("B", GetAttributeValue(x.ProcessDataValue));
-                    dlv.SetAttributeValue("C", GetAttributeValue(x.DeviceElementIdRef));
-                    dlv.SetAttributeValue("D", GetAttributeValue(x.DataLogPGN));
-                    dlv.SetAttributeValue("E", GetAttributeValue(x.DataLogPGNStartBit));
-                    dlv.SetAttributeValue("F", GetAttributeValue(x.DataLogPGNStopBit));
-                    return dlv;
+                    dlvElement.SetAttributeValue("B", x.B);
+                    dlvElement.SetAttributeValue("C", x.C);
+                    dlvElement.SetAttributeValue("D", x.D);
+                    dlvElement.SetAttributeValue("E", x.E);
+                    dlvElement.SetAttributeValue("F", x.F);
+                    return dlvElement;
                 }).ToList();
             }
             return new List<XElement>();

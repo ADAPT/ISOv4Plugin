@@ -1,4 +1,4 @@
-﻿using System.Text;
+﻿using System.Xml;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Models
 {
@@ -6,15 +6,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Models
     {
         public string A { get; set; }
 
-        public string WriteXML()
+        public XmlWriter WriteXML(XmlWriter xmlBuilder)
         {
-            var xmlBuilder = new StringBuilder();
-            xmlBuilder.Append("<TLG ");
-            if(!string.IsNullOrEmpty(A)) xmlBuilder.Append(string.Format("A=\"{0}\" ", A));
-            xmlBuilder.Append(">");
-            xmlBuilder.Append("</TLG>");
-            return xmlBuilder.ToString();
-
+            xmlBuilder.WriteStartElement("TLG");
+            if (!string.IsNullOrEmpty(A)) 
+                xmlBuilder.WriteAttributeString("A", A);
+            xmlBuilder.WriteEndElement();
+            return xmlBuilder;
         }
     }
 }

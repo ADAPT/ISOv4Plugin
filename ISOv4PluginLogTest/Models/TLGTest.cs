@@ -1,4 +1,6 @@
-﻿using AgGateway.ADAPT.ISOv4Plugin.Models;
+﻿using System.Text;
+using System.Xml;
+using AgGateway.ADAPT.ISOv4Plugin.Models;
 using NUnit.Framework;
 
 namespace ISOv4PluginLogTest.Models
@@ -7,34 +9,41 @@ namespace ISOv4PluginLogTest.Models
     public class TLGTest
     {
         private TLG _tlg;
+        private StringBuilder _output;
+        private XmlWriter _xmlBuilder;
 
         [SetUp]
         public void Setup()
         {
             _tlg = new TLG();
+            _output = new StringBuilder();
+            _xmlBuilder = XmlWriter.Create(_output);
         }
 
         [Test]
         public void GivenTLGWhenWriteXmlThenStartAndEndTagsAreWritten()
         {
-            var result = _tlg.WriteXML();
-            Assert.True(result.Contains("<TLG"));
-            Assert.True(result.Contains("</TLG>"));
+            _tlg.WriteXML(_xmlBuilder);
+            _xmlBuilder.Flush();
+            Assert.True(_output.ToString().Contains("<TLG"));
+            Assert.True(_output.ToString().Contains("/"));
         }
 
         [Test]
         public void GivenTLGWhenWriteXmlThenAIsWritten()
         {
             _tlg.A = "AAAAAAAAA";
-            var result = _tlg.WriteXML();
-            Assert.True(result.Contains("A=\"AAAAAAAAA\""));
+            _tlg.WriteXML(_xmlBuilder);
+            _xmlBuilder.Flush();
+            Assert.True(_output.ToString().Contains("A=\"AAAAAAAAA\""));
         }
 
         [Test]
         public void GivenTLGWithoutAWhenWriteXmlThenAIsNotWritten()
         {
-            var result = _tlg.WriteXML();
-            Assert.False(result.Contains("A="));
+            _tlg.WriteXML(_xmlBuilder);
+            _xmlBuilder.Flush();
+            Assert.False(_output.ToString().Contains("A="));
         }
     }
 }

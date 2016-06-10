@@ -54,6 +54,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Models
 
         public List<LoggedData> Tasks { get; private set; }
         public List<GuidanceAllocation> GuidanceAllocations { get; private set; }
+        public List<GuidanceShift> GuidanceShifts { get; private set; }
 
         public Dictionary<string, Person> Workers { get; private set; }
         public Dictionary<string, CodedComment> Comments { get; private set; }
@@ -64,7 +65,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Models
         // Helper property to allow lookup of VPN data based on id
         public Dictionary<string, ValuePresentation> Units { get; private set; }
         // Helper property to store linked ids by object id
-        private Dictionary<string, List<UniqueId>> LinkedIds { get; set; }
+        public Dictionary<string, List<UniqueId>> LinkedIds { get; set; }
 
 
         public TaskDataDocument()
@@ -85,7 +86,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Models
             if (linkedIds == null || linkedIds.Count == 0)
                 return;
 
-            id.UniqueIds = linkedIds.ToList();
+            id.UniqueIds.AddRange(linkedIds);
         }
 
         public bool LoadFromFile(string taskDataFile)

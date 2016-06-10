@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
@@ -12,7 +13,7 @@ namespace AcceptanceTests.Asserts.Export
 {
     public class SpatialValueAssert
     {
-        public static void AreEqual(ISOSpatialRow isoSpatialRow, SpatialRecord adaptSpatialRecord, List<Meter> meters)
+        public static void AreEqual(ISOSpatialRow isoSpatialRow, SpatialRecord adaptSpatialRecord, List<WorkingData> meters)
         {
             foreach (var meter in meters)
             {
@@ -26,7 +27,7 @@ namespace AcceptanceTests.Asserts.Export
                 if (adaptEnumeratedValue != null)
                 {
                     var representation = RepresentationManager.Instance.Representations.First(x => x.DomainId == adaptEnumeratedValue.Representation.Code);
-                    Assert.AreEqual(representation.Ddi.GetValueOrDefault(), isoValue.DlvHeader.ProcessDataDDI.Value);
+                    Assert.AreEqual(representation.Ddi.GetValueOrDefault(), Convert.ToInt32(isoValue.Dlv.A, 16));
 
                     if(representation.Ddi == 141)
                         CompareWorkState(adaptEnumeratedValue, isoValue);
@@ -55,7 +56,7 @@ namespace AcceptanceTests.Asserts.Export
                 {
                     var representation = RepresentationManager.Instance.Representations.FirstOrDefault(x => x.DomainId == adaptNumericValue.Representation.Code);
                     if (representation != null)
-                        Assert.AreEqual(representation.Ddi, isoValue.DlvHeader.ProcessDataDDI.Value);
+                        Assert.AreEqual(representation.Ddi, Convert.ToInt32(isoValue.Dlv.A, 16));
 
                     Assert.AreEqual(adaptNumericValue.Value.Value, isoValue.Value);
                 }

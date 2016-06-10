@@ -36,6 +36,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Extensions
             return null;
         }
 
+        public static string GetXmlAttribute(this XmlNode xmlNode, string xPath)
+        {
+            if (xmlNode.Attributes == null)
+                return null;
+
+            var attribute = xmlNode.Attributes[xPath];
+            return attribute != null ? attribute.Value : null;
+        }
+
         public static void WriteXmlAttribute(this XmlWriter writer, string attributeName, string attributeValue)
         {
             if (string.IsNullOrEmpty(attributeValue))

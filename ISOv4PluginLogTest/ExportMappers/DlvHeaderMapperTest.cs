@@ -4,6 +4,7 @@ using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ISOv4Plugin.ExportMappers;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers;
+using AgGateway.ADAPT.ISOv4Plugin.Models;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using AgGateway.ADAPT.ISOv4Plugin.Representation;
 using AgGateway.ADAPT.Representation.RepresentationSystem;
@@ -16,8 +17,8 @@ namespace ISOv4PluginLogTest.ExportMappers
     [TestFixture]
     public class DlvHeaderMapperTest
     {
-        private Meter _meter;
-        private List<Meter> _meters; 
+        private WorkingData _meter;
+        private List<WorkingData> _meters; 
         private DlvHeaderMapper _dlvHeaderMapper;
 
         private Mock<IRepresentationMapper> _representationMapperMock;
@@ -26,8 +27,8 @@ namespace ISOv4PluginLogTest.ExportMappers
         [SetUp]
         public void Setup()
         {
-            _meter = new NumericMeter();
-            _meters = new List<Meter>();
+            _meter = new NumericWorkingData();
+            _meters = new List<WorkingData>();
 
             _representationMapperMock = new Mock<IRepresentationMapper>();
             _dlvHeaderMapper = new DlvHeaderMapper(_representationMapperMock.Object);
@@ -36,10 +37,10 @@ namespace ISOv4PluginLogTest.ExportMappers
         [Test]
         public void GivenMetersWhenMapThenDlvForEachMeter()
         {
-            _meters.Add(new NumericMeter());
-            _meters.Add(new NumericMeter());
-            _meters.Add(new NumericMeter());
-            _meters.Add(new NumericMeter());
+            _meters.Add(new NumericWorkingData());
+            _meters.Add(new NumericWorkingData());
+            _meters.Add(new NumericWorkingData());
+            _meters.Add(new NumericWorkingData());
 
             var result = Map();
             Assert.AreEqual(_meters.Count, result.Count());
@@ -48,13 +49,13 @@ namespace ISOv4PluginLogTest.ExportMappers
         [Test]
         public void GivenMeterWhenMapThenProcessDataDdiIsMapped()
         {
-            _meters = new List<Meter> { _meter };
+            _meters = new List<WorkingData> { _meter };
 
             _representationMapperMock.Setup(x => x.Map(_meter.Representation)).Returns(5);
 
             var result = MapSingle();
 
-            Assert.AreEqual(5, result.ProcessDataDDI.Value);
+            Assert.AreEqual(5.ToString(), result.A);
         }
 
         [Test]
@@ -66,24 +67,24 @@ namespace ISOv4PluginLogTest.ExportMappers
                 CiTypeEnum = CompoundIdentifierTypeEnum.String,
                 Source = UniqueIdMapper.IsoSource
            });
-            _meter.Representation = RepresentationInstanceList.vrAppRateVolumeControl.ToModelRepresentation();
+            _meter.Representation = RepresentationInstanceList.vrYieldMass.ToModelRepresentation();
             _representationMapperMock.Setup(x => x.Map(_meter.Representation)).Returns(5);
             _meters.Add(_meter);
 
-            var meter1 = new NumericMeter();
+            var meter1 = new NumericWorkingData();
             meter1.Id.UniqueIds.Add(new UniqueId
             {
                 Id = "DLV1",
                 CiTypeEnum = CompoundIdentifierTypeEnum.String,
                 Source = UniqueIdMapper.IsoSource
             });
-            meter1.Representation = RepresentationInstanceList.vrAppRateMassMetered.ToModelRepresentation();
+            meter1.Representation = RepresentationInstanceList.vrYieldMass.ToModelRepresentation();
             _representationMapperMock.Setup(x => x.Map(meter1.Representation)).Returns(8);
             _meters.Add(meter1);
 
             var result = Map().ToList();
-            Assert.AreEqual(8, result[0].ProcessDataDDI.Value);
-            Assert.AreEqual(5, result[1].ProcessDataDDI.Value);
+            Assert.AreEqual(8.ToString(), result[0].A);
+            Assert.AreEqual(5.ToString(), result[1].A);
         }
 
         [Test]
@@ -96,12 +97,12 @@ namespace ISOv4PluginLogTest.ExportMappers
             Assert.IsNull(result);
         }
 
-        private DLVHeader MapSingle()
+        private DLV MapSingle()
         {
             return Map().First();
         }
 
-        private IEnumerable<DLVHeader> Map()
+        private IEnumerable<DLV> Map()
         {
             return _dlvHeaderMapper.Map(_meters);
         }

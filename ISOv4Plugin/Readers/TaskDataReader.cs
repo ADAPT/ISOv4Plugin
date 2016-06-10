@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Xml.XPath;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
 
@@ -7,7 +8,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Readers
 {
     public interface ITaskDataReader
     {
-        ISO11783_TaskData Read(XPathNavigator navigator);
+        ISO11783_TaskData Read(XPathNavigator navigator, string path);
     }
 
     public class TaskDataReader : ITaskDataReader
@@ -21,6 +22,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Readers
         private const string TaskControllerVersion = "TaskControllerVersion";
         private const string DataTransferOrigin = "DataTransferOrigin";
         private const string TSK = "TSK";
+        private const string XFR = "XFR";
+        private const string XFC = "XFC";
 
         private readonly ITsksReader _tsksReader;
 
@@ -34,7 +37,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Readers
             _tsksReader = tsksReader;
         }
 
-        public ISO11783_TaskData Read(XPathNavigator navigator)
+        public ISO11783_TaskData Read(XPathNavigator navigator, string path)
         {
             var taskDataNode = navigator.SelectSingleNode(TaskData);
             return new ISO11783_TaskData
@@ -46,7 +49,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Readers
                 VersionMajor = int.Parse(ReadValue(taskDataNode, VersionMajor)),
                 VersionMinor = int.Parse(ReadValue(taskDataNode, VersionMinor)),
                 DataTransferOrigin = ReadEnumValue(taskDataNode, DataTransferOrigin),
-                Items = GetItems(taskDataNode),
+                Items = GetItems(taskDataNode, path),
             };
         }
 
@@ -58,16 +61,62 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Readers
             return outValue;
         }
 
-        private object[] GetItems(XPathNavigator navigator)
+        private IWriter[] GetItems(XPathNavigator navigator, string path)
         {
             var children = navigator.SelectChildren(XPathNodeType.Element);
 
-            var tsks = _tsksReader.Read(children.Current.Select("./" + TSK));
-
-            var items = new List<Object>();
-            items.AddRange(tsks);
+            var items = new List<IWriter>();
+            
+            items.AddRange(ReadTsks(children));
+            items.AddRange(ReadExternalTsks(children, path));
 
             return items.ToArray();
+        }
+
+        private IEnumerable<IWriter> ReadExternalTsks(XPathNodeIterator children, string path)
+        {
+            var returnItems = new List<IWriter>();
+
+            var externalChildren = children.Current.Select("./" + XFR);
+            if (externalChildren.Count != 0)
+            {
+                var externalTasks = GetExternalTasks(path, externalChildren);
+                returnItems.AddRange(externalTasks);
+            }
+
+            return returnItems;
+        }
+
+        private IEnumerable<IWriter> ReadTsks(XPathNodeIterator children)
+        {
+            var tsks = children.Current.Select("./" + TSK);
+            return _tsksReader.Read(tsks);
+        }
+
+        private List<TSK> GetExternalTasks(string path, XPathNodeIterator externalChildren)
+        {
+            var items = new List<TSK>();
+            foreach (XPathNavigator node in externalChildren)
+            {
+                var attribute = node.GetAttribute("A", node.NamespaceURI);
+                if (attribute.StartsWith("TSK"))
+                {
+                    var filename = Path.Combine(path, attribute + ".xml");
+                    
+                    if(!File.Exists(filename))
+                        continue;
+
+                    var externalTaskElements = new XPathDocument(filename).CreateNavigator()
+                        .SelectSingleNode(XFC)
+                        .SelectChildren(XPathNodeType.Element)
+                        .Current.Select("./" + TSK);
+
+                    var externalTsks = _tsksReader.Read(externalTaskElements);
+                    items.AddRange(externalTsks);
+                }
+            }
+
+            return items;
         }
 
         private string ReadValue(XPathNavigator navigator, string element)

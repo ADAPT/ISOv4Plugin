@@ -10,10 +10,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
 {
     public class ProductLoader
     {
-        private XmlNode _rootNode;
-        private string _baseFolder;
-        private TaskDataDocument _taskDocument;
-        private Dictionary<string, Product> _products;
+        private readonly XmlNode _rootNode;
+        private readonly string _baseFolder;
+        private readonly TaskDataDocument _taskDocument;
+        private readonly Dictionary<string, Product> _products;
 
         private ProductLoader(TaskDataDocument taskDocument)
         {
@@ -41,6 +41,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
         private void ProcessExternalNodes()
         {
             var externalNodes = _rootNode.SelectNodes("XFR[starts-with(@A, 'PDT')]");
+
+            if (externalNodes == null)
+                return;
+
             foreach (XmlNode externalNode in externalNodes)
             {
                 var inputNodes = externalNode.LoadActualNodes("XFR", _baseFolder);
@@ -71,6 +75,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
 
             // Required fields. Do not proceed if they are missing
             productId = inputNode.GetXmlNodeValue("@A");
+            product.Id.UniqueIds.Add(ImportHelper.CreateUniqueId(productId));
             product.Description = inputNode.GetXmlNodeValue("@B");
             if (productId == null || product.Description == null)
                 return null;
@@ -90,8 +95,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
             if (string.IsNullOrEmpty(groupId))
                 return product;
 
-            var groupNode = _taskDocument.RootNode.SelectSingleNode(
-                string.Format(CultureInfo.InvariantCulture, "PGP[@A='{0}']", groupId));
+            var groupNode = GetGroupNode(groupId);
+
             if (groupNode == null)
                 return product;
 
@@ -103,6 +108,43 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
                 product.ProductType = ProductTypeEnum.Variety;
 
             return product;
+        }
+
+        private XmlNode GetGroupNode(string groupId)
+        {
+            var groupNode = _taskDocument.RootNode.SelectSingleNode(string.Format(CultureInfo.InvariantCulture, "PGP[@A='{0}']", groupId));
+
+            if (groupNode == null)
+            {
+                var externalNodes = _rootNode.SelectNodes("XFR[starts-with(@A, 'PGP')]");
+
+                if (externalNodes == null)
+                    return null;
+
+                for (int i = 0; i < externalNodes.Count; i++)
+                {
+                    var inputNodes = externalNodes[i].LoadActualNodes("XFR", _baseFolder);
+                    if (inputNodes == null)
+                        continue;
+
+                    for (int j = 0; j < inputNodes.Count; j++)
+                    {
+                        var node = inputNodes[j];
+                        if (node.Attributes != null)
+                        {
+                            var groupIdRef = node.Attributes["A"].Value;
+
+                            if (groupIdRef == groupId)
+                            {
+                                return node;
+                            }
+                        }
+                    }
+
+                }
+            }
+
+            return groupNode;
         }
 
         private static bool IsProductMix(XmlNode inputNode)

@@ -1,30 +1,31 @@
-﻿using System.Linq;
-using System.Text;
+﻿using System.Globalization;
+using System.Linq;
+using System.Xml;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Models
 {
     public class PLN : IWriter
     {
-        public PLNA A { get; set; }
+        public PLNA? A { get; set; }
         public string B { get; set; }
-        public object[] Items { get; set; }
+        public IWriter[] Items { get; set; }
 
-        public string WriteXML()
+        public XmlWriter WriteXML(XmlWriter xmlBuilder)
         {
-            var xmlBuilder = new StringBuilder();
-            xmlBuilder.Append("<PLN ");
-            xmlBuilder.Append(string.Format("A=\"{0}\" ", (int)A));
-            if (!string.IsNullOrEmpty(B)) xmlBuilder.Append(string.Format("B=\"{0}\" ", B));
-            xmlBuilder.Append(">");
+            xmlBuilder.WriteStartElement("PLN");
+            if(A != null)
+                xmlBuilder.WriteAttributeString("A", ((int)A).ToString(CultureInfo.InvariantCulture));
+            if (!string.IsNullOrEmpty(B))
+                xmlBuilder.WriteAttributeString("B", B);
             if(Items != null)
             {
-                foreach (var item in Items.Cast<IWriter>())
+                foreach (var item in Items)
                 {
-                    xmlBuilder.Append(item.WriteXML());
+                    xmlBuilder = item.WriteXML(xmlBuilder);
                 }
             }
-            xmlBuilder.Append("</PLN>");
-            return xmlBuilder.ToString();
+            xmlBuilder.WriteEndElement();
+            return xmlBuilder;
         }
     }
 }

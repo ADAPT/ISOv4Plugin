@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
+using AgGateway.ADAPT.ISOv4Plugin.Models;
 using NUnit.Framework;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers;
 using AgGateway.ADAPT.Representation.RepresentationSystem;
@@ -77,7 +78,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenMetersWithUnStableWhenGetMetersValueThenIsZero()
         {
             var enumeratedMeter = new ISOEnumeratedMeter();
-            var meters = new List<Meter> { enumeratedMeter };
+            var meters = new List<WorkingData> { enumeratedMeter };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiWeightUnStable.ToModelEnumMember() });
@@ -90,7 +91,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenMetersWithUnStableWhenGetMetersValueThenIsOne()
         {
             var enumeratedMeter = new ISOEnumeratedMeter();
-            var meters = new List<Meter> { enumeratedMeter };
+            var meters = new List<WorkingData> { enumeratedMeter };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiWeightStable.ToModelEnumMember() });
@@ -103,7 +104,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenMetersWithUnStableWhenGetMetersValueThenIsTwo()
         {
             var enumeratedMeter = new ISOEnumeratedMeter();
-            var meters = new List<Meter> { enumeratedMeter };
+            var meters = new List<WorkingData> { enumeratedMeter };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiWeightError.ToModelEnumMember() });
@@ -117,14 +118,14 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             return new SpatialValue
             {
                 Value = value,
-                DlvHeader = new DLVHeader
+                Dlv = new DLV
                 {
-                    ProcessDataDDI = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 230 }
-                }
+                    A = "E6"
+                },
             };
         }
 
-        private EnumeratedMeter CreateMeter()
+        private EnumeratedWorkingData CreateMeter()
         {
             return _creator.CreateMeters(null).Single();
         }

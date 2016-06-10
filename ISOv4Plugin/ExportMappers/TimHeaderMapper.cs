@@ -9,7 +9,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
 {
     public interface ITimHeaderMapper
     {
-        TIMHeader Map(IEnumerable<Meter> meters);
+        TIM Map(IEnumerable<WorkingData> workingData);
     }
 
     public class TimHeaderMapper : ITimHeaderMapper
@@ -28,17 +28,34 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
             _dlvHeaderMapper = dlvHeaderMapper;
         }
 
-        public TIMHeader Map(IEnumerable<Meter> meters)
+        public TIM Map(IEnumerable<WorkingData> workingData)
         {
-            return new TIMHeader
+            var tim =  new TIM
             {
-                Start = new HeaderProperty {State = HeaderPropertyState.IsEmpty},
-                Stop = new HeaderProperty{ State = HeaderPropertyState.IsNull},
-                Duration = new HeaderProperty{ State = HeaderPropertyState.IsNull},
-                Type = new HeaderProperty{ State = HeaderPropertyState.HasValue, Value = (int)TIMD.Item4},
-                PtnHeader = _ptnHeaderMapper.Map(),
-                DLVs = _dlvHeaderMapper.Map(meters).ToList()
+                ASpecified = true,
+                A = null,
+                BSpecified = false,
+                B = null,
+                CSpecified = false,
+                C = null,
+                DSpecified = true,
+                D = TIMD.Item4,
             };
+
+            // TODO:  This is not mapping the PTN Header?
+            var ptn = _ptnHeaderMapper.Map();
+            var dlvs = _dlvHeaderMapper.Map(workingData).ToList();
+            var iWriters = new List<IWriter>();
+
+            if(ptn != null)
+                iWriters.Add(ptn);
+
+            if(dlvs != null)
+                iWriters.AddRange(dlvs);
+
+            tim.Items = iWriters.ToArray();
+
+            return tim;
         }
     }
 }

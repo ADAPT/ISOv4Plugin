@@ -1,5 +1,6 @@
-﻿<?xml version="1.0" encoding="utf-16"?>
-<ISO11783_TaskData VersionMajor="4" VersionMinor="0" ManagementSoftwareManufacturer="AgGateway" ManagementSoftwareVersion="1.0">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ISO11783_TaskData VersionMajor="4" VersionMinor="0" ManagementSoftwareManufacturer="AgGateway" ManagementSoftwareVersion="1.0" DataTransferOrigin="1" TaskControllerManufacturer="" TaskControllerVersion="">
+  <AFE A="LINKLIST.XML" B="1" C="" D="1" />
   <PFD A="PFD1" C="Field" D="0">
     <GGP A="GGP1" B="guidance group 1">
       <PLN A="1">

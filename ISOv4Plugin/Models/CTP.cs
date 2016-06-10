@@ -1,4 +1,4 @@
-using System.Text;
+using System.Xml;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Models
 {
@@ -8,22 +8,23 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Models
         public string A { get; set; }
         public CVT[] Items { get; set; }
 
-        public string WriteXML()
+        public XmlWriter WriteXML(XmlWriter xmlBuilder)
         {
-            var xmlBuilder = new StringBuilder();
-            xmlBuilder.Append("<CTP ");
-            if (!string.IsNullOrEmpty(A)) xmlBuilder.Append(string.Format("A=\"{0}\" ", A));
-            if (!string.IsNullOrEmpty(B)) xmlBuilder.Append(string.Format("B=\"{0}\" ", B));
-            xmlBuilder.Append(">"); 
+            xmlBuilder.WriteStartElement("CTP");
+            if (!string.IsNullOrEmpty(A)) 
+                xmlBuilder.WriteAttributeString("A", A);
+            if (!string.IsNullOrEmpty(B))
+                xmlBuilder.WriteAttributeString("B", B);
+
             if (Items != null)
             {
                 foreach (var item in Items)
                 {
-                    xmlBuilder.Append(item.WriteXML());
+                    xmlBuilder = item.WriteXML(xmlBuilder);
                 }
             }
-            xmlBuilder.Append("</CTP>");
-            return xmlBuilder.ToString();
+            xmlBuilder.WriteEndElement();
+            return xmlBuilder;
         }
     }
 }

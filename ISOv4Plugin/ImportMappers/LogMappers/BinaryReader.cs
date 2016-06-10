@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using AgGateway.ADAPT.ISOv4Plugin.Models;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using AgGateway.ADAPT.ISOv4Plugin.Representation;
 
@@ -9,16 +10,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
 {
     public interface IBinaryReader
     {
-        IEnumerable<ISOSpatialRow> Read(string dataPath, string fileName, TIMHeader timHeader);
+        IEnumerable<ISOSpatialRow> Read(string dataPath, string fileName, TIM tim);
     }
 
     public class BinaryReader : IBinaryReader
     {
         private DateTime _firstDayOf1980 = new DateTime(1980, 01, 01);
 
-        public IEnumerable<ISOSpatialRow> Read(string dataPath, string fileName, TIMHeader timHeader)
+        public IEnumerable<ISOSpatialRow> Read(string dataPath, string fileName, TIM tim)
         {
-            if (timHeader == null)
+            if (tim == null)
                 yield break;
 
             if (!File.Exists(Path.Combine(dataPath, fileName)))
@@ -28,27 +29,30 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             {
                 while (binaryReader.BaseStream.Position < binaryReader.BaseStream.Length)
                 {
-                    var ptnHeader = timHeader.PtnHeader;
-                    var record = new ISOSpatialRow
-                    {
-                        TimeStart = GetStartTime(timHeader, binaryReader),
-                        NorthPosition = ReadInt32(ptnHeader.PositionNorth, binaryReader).GetValueOrDefault(0),
-                        EastPosition = ReadInt32(ptnHeader.PositionEast, binaryReader).GetValueOrDefault(0),
-                        Elevation = ReadInt32(ptnHeader.PositionUp, binaryReader),
-                        PositionStatus = ReadByte(ptnHeader.PositionStatus, binaryReader),
-                        PDOP = ReadShort(ptnHeader.PDOP, binaryReader),
-                        HDOP = ReadShort(ptnHeader.HDOP, binaryReader),
-                        NumberOfSatellites = ReadByte(ptnHeader.NumberOfSatellites, binaryReader)
-                    };
-                    SetGpsUtcDateTime(ptnHeader, record, binaryReader);
-                    SetSpatialValues(timHeader, record, binaryReader);
+                    var ptn = tim.Items.FirstOrDefault(x => x.GetType() == typeof (PTN)) as PTN;
+                    
+                    var record = new ISOSpatialRow { TimeStart = GetStartTime(tim, binaryReader) };
 
+                    if (ptn != null)
+                    {
+                        record.NorthPosition = ReadInt32(ptn.A, ptn.ASpecified, binaryReader).GetValueOrDefault(0);
+                        record.EastPosition = ReadInt32(ptn.B, ptn.BSpecified, binaryReader).GetValueOrDefault(0);
+                        record.Elevation = ReadInt32(ptn.C, ptn.CSpecified, binaryReader);
+                        record.PositionStatus = ReadByte(ptn.D, ptn.DSpecified, binaryReader);
+                        record.PDOP = ReadShort(ptn.E, ptn.ESpecified, binaryReader);
+                        record.HDOP = ReadShort(ptn.F, ptn.FSpecified, binaryReader);
+                        record.NumberOfSatellites = ReadByte(ptn.G, ptn.GSpecified, binaryReader);
+
+                        SetGpsUtcDateTime(ptn, record, binaryReader);
+                    }
+                    
+                    SetSpatialValues(tim, record, binaryReader);
                     yield return record;
                 }
             }
         }
 
-        private static void SetSpatialValues(TIMHeader timHeader, ISOSpatialRow record, System.IO.BinaryReader binaryReader)
+        private static void SetSpatialValues(TIM tim, ISOSpatialRow record, System.IO.BinaryReader binaryReader)
         {
             var numberOfDLVs = binaryReader.ReadByte();
             record.SpatialValues = new List<SpatialValue>();
@@ -58,74 +62,103 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
                 var order = binaryReader.ReadByte();
                 var value = binaryReader.ReadInt32();
 
-                record.SpatialValues.Add(CreateSpatialValue(timHeader, order, value));
+                record.SpatialValues.Add(CreateSpatialValue(tim, order, value));
             }
         }
 
-        private void SetGpsUtcDateTime(PTNHeader ptnHeader, ISOSpatialRow record, System.IO.BinaryReader binaryReader)
+        private void SetGpsUtcDateTime(PTN ptn, ISOSpatialRow record, System.IO.BinaryReader binaryReader)
         {
-            record.GpsUtcTime = ReadInt32(ptnHeader.GpsUtcTime, binaryReader);
-            record.GpsUtcDate = ReadShort(ptnHeader.GpsUtcDate, binaryReader);
+            if (ptn.HSpecified)
+            {
+                if (ptn.H.HasValue)
+                    record.GpsUtcTime = Convert.ToInt32(ptn.H.Value);
+                else
+                    record.GpsUtcTime = binaryReader.ReadInt32();
+            }
+
+            if (ptn.ISpecified)
+            {
+                if (ptn.I.HasValue)
+                    record.GpsUtcDate = (short)ptn.I.Value;
+                else
+                    record.GpsUtcDate = binaryReader.ReadInt16();
+            }
 
             if (record.GpsUtcDate != null && record.GpsUtcTime != null)
                 record.GpsUtcDateTime = _firstDayOf1980.AddDays((double) record.GpsUtcDate).AddMilliseconds((double) record.GpsUtcTime);
         }
 
-        private static short? ReadShort(HeaderProperty headerMetadata, System.IO.BinaryReader binaryReader)
+      
+
+        private static short? ReadShort(double? value, bool specified, System.IO.BinaryReader binaryReader)
         {
-            if (headerMetadata.State == HeaderPropertyState.IsEmpty)
+            if (specified)
+            {
+                if (value.HasValue)
+                    return (short)value.Value;
                 return binaryReader.ReadInt16();
-            if (headerMetadata.State == HeaderPropertyState.HasValue)
-                return (short)headerMetadata.Value;
+            }
             return null;
         }
 
-        private static byte? ReadByte(HeaderProperty headerMetadata, System.IO.BinaryReader binaryReader)
+     
+
+        private static byte? ReadByte(byte? byteValue, bool specified, System.IO.BinaryReader binaryReader)
         {
-            if (headerMetadata.State == HeaderPropertyState.IsEmpty)
+            if (specified)
+            {
+                if (byteValue.HasValue)
+                    return byteValue;
                 return binaryReader.ReadByte();
-            if (headerMetadata.State == HeaderPropertyState.HasValue)
-                return Convert.ToByte(headerMetadata.Value);
+            }
             return null;
         }
 
-        private static int? ReadInt32(HeaderProperty headerMetadata, System.IO.BinaryReader binaryReader)
+
+        private static int? ReadInt32(double? d, bool specified, System.IO.BinaryReader binaryReader)
         {
-            if (headerMetadata.State == HeaderPropertyState.IsEmpty)
+            if (specified)
+            {
+                if (d.HasValue)
+                    return (int)d.Value;
+
                 return binaryReader.ReadInt32();
-            if (headerMetadata.State == HeaderPropertyState.HasValue)
-                return (int)headerMetadata.Value;
+            }
             return null;
         }
 
-        private DateTime GetStartTime(TIMHeader timHeader, System.IO.BinaryReader binaryReader)
+        private DateTime GetStartTime(TIM tim, System.IO.BinaryReader binaryReader)
         {
-            if (timHeader.Start.State == HeaderPropertyState.IsEmpty)
+            if (tim.ASpecified && tim.A == null)
             {
                 var milliseconds = (double) binaryReader.ReadInt32();
                 var daysFrom1980 = binaryReader.ReadInt16();
                 return _firstDayOf1980.AddDays(daysFrom1980).AddMilliseconds(milliseconds);
             }
-            return (DateTime) timHeader.Start.Value;
+            else if(tim.ASpecified)
+                return (DateTime) tim.A.Value;
+
+            return _firstDayOf1980;
         }
 
-        private static SpatialValue CreateSpatialValue(TIMHeader timHeader, byte order, int value)
+        private static SpatialValue CreateSpatialValue(TIM tim, byte order, int value)
         {
-            var matchingDlvHeader = timHeader.DLVs.ElementAtOrDefault(order);
+            var dlvs = tim.Items.Where(x => x.GetType() == typeof (DLV));
+            var matchingDlv = dlvs.ElementAtOrDefault(order) as DLV;
 
-            if (matchingDlvHeader == null)
+            if (matchingDlv == null)
                 return null;
 
             var ddis = DdiLoader.Ddis;
 
             var resolution = 1d;
-            if (matchingDlvHeader.ProcessDataDDI.Value != null && ddis.ContainsKey((int)matchingDlvHeader.ProcessDataDDI.Value))
-                resolution = ddis[(int)matchingDlvHeader.ProcessDataDDI.Value].Resolution; 
+            if (matchingDlv.A != null && ddis.ContainsKey(Convert.ToInt32(matchingDlv.A, 16)))
+                resolution = ddis[Convert.ToInt32(matchingDlv.A, 16)].Resolution; 
 
             var spatialValue = new SpatialValue
             {
                 Id = order,
-                DlvHeader = matchingDlvHeader,
+                Dlv = matchingDlv,
                 Value = value * resolution,
             };
 

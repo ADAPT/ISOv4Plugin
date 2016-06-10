@@ -38,7 +38,7 @@ namespace ISOv4PluginLogTest.ExportMappers
             enumeratedMeter1.Id.UniqueIds.Add(new UniqueId{ Id = "DLV3", Source = UniqueIdMapper.IsoSource, CiTypeEnum = CompoundIdentifierTypeEnum.String });
             enumeratedMeter2.Id.UniqueIds.Add(new UniqueId{ Id = "DLV3", Source = UniqueIdMapper.IsoSource, CiTypeEnum = CompoundIdentifierTypeEnum.String });
 
-            var meters = new List<Meter> { enumeratedMeter1, enumeratedMeter2 };
+            var meters = new List<WorkingData> { enumeratedMeter1, enumeratedMeter2 };
 
             var spatialRecord = new SpatialRecord();
 

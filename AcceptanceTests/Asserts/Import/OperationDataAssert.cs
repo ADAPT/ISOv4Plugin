@@ -1,35 +1,34 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
-using AgGateway.ADAPT.ISOv4Plugin;
 using AgGateway.ADAPT.ISOv4Plugin.Extensions;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers;
-using AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders;
-using AgGateway.ADAPT.ISOv4Plugin.Models;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using NUnit.Framework;
+using XmlReader = AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders.XmlReader;
 
 namespace AcceptanceTests.Asserts.Import
 {
     public class OperationDataAssert
     {
-        public static void AreEqual(List<TLG> tlgs, string currentPath, List<OperationData> operationData)
+        public static void AreEqual(XmlNodeList tlgNodes, string currentPath, List<OperationData> operationData)
         {
-            Assert.AreEqual(tlgs.Count, operationData.Count);
-            foreach (var tlg in tlgs)
+            Assert.AreEqual(tlgNodes.Count, operationData.Count);
+            for (int i = 0; i < tlgNodes.Count; i++)
             {
-                var matchingOperationData = operationData.SingleOrDefault(x => x.Id.FindIsoId() == tlg.A);
-                AreEqual(tlg, currentPath, matchingOperationData);
+                var matchingOperationData = operationData.SingleOrDefault(x => x.Id.FindIsoId() == tlgNodes[i].Attributes["A"].Value);
+                AreEqual(tlgNodes[i], currentPath, matchingOperationData);
             }
         }
 
-        public static void AreEqual(TLG tlg, string currentPath, OperationData operationData)
+        private static void AreEqual(XmlNode tlgNode, string currentPath, OperationData operationData)
         {
-            var isoSpatialRecords = GetIsoSpatialRecords(tlg.A, currentPath).ToList();
+            var isoSpatialRecords = GetIsoSpatialRecords(tlgNode.Attributes["A"].Value, currentPath).ToList();
             var adaptSpatialRecords = operationData.GetSpatialRecords().ToList();
 
             var sections = operationData.GetAllSections();
-            var meters = sections.SelectMany(x => x.GetMeters()).ToList();
+            var meters = sections.SelectMany(x => x.GetWorkingDatas()).ToList();
 
             SpatialRecordAssert.AreEqual(isoSpatialRecords, adaptSpatialRecords, meters);
         }
@@ -39,7 +38,7 @@ namespace AcceptanceTests.Asserts.Import
             var xmlReader = new XmlReader();
             var timHeader = xmlReader.ReadTlgXmlData(currentPath, tlgA + ".xml");
             var binaryReader = new BinaryReader();
-            return binaryReader.Read(currentPath, tlgA + ".bin", timHeader).ToList();
+            return binaryReader.Read(currentPath, tlgA + ".bin", timHeader.First()).ToList();
         }
     }
 }

@@ -27,9 +27,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
 
         private void WriteComments(XmlWriter writer)
         {
-            foreach (var wordOrder in TaskWriter.DataModel.Documents.WorkOrders)
+            foreach (var workOrder in TaskWriter.DataModel.Documents.WorkOrders)
             {
-                foreach (var note in wordOrder.Notes)
+                if(workOrder.Notes == null)
+                    continue;
+                foreach (var note in workOrder.Notes)
                 {
                     WriteComments(writer, note);
                 }

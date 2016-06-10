@@ -27,14 +27,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             Representation = RepresentationInstanceList.dtRecordingStatus.ToModelRepresentation();
         }
 
-        public new UInt32 GetMetersValue(List<Meter> meters, SpatialRecord spatialRecord)
+        public override UInt32 GetMetersValue(List<WorkingData> meters, SpatialRecord spatialRecord)
         {
             var returnValue = new UInt32();
             for (int i = 0; i < meters.Count; i++)
             {
                 var sectionId = ((DDI - StartingDdi) * 16) + (i + 1);
 
-                var meter = (ISOEnumeratedMeter)meters.SingleOrDefault(x => x.SectionId == sectionId);
+                var meter = (ISOEnumeratedMeter)meters.SingleOrDefault(x => x.DeviceElementUseId == sectionId);
                 var value = (EnumeratedValue)spatialRecord.GetMeterValue(meter);
 
                 int meterInt;
@@ -67,14 +67,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             Representation = RepresentationInstanceList.dtPrescriptionState.ToModelRepresentation();
         }
 
-        public new UInt32 GetMetersValue(List<Meter> meters, SpatialRecord spatialRecord)
+        public override UInt32 GetMetersValue(List<WorkingData> meters, SpatialRecord spatialRecord)
         {
             var returnValue = new UInt32();
             for (int i = 0; i < meters.Count; i++)
             {
                 var sectionId = ((DDI - StartingDdi) * 16) + (i + 1);
 
-                var meter = (ISOEnumeratedMeter)meters.SingleOrDefault(x => x.SectionId == sectionId);
+                var meter = (ISOEnumeratedMeter)meters.SingleOrDefault(x => x.DeviceElementUseId == sectionId);
                 var value = (EnumeratedValue)spatialRecord.GetMeterValue(meter);
 
                 int meterInt;
@@ -103,12 +103,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
 
         public List<ISOEnumeratedMeter> CreateMeters(IEnumerable<ISOSpatialRow> spatialRows)
         {
-            var spatialRowWithDdi = spatialRows.FirstOrDefault(x => x.SpatialValues.Any(y => (int)y.DlvHeader.ProcessDataDDI.Value == DDI));
+            var spatialRowWithDdi = spatialRows.FirstOrDefault(x => x.SpatialValues.Any(y => Convert.ToInt32(y.Dlv.A, 16) == DDI));
 
             int numberOfSections = 16;
             if (spatialRowWithDdi != null)
             {
-                var spatialValue = spatialRowWithDdi.SpatialValues.First(x => (int)x.DlvHeader.ProcessDataDDI.Value == DDI);
+                var spatialValue = spatialRowWithDdi.SpatialValues.First(x => Convert.ToInt32(x.Dlv.A, 16) == DDI);
                 numberOfSections = GetNumberOfInstalledSections(spatialValue);
             }
 
@@ -117,7 +117,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             {
                 meters.Add(new ISOEnumeratedMeter
                 {
-                    SectionId = i,
+                    DeviceElementUseId = i,
                     Representation = Representation,
                     GetEnumeratedValue = GetValueForMeter
                 });
@@ -126,9 +126,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             return meters;
         }
 
-        public EnumeratedValue GetValueForMeter(SpatialValue value, EnumeratedMeter meter)
+        public EnumeratedValue GetValueForMeter(SpatialValue value, EnumeratedWorkingData meter)
         {
-            var sectionValue = GetSectionValue((uint)value.Value, meter.SectionId);
+            var sectionValue = GetSectionValue((uint)value.Value, meter.DeviceElementUseId);
             var enumerationMember = SectionValueToEnumerationMember[(int)sectionValue];
 
             return new EnumeratedValue
@@ -139,10 +139,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             };
         }
 
-        public UInt32 GetMetersValue(List<Meter> meters, SpatialRecord spatialRecord)
-        {
-            throw new NotImplementedException();
-        }
+        public abstract UInt32 GetMetersValue(List<WorkingData> meters, SpatialRecord spatialRecord);
 
         private int GetNumberOfInstalledSections(SpatialValue spatialValue)
         {

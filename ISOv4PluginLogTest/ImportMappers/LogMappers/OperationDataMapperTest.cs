@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
@@ -25,6 +26,11 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         private Mock<ISectionMapper> _sectionMapperMock;
         private Mock<IUniqueIdMapper> _uniqueIdMapperMock;
         private int _loggedDataId;
+        private TIM _tim;
+        private List<TIM> _tims;
+        private List<ISOSpatialRow> _isoSpatialRows;
+        private List<DeviceElementUse> _sections;
+        private Dictionary<string, List<UniqueId>> _linkedIds;
 
         [SetUp]
         public void Setup()
@@ -32,6 +38,9 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             _datacardPath = "dataCardPath";
             _tlg = new TLG();
             _tlgs = new List<TLG>{ _tlg };
+            _tim = new TIM();
+            _tims = new List<TIM> {_tim};
+            _linkedIds = new Dictionary<string, List<UniqueId>>();
 
             _spatialRecordMapperMock = new Mock<ISpatialRecordMapper>();
             _xmlReaderMock = new Mock<IXmlReader>();
@@ -39,15 +48,25 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             _sectionMapperMock = new Mock<ISectionMapper>();
             _uniqueIdMapperMock = new Mock<IUniqueIdMapper>();
 
+            _tlg.A = "fileName";
+            _xmlReaderMock.Setup(x => x.ReadTlgXmlData(_datacardPath, _tlg.A + ".xml")).Returns(_tims);
+
+            _isoSpatialRows = new List<ISOSpatialRow>();
+            _binaryReaderMock.Setup(x => x.Read(_datacardPath, _tlg.A + ".bin", _tim)).Returns(_isoSpatialRows);
+
+            _sections = new List<DeviceElementUse>();
+            _sectionMapperMock.Setup(x => x.Map(_tims, _isoSpatialRows)).Returns(_sections);
+
             _operationDataMapper = new OperationDataMapper(_xmlReaderMock.Object, _binaryReaderMock.Object, _spatialRecordMapperMock.Object, _sectionMapperMock.Object, _uniqueIdMapperMock.Object);
         }
 
         [Test]
         public void GivenTlgsWhenMapThenListOfOperationData()
         {
-            _tlgs.Add(new TLG());
-            _tlgs.Add(new TLG());
-            _tlgs.Add(new TLG());
+            _tlg.A = "fileName";
+            _tlgs.Add(_tlg);
+            _tlgs.Add(_tlg);
+            _tlgs.Add(_tlg);
 
             var result = Map();
 
@@ -57,39 +76,22 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenTskWhenMapThenXmlFileIsRead()
         {
-            _tlg.A = "fileName";
-
             Map();
-
             _xmlReaderMock.Verify(x => x.ReadTlgXmlData(_datacardPath, _tlg.A + ".xml"), Times.Once());
         }
         
         [Test]
         public void GivenTskWhenMapThenBinaryFileIsRead()
         {
-            _tlg.A = "fileName";
-
-            var timHeader = new TIMHeader();
-            _xmlReaderMock.Setup(x => x.ReadTlgXmlData(_datacardPath, _tlg.A + ".xml")).Returns(timHeader);
-
             Map();
-
-            _binaryReaderMock.Verify(x => x.Read(_datacardPath, _tlg.A + ".bin", timHeader), Times.Once());
+            _binaryReaderMock.Verify(x => x.Read(_datacardPath, _tlg.A + ".bin", _tim), Times.Once());
         }
 
         [Test]
         public void GivenTlgWhenMapThenSpatialRecordsAreMapped()
         {
-            _tlg.A = "fileName";
-
-            var timHeader = new TIMHeader();
-            _xmlReaderMock.Setup(x => x.ReadTlgXmlData(_datacardPath, _tlg.A + ".xml")).Returns(timHeader);
-
-            var isoSpatialRows = new List<ISOSpatialRow>();
-            _binaryReaderMock.Setup(x => x.Read(_datacardPath, _tlg.A + ".bin", timHeader)).Returns(isoSpatialRows);
-
             var spatialRecords = new List<SpatialRecord>();
-            _spatialRecordMapperMock.Setup(x => x.Map(isoSpatialRows, new List<Meter>())).Returns(spatialRecords);
+            _spatialRecordMapperMock.Setup(x => x.Map(_isoSpatialRows, new List<WorkingData>())).Returns(spatialRecords);
 
             var result = MapSingle();
 
@@ -99,27 +101,13 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenTlgWhenMapThenGetSectionsIsMapped()
         {
-            _tlg.A = "fileName";
-
-            var timHeader = new TIMHeader();
-            _xmlReaderMock.Setup(x => x.ReadTlgXmlData(_datacardPath, _tlg.A + ".xml")).Returns(timHeader);
-
-            var isoSpatialRows = new List<ISOSpatialRow>();
-            _binaryReaderMock.Setup(x => x.Read(_datacardPath, _tlg.A + ".bin", timHeader)).Returns(isoSpatialRows);
-
-            var sections = new List<Section>();
-            _sectionMapperMock.Setup(x => x.Map(timHeader, isoSpatialRows)).Returns(sections);
-
             var result = MapSingle();
-
-            Assert.AreSame(sections, result.GetSections(0));
+            Assert.AreSame(_sections, result.GetDeviceElementUses(0));
         }
 
         [Test]
         public void GivenTlgWhenMapThenIdIsMapped()
         {
-            _tlg.A = "fileName";
-
             var uniqueId = new UniqueId();
             _uniqueIdMapperMock.Setup(x => x.Map(_tlg.A)).Returns(uniqueId);
 
@@ -129,13 +117,36 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         }
 
         [Test]
-        public void GivenTlgAndLoggedDataIdWhenMapThenLoggedDataIdIsMapped()
+        public void GivenTlgAndPrescriptionIdWhenMapThenPrescriptionIdIsSet()
         {
-            _loggedDataId = 123;
+            var result = _operationDataMapper.Map(_tlgs, 5, _datacardPath, _loggedDataId, _linkedIds).ToList().First();
+
+            Assert.AreEqual(5, result.PrescriptionId);
+        }
+
+        [Test]
+        public void GivenTlgAndNullPrescriptionIdWhenMapThenPrescriptionIdIsNull()
+        {
+            var result = MapSingle();
+            Assert.IsNull(result.PrescriptionId);
+        }
+
+        [Test]
+        public void GivenTlgWithIdsInLinkListThenIdsAreAdded()
+        {
+            var uniqueId = new UniqueId
+            {
+                CiTypeEnum = CompoundIdentifierTypeEnum.UUID,
+                Source = "source1",
+                Id = Guid.NewGuid().ToString(),
+                SourceType = IdSourceTypeEnum.GLN
+            };
+            _linkedIds.Add(_tlg.A, new List<UniqueId>{ uniqueId });
 
             var result = MapSingle();
 
-            Assert.AreEqual(_loggedDataId, result.LoggedDataId);
+            Assert.Contains(uniqueId, result.Id.UniqueIds);
+
         }
 
         public OperationData MapSingle()
@@ -145,7 +156,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
 
         public List<OperationData> Map()
         {
-            return _operationDataMapper.Map(_tlgs, _datacardPath, _loggedDataId).ToList();
+            return _operationDataMapper.Map(_tlgs, null, _datacardPath, _loggedDataId, _linkedIds).ToList();
         }
     }
 }

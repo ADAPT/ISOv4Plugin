@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Text;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
 using AgGateway.ADAPT.ISOv4Plugin.Writers;
 using NUnit.Framework;
@@ -8,29 +10,30 @@ namespace ISOv4PluginTest.Writers
     [TestFixture]
     public class WorkerWriterTests
     {
-        [TearDown]
-        public void Cleanup()
+        private string _directory;
+        private TaskDocumentWriter _taskWriter;
+
+        [SetUp]
+        public void Setup()
         {
-            var folderLocation = TestContext.CurrentContext.WorkDirectory + @"\TASKDATA";
-            if (Directory.Exists(folderLocation))
-                Directory.Delete(folderLocation, true);
+            _taskWriter = new TaskDocumentWriter();
+            _directory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(_directory);
         }
 
         [Test]
         public void ShouldWriteWorkersWithAllData()
         {
             // Setup
-            var taskWriter = new TaskDocumentWriter();
-            var adaptDocument = TestHelpers.LoadFromJson<ApplicationDataModel>(@"TestData\Worker\WorkersWithAllData.json");
+            var adaptDocument = TestHelpers.LoadFromJson<ApplicationDataModel>(TestData.TestData.WorkersWithAllData);
 
             // Act
-            using (taskWriter)
+            using (_taskWriter)
             {
-                var resultingXml = taskWriter.Write(TestContext.CurrentContext.WorkDirectory, adaptDocument);
-            
+                var actualXml = TestHelpers.Export(_taskWriter, adaptDocument, _directory);
+                
                 // Verify
-                Assert.AreEqual(TestHelpers.LoadFromFile(@"TestData\Worker\WorkersWithAllDataOutput.xml"),
-                    resultingXml.ToString());
+                Assert.AreEqual(TestData.TestData.WorkersWithAllDataOutput, actualXml);
             }
         }
 
@@ -38,15 +41,14 @@ namespace ISOv4PluginTest.Writers
         public void ShouldWriteWorkersWithNonExistentOrMissingContactInfo()
         {
             // Setup
-            var taskWriter = new TaskDocumentWriter();
-            var adaptDocument = TestHelpers.LoadFromJson<ApplicationDataModel>(@"TestData\Worker\WorkersWithNoContacts.json");
+            var adaptDocument = TestHelpers.LoadFromJson<ApplicationDataModel>(TestData.TestData.WorkersWithNoContacts);
 
             // Act
-            using (taskWriter)
+            using (_taskWriter)
             {
-                var result = taskWriter.Write(TestContext.CurrentContext.WorkDirectory, adaptDocument);
+                var result = TestHelpers.Export(_taskWriter, adaptDocument, _directory);
 
-                Assert.AreEqual(TestHelpers.LoadFromFile(@"TestData\Worker\WorkersWithNoContactsOutput.xml"), result.ToString());
+                Assert.AreEqual(TestData.TestData.WorkersWithNoContactsOutput, result);
             }
         }
 
@@ -54,34 +56,39 @@ namespace ISOv4PluginTest.Writers
         public void ShouldNotWriteWorkersWhenNoneAreAvailable()
         {
             // Setup
-            var taskWriter = new TaskDocumentWriter();
-            var adaptDocument = TestHelpers.LoadFromJson<ApplicationDataModel>(@"TestData\Worker\NoWorkersPresent.json");
+            var adaptDocument = TestHelpers.LoadFromJson<ApplicationDataModel>(TestData.TestData.NoWorkersPresent);
 
             // Act
-            using (taskWriter)
+            using (_taskWriter)
             {
-                taskWriter.Write(TestContext.CurrentContext.WorkDirectory, adaptDocument);
+                _taskWriter.Write(_directory, adaptDocument);
             }
 
             // Verify
-            Assert.AreEqual(false, File.Exists(TestContext.CurrentContext.WorkDirectory + @"\TASKDATA\WKR00000.XML"));
+            Assert.AreEqual(false, File.Exists(Path.Combine(_directory, "TASKDATA", "WKR00000.XML")));
         }
 
         [Test]
         public void ShouldNotWriteWorkersWhenZeroAreAvailable()
         {
             // Setup
-            var taskWriter = new TaskDocumentWriter();
-            var adaptDocument = TestHelpers.LoadFromJson<ApplicationDataModel>(@"TestData\Worker\ZeroWorkersPresent.json");
+            var adaptDocument = TestHelpers.LoadFromJson<ApplicationDataModel>(TestData.TestData.ZeroWorkersPresent);
 
             // Act
-            using (taskWriter)
+            using (_taskWriter)
             {
-                taskWriter.Write(TestContext.CurrentContext.WorkDirectory, adaptDocument);
+                _taskWriter.Write(_directory, adaptDocument);
             }
 
             // Verify
-            Assert.AreEqual(false, File.Exists(TestContext.CurrentContext.WorkDirectory + @"\TASKDATA\WKR00000.XML"));
+            Assert.AreEqual(false, File.Exists(Path.Combine(_directory, "TASKDATA", "WKR00000.XML")));
+        }
+
+        [TearDown]
+        public void Cleanup()
+        {
+            if(Directory.Exists(_directory))
+                Directory.Delete(_directory, true);
         }
     }
 }

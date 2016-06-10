@@ -1,28 +1,31 @@
-﻿using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
+﻿using AgGateway.ADAPT.ISOv4Plugin.Models;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
 {
     public interface IPtnHeaderMapper
     {
-        PTNHeader Map();
+        PTN Map();
 
     }
 
     public class PtnHeaderMapper : IPtnHeaderMapper
     {
-        public PTNHeader Map()
+        public PTN Map()
         {
-            return new PTNHeader
+            return new PTN
             {
-                GpsUtcDate = new HeaderProperty { State = HeaderPropertyState.IsEmpty },
-                GpsUtcTime = new HeaderProperty { State = HeaderPropertyState.IsEmpty },
-                HDOP = new HeaderProperty { State = HeaderPropertyState.IsNull},
-                NumberOfSatellites = new HeaderProperty { State = HeaderPropertyState.IsNull},
-                PDOP = new HeaderProperty { State = HeaderPropertyState.IsNull },
-                PositionStatus = new HeaderProperty { State = HeaderPropertyState.IsNull },
-                PositionEast = new HeaderProperty { State = HeaderPropertyState.IsEmpty },
-                PositionNorth = new HeaderProperty { State = HeaderPropertyState.IsEmpty },
-                PositionUp = new HeaderProperty { State = HeaderPropertyState.IsEmpty },
+                ASpecified = true,
+                A = null,
+                BSpecified = true,
+                B = null,
+                CSpecified = true,
+                C = null,
+                DSpecified = false,
+                ESpecified = false,
+                FSpecified = false,
+                GSpecified = false,
+                HSpecified = false
             };
         }
     }

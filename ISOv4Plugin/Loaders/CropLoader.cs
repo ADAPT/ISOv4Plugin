@@ -68,6 +68,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
             crop.Name = inputNode.GetXmlNodeValue("@B");
             if (cropId == null || crop.Name == null)
                 return null;
+            crop.Id.UniqueIds.Add(ImportHelper.CreateUniqueId(cropId));
 
             // Optional fields
             LoadVarieties(inputNode, crop);

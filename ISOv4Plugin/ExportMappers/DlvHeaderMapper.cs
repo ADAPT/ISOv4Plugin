@@ -2,14 +2,14 @@
 using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ISOv4Plugin.Extensions;
-using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
+using AgGateway.ADAPT.ISOv4Plugin.Models;
 using AgGateway.ADAPT.ISOv4Plugin.Representation;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
 {
     public interface IDlvHeaderMapper
     {
-        IEnumerable<DLVHeader> Map(IEnumerable<Meter> meters);
+        IEnumerable<DLV> Map(IEnumerable<WorkingData> meters);
     }
 
     public class DlvHeaderMapper : IDlvHeaderMapper
@@ -26,27 +26,56 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
             _representationMapper = representationMapper;
         }
 
-        public IEnumerable<DLVHeader> Map(IEnumerable<Meter> meters)
+        public IEnumerable<DLV> Map(IEnumerable<WorkingData> meters)
         {
             if (meters == null)
                 return null;
 
-            var sortedMeters = meters.OrderBy(x => x.Id.FindIntIsoId());
-
-            return sortedMeters.Select(Map);
+            return MapNotNullMeters(meters);
         }
 
-        public DLVHeader Map(Meter meter)
+        private IEnumerable<DLV> MapNotNullMeters(IEnumerable<WorkingData> meters)
+        {
+            var dlvOrders = meters.Select(x => x.Id.FindIntIsoId()).Distinct().OrderBy(y => y);
+
+            if (dlvOrders.Contains(-1))
+            {
+                var sortedMeters = meters.OrderBy(x => x.Id.FindIntIsoId());
+
+                foreach (var meter in sortedMeters)
+                {
+                    yield return Map(meter);
+                }
+            }
+            else
+            {
+                foreach (var order in dlvOrders)
+                {
+                    var dlvMeter = meters.Where(x => x.Id.FindIntIsoId() == order).First();
+                    yield return Map(dlvMeter);
+
+                }
+            }
+        }
+
+        public DLV Map(WorkingData meter)
         {
             var representation = _representationMapper.Map(meter.Representation);
-            return new DLVHeader
+
+            var dlv = new DLV();
+            if (representation == null)
             {
-                ProcessDataDDI = new HeaderProperty
-                {
-                    State = representation == null ? HeaderPropertyState.IsNull : HeaderPropertyState.HasValue,
-                    Value = representation
-                }
-            };
+                dlv.A = null;
+            }
+            else
+            {
+                if (meter.Representation != null && meter.Representation.Code == "dtRecordingStatus" && meter.DeviceElementUseId != 0)
+                    dlv.A = "161";
+                else
+                    dlv.A = representation.ToString();
+            }
+
+            return dlv;
         }
     }
 }

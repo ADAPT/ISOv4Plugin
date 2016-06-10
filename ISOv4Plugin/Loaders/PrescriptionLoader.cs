@@ -2,14 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
+using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.Prescriptions;
+using AgGateway.ADAPT.ApplicationDataModel.Products;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
 using AgGateway.ADAPT.ApplicationDataModel.Shapes;
 using AgGateway.ADAPT.ISOv4Plugin.Extensions;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
+using AgGateway.ADAPT.ISOv4Plugin.Representation;
 using AgGateway.ADAPT.Representation.RepresentationSystem;
 using AgGateway.ADAPT.Representation.RepresentationSystem.ExtensionMethods;
 using AgGateway.ADAPT.Representation.UnitSystem;
+using NumericRepresentation = AgGateway.ADAPT.ApplicationDataModel.Representations.NumericRepresentation;
 using UnitOfMeasure = AgGateway.ADAPT.ApplicationDataModel.Common.UnitOfMeasure;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
@@ -20,6 +24,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
         private string _baseFolder;
         private TaskDataDocument _taskDocument;
         private List<RasterGridPrescription> _prescriptions;
+        private static RepresentationMapper _representationMapper;
 
         private PrescriptionLoader(TaskDataDocument taskDocument)
         {
@@ -27,6 +32,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
             _rootNode = _taskDocument.RootNode;
             _baseFolder = _taskDocument.BaseFolder;
             _prescriptions = new List<RasterGridPrescription>();
+            _representationMapper = new RepresentationMapper();
         }
 
         public static List<RasterGridPrescription> Load(TaskDataDocument taskDocument)
@@ -77,6 +83,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
             var prescriptionId = inputNode.GetXmlNodeValue("@A");
             if (prescriptionId == null)
                 return null;
+
+            var isoId = ImportHelper.CreateUniqueId(prescriptionId);
+            prescription.Id.UniqueIds.Add(isoId);
 
             // Optional fields
             prescription.Description = inputNode.GetXmlNodeValue("@B");
@@ -139,7 +148,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
 
                 LoadProducts(treatmentZone, prescription);
                 LoadRateUnits(treatmentZone, prescription);
-                prescription.Rates = LoadRatesFromTreatmentZones(gridDescriptor, treatmentZones, prescription.ProductIds);
+                prescription.Rates = LoadRatesFromTreatmentZones(gridDescriptor, treatmentZones, prescription.ProductIds, prescription);
             }
             else if (gridDescriptor.ProductRates != null)
             {
@@ -149,7 +158,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
 
                 LoadProducts(treatmentZoneTemplate, prescription);
                 LoadRateUnits(treatmentZoneTemplate, prescription);
-                prescription.Rates = LoadRatesFromProducts(gridDescriptor, prescription.ProductIds);
+                prescription.Rates = LoadRatesFromProducts(gridDescriptor, prescription.ProductIds, prescription);
             }
         }
 
@@ -189,6 +198,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
             {
                 rates.Add(new NumericRepresentationValue
                 {
+                    Representation = _representationMapper.Map(dataVariable.Ddi) as NumericRepresentation,
                     Value = new NumericValue(dataVariable.IsoUnit.ToAdaptUnit(), dataVariable.Value),
                     UserProvidedUnitOfMeasure = dataVariable.UserUnit
                 });
@@ -201,7 +211,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
             var productIds = new List<int>();
             foreach (var dataVariable in treatmentZone.Variables)
             {
-                var product = _taskDocument.Products.FindById(dataVariable.ProductId) ?? _taskDocument.ProductMixes.FindById(dataVariable.ProductId);
+                Product product = _taskDocument.CropVarieties.FindById(dataVariable.ProductId) 
+                                    ?? (_taskDocument.Products.FindById(dataVariable.ProductId) 
+                                    ?? _taskDocument.ProductMixes.FindById(dataVariable.ProductId));
                 productIds.Add(product == null ? 0 : product.Id.ReferenceId);
             }
             prescription.ProductIds = productIds;
@@ -218,7 +230,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
                 var product = _taskDocument.Products.FindById(dataVariable.ProductId) ?? _taskDocument.ProductMixes.FindById(dataVariable.ProductId);
                 var rxProductLookup = new RxProductLookup
                 {
-                    ProductId = product.Id.FindIntIsoId(),
+                    ProductId = product == null ? 0 : product.Id.FindIntIsoId(),
                     UnitOfMeasure = dataVariable.IsoUnit.ToAdaptUnit(),
                 };
                 prescription.RxProductLookups.Add(rxProductLookup);
@@ -232,7 +244,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
             prescription.Rates = new List<RxRates>{ new RxRates{ RxRate = rxRates }}; 
         }
 
-        private static List<RxRates> LoadRatesFromProducts(GridDescriptor gridDescriptor, List<int> productIds)
+        private List<RxRates> LoadRatesFromProducts(GridDescriptor gridDescriptor, List<int> productIds, RasterGridPrescription prescription)
         {
             var rates = new List<RxRates>();
             foreach (var productRates in gridDescriptor.ProductRates)
@@ -241,7 +253,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
 
                 for (int productIndex = 0; productIndex < productRates.Count; productIndex++)
                 {
-                    AddRate(productIds[productIndex], productRates[productIndex], rate);
+                    var adaptProductId = productIds[productIndex];
+                    UnitOfMeasure uom = null;
+                    AddRate(adaptProductId, productRates[productIndex], rate, prescription, uom);
                 }
 
                 rates.Add(rate);
@@ -250,7 +264,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
             return rates;
         }
 
-        private static List<RxRates> LoadRatesFromTreatmentZones(GridDescriptor gridDescriptor, Dictionary<int, TreatmentZone> treatmentZones, List<int> productIds)
+        private static List<RxRates> LoadRatesFromTreatmentZones(GridDescriptor gridDescriptor, Dictionary<int, TreatmentZone> treatmentZones, List<int> productIds, RasterGridPrescription prescription)
         {
             var rates = new List<RxRates>();
             foreach (var treatmentZoneId in gridDescriptor.TreatmentZones)
@@ -264,7 +278,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
                 for (int i = 0; i < treatmentZone.Variables.Count; i++)
                 {
                     var dataVariable = treatmentZone.Variables[i];
-                    AddRate(productIds[i], dataVariable.Value, rate);
+                    AddRate(productIds[i], dataVariable.Value, rate, prescription, treatmentZone.Variables[i].IsoUnit.ToAdaptUnit());
                 }
 
                 rates.Add(rate);
@@ -273,12 +287,26 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
             return rates;
         }
 
-        private static void AddRate(int productId, double productRate, RxRates rates)
+        private static void AddRate(int productId, double productRate, RxRates rates, RasterGridPrescription prescription, UnitOfMeasure uom)
         {
+            RxProductLookup rxProductLookup;
+            if (prescription.RxProductLookups.Any(x => x.ProductId == productId))
+                rxProductLookup = prescription.RxProductLookups.Single(x => x.ProductId == productId);
+            else
+            {
+                rxProductLookup = new RxProductLookup
+                {
+                    ProductId = productId,
+                    UnitOfMeasure = uom
+                
+                };
+                prescription.RxProductLookups.Add(rxProductLookup);
+            }
+
             var rxRate = new RxRate
             {
                 Rate = productRate,
-                RxProductLookupId = productId,
+                RxProductLookupId = rxProductLookup.Id.ReferenceId,
             };
 
             rates.RxRate.Add(rxRate);

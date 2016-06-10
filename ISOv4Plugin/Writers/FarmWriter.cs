@@ -32,7 +32,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
 
         private string WriteFarm(XmlWriter writer, Farm farm)
         {
-            var farmId = GenerateId();
+            var farmId = farm.Id.FindIsoId() ?? GenerateId();
+            TaskWriter.Ids.Add(farmId, farm.Id);
+
             writer.WriteStartElement(XmlPrefix);
             writer.WriteAttributeString("A", farmId);
             writer.WriteAttributeString("B", farm.Description);

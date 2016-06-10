@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
+using AgGateway.ADAPT.ISOv4Plugin.Models;
 using NUnit.Framework;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers;
 using AgGateway.ADAPT.Representation.RepresentationSystem;
@@ -77,7 +78,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenMetersWithManualOffWhenGetMetersValueThenZero()
         {
             var enumeratedMeter = new ISOEnumeratedMeter();
-            var meters = new List<Meter> {enumeratedMeter};
+            var meters = new List<WorkingData> { enumeratedMeter };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiSCMasterManualOff.ToModelEnumMember() });
@@ -90,7 +91,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenMetersWithAutoOnWhenGetMetersValueThenOne()
         {
             var enumeratedMeter = new ISOEnumeratedMeter();
-            var meters = new List<Meter> {enumeratedMeter};
+            var meters = new List<WorkingData> { enumeratedMeter };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiSCMasterAutoOn.ToModelEnumMember() });
@@ -103,7 +104,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenMetersWithErrorWhenGetMetersValueThenTwo()
         {
             var enumeratedMeter = new ISOEnumeratedMeter();
-            var meters = new List<Meter> {enumeratedMeter};
+            var meters = new List<WorkingData> { enumeratedMeter };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiSCMasterError.ToModelEnumMember() });
@@ -116,7 +117,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenMetersWithUndefinedWhenGetMetersValueThenThree()
         {
             var enumeratedMeter = new ISOEnumeratedMeter();
-            var meters = new List<Meter> {enumeratedMeter};
+            var meters = new List<WorkingData> { enumeratedMeter };
 
             var spatialRecord = new SpatialRecord();
             spatialRecord.SetMeterValue(enumeratedMeter, new EnumeratedValue { Value = DefinedTypeEnumerationInstanceList.dtiSCMasterUndefined.ToModelEnumMember() });
@@ -130,14 +131,14 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             return new SpatialValue
             {
                 Value = value,
-                DlvHeader = new DLVHeader
+                Dlv = new DLV
                 {
-                    ProcessDataDDI = new HeaderProperty { State = HeaderPropertyState.HasValue, Value = 160 }
-                }
+                    A = "A0"
+                },
             };
         }
 
-        private EnumeratedMeter CreateMeter()
+        private EnumeratedWorkingData CreateMeter()
         {
             return _creator.CreateMeters(null).Single();
         }

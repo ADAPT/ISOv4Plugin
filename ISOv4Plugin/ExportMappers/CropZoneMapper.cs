@@ -60,7 +60,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
             }
             if (cropZone.BoundingRegion != null)
             {
-                pfd.Items = new object[] { _boundaryMapper.Map(cropZone.BoundingRegion, BoundaryType.CropZone, cropZone.Description) };
+                pfd.Items = new IWriter[] { _boundaryMapper.Map(cropZone.BoundingRegion, BoundaryType.CropZone, cropZone.Description) };
             }
 
             keyToIsoId.Add(cropZone.Id.ReferenceId, pfd.A);

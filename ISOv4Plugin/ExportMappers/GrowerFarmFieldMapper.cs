@@ -101,7 +101,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
             if (field.ActiveBoundaryId != null)
             {
                 var boundary = setupCatalog.FieldBoundaries.Single(b => b.Id.ReferenceId == field.ActiveBoundaryId.Value);
-                isoField.Items = new object[] {_boundaryMapper.Map(boundary.SpatialData, BoundaryType.Field, boundary.Description)};
+                isoField.Items = new IWriter[] {_boundaryMapper.Map(boundary.SpatialData, BoundaryType.Field, boundary.Description)};
             }
 
             keyToIsoId.Add(field.Id.ReferenceId, isoField.A);

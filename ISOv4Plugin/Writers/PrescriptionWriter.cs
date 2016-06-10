@@ -1,9 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
+using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ApplicationDataModel.Prescriptions;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
+using AgGateway.ADAPT.ISOv4Plugin.ExportMappers;
 using AgGateway.ADAPT.ISOv4Plugin.Extensions;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
 using AgGateway.ADAPT.Representation.UnitSystem.ExtensionMethods;
@@ -29,24 +32,28 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
                 return;
 
             var writer = new PrescriptionWriter(taskWriter);
-            writer.WritePrescriptions(taskWriter.RootWriter);
+            writer.WritePrescriptions();
         }
 
-        private void WritePrescriptions(XmlWriter writer)
+        private void WritePrescriptions()
         {
             foreach (var prescription in TaskWriter.DataModel.Catalog.Prescriptions.OfType<RasterGridPrescription>())
             {
-                WritePrescription(writer, prescription);
+                WritePrescription(prescription);
             }
         }
 
-        private void WritePrescription(XmlWriter writer, RasterGridPrescription prescription)
+        private void WritePrescription(RasterGridPrescription prescription)
         {
+            var writer = TaskWriter.RootWriter;
+
             if (!IsValidPrescription(prescription))
                 return;
 
+            var prescriptionId = prescription.Id.FindIsoId() ?? GenerateId();
+
             writer.WriteStartElement(XmlPrefix);
-            writer.WriteAttributeString("A", GenerateId());
+            writer.WriteAttributeString("A", prescriptionId);
             writer.WriteAttributeString("B", prescription.Description);
 
             WriteFieldMeta(writer, prescription.FieldId);
@@ -57,6 +64,28 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
             var defaultTreatmentZone = WriteTreatmentZones(writer, prescription);
 
             _gridWriter.Write(writer, prescription, defaultTreatmentZone);
+            var matchingLoggedData = null as LoggedData;
+
+            if (TaskWriter.DataModel.Documents != null && TaskWriter.DataModel.Documents.LoggedData != null)
+                matchingLoggedData = TaskWriter.DataModel.Documents.LoggedData.Where(ld => ld.OperationData != null).SingleOrDefault(x => x.OperationData.FirstOrDefault(y => y.PrescriptionId == prescription.Id.ReferenceId) != null);
+
+            if (matchingLoggedData != null)
+            {
+                var taskMapper = new TaskMapper();
+                var isoInt = Convert.ToInt32(prescriptionId.Remove(0, 3))-1;
+
+
+                var mappedTsk = taskMapper.Map(new List<LoggedData> { matchingLoggedData }, TaskWriter.DataModel.Catalog, TaskWriter.BaseFolder, isoInt, TaskWriter).First();
+
+                foreach (var item in mappedTsk.Items)
+                {
+                    item.WriteXML(TaskWriter.RootWriter);
+                }
+            }
+            else
+            {
+                TaskWriter.Ids.Add(prescriptionId, prescription.Id);
+            }
 
             writer.WriteEndElement();
         }
@@ -128,7 +157,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
 
             foreach (var productId in prescription.ProductIds)
             {
-                var isoProductId = TaskWriter.Products.FindById(productId);
+                var isoProductId = TaskWriter.Products.FindById(productId) ?? TaskWriter.CropVarieties.FindById(productId);
 
                 AddDataVariable(lossOfSignalTreatmentZone, prescription.LossOfGpsRate, isoProductId, isoUnit);
                 AddDataVariable(outOfFieldTreatmentZone, prescription.OutOfFieldRate, isoProductId, isoUnit);

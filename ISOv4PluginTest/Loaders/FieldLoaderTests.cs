@@ -1,4 +1,7 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
 using NUnit.Framework;
@@ -8,14 +11,25 @@ namespace ISOv4PluginTest.Loaders
     [TestFixture]
     public class FieldLoaderTests
     {
+        private string _directory;
+
+        [SetUp]
+        public void Setup()
+        {
+            _directory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(_directory);
+        }
+
         [Test]
         public void LoadFieldTest()
         {
             // Setup
-            var taskDocument = new  TaskDataDocument();
+            var taskDocument = new TaskDataDocument();
+            var path = Path.Combine(_directory, "test.xml");
+            File.WriteAllText(path, TestData.TestData.Field1);
 
             // Act
-            var result = taskDocument.LoadFromFile(@"TestData\Field\Field1.xml");
+            var result = taskDocument.LoadFromFile(path);
 
             // Verify
             Assert.IsTrue(result);
@@ -50,9 +64,11 @@ namespace ISOv4PluginTest.Loaders
         {
             // Setup
             var taskDocument = new TaskDataDocument();
+            var path = Path.Combine(_directory, "test.xml");
+            //File.WriteAllText(path, TestData.TestData.Field2);
 
             // Act
-            var result = taskDocument.LoadFromFile(@"TestData\Field\Field2.xml");
+            var result = taskDocument.LoadFromFile(path);
 
             // Verify
             Assert.IsTrue(result);
@@ -77,9 +93,11 @@ namespace ISOv4PluginTest.Loaders
         {
             // Setup
             var taskDocument = new TaskDataDocument();
+            var path = Path.Combine(_directory, "test.xml");
+            File.WriteAllText(path, TestData.TestData.Field3);
 
             // Act
-            var result = taskDocument.LoadFromFile(@"TestData\Field\Field3.xml");
+            var result = taskDocument.LoadFromFile(path);
 
             // Verify
             Assert.IsTrue(result);
@@ -114,9 +132,11 @@ namespace ISOv4PluginTest.Loaders
         {
             // Setup
             var taskDocument = new TaskDataDocument();
+            var path = Path.Combine(_directory, "test.xml");
+            File.WriteAllText(path, TestData.TestData.Farm3);
 
             // Act
-            var result = taskDocument.LoadFromFile(@"TestData\Farm\Farm3.xml");
+            var result = taskDocument.LoadFromFile(path);
 
             // Verify
             Assert.IsTrue(result);
@@ -141,9 +161,11 @@ namespace ISOv4PluginTest.Loaders
         {
             // Setup
             var taskDocument = new TaskDataDocument();
+            var path = Path.Combine(_directory, "test.xml");
+            File.WriteAllText(path, TestData.TestData.Field5);
 
             // Act
-            var result = taskDocument.LoadFromFile(@"TestData\Field\Field5.xml");
+            var result = taskDocument.LoadFromFile(path);
 
             // Verify
             Assert.IsTrue(result);
@@ -168,11 +190,14 @@ namespace ISOv4PluginTest.Loaders
         public void FieldInExternalFileTest()
         {
             // Setup
-            // Setup
             var taskDocument = new TaskDataDocument();
+            var path = Path.Combine(_directory, "test.xml");
+            File.WriteAllText(path, TestData.TestData.Field6);
+            var pfdPath = Path.Combine(_directory, "PFD00006.xml");
+            File.WriteAllText(pfdPath, TestData.TestData.PFD00006);
 
             // Act
-            var result = taskDocument.LoadFromFile(@"TestData\Field\Field6.xml");
+            var result = taskDocument.LoadFromFile(path);
 
             // Verify
             Assert.IsTrue(result);
@@ -207,9 +232,13 @@ namespace ISOv4PluginTest.Loaders
         {
             // Setup
             var taskDocument = new TaskDataDocument();
+            var path = Path.Combine(_directory, "test.xml");
+            File.WriteAllText(path, TestData.TestData.Field6);
+            var pfdPath = Path.Combine(_directory, "PFD00006.xml");
+            File.WriteAllText(pfdPath, TestData.TestData.PFD00006);
 
             // Act
-            var result = taskDocument.LoadFromFile(@"TestData\Field\Field6.xml");
+            var result = taskDocument.LoadFromFile(path);
 
             // Verify
             Assert.IsTrue(result);
@@ -235,9 +264,11 @@ namespace ISOv4PluginTest.Loaders
         {
             // Setup
             var taskDocument = new TaskDataDocument();
+            var path = Path.Combine(_directory, "test.xml");
+            File.WriteAllText(path, TestData.TestData.Field11);
 
             // Act
-            taskDocument.LoadFromFile(@"TestData\Field\Field11.xml");
+            taskDocument.LoadFromFile(path);
 
             // Verify
             var field = taskDocument.Fields["PFD1"];
@@ -252,9 +283,11 @@ namespace ISOv4PluginTest.Loaders
         {
             // Setup
             var taskDocument = new TaskDataDocument();
+            var path = Path.Combine(_directory, "test.xml");
+            File.WriteAllText(path, TestData.TestData.Field12);
 
             // Act
-            taskDocument.LoadFromFile(@"TestData\Field\Field12.xml");
+            taskDocument.LoadFromFile(path);
 
             // Verify
             var field = taskDocument.Fields["PFD1"];
@@ -266,23 +299,39 @@ namespace ISOv4PluginTest.Loaders
             Assert.AreEqual(12, fieldBoundary.SpatialData.Polygons[0].InteriorRings[0].Points.Count);
         }
 
-        [TestCase(@"TestData\Field\Field7.xml")]
-        [TestCase(@"TestData\Field\Field8.xml")]
-        [TestCase(@"TestData\Field\Field9.xml")]
-        [TestCase(@"TestData\Field\Field10.xml")]
-        public void FieldWithMissingRequiredInfoTest(string testFileName)
+        [Test]
+        public void FieldWithMissingRequiredInfoTest()
         {
-            // Setup
-            var taskDocument = new TaskDataDocument();
+            var fields = new List<string>
+            {
+                TestData.TestData.Field7,
+                TestData.TestData.Field8,
+                TestData.TestData.Field9,
+                TestData.TestData.Field10,
+            };
 
-            // Act
-            var result = taskDocument.LoadFromFile(testFileName);
+            for (int i = 0; i < fields.Count; i++)
+            {
+                // Setup
+                var taskDocument = new TaskDataDocument();
+                var path = Path.Combine(_directory, String.Format("field{0}.xml", i));
+                File.WriteAllText(path, fields[i]);
 
-            // Verify
-            Assert.IsTrue(result);
-            Assert.IsNotNull(taskDocument.Fields);
-            Assert.AreEqual(0, taskDocument.Fields.Count);
+                // Act
+                var result = taskDocument.LoadFromFile(path);
+
+                // Verify
+                Assert.IsTrue(result);
+                Assert.IsNotNull(taskDocument.Fields);
+                Assert.AreEqual(0, taskDocument.Fields.Count);
+            }
         }
-        
+
+        [TearDown]
+        public void TearDown()
+        {
+            if (Directory.Exists(_directory))
+                Directory.Delete(_directory, true);
+        }
     }
 }
