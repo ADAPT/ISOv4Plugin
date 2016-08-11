@@ -51,7 +51,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
             {
                 foreach (var order in dlvOrders)
                 {
-                    var dlvMeter = meters.Where(x => x.Id.FindIntIsoId() == order).First();
+                    var dlvMeter = meters.First(x => x.Id.FindIntIsoId() == order);
                     yield return Map(dlvMeter);
 
                 }

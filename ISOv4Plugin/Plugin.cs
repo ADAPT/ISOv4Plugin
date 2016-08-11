@@ -138,7 +138,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin
             catalog.GuidancePatterns = taskDocument.GuidanceGroups.Values.SelectMany(x => x.Patterns.Values).ToList();
             catalog.Crops = taskDocument.Crops.Values.ToList();
             catalog.CropZones = taskDocument.CropZones.Values.ToList();
-            catalog.Machines = taskDocument.Machines;
+            catalog.DeviceElements = taskDocument.Machines.Values.ToList();
             catalog.CropVarieties = taskDocument.CropVarieties.Values.ToList();
             catalog.FieldBoundaries = taskDocument.FieldBoundaries;
             catalog.ProductMixes = taskDocument.ProductMixes.Values.ToList();

@@ -39,10 +39,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Models
         public Dictionary<string, CropZone> CropZones { get; private set; }
         public List<ContactInfo> Contacts { get; private set; }
 
-        public List<Machine> Machines { get; private set; }
-        public List<MachineModel> MachineModels { get; private set; }
-        public List<MachineSeries> MachineSeries { get; private set; }
-        public Dictionary<byte, MachineType> MachineTypes { get; private set; }
+        public Dictionary<string, DeviceElement> Machines { get; private set; }
 
         public Dictionary<string, Product> Products { get; private set; }
 
@@ -78,6 +75,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Models
             UnitsByItemId = new Dictionary<string, IsoUnit>();
             GuidanceAllocations = new List<GuidanceAllocation>();
             Contacts = new List<ContactInfo>();
+            Machines = new Dictionary<string, DeviceElement>();
         }
 
         public void LoadLinkedIds(string elementId, CompoundIdentifier id)
@@ -109,6 +107,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Models
             Comments = CommentLoader.Load(this);
             Tasks = TaskLoader.Load(this);
             RasterPrescriptions = PrescriptionLoader.Load(this);
+            Machines = DeviceLoader.Load(this);
 
             return true;
         }

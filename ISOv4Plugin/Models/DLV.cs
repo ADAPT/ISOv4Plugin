@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Globalization;
 using System.Xml;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Models
@@ -22,7 +17,18 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Models
         public XmlWriter WriteXML(XmlWriter xmlBuilder)
         {
             xmlBuilder.WriteStartElement("DLV");
-            //todo
+            if (!string.IsNullOrEmpty(A))
+                xmlBuilder.WriteAttributeString("A", A);
+            if(B != null)
+                xmlBuilder.WriteAttributeString("B", B.Value.ToString(CultureInfo.InvariantCulture));
+            if(!string.IsNullOrEmpty(C))
+                xmlBuilder.WriteAttributeString("C", C);
+            if(D != null)
+                xmlBuilder.WriteAttributeString("D", D.Value.ToString(CultureInfo.InvariantCulture));
+            if(E != null)
+                xmlBuilder.WriteAttributeString("E", E.Value.ToString(CultureInfo.InvariantCulture));
+            if(F != null) 
+                xmlBuilder.WriteAttributeString("F", F.Value.ToString(CultureInfo.InvariantCulture));
             xmlBuilder.WriteEndElement();
             return xmlBuilder;
         }

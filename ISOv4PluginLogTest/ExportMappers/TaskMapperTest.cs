@@ -113,7 +113,7 @@ namespace ISOv4PluginLogTest.ExportMappers
         public void GivenLoggedDataWithTimescopesWhenMapThenTimItemsAreMapped()
         {
             var timescope = new TimeScope();
-            _loggedData.TimeScopeIds = new List<int>{ timescope.Id.ReferenceId };
+            _loggedData.TimeScopes = new List<TimeScope>{ timescope };
             _catalog.TimeScopes = new List<TimeScope>{ timescope };
 
             var tims = new List<TIM>{ new TIM(), new TIM()};

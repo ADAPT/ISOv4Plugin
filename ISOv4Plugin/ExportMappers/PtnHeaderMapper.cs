@@ -6,7 +6,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
     public interface IPtnHeaderMapper
     {
         PTN Map();
-
     }
 
     public class PtnHeaderMapper : IPtnHeaderMapper
