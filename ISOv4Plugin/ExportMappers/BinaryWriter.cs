@@ -38,12 +38,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
         public IEnumerable<ISOSpatialRow> Write(string fileName, List<WorkingData> meters, IEnumerable<SpatialRecord> spatialRecords)
         {
             Debug.WriteLine("Writing file " + fileName);
+            var metersByIsoIds = GetMeterToIsoIdCache(meters);
 
             using (var memoryStream = new MemoryStream())
             {
                 foreach (var spatialRecord in spatialRecords)
                 { 
-                    WriteSpatialRecord(spatialRecord, meters, memoryStream);
+                    WriteSpatialRecord(spatialRecord, meters, memoryStream, metersByIsoIds);
                 }
                 var binaryWriter = new System.IO.BinaryWriter(File.Create(fileName));
                 binaryWriter.Write(memoryStream.ToArray());
@@ -54,11 +55,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
             return null;
         }
 
-        private void WriteSpatialRecord(SpatialRecord spatialRecord, List<WorkingData> meters, MemoryStream memoryStream)
+        private static Dictionary<WorkingData, int> GetMeterToIsoIdCache(List<WorkingData> meters)
+        {
+            return meters.ToDictionary(meter => meter, meter => meter.Id.FindIntIsoId());
+        }
+
+        private void WriteSpatialRecord(SpatialRecord spatialRecord, List<WorkingData> meters, MemoryStream memoryStream, Dictionary<WorkingData, int> metersByIsoIds)
         {
             WriteTimeStart(spatialRecord.Timestamp, memoryStream);
             WritePosition(spatialRecord.Geometry, memoryStream);
-            WriteMeterValues(spatialRecord, meters, memoryStream);
+            WriteMeterValues(spatialRecord, meters, memoryStream, metersByIsoIds);
         }
         
         private void WriteTimeStart(DateTime timestamp, MemoryStream memoryStream)
@@ -98,17 +104,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
             upStream.WriteTo(memoryStream);
         }
 
-        private readonly Dictionary<int, uint> previousDlvs = new Dictionary<int, uint>();
+        private readonly Dictionary<int, uint> _previousDlvs = new Dictionary<int, uint>();
 
-        private void WriteMeterValues(SpatialRecord spatialRecord, List<WorkingData> meters, MemoryStream memoryStream)
+        private void WriteMeterValues(SpatialRecord spatialRecord, List<WorkingData> meters, MemoryStream memoryStream, Dictionary<WorkingData, int> metersByIsoIds)
         {
-            var dlvOrders = meters.Select(x => x.Id.FindIntIsoId()).Distinct();
-            var dlvsToWrite = new Dictionary<int, uint>();
+            var dlvOrders = metersByIsoIds.Values.Distinct();
+            Dictionary<int, uint> dlvsToWrite;
 
             if (dlvOrders.Contains(-1))
                 dlvsToWrite = GetMeterValuesAndAssignDlvNumbers(spatialRecord, meters);
             else
-                dlvsToWrite = GetMeterValues(spatialRecord, meters);
+                dlvsToWrite = GetMeterValues(spatialRecord, meters, metersByIsoIds);
 
             var numberOfMeters = (byte)dlvsToWrite.Count;
             var numberOfMetersStream = new MemoryStream();
@@ -127,39 +133,39 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
             }
         }
 
-        private Dictionary<int, uint> GetMeterValues(SpatialRecord spatialRecord, List<WorkingData> meters)
+        private Dictionary<int, uint> GetMeterValues(SpatialRecord spatialRecord, List<WorkingData> meters, Dictionary<WorkingData, int> metersByIsoIds)
         {
             var dlvsToWrite = new Dictionary<int, uint>();
             var metersWithValues = meters.Where(x => spatialRecord.GetMeterValue(x) != null);
-            var dlvOrders = metersWithValues.Select(x => x.Id.FindIntIsoId()).Distinct();
+            var dlvOrders = metersWithValues.Select(m => metersByIsoIds[m]).Distinct();
 
             foreach (var order in dlvOrders)
             {
-                var dlvMeters = meters.Where(x => x.Id.FindIntIsoId() == order);
-                var numericMeter = dlvMeters.First() as NumericWorkingData;
+                var dlvMeters = meters.Where(m => metersByIsoIds[m] == order).ToList();
+                var numericMeter = dlvMeters[0] as NumericWorkingData;
                 UInt32? value = null;
                 if (numericMeter != null && spatialRecord.GetMeterValue(numericMeter) != null)
                 {
                     value = _numericValueMapper.Map(numericMeter, spatialRecord);
                 }
 
-                var isoEnumerateMeter = dlvMeters.First() as ISOEnumeratedMeter;
+                var isoEnumerateMeter = dlvMeters[0] as ISOEnumeratedMeter;
                 if (isoEnumerateMeter != null && spatialRecord.GetMeterValue(isoEnumerateMeter) != null)
                 {
-                    value = _enumeratedValueMapper.Map(isoEnumerateMeter, dlvMeters.ToList(), spatialRecord);
+                    value = _enumeratedValueMapper.Map(isoEnumerateMeter, dlvMeters, spatialRecord);
                 }
 
                 if (value == null)
                     continue;
 
-                if (previousDlvs.ContainsKey(order) && previousDlvs[order] != value)
+                if (_previousDlvs.ContainsKey(order) && _previousDlvs[order] != value)
                 {
-                    previousDlvs[order] = value.Value;
+                    _previousDlvs[order] = value.Value;
                     dlvsToWrite.Add(order, value.Value);
                 }
-                else if (!previousDlvs.ContainsKey(order))
+                else if (!_previousDlvs.ContainsKey(order))
                 {
-                    previousDlvs.Add(order, value.Value);
+                    _previousDlvs.Add(order, value.Value);
                     dlvsToWrite.Add(order, value.Value);
                 }
             }
@@ -190,14 +196,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
                 if (value == null)
                     continue;
 
-                if (previousDlvs.ContainsKey(meterIndex) && previousDlvs[meterIndex] != value)
+                if (_previousDlvs.ContainsKey(meterIndex) && _previousDlvs[meterIndex] != value)
                 {
-                    previousDlvs[meterIndex] = value.Value;
+                    _previousDlvs[meterIndex] = value.Value;
                     dlvValues.Add(meterIndex, value.Value);
                 }
-                else if (!previousDlvs.ContainsKey(meterIndex))
+                else if (!_previousDlvs.ContainsKey(meterIndex))
                 {
-                    previousDlvs.Add(meterIndex, value.Value);
+                    _previousDlvs.Add(meterIndex, value.Value);
                     dlvValues.Add(meterIndex, value.Value);
                 }
             }
