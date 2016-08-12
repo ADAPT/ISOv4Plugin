@@ -50,7 +50,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Representation
             if (adapRepresentation == null)
                 return null;
 
-            var matchingRepresentation = RepresentationManager.Instance.Representations.FirstOrDefault(x => x.DomainId == adapRepresentation.Code);
+            var matchingRepresentation = RepresentationManager.Instance.Representations[adapRepresentation.Code];
 
             return matchingRepresentation != null 
                 ? matchingRepresentation.Ddi

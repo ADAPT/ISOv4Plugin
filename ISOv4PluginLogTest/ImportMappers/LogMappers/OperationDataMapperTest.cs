@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
+using AgGateway.ADAPT.ApplicationDataModel.Equipment;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers;
@@ -25,7 +26,6 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         private OperationDataMapper _operationDataMapper;
         private Mock<ISectionMapper> _sectionMapperMock;
         private Mock<IUniqueIdMapper> _uniqueIdMapperMock;
-        private int _loggedDataId;
         private TIM _tim;
         private List<TIM> _tims;
         private List<ISOSpatialRow> _isoSpatialRows;
@@ -119,7 +119,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         [Test]
         public void GivenTlgAndPrescriptionIdWhenMapThenPrescriptionIdIsSet()
         {
-            var result = _operationDataMapper.Map(_tlgs, 5, _datacardPath, _loggedDataId, _linkedIds).ToList().First();
+            var result = _operationDataMapper.Map(_tlgs, 5, _datacardPath, 0, _linkedIds).ToList().First();
 
             Assert.AreEqual(5, result.PrescriptionId);
         }
@@ -156,7 +156,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
 
         public List<OperationData> Map()
         {
-            return _operationDataMapper.Map(_tlgs, null, _datacardPath, _loggedDataId, _linkedIds).ToList();
+            return _operationDataMapper.Map(_tlgs, null, _datacardPath, 0, _linkedIds).ToList();
         }
     }
 }

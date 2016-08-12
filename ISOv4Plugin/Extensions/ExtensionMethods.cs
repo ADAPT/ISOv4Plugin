@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
+using AgGateway.ADAPT.ApplicationDataModel.Equipment;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
@@ -11,6 +12,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Extensions
 {
     public static class ExtensionMethods
     {
+        private static readonly Regex IsoIdPattern = new Regex("^[A-Z]{3,4}-?[0-9]+$", RegexOptions.Compiled);
+        private static readonly Regex DigitsOnly = new Regex(@"[^\d]", RegexOptions.Compiled);
+
         public static TValue FindById<TKey, TValue>(this Dictionary<TKey, TValue> items, TKey id) where TValue : class
         {
             if (items == null || items.Count == 0 || id == null)
@@ -121,16 +125,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Extensions
 
         public static string FindIsoId(this CompoundIdentifier adaptId)
         {
-            var stringIds = adaptId.UniqueIds.Where(id => id.Source == UniqueIdMapper.IsoSource && id.CiTypeEnum == CompoundIdentifierTypeEnum.String).ToList();
+            var stringIds = adaptId.UniqueIds.Where(id => id.Id != null && 
+                id.Source == UniqueIdMapper.IsoSource && 
+                id.CiTypeEnum == CompoundIdentifierTypeEnum.String).ToList();
 
-            var isoIdPattern = new Regex("^[A-Z]{3,4}-?[0-9]+$");
-            stringIds.RemoveAll(x => x.Id == null);
-            var isoId = stringIds.Where(s => isoIdPattern.IsMatch(s.Id)).ToList();
+            var isoId = stringIds.FirstOrDefault(s => IsoIdPattern.IsMatch(s.Id));
 
-            if (isoId.Count == 0)
-                return null;
-
-            return isoId.First().Id;
+            return isoId != null ? isoId.Id : null;
         }
 
         public static int FindIntIsoId(this CompoundIdentifier adaptId)
@@ -140,8 +141,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Extensions
             if (isoId == null)
                 return -1;
 
-            var digitsOnly = new Regex(@"[^\d]");
-            return int.Parse(digitsOnly.Replace(isoId, ""));
+            return int.Parse(DigitsOnly.Replace(isoId, ""));
         }
     }
 }

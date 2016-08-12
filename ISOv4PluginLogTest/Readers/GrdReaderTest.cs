@@ -14,7 +14,6 @@ namespace ISOv4PluginLogTest.Readers
     public class GrdReaderTest
     {
         private GrdReader _grdReader;
-        private XPathNodeIterator _children;
         private XPathNodeIterator _iterator;
 
         [SetUp]

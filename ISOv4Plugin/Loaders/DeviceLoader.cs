@@ -2,8 +2,12 @@
 using System.Globalization;
 using System.Xml;
 using AgGateway.ADAPT.ApplicationDataModel.Equipment;
+using AgGateway.ADAPT.ApplicationDataModel.Representations;
 using AgGateway.ADAPT.ISOv4Plugin.Extensions;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
+using AgGateway.ADAPT.Representation.RepresentationSystem;
+using AgGateway.ADAPT.Representation.RepresentationSystem.ExtensionMethods;
+using EnumerationMember = AgGateway.ADAPT.ApplicationDataModel.Representations.EnumerationMember;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
 {
@@ -12,24 +16,24 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
         private XmlNode _rootNode;
         private string _baseFolder;
         private TaskDataDocument _taskDocument;
-        private Dictionary<string, Machine> _machines;
+        private Dictionary<string, DeviceElement> _machines;
 
         private DeviceLoader(TaskDataDocument taskDocument)
         {
             _taskDocument = taskDocument;
             _rootNode = _taskDocument.RootNode;
             _baseFolder = _taskDocument.BaseFolder;
-            _machines = new Dictionary<string, Machine>();
+            _machines = new Dictionary<string, DeviceElement>();
         }
 
-        public static Dictionary<string, Machine> Load(TaskDataDocument taskDocument)
+        public static Dictionary<string, DeviceElement> Load(TaskDataDocument taskDocument)
         {
             var loader = new DeviceLoader(taskDocument);
 
             return loader.Load();
         }
 
-        private Dictionary<string, Machine> Load()
+        private Dictionary<string, DeviceElement> Load()
         {
             LoadMachines(_rootNode.SelectNodes("DVC"));
             ProcessExternalNodes();
@@ -60,9 +64,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
             }
         }
 
-        private Machine LoadMachine(XmlNode inputNode, out string machineId)
+        private DeviceElement LoadMachine(XmlNode inputNode, out string machineId)
         {
-            var machine = new Machine();
+            var machine = new DeviceElement();
 
             // Required fields. Do not proceed if they are missing
             machineId = inputNode.GetXmlNodeValue("@A");
@@ -78,7 +82,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
             return machine;
         }
 
-        private bool DecodeMachineInfo(string machineInfo, Machine machine)
+        private bool DecodeMachineInfo(string machineInfo, DeviceElement machine)
         {
             if (string.IsNullOrEmpty(machineInfo) ||
                 machineInfo.Length != 16)
@@ -95,47 +99,43 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
             if (!byte.TryParse(machineInfo.Substring(2, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out deviceClass))
                 return false;
 
-            var machineType = GetMachineType(deviceClass);
-
-            machine.MachineTypeId = machineType.Id.ReferenceId;
+            machine.DeviceClassification = GetMachineType(deviceClass);
 
             return true;
         }
 
-        private MachineType GetMachineType(byte deviceClass)
+        private EnumeratedValue GetMachineType(byte deviceClass)
         {
-            MachineType machineType;
-            if (_taskDocument.MachineTypes.TryGetValue(deviceClass, out machineType))
-                return machineType;
+            EnumerationMember machineType;
 
-            machineType = new MachineType();
             switch (deviceClass)
             {
-                //case 0: // Non-specific systems
-                //case 1: // Tractor
+                case 0: // Non-specific systems
+                    machineType = DefinedTypeEnumerationInstanceList.dtiMachineTypeOther.ToModelEnumMember();
+                    break;
+                case 1: // Tractor
+                    machineType = DefinedTypeEnumerationInstanceList.dtiTractor.ToModelEnumMember();
+                    break;
                 //case 2: // Tillage
                 //case 3: // Secondary tillage
-
-                case 4: // Planters/seeders
-                    machineType.MachineTypeEnum = MachineTypeEnum.Sprayer;
-                    break;
+                //case 4: // Planters/seeders
 
                 case 5: // Fertilizers
                 case 6: // Sprayers
-                    machineType.MachineTypeEnum = MachineTypeEnum.Sprayer;
+                    machineType = DefinedTypeEnumerationInstanceList.dtiSprayer.ToModelEnumMember();
                     break;
 
                 case 7: // Harvesters
                 case 8: // Root harvesters
-                    machineType.MachineTypeEnum = MachineTypeEnum.Combine;
+                    machineType = DefinedTypeEnumerationInstanceList.dtiCombine.ToModelEnumMember();
                     break;
 
                 case 9: // Forage
-                    machineType.MachineTypeEnum = MachineTypeEnum.ForageHarvester;
+                    machineType = DefinedTypeEnumerationInstanceList.dtiForageHarvester.ToModelEnumMember();
                     break;
 
                 case 10: // Irrigation
-                    machineType.MachineTypeEnum = MachineTypeEnum.IrrigationSystem;
+                    machineType = DefinedTypeEnumerationInstanceList.dtiIrrigationSystem.ToModelEnumMember();
                     break;
 
                 case 11: // Transport/trailer
@@ -144,17 +144,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
                 case 14: // Special crops
                 case 15: // Earth work
                 case 16: // Skidder
-                    machineType.MachineTypeEnum = MachineTypeEnum.UtilityVehicle;
+                    machineType = DefinedTypeEnumerationInstanceList.dtiUtilityVehicle.ToModelEnumMember();
                     break;
 
                 default:
-                    machineType.MachineTypeEnum = MachineTypeEnum.Tractor;
+                    machineType = DefinedTypeEnumerationInstanceList.dtiTractor.ToModelEnumMember();
                     break;
             }
 
-            _taskDocument.MachineTypes.Add(deviceClass, machineType);
-
-            return machineType;
+            return new EnumeratedValue{Representation = RepresentationInstanceList.dtMachineType.ToModelRepresentation(), Value = machineType};
         }
     }
 }

@@ -35,11 +35,10 @@ namespace AcceptanceTests.Asserts.Export
             if (field != null)
                 Assert.AreEqual(field.Id.FindIsoId(), tsk.E);
 
-            if(loggedData.TimeScopeIds != null && loggedData.TimeScopeIds.Any())
+            if(loggedData.TimeScopes != null && loggedData.TimeScopes.Any())
             {
-                var timescopes = catalog.TimeScopes.Where(x => loggedData.TimeScopeIds.Contains(x.Id.ReferenceId)).ToList();
                 var tims = tsk.Items.Where(x => x.GetType() == typeof(TIM)).Cast<TIM>().ToList();
-                TimAssert.AreEqual(timescopes, tims);
+                TimAssert.AreEqual(loggedData.TimeScopes, tims);
             }
 
             if(loggedData.OperationData != null && loggedData.OperationData.Any())

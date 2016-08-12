@@ -34,8 +34,7 @@ namespace AcceptanceTests.Asserts.Export
             Assert.IsTrue(File.Exists(tlgXmlHeaderFilePath));
 
             var tims = new XmlReader().ReadTlgXmlData(cardPath, fileName);
-            // TODO:  Assert this.
-            //TimAssert.AreEqual(timeScopes,  tims);    
+            TimAssert.AreEqual(timeScopes,  tims);    
 
             var sections = operationData.GetAllSections();
             var meters = sections.SelectMany(x => x.GetWorkingDatas()).ToList();

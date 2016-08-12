@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
+using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ISOv4Plugin.Extensions;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
@@ -67,7 +68,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
 
         private IWriter[] MapItems(LoggedData loggedData, Catalog catalog, string datacardPath, TaskDocumentWriter taskDocumentWriter)
         {
-            var times = FindAndMapTimes(loggedData.TimeScopeIds, catalog);
+            var times = FindAndMapTimes(loggedData.TimeScopes);
             var tlgs = _tlgMapper.Map(loggedData.OperationData, datacardPath, taskDocumentWriter);
 
             var items = new List<IWriter>();
@@ -81,13 +82,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
             return items.ToArray();
         }
 
-        private IEnumerable<TIM> FindAndMapTimes(List<int> timeScopeIds, Catalog catalog)
+        private IEnumerable<TIM> FindAndMapTimes(IEnumerable<TimeScope> timeScopes)
         {
-            if (timeScopeIds == null)
+            if (timeScopes == null)
                 return null;
 
-            var timescopes = catalog.TimeScopes.Where(x => timeScopeIds.Contains(x.Id.ReferenceId));
-            return _timeMapper.Map(timescopes);
+            return _timeMapper.Map(timeScopes);
         }
 
         private string FindFieldId(int? fieldId, Catalog catalog)

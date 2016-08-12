@@ -176,7 +176,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
 
                         if (rateCount == dataVariables.Count)
                         {
-                            //System.Diagnostics.Debug.WriteLine("");
                             _descriptor.ProductRates.Add(rates);
                             rateCount = 0;
                             rates = new List<double>();
