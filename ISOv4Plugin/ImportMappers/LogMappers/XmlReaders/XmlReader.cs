@@ -43,7 +43,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders
 
         public List<TIM> ReadTlgXmlData(string datacardPath, string fileName)
         {
-            var file = Path.Combine(datacardPath, fileName);
+            var file = Path.Combine(datacardPath, "TASKDATA", fileName);
             var xPathDocument = new XPathDocument(file);
 
             return _timReader.Read(xPathDocument);

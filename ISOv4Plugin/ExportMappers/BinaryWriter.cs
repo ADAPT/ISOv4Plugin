@@ -37,7 +37,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
 
         public IEnumerable<ISOSpatialRow> Write(string fileName, List<WorkingData> meters, IEnumerable<SpatialRecord> spatialRecords)
         {
-            Debug.WriteLine("Writing file " + fileName);
+            if(spatialRecords == null)
+                return null;
+
             var metersByIsoIds = GetMeterToIsoIdCache(meters);
 
             using (var memoryStream = new MemoryStream())

@@ -96,7 +96,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin
                 {
                     var xml = Encoding.UTF8.GetString(taskWriter.XmlStream.ToArray());
                     File.WriteAllText(filePath, xml);
-                    LinkListWriter.Write(exportPath, taskWriter.Ids);
+                    LinkListWriter.Write(taskDataPath, taskWriter.Ids);
                 }
             }
         }
