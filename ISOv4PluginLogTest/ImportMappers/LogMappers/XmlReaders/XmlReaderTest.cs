@@ -45,8 +45,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers.XmlReaders
             var tim = new TIM();
             _timReaderMock.Setup(x => x.Read(It.IsAny<XPathDocument>())).Returns(new List<TIM>{tim});
 
-            var filePath = Path.Combine(_dataPath, "TASKDATA");
-            var result = _xmlReader.ReadTlgXmlData(filePath, _fileName);
+            var result = _xmlReader.ReadTlgXmlData(_dataPath, _fileName);
             Assert.AreEqual(1, result.Count);
             Assert.AreSame(tim, result[0]);
         }
