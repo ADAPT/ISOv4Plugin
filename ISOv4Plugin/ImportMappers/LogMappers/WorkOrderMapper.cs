@@ -48,10 +48,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             {
                 AssociatePersonWithWorkOrder(task, dataModel, workOrder);
             }
-            if (task.Items != null && task.Items.OfType<TZN>().Any())
-            {
-                AssociateRxWithWorkOrder(task, dataModel, workOrder);
-            }
+            AssociateWorkItemWithWorkOrder(task, dataModel, workOrder);
 
             return workOrder;
         }
@@ -67,30 +64,40 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             }
         }
 
-        private static void AssociateRxWithWorkOrder(TSK task, ApplicationDataModel.ADM.ApplicationDataModel dataModel, WorkOrder workOrder)
+        private static void AssociateWorkItemWithWorkOrder(TSK task, ApplicationDataModel.ADM.ApplicationDataModel dataModel, WorkOrder workOrder)
+        {
+            var fieldId = workOrder.FieldIds.FirstOrDefault();
+            var workItem = new WorkItem
+            {
+                GrowerId = workOrder.GrowerId,
+                FarmId = workOrder.FarmIds.FirstOrDefault(),
+                FieldId = fieldId,
+            };
+            if (fieldId != 0)
+            {
+                var field = dataModel.Catalog.Fields.Single(f => f.Id.ReferenceId == fieldId);
+                if (field.ActiveBoundaryId != 0)
+                    workItem.BoundaryId = field.ActiveBoundaryId;
+            }
+
+            dataModel.Documents.WorkItems = dataModel.Documents.WorkItems.Concat(new[] { workItem });
+            workOrder.WorkItemIds = new List<int> { workItem.Id.ReferenceId };
+
+            if (task.Items != null && task.Items.OfType<TZN>().Any())
+            {
+                AssociateRxWithWorkItem(task, dataModel, workItem);
+            }
+        }
+
+        private static void AssociateRxWithWorkItem(TSK task, ApplicationDataModel.ADM.ApplicationDataModel dataModel, WorkItem workItem)
         {
             var matchingRx = dataModel.Catalog.Prescriptions.SingleOrDefault(p => p.Id.FindIsoId() == task.A);
             if (matchingRx != null)
             {
-                var operation = new WorkItemOperation {PrescriptionId = matchingRx.Id.ReferenceId};
+                var operation = new WorkItemOperation();
+                operation.PrescriptionId = matchingRx.Id.ReferenceId;
                 dataModel.Documents.WorkItemOperations = dataModel.Documents.WorkItemOperations.Concat(new[] {operation});
-                var fieldId = workOrder.FieldIds.FirstOrDefault();
-                var workItem = new WorkItem
-                {
-                    WorkItemOperationIds = new List<int> {operation.Id.ReferenceId},
-                    GrowerId = workOrder.GrowerId,
-                    FarmId = workOrder.FarmIds.FirstOrDefault(),
-                    FieldId = fieldId,
-                };
-                if (fieldId != 0)
-                {
-                    var field = dataModel.Catalog.Fields.Single(f => f.Id.ReferenceId == fieldId);
-                    if (field.ActiveBoundaryId != 0)
-                        workItem.BoundaryId = field.ActiveBoundaryId;
-                }
-
-                dataModel.Documents.WorkItems = dataModel.Documents.WorkItems.Concat(new[] {workItem});
-                workOrder.WorkItemIds = new List<int> {workItem.Id.ReferenceId};
+                workItem.WorkItemOperationIds = new List<int> {operation.Id.ReferenceId};
             }
         }
 
