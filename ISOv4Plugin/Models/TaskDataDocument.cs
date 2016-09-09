@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Xml;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
@@ -14,7 +13,6 @@ using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ApplicationDataModel.Logistics;
 using AgGateway.ADAPT.ApplicationDataModel.Prescriptions;
 using AgGateway.ADAPT.ApplicationDataModel.Products;
-using AgGateway.ADAPT.ApplicationDataModel.ReferenceLayers;
 using AgGateway.ADAPT.ISOv4Plugin.Extensions;
 using AgGateway.ADAPT.ISOv4Plugin.Loaders;
 
@@ -106,6 +104,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Models
             Workers = WorkerLoader.Load(this);
             Comments = CommentLoader.Load(this);
             Tasks = TaskLoader.Load(this);
+
             RasterPrescriptions = PrescriptionLoader.Load(this);
             Machines = DeviceLoader.Load(this);
 

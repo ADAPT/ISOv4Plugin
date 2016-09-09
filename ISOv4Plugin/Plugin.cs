@@ -91,7 +91,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin
                 var taskDataPath = Path.Combine(exportPath, "TASKDATA");
                 var iso11783TaskData = _exporter.Export(dataModel, taskDataPath, taskWriter);
 
-                var filePath = Path.Combine(taskDataPath, "TASKDATA.XML");
+                var filePath = Path.Combine(taskDataPath, FileName);
                 if (iso11783TaskData != null)
                 {
                     var xml = Encoding.UTF8.GetString(taskWriter.XmlStream.ToArray());
@@ -116,10 +116,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin
 
             var inputPath = Path.Combine(dataPath, "Taskdata");
             if (Directory.Exists(inputPath))
-                taskDataFiles.AddRange(Directory.GetFiles(inputPath, "taskdata.xml"));
+                taskDataFiles.AddRange(Directory.GetFiles(inputPath, FileName));
 
             if (!taskDataFiles.Any() && Directory.Exists(dataPath))
-                taskDataFiles.AddRange(Directory.GetFiles(dataPath, "taskdata.xml"));
+                taskDataFiles.AddRange(Directory.GetFiles(dataPath, FileName));
 
             return taskDataFiles;
         }
