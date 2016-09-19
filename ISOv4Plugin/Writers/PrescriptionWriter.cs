@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
+using AgGateway.ADAPT.ApplicationDataModel.Documents;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ApplicationDataModel.Prescriptions;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
@@ -35,11 +36,31 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
             writer.WritePrescriptions();
         }
 
+        public static void WriteSingle(TaskDocumentWriter taskWriter, Prescription prescription)
+        {
+            if (prescription == null)
+                return;
+            var rasterPrescription = prescription as RasterGridPrescription;
+            if (rasterPrescription != null)
+            {
+                var writer = new PrescriptionWriter(taskWriter);
+                writer.WritePrescription(rasterPrescription);
+            }
+        }
+
         private void WritePrescriptions()
         {
+            var rxIdsWithWorkOrders = new List<int>();
+            if (TaskWriter.DataModel != null && TaskWriter.DataModel.Documents != null)
+            {
+                var workItemIds = TaskWriter.DataModel.Documents.WorkOrders.SelectMany(wo => wo.WorkItemIds).ToList();
+                rxIdsWithWorkOrders = TaskWriter.DataModel.Documents.WorkItemOperations.Where(
+                    op => workItemIds.Contains(op.Id.ReferenceId)).Select(op => op.PrescriptionId.GetValueOrDefault(0)).ToList();
+            }
             foreach (var prescription in TaskWriter.DataModel.Catalog.Prescriptions.OfType<RasterGridPrescription>())
             {
-                WritePrescription(prescription);
+                if(!rxIdsWithWorkOrders.Contains(prescription.Id.ReferenceId))
+                    WritePrescription(prescription);
             }
         }
 

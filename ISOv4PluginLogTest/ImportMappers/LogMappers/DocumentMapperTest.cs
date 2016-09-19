@@ -2,6 +2,7 @@
 using System.IO;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
+using AgGateway.ADAPT.ApplicationDataModel.Documents;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
 using Moq;
@@ -52,6 +53,18 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             _documentMapper.Map(_tsks, _dataPath, _dataModel, _linkedIds);
 
             _workOrderMapperMock.Verify(x => x.Map(_tsks, _dataModel), Times.Once);
+        }
+
+        [Test]
+        public void GivenTsksWhenMapThenWorkOrdersAreAddedToDocuments()
+        {
+            _tsks.Add(new TSK { Items = new IWriter[] { } });
+            var workOrders = new List<WorkOrder> {new WorkOrder()};
+            _workOrderMapperMock.Setup(m => m.Map(_tsks, _dataModel)).Returns(workOrders);
+
+            _documentMapper.Map(_tsks, _dataPath, _dataModel, _linkedIds);
+
+            Assert.AreSame(workOrders, _dataModel.Documents.WorkOrders);
         }
     }
 }

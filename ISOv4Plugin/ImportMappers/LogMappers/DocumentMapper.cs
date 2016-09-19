@@ -33,7 +33,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             _loggedDataMapper.Map(tasksWithLoggedData, dataPath, dataModel, linkedIds);
 
             var tasksWithoutLogData = tsks.Where(task => task.Items == null || !task.Items.OfType<TLG>().Any()).ToList();
-            _workOrderMapper.Map(tasksWithoutLogData, dataModel);
+            var workOrders = _workOrderMapper.Map(tasksWithoutLogData, dataModel);
+            dataModel.Documents.WorkOrders = workOrders;
 
             return dataModel.Documents;
         }
