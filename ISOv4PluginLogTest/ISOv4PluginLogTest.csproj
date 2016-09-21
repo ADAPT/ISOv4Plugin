@@ -82,6 +82,8 @@
     <Compile Include="ImportMappers\LogMappers\SectionControlStateMeterCreatorTest.cs" />
     <Compile Include="ImportMappers\LogMappers\SkyConditionsMeterCreatorTest.cs" />
     <Compile Include="ImportMappers\LogMappers\RepresentationValueInterpolatorTest.cs" />
+    <Compile Include="ImportMappers\LogMappers\StatusUpdateMapperTest.cs" />
+    <Compile Include="ImportMappers\LogMappers\WorkOrderMapperTest.cs" />
     <Compile Include="ImportMappers\LogMappers\WorkStateMeterCreatorTest.cs" />
     <Compile Include="ImportMappers\TimeScopeMapperTest.cs" />
     <Compile Include="ImportMappers\UniqueIdMapperTest.cs" />

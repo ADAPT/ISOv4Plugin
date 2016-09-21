@@ -39,11 +39,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin
                     ? null
                     : _taskMapper.Map(applicationDataModel.Documents.LoggedData, applicationDataModel.Catalog,
                         taskDataPath, numberOfExistingTasks, writer, false);
-            if (tasks != null)
-            {
-                var taskList = tasks.ToList();
-                taskList.ForEach(t => t.WriteXML(isoTaskData));
-            }
+                if (tasks != null)
+                {
+                    var taskList = tasks.ToList();
+                    taskList.ForEach(t => t.WriteXML(isoTaskData));
+                }
             }
 
             //Close the root element with </ISO11783_TaskData>

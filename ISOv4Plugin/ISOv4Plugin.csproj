@@ -92,6 +92,8 @@
     <Compile Include="ImportMappers\LogMappers\SkyConditionsMeterCreator.cs" />
     <Compile Include="ImportMappers\LogMappers\SpatialRecordMapper.cs" />
     <Compile Include="ImportMappers\LogMappers\RepresentationValueInterpolator.cs" />
+    <Compile Include="ImportMappers\LogMappers\StatusUpdateMapper.cs" />
+    <Compile Include="ImportMappers\LogMappers\WorkOrderMapper.cs" />
     <Compile Include="ImportMappers\LogMappers\WorkStateMeterCreator.cs" />
     <Compile Include="ImportMappers\LogMappers\XmlReaders\DlvReader.cs" />
     <Compile Include="ImportMappers\LogMappers\XmlReaders\PtnReader.cs" />

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
 
@@ -126,9 +127,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin
 
         public IsoUnit GetUnitByDdi(int ddi)
         {
-            var interval = new Interval { Min = ddi, Max = ddi };
-            if (_units.ContainsKey(interval))
-                return _units[interval];
+            var isoUnit = _units.FirstOrDefault(u => (u.Key.Min <= ddi && u.Key.Max >= ddi));
+            if (isoUnit.Value != null)
+                return isoUnit.Value;
             return null;
         }
 
