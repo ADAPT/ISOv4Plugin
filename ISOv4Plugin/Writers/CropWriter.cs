@@ -44,14 +44,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
             writer.WriteAttributeString("A", cropId);
             writer.WriteAttributeString("B", crop.Name);
 
-            WriteVarieties(writer, crop.Id);
+            WriteVarieties(writer, crop);
 
             writer.WriteEndElement();
 
             return cropId;
         }
 
-        private void WriteVarieties(XmlWriter writer, CompoundIdentifier cropId)
+        private void WriteVarieties(XmlWriter writer, Crop cropId)
         {
             if (TaskWriter.DataModel.Catalog.CropVarieties == null ||
                 TaskWriter.DataModel.Catalog.CropVarieties.Count == 0)
@@ -60,7 +60,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
             var cropVarieties = new List<CropVariety>();
             foreach (var cropVariety in TaskWriter.DataModel.Catalog.CropVarieties)
             {
-                if (cropVariety.CropId == cropId.ReferenceId)
+                if (cropVariety.CropId == cropId.Id.ReferenceId)
                     cropVarieties.Add(cropVariety);
             }
 
