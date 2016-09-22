@@ -75,8 +75,7 @@ namespace ISOv4PluginLogTest
             Assert.IsEmpty(_applicationDataModel.Catalog.Brands);
             Assert.IsEmpty(_applicationDataModel.Catalog.Connectors);
             Assert.IsEmpty(_applicationDataModel.Catalog.ContactInfo);
-            Assert.IsEmpty(_applicationDataModel.Catalog.CropProtectionProducts);
-            Assert.IsEmpty(_applicationDataModel.Catalog.CropVarieties);
+            Assert.IsEmpty(_applicationDataModel.Catalog.Products);
             Assert.IsEmpty(_applicationDataModel.Catalog.CropZones);
             Assert.IsEmpty(_applicationDataModel.Catalog.Crops);
             Assert.IsEmpty(_applicationDataModel.Catalog.DeviceElements);
@@ -84,7 +83,6 @@ namespace ISOv4PluginLogTest
             Assert.IsEmpty(_applicationDataModel.Catalog.DeviceElementUses);
             Assert.IsEmpty(_applicationDataModel.Catalog.DeviceModels);
             Assert.IsEmpty(_applicationDataModel.Catalog.Farms);
-            Assert.IsEmpty(_applicationDataModel.Catalog.FertilizerProducts);
             Assert.IsEmpty(_applicationDataModel.Catalog.FieldBoundaries);
             Assert.IsEmpty(_applicationDataModel.Catalog.Fields);
             Assert.IsEmpty(_applicationDataModel.Catalog.Growers);
@@ -94,7 +92,6 @@ namespace ISOv4PluginLogTest
             Assert.IsEmpty(_applicationDataModel.Catalog.PersonRoles);
             Assert.IsEmpty(_applicationDataModel.Catalog.Persons);
             Assert.IsEmpty(_applicationDataModel.Catalog.Prescriptions);
-            Assert.IsEmpty(_applicationDataModel.Catalog.ProductMixes);
         }
 
         [Test]

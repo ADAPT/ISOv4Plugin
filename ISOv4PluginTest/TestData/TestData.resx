@@ -331,9 +331,6 @@
   <data name="ProductMix4" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>productmix\productmix4.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="SingleProduct" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>prescription\singleproduct.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
   <data name="SingleProductOutputTxt" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>prescription\singleproductoutput.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
@@ -405,5 +402,8 @@
   </data>
   <data name="WorkersWithNoContactsOutput" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>worker\workerswithnocontactsoutput.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="SingleProduct" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>prescription\singleproduct.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
 </root>

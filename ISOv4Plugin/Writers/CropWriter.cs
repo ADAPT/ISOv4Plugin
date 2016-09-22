@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Xml;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.Products;
@@ -53,12 +54,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
 
         private void WriteVarieties(XmlWriter writer, Crop cropId)
         {
-            if (TaskWriter.DataModel.Catalog.CropVarieties == null ||
-                TaskWriter.DataModel.Catalog.CropVarieties.Count == 0)
+            if (TaskWriter.DataModel.Catalog.Products == null ||
+                TaskWriter.DataModel.Catalog.Products.Count == 0)
                 return;
 
             var cropVarieties = new List<CropVariety>();
-            foreach (var cropVariety in TaskWriter.DataModel.Catalog.CropVarieties)
+            foreach (var cropVariety in TaskWriter.DataModel.Catalog.Products.Where(x => x is CropVariety).Cast<CropVariety>())
             {
                 if (cropVariety.CropId == cropId.Id.ReferenceId)
                     cropVarieties.Add(cropVariety);

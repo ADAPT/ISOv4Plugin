@@ -1,13 +1,5 @@
 ﻿{
     "Catalog": {
-        "FertilizerProducts": [
-            {
-                "Description": "product",
-                "Id": {
-                    "ReferenceId": -1
-                }
-            }
-        ],
         "Prescriptions": [
             {
                 "$type": "AgGateway.ADAPT.ApplicationDataModel.Prescriptions.RasterGridPrescription, AgGateway.ADAPT.ApplicationDataModel",

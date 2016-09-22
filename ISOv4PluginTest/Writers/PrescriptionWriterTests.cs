@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
+using AgGateway.ADAPT.ApplicationDataModel.Products;
 using AgGateway.ADAPT.ISOv4Plugin.Writers;
 using NUnit.Framework;
 
@@ -25,6 +26,9 @@ namespace ISOv4PluginTest.Writers
             // Setup
             var taskWriter = new TaskDocumentWriter();
             var adaptDocument = TestHelpers.LoadFromJson<ApplicationDataModel>(TestData.TestData.SingleProduct);
+            var fertilizerProduct = new FertilizerProduct{ Description = "product"};
+            fertilizerProduct.Id.ReferenceId = -1;
+            adaptDocument.Catalog.Products.Add(fertilizerProduct);
 
             // Act
             using (taskWriter)

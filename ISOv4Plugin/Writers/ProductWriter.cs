@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Xml;
 using AgGateway.ADAPT.ApplicationDataModel.Products;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
@@ -16,9 +17,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
 
         public static void Write(TaskDocumentWriter taskWriter)
         {
-            if (taskWriter.DataModel.Catalog.FertilizerProducts == null &&
-                taskWriter.DataModel.Catalog.CropProtectionProducts == null &&
-                taskWriter.DataModel.Catalog.ProductMixes == null)
+            if (taskWriter.DataModel.Catalog.Products == null)
                 return;
 
             var writer = new ProductWriter(taskWriter);
@@ -27,9 +26,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
 
         private void WriteProducts(XmlWriter writer)
         {
-            WriteProducts(writer, TaskWriter.DataModel.Catalog.FertilizerProducts);
-            WriteProducts(writer, TaskWriter.DataModel.Catalog.CropProtectionProducts);
-            WriteProductMixes(writer, TaskWriter.DataModel.Catalog.ProductMixes);
+            WriteProducts(writer, TaskWriter.DataModel.Catalog.Products.Where(x => x is FertilizerProduct || x is CropProtectionProduct));
+            WriteProductMixes(writer, TaskWriter.DataModel.Catalog.Products.Where(x => x is ProductMix).Cast<ProductMix>().ToList());
         }
 
         private void WriteProducts(XmlWriter writer, IEnumerable<Product> products)
