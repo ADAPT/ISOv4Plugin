@@ -139,13 +139,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin
             catalog.Crops = taskDocument.Crops.Values.ToList();
             catalog.CropZones = taskDocument.CropZones.Values.ToList();
             catalog.DeviceElements = taskDocument.Machines.Values.ToList();
-            catalog.CropVarieties = taskDocument.CropVarieties.Values.ToList();
             catalog.FieldBoundaries = taskDocument.FieldBoundaries;
-            catalog.ProductMixes = taskDocument.ProductMixes.Values.ToList();
             catalog.Ingredients = taskDocument.Ingredients;
-            catalog.FertilizerProducts = taskDocument.Products.Values.OfType<FertilizerProduct>().ToList();
             catalog.Prescriptions = taskDocument.RasterPrescriptions.Cast<Prescription>().ToList();
             catalog.ContactInfo = taskDocument.Contacts;
+            catalog.Products = AddAllProducts(taskDocument);
 
             dataModel.Catalog = catalog;
 
@@ -156,6 +154,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin
             dataModel.Documents = documents;
 
             return taskDocument;
+        }
+
+        private static List<Product> AddAllProducts(TaskDataDocument taskDocument)
+        {
+            var products = new List<Product>();
+            products.AddRange(taskDocument.CropVarieties.Values);
+            products.AddRange(taskDocument.ProductMixes.Values);
+            products.AddRange(taskDocument.Products.Values.OfType<FertilizerProduct>());
+
+            return products;
         }
     }
 }

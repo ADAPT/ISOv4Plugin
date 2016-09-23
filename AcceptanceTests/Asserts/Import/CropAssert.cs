@@ -25,7 +25,7 @@ namespace AcceptanceTests.Asserts.Import
             Assert.AreEqual(ctpNode.GetXmlAttribute("A"), crop.Id.FindIsoId());
             Assert.AreEqual(ctpNode.GetXmlAttribute("B"), crop.Name);
 
-            var matchingCropVarieties = catalog.CropVarieties.Where(cv => cv.CropId == crop.Id.ReferenceId).ToList();
+            var matchingCropVarieties = catalog.Products.Where(x => x is CropVariety).Cast<CropVariety>().Where(cv => cv.CropId == crop.Id.ReferenceId).ToList();
             CropVarietyAssert.AreEqual(ctpNode.SelectNodes("CVT"), matchingCropVarieties, linkList);
         }
     }

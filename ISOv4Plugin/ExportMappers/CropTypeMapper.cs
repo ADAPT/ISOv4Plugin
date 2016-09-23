@@ -36,7 +36,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExportMappers
                 };
             ctp.A = ctp.GetIsoId(cropIndex);
 
-            var cvts = setupCatalog.CropVarieties.Where(v => v.CropId == crop.Id.ReferenceId).Select(Map);
+            var cvts = setupCatalog.Products.Where(x => x is CropVariety).Cast<CropVariety>().Where(v => v.CropId == crop.Id.ReferenceId).Select(Map);
 
             var cvtArray = cvts as CVT[] ?? cvts.ToArray();
             if (cvtArray.Any())

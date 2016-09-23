@@ -3,8 +3,11 @@ using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
 using AgGateway.ADAPT.ApplicationDataModel.Documents;
 using AgGateway.ADAPT.ApplicationDataModel.Logistics;
+using AgGateway.ADAPT.ApplicationDataModel.Representations;
 using AgGateway.ADAPT.ISOv4Plugin.Extensions;
 using AgGateway.ADAPT.ISOv4Plugin.Models;
+using AgGateway.ADAPT.Representation.RepresentationSystem;
+using AgGateway.ADAPT.Representation.RepresentationSystem.ExtensionMethods;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
 {
@@ -58,7 +61,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             var person = dataModel.Catalog.Persons.SingleOrDefault(p => p.Id.FindIsoId() == task.F);
             if (person != null)
             {
-                var personRole = new PersonRole {PersonId = person.Id.ReferenceId, Role = PersonRolesEnum.Operator};
+                var personRole = new PersonRole {PersonId = person.Id.ReferenceId, Role = new EnumeratedValue{Representation = RepresentationInstanceList.dtPersonRole.ToModelRepresentation(), Value = DefinedTypeEnumerationInstanceList.dtiPersonRoleOperator.ToModelEnumMember()}};
                 dataModel.Catalog.PersonRoles.Add(personRole);
                 workOrder.PersonRoleIds = new List<int> {personRole.Id.ReferenceId};
             }

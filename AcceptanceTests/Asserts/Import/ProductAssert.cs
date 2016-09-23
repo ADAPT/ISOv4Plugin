@@ -3,6 +3,7 @@ using System.Linq;
 using System.Xml;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
+using AgGateway.ADAPT.ApplicationDataModel.Products;
 using AgGateway.ADAPT.ISOv4Plugin.Extensions;
 
 namespace AcceptanceTests.Asserts.Import
@@ -15,13 +16,13 @@ namespace AcceptanceTests.Asserts.Import
             {
                 if (productNodes[i].GetXmlAttribute("F") == "1")//fertilizerProduct
                 {
-                    var matchingFertilizer = catalog.FertilizerProducts.Single(fp => fp.Id.FindIsoId() == productNodes[i].GetXmlAttribute("A"));
+                    var matchingFertilizer = catalog.Products.Single(fp => fp.Id.FindIsoId() == productNodes[i].GetXmlAttribute("A")) as FertilizerProduct;
                     FertilizerProductAssert.AreEqual(productNodes[i], matchingFertilizer, linkList);
                     
                 } 
                 else if (productNodes[i].GetXmlAttribute("F") == "2")//productMix
                 {
-                    var matchingProductMix = catalog.ProductMixes.Single(pm => pm.Id.FindIsoId() == productNodes[i].GetXmlAttribute("A"));
+                    var matchingProductMix = catalog.Products.Single(pm => pm.Id.FindIsoId() == productNodes[i].GetXmlAttribute("A")) as ProductMix;
                     ProductMixAssert.AreEqual(productNodes[i], productNodes, matchingProductMix, catalog, linkList);
                 }
             }
