@@ -53,11 +53,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
                 if(gln == "http://dictionary.isobus.net/isobus/")
                     return;
 
-                var uuidKvps = ids.Where(x => x.Value.UniqueIds.Any(ui => ui.CiTypeEnum == CompoundIdentifierTypeEnum.UUID));
+                var uuidKvps = ids.Where(x => x.Value.UniqueIds.Any(ui => ui.IdType == IdTypeEnum.UUID));
                 WriteGroup(currentGroupId, "1", gln, uuidKvps, writer, true);
                 currentGroupId ++;
 
-                var intStringKvps = ids.Where(x => x.Value.UniqueIds.Any(ui => ui.Source == gln && (ui.CiTypeEnum == CompoundIdentifierTypeEnum.LongInt || ui.CiTypeEnum == CompoundIdentifierTypeEnum.String)));
+                var intStringKvps = ids.Where(x => x.Value.UniqueIds.Any(ui => ui.Source == gln && (ui.IdType == IdTypeEnum.LongInt || ui.IdType == IdTypeEnum.String)));
                 WriteGroup(currentGroupId, "2", gln, intStringKvps, writer, false);
                 currentGroupId++;
             }
@@ -78,7 +78,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
         {
             foreach (var kvp in ids)
             {
-                foreach (var uniqueId in kvp.Value.UniqueIds.Where(i => writeUuidIds == (i.CiTypeEnum == CompoundIdentifierTypeEnum.UUID) && i.Source == gln))
+                foreach (var uniqueId in kvp.Value.UniqueIds.Where(i => writeUuidIds == (i.IdType == IdTypeEnum.UUID) && i.Source == gln))
                 {
                     writer.WriteStartElement("LNK");
                     writer.WriteAttributeString("A", kvp.Key);

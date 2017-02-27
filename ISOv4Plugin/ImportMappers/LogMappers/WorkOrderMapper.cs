@@ -45,7 +45,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             workOrder.GrowerId = GetGrower(dataModel.Catalog, task.C);
             workOrder.FarmIds = GetFarms(dataModel.Catalog, task.D);
             workOrder.FieldIds = GetFields(dataModel.Catalog, task.E);
-            workOrder.StatusUpdates = _statusUpdateMapper.Map(task.G);
+            workOrder.StatusUpdates = new List<StatusUpdate>();
+            workOrder.StatusUpdates.Add(_statusUpdateMapper.Map(task.G));
 
             if (!string.IsNullOrEmpty(task.F))
             {

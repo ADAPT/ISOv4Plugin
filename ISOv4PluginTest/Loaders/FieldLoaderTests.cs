@@ -246,16 +246,16 @@ namespace ISOv4PluginTest.Loaders
             Assert.AreEqual(2, taskDocument.Fields.Count);
 
             const string expectedSource = "http://dictionary.isobus.net/isobus/";
-            const CompoundIdentifierTypeEnum expectedType = CompoundIdentifierTypeEnum.String;
+            const IdTypeEnum expectedType = IdTypeEnum.String;
 
             var field = taskDocument.Fields["PFD1"];
             Assert.AreEqual("PFD1", field.Id.UniqueIds[0].Id);
-            Assert.AreEqual(expectedType, field.Id.UniqueIds[0].CiTypeEnum);
+            Assert.AreEqual(expectedType, field.Id.UniqueIds[0].IdType);
             Assert.AreEqual(expectedSource, field.Id.UniqueIds[0].Source);
 
             field = taskDocument.Fields["PFD2"];
             Assert.AreEqual("PFD2", field.Id.UniqueIds[0].Id);
-            Assert.AreEqual(expectedType, field.Id.UniqueIds[0].CiTypeEnum);
+            Assert.AreEqual(expectedType, field.Id.UniqueIds[0].IdType);
             Assert.AreEqual(expectedSource, field.Id.UniqueIds[0].Source);
         }
 

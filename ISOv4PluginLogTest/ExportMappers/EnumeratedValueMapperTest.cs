@@ -35,8 +35,8 @@ namespace ISOv4PluginLogTest.ExportMappers
             var enumeratedMeter1 = new ISOEnumeratedMeter{ Representation = RepresentationInstanceList.dtRecordingStatus.ToModelRepresentation() };
             var enumeratedMeter2 = new ISOEnumeratedMeter();
 
-            enumeratedMeter1.Id.UniqueIds.Add(new UniqueId{ Id = "DLV3", Source = UniqueIdMapper.IsoSource, CiTypeEnum = CompoundIdentifierTypeEnum.String });
-            enumeratedMeter2.Id.UniqueIds.Add(new UniqueId{ Id = "DLV3", Source = UniqueIdMapper.IsoSource, CiTypeEnum = CompoundIdentifierTypeEnum.String });
+            enumeratedMeter1.Id.UniqueIds.Add(new UniqueId{ Id = "DLV3", Source = UniqueIdMapper.IsoSource, IdType = IdTypeEnum.String });
+            enumeratedMeter2.Id.UniqueIds.Add(new UniqueId{ Id = "DLV3", Source = UniqueIdMapper.IsoSource, IdType = IdTypeEnum.String });
 
             var meters = new List<WorkingData> { enumeratedMeter1, enumeratedMeter2 };
 

@@ -58,7 +58,7 @@ namespace ISOv4PluginLogTest.ExportMappers
             var grower = new Grower();
             grower.Id.UniqueIds.Add(new UniqueId
             {
-                CiTypeEnum = CompoundIdentifierTypeEnum.String,
+                IdType = IdTypeEnum.String,
                 Id = "CTR2",
                 Source = UniqueIdMapper.IsoSource,
             });
@@ -77,7 +77,7 @@ namespace ISOv4PluginLogTest.ExportMappers
             var farm = new Farm();
             farm.Id.UniqueIds.Add(new UniqueId
             {
-                CiTypeEnum = CompoundIdentifierTypeEnum.String,
+                IdType = IdTypeEnum.String,
                 Id = "FRM2",
                 Source = UniqueIdMapper.IsoSource,
             });
@@ -96,7 +96,7 @@ namespace ISOv4PluginLogTest.ExportMappers
             var field = new Field();
             field.Id.UniqueIds.Add(new UniqueId
             {
-                CiTypeEnum = CompoundIdentifierTypeEnum.String,
+                IdType = IdTypeEnum.String,
                 Id = "PFD3",
                 Source = UniqueIdMapper.IsoSource,
             });

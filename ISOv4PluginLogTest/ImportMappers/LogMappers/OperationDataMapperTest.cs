@@ -136,7 +136,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         {
             var uniqueId = new UniqueId
             {
-                CiTypeEnum = CompoundIdentifierTypeEnum.UUID,
+                IdType = IdTypeEnum.UUID,
                 Source = "source1",
                 Id = Guid.NewGuid().ToString(),
                 SourceType = IdSourceTypeEnum.GLN

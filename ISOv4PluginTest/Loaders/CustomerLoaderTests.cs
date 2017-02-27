@@ -73,10 +73,10 @@ namespace ISOv4PluginTest.Loaders
             // Verify
             var customer = taskDocument.Customers["CTR1"];
             const string expectedSource = "http://dictionary.isobus.net/isobus/";
-            const CompoundIdentifierTypeEnum expectedType = CompoundIdentifierTypeEnum.String;
+            const IdTypeEnum expectedType = IdTypeEnum.String;
 
             Assert.AreEqual("CTR1", customer.Id.UniqueIds[0].Id);
-            Assert.AreEqual(expectedType, customer.Id.UniqueIds[0].CiTypeEnum);
+            Assert.AreEqual(expectedType, customer.Id.UniqueIds[0].IdType);
             Assert.AreEqual(expectedSource, customer.Id.UniqueIds[0].Source);
         }
 

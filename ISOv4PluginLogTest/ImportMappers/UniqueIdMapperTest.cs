@@ -37,14 +37,14 @@ namespace ISOv4PluginLogTest.ImportMappers
         }
 
         [Test]
-        public void GivenIdWhenMapThenCiTypeEnumIsMapped()
+        public void GivenIdWhenMapThenIdTypeIsMapped()
         {
             _id = "DLV1";
 
             var uniqueId = Map();
 
-            const CompoundIdentifierTypeEnum expected = CompoundIdentifierTypeEnum.String;
-            Assert.AreEqual(expected, uniqueId.CiTypeEnum);
+            const IdTypeEnum expected = IdTypeEnum.String;
+            Assert.AreEqual(expected, uniqueId.IdType);
         }
 
         [Test]

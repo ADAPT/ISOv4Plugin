@@ -147,7 +147,7 @@ namespace ISOv4PluginTest.Writers
             var uniqueId = new UniqueId
             {
                 Id = Guid.NewGuid().ToString(),
-                CiTypeEnum = CompoundIdentifierTypeEnum.UUID,
+                IdType = IdTypeEnum.UUID,
                 Source = "urn:epc:id:sgln:0000000.00000.1",
             };
             var id = new CompoundIdentifier(0) { UniqueIds = new List<UniqueId> { uniqueId } };
@@ -172,7 +172,7 @@ namespace ISOv4PluginTest.Writers
             var uniqueId = new UniqueId
             {
                 Id = Guid.NewGuid().ToString(),
-                CiTypeEnum = CompoundIdentifierTypeEnum.UUID,
+                IdType = IdTypeEnum.UUID,
                 Source = "urn:epc:id:sgln:0000000.00000.1",
             };
             var id = new CompoundIdentifier(0) { UniqueIds = new List<UniqueId> { uniqueId } };
@@ -197,7 +197,7 @@ namespace ISOv4PluginTest.Writers
             var uniqueId = new UniqueId
             {
                 Id = Guid.NewGuid().ToString(),
-                CiTypeEnum = CompoundIdentifierTypeEnum.UUID,
+                IdType = IdTypeEnum.UUID,
                 Source = "urn:epc:id:sgln:0000000.00000.1",
             };
             var id = new CompoundIdentifier(0) { UniqueIds = new List<UniqueId>{ uniqueId } };
@@ -222,7 +222,7 @@ namespace ISOv4PluginTest.Writers
             var uniqueId = new UniqueId
             {
                 Id = "123",
-                CiTypeEnum = CompoundIdentifierTypeEnum.LongInt,
+                IdType = IdTypeEnum.LongInt,
                 Source = "urn:epc:id:sgln:0000000.00000.1",
             };
             var id = new CompoundIdentifier(0) { UniqueIds = new List<UniqueId>{ uniqueId } };
@@ -247,7 +247,7 @@ namespace ISOv4PluginTest.Writers
             var uniqueId = new UniqueId
             {
                 Id = "bob",
-                CiTypeEnum = CompoundIdentifierTypeEnum.String,
+                IdType = IdTypeEnum.String,
                 Source = "urn:epc:id:sgln:0000000.00000.1",
             };
             var id = new CompoundIdentifier(0) { UniqueIds = new List<UniqueId>{ uniqueId } };
@@ -272,13 +272,13 @@ namespace ISOv4PluginTest.Writers
             var uniqueId1 = new UniqueId
             {
                 Id = Guid.NewGuid().ToString(),
-                CiTypeEnum = CompoundIdentifierTypeEnum.UUID,
+                IdType = IdTypeEnum.UUID,
                 Source = "urn:epc:id:sgln:0000000.00000.1",
             };
             var uniqueId2 = new UniqueId
             {
                 Id = "456",
-                CiTypeEnum = CompoundIdentifierTypeEnum.LongInt,
+                IdType = IdTypeEnum.LongInt,
                 Source = "urn:epc:id:sgln:0000000.00000.1",
             };
             var id = new CompoundIdentifier(0) { UniqueIds = new List<UniqueId> { uniqueId1, uniqueId2 } };
