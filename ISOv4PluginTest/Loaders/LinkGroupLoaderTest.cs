@@ -151,7 +151,7 @@ namespace ISOv4PluginTest.Loaders
 
             var linkIds = LinkGroupLoader.Load(_doc.ChildNodes);
 
-            Assert.AreEqual(CompoundIdentifierTypeEnum.UUID, linkIds[attributeA.Value].First().CiTypeEnum);
+            Assert.AreEqual(IdTypeEnum.UUID, linkIds[attributeA.Value].First().IdType);
         }
 
         [Test]
@@ -176,7 +176,7 @@ namespace ISOv4PluginTest.Loaders
 
             var linkIds = LinkGroupLoader.Load(_doc.ChildNodes);
 
-            Assert.AreEqual(CompoundIdentifierTypeEnum.String, linkIds[attributeA.Value].First().CiTypeEnum);
+            Assert.AreEqual(IdTypeEnum.String, linkIds[attributeA.Value].First().IdType);
         }
 
         [Test]
@@ -201,7 +201,7 @@ namespace ISOv4PluginTest.Loaders
 
             var linkIds = LinkGroupLoader.Load(_doc.ChildNodes);
 
-            Assert.AreEqual(CompoundIdentifierTypeEnum.LongInt, linkIds[attributeA.Value].First().CiTypeEnum);
+            Assert.AreEqual(IdTypeEnum.LongInt, linkIds[attributeA.Value].First().IdType);
         }
 
         private void AddLgpAttributes(string b = "1")

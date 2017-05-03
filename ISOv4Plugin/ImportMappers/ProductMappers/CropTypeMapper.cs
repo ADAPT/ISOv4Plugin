@@ -20,7 +20,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.ProductMappers
             crop.Id.UniqueIds.Add(new UniqueId
             {
                 Id = Guid.NewGuid().ToString(),
-                CiTypeEnum = CompoundIdentifierTypeEnum.UUID,
+                IdType = IdTypeEnum.UUID,
                 Source = "http://www.deere.com",
                 SourceType = IdSourceTypeEnum.URI
             });

@@ -23,7 +23,7 @@ namespace ISOv4PluginLogTest.Extensions
             const string isoId = "CTR1";
             var uid = new UniqueId
             {
-                CiTypeEnum = CompoundIdentifierTypeEnum.String,
+                IdType = IdTypeEnum.String,
                 Id = isoId,
                 Source = UniqueIdMapper.IsoSource
             };
@@ -53,14 +53,14 @@ namespace ISOv4PluginLogTest.Extensions
             const string isoId = "CTR1";
             var uid1 = new UniqueId
             {
-                CiTypeEnum = CompoundIdentifierTypeEnum.String,
+                IdType = IdTypeEnum.String,
                 Id = isoId,
                 Source = UniqueIdMapper.IsoSource
             };
             
             var uid2 = new UniqueId
             {
-                CiTypeEnum = CompoundIdentifierTypeEnum.String,
+                IdType = IdTypeEnum.String,
                 Id = Guid.NewGuid().ToString(),
                 Source = UniqueIdMapper.IsoSource
             };
@@ -81,7 +81,7 @@ namespace ISOv4PluginLogTest.Extensions
             const string isoId = "CTR2";
             var uid1 = new UniqueId
             {
-                CiTypeEnum = CompoundIdentifierTypeEnum.String,
+                IdType = IdTypeEnum.String,
                 Id = isoId,
                 Source = UniqueIdMapper.IsoSource
             };
@@ -111,7 +111,7 @@ namespace ISOv4PluginLogTest.Extensions
             const string isoId = "CTR-123";
             var uid1 = new UniqueId
             {
-                CiTypeEnum = CompoundIdentifierTypeEnum.String,
+                IdType = IdTypeEnum.String,
                 Id = isoId,
                 Source = UniqueIdMapper.IsoSource
             };
@@ -130,14 +130,14 @@ namespace ISOv4PluginLogTest.Extensions
             {
                 Id = "DLV1",
                 Source = "otherSource",
-                CiTypeEnum = CompoundIdentifierTypeEnum.String,
+                IdType = IdTypeEnum.String,
                 SourceType = IdSourceTypeEnum.URI,
             };
             var uid2 = new UniqueId
             {
                 Id = "DLV2",
                 Source = UniqueIdMapper.IsoSource,
-                CiTypeEnum = CompoundIdentifierTypeEnum.String,
+                IdType = IdTypeEnum.String,
                 SourceType = IdSourceTypeEnum.URI,
             };
             compoundIdentifier.UniqueIds.Add(uid1);

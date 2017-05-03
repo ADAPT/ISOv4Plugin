@@ -127,7 +127,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Extensions
         {
             var stringIds = adaptId.UniqueIds.Where(id => id.Id != null && 
                 id.Source == UniqueIdMapper.IsoSource && 
-                id.CiTypeEnum == CompoundIdentifierTypeEnum.String).ToList();
+                id.IdType == IdTypeEnum.String).ToList();
 
             var isoId = stringIds.FirstOrDefault(s => IsoIdPattern.IsMatch(s.Id));
 

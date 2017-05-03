@@ -64,10 +64,10 @@ namespace ISOv4PluginTest.Loaders
             // Verify
             var farm = taskDocument.Farms["FRM1"];
             const string expectedSource = "http://dictionary.isobus.net/isobus/";
-            const CompoundIdentifierTypeEnum expectedType = CompoundIdentifierTypeEnum.String;
+            const IdTypeEnum expectedType = IdTypeEnum.String;
 
             Assert.AreEqual("FRM1", farm.Id.UniqueIds[0].Id);
-            Assert.AreEqual(expectedType, farm.Id.UniqueIds[0].CiTypeEnum);
+            Assert.AreEqual(expectedType, farm.Id.UniqueIds[0].IdType);
             Assert.AreEqual(expectedSource, farm.Id.UniqueIds[0].Source);
         }
 

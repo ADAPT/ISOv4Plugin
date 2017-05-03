@@ -64,7 +64,7 @@ namespace ISOv4PluginLogTest.ExportMappers
             _meter.Id.UniqueIds.Add(new UniqueId
             {
                 Id = "DLV3",
-                CiTypeEnum = CompoundIdentifierTypeEnum.String,
+                IdType = IdTypeEnum.String,
                 Source = UniqueIdMapper.IsoSource
            });
             _meter.Representation = RepresentationInstanceList.vrYieldMass.ToModelRepresentation();
@@ -75,7 +75,7 @@ namespace ISOv4PluginLogTest.ExportMappers
             meter1.Id.UniqueIds.Add(new UniqueId
             {
                 Id = "DLV1",
-                CiTypeEnum = CompoundIdentifierTypeEnum.String,
+                IdType = IdTypeEnum.String,
                 Source = UniqueIdMapper.IsoSource
             });
             meter1.Representation = RepresentationInstanceList.vrYieldMass.ToModelRepresentation();

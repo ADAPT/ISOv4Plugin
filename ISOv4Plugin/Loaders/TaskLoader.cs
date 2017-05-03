@@ -86,7 +86,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
             {
                 Id = taskId,
                 Source = UniqueIdMapper.IsoSource,
-                CiTypeEnum = CompoundIdentifierTypeEnum.String,
+                IdType = IdTypeEnum.String,
             });
 
             _taskDocument.LoadLinkedIds(taskId, task.Id);

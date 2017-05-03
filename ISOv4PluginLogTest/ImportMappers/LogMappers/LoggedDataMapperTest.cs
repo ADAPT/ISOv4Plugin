@@ -63,7 +63,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             const string taskName = "TSK5";
 
             var existingLoggedData = new LoggedData();
-            existingLoggedData.Id.UniqueIds.Add(new UniqueId{ CiTypeEnum = CompoundIdentifierTypeEnum.String, Id = taskName, Source = UniqueIdMapper.IsoSource});
+            existingLoggedData.Id.UniqueIds.Add(new UniqueId{ IdType = IdTypeEnum.String, Id = taskName, Source = UniqueIdMapper.IsoSource});
             _documents.LoggedData = new List<LoggedData> {existingLoggedData};
 
             var tlgs = new List<TLG> {new TLG()};
@@ -120,7 +120,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             {
                 new UniqueId
                 {
-                    CiTypeEnum = CompoundIdentifierTypeEnum.String,
+                    IdType = IdTypeEnum.String,
                     Id = "FIX1",
                     Source = "http://dictionary.isobus.net/isobus/"
                 }
@@ -130,7 +130,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
 
 
             var existingLoggedData = new LoggedData();
-            existingLoggedData.Id.UniqueIds.Add(new UniqueId { CiTypeEnum = CompoundIdentifierTypeEnum.String, Id = "FIX1", Source = UniqueIdMapper.IsoSource });
+            existingLoggedData.Id.UniqueIds.Add(new UniqueId { IdType = IdTypeEnum.String, Id = "FIX1", Source = UniqueIdMapper.IsoSource });
             _documents.LoggedData = new List<LoggedData> { existingLoggedData };
 
             var grd = new GRD();
@@ -146,7 +146,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenTskWithNoGrdWhenMapThenPrescriptionIdIsNullToOperationMapper()
         {
             var existingLoggedData = new LoggedData();
-            existingLoggedData.Id.UniqueIds.Add(new UniqueId { CiTypeEnum = CompoundIdentifierTypeEnum.String, Id = "TSK0", Source = UniqueIdMapper.IsoSource });
+            existingLoggedData.Id.UniqueIds.Add(new UniqueId { IdType = IdTypeEnum.String, Id = "TSK0", Source = UniqueIdMapper.IsoSource });
             _documents.LoggedData = new List<LoggedData> { existingLoggedData };
             _tsk.A = "TSK0";
             _tsk.Items = new IWriter[0];
@@ -160,7 +160,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
         public void GivenTskWithNullItemWhenMapThenPrescriptionIdIsNullToOperationMapper()
         {
             var existingLoggedData = new LoggedData();
-            existingLoggedData.Id.UniqueIds.Add(new UniqueId { CiTypeEnum = CompoundIdentifierTypeEnum.String, Id = "TSK0", Source = UniqueIdMapper.IsoSource });
+            existingLoggedData.Id.UniqueIds.Add(new UniqueId { IdType = IdTypeEnum.String, Id = "TSK0", Source = UniqueIdMapper.IsoSource });
             _documents.LoggedData = new List<LoggedData> { existingLoggedData };
             _tsk.A = "TSK0";
 

@@ -86,27 +86,27 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
             switch (groupTypeValue)
             {
                 case "1":
-                    uniqueId.CiTypeEnum = CompoundIdentifierTypeEnum.UUID;
+                    uniqueId.IdType = IdTypeEnum.UUID;
                     break;
 
                 case "2":
                     int value;
                     var isInt = int.TryParse(uniqueId.Id, out value);
 
-                    uniqueId.CiTypeEnum = isInt ? CompoundIdentifierTypeEnum.LongInt : CompoundIdentifierTypeEnum.String;
+                    uniqueId.IdType = isInt ? IdTypeEnum.LongInt : IdTypeEnum.String;
                     uniqueId.SourceType = IdSourceTypeEnum.GLN;
                     uniqueId.Source = manufacturerGln;
                     break;
 
                 case "3":
-                    uniqueId.CiTypeEnum = CompoundIdentifierTypeEnum.String;
+                    uniqueId.IdType = IdTypeEnum.String;
                     uniqueId.SourceType = IdSourceTypeEnum.URI;
                     uniqueId.Source = groupNamespace;
                     uniqueId.Id = string.Concat(groupNamespace, uniqueId.Id);
                     break;
 
                 case "4":
-                    uniqueId.CiTypeEnum = CompoundIdentifierTypeEnum.String;
+                    uniqueId.IdType = IdTypeEnum.String;
                     uniqueId.SourceType = IdSourceTypeEnum.URI;
                     uniqueId.Id = string.Concat(groupNamespace, uniqueId.Id);
                     break;

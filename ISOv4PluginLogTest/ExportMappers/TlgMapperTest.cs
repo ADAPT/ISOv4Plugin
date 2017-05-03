@@ -71,7 +71,7 @@ namespace ISOv4PluginLogTest.ExportMappers
             _operationData.Id.UniqueIds.Add(new UniqueId
             {
                 Id = "TLG00016",
-                CiTypeEnum = CompoundIdentifierTypeEnum.String,
+                IdType = IdTypeEnum.String,
                 Source = UniqueIdMapper.IsoSource
             });
 
@@ -85,7 +85,7 @@ namespace ISOv4PluginLogTest.ExportMappers
             _operationData.Id.UniqueIds.Add(new UniqueId
             {
                 Id = "TLG00016",
-                CiTypeEnum = CompoundIdentifierTypeEnum.String,
+                IdType = IdTypeEnum.String,
                 Source = UniqueIdMapper.IsoSource
             });
 
@@ -119,7 +119,7 @@ namespace ISOv4PluginLogTest.ExportMappers
             _operationData.Id.UniqueIds.Add(new UniqueId
             {
                 Id = "TLG00016",
-                CiTypeEnum = CompoundIdentifierTypeEnum.String,
+                IdType = IdTypeEnum.String,
             });
 
             var meters = new List<WorkingData> { new NumericWorkingData() };
@@ -148,7 +148,7 @@ namespace ISOv4PluginLogTest.ExportMappers
             _operationData.Id.UniqueIds.Add(new UniqueId
             {
                 Id = "TLG00016",
-                CiTypeEnum = CompoundIdentifierTypeEnum.String,
+                IdType = IdTypeEnum.String,
                 Source = UniqueIdMapper.IsoSource
             });
 

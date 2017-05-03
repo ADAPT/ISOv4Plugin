@@ -68,7 +68,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
 
             var uniqueId = new UniqueId
             {
-                CiTypeEnum = CompoundIdentifierTypeEnum.String,
+                IdType = IdTypeEnum.String,
                 Id = "DLV0",
                 Source = UniqueIdMapper.IsoSource
             };
@@ -102,7 +102,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
 
             var uniqueId = new UniqueId
             {
-                CiTypeEnum = CompoundIdentifierTypeEnum.String,
+                IdType = IdTypeEnum.String,
                 Id = "DLV0",
                 Source = UniqueIdMapper.IsoSource
             };
@@ -210,7 +210,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
 
             var uniqueId = new UniqueId
             {
-                CiTypeEnum = CompoundIdentifierTypeEnum.String,
+                IdType = IdTypeEnum.String,
                 Id = "DLV0"
             };
             meter.Id.UniqueIds.Add(uniqueId);
@@ -243,7 +243,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
 
             var uniqueId = new UniqueId
             {
-                CiTypeEnum = CompoundIdentifierTypeEnum.String,
+                IdType = IdTypeEnum.String,
                 Id = "DLV0"
             };
             meter.Id.UniqueIds.Add(uniqueId);
@@ -282,7 +282,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
 
             var uniqueId = new UniqueId
             {
-                CiTypeEnum = CompoundIdentifierTypeEnum.String,
+                IdType = IdTypeEnum.String,
                 Id = "DLV0"
             };
             meter.Id.UniqueIds.Add(uniqueId);

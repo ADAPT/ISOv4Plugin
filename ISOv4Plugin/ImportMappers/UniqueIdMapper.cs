@@ -17,7 +17,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers
             {
                 Id = id,
                 Source = IsoSource,
-                CiTypeEnum = CompoundIdentifierTypeEnum.String,
+                IdType = IdTypeEnum.String,
                 SourceType = IdSourceTypeEnum.URI
             };
         }

@@ -47,7 +47,7 @@ namespace ISOv4PluginTest.Loaders
 
             Assert.AreEqual(1, result.Id.UniqueIds.Count);
             Assert.AreEqual("TSK0", result.Id.UniqueIds.First().Id);
-            Assert.AreEqual(CompoundIdentifierTypeEnum.String, result.Id.UniqueIds.First().CiTypeEnum);
+            Assert.AreEqual(IdTypeEnum.String, result.Id.UniqueIds.First().IdType);
             Assert.AreEqual("http://dictionary.isobus.net/isobus/", result.Id.UniqueIds.First().Source);
 
         }

@@ -19,7 +19,7 @@ namespace AcceptanceTests.Asserts.Import
                 var matchingAdaptId = adaptIds.Single(x => x.Id == link.Id);
                 Assert.AreEqual(link.Source, matchingAdaptId.Source);
                 Assert.AreEqual(link.SourceType, matchingAdaptId.SourceType);
-                Assert.AreEqual(link.CiTypeEnum, matchingAdaptId.CiTypeEnum);
+                Assert.AreEqual(link.IdType, matchingAdaptId.IdType);
             }
         }
     }

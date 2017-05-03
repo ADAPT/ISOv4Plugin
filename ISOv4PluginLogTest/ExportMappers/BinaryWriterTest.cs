@@ -410,7 +410,7 @@ namespace ISOv4PluginLogTest.ExportMappers
         {
             return new UniqueId
             {
-                CiTypeEnum = CompoundIdentifierTypeEnum.String,
+                IdType = IdTypeEnum.String,
                 Id = "DLV" + order,
                 Source = UniqueIdMapper.IsoSource
             };

@@ -9,7 +9,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin
             return new UniqueId
             {
                 Id = isoId,
-                CiTypeEnum = CompoundIdentifierTypeEnum.String,
+                IdType = IdTypeEnum.String,
                 Source = "http://dictionary.isobus.net/isobus/"
             };
         }

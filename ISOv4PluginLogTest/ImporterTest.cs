@@ -80,7 +80,7 @@ namespace ISOv4PluginLogTest
             Assert.IsEmpty(_applicationDataModel.Catalog.Crops);
             Assert.IsEmpty(_applicationDataModel.Catalog.DeviceElements);
             Assert.IsEmpty(_applicationDataModel.Catalog.DeviceElementConfigurations);
-            Assert.IsEmpty(_applicationDataModel.Catalog.DeviceElementUses);
+            //Assert.IsEmpty(_applicationDataModel.Catalog.DeviceElementUses);
             Assert.IsEmpty(_applicationDataModel.Catalog.DeviceModels);
             Assert.IsEmpty(_applicationDataModel.Catalog.Farms);
             Assert.IsEmpty(_applicationDataModel.Catalog.FieldBoundaries);
