@@ -56,6 +56,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
 
             _sections = new List<DeviceElementUse>();
             _sectionMapperMock.Setup(x => x.Map(_tims, _isoSpatialRows)).Returns(_sections);
+            _sectionMapperMock.Setup(x => x.ConvertToBaseTypes(_sections)).Returns(_sections);
 
             _operationDataMapper = new OperationDataMapper(_xmlReaderMock.Object, _binaryReaderMock.Object, _spatialRecordMapperMock.Object, _sectionMapperMock.Object, _uniqueIdMapperMock.Object);
         }
