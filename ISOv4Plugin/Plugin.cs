@@ -77,7 +77,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin
                 var taskDataDocument = ConvertTaskDataFileToModel(taskDataFile, dataModel);
 
                 var iso11783TaskData = _xmlReader.Read(taskDataFile);
-                _importer.Import(iso11783TaskData, dataPath, dataModel, taskDataDocument.LinkedIds);
+                _importer.Import(iso11783TaskData, Path.GetDirectoryName(taskDataFile), dataModel, taskDataDocument.LinkedIds);
                 adms.Add(dataModel);
             }
 
