@@ -6,6 +6,7 @@ using System.IO;
 using System.Xml;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
+using AgGateway.ADAPT.ApplicationDataModel.Documents;
 using AgGateway.ADAPT.ApplicationDataModel.Equipment;
 using AgGateway.ADAPT.ApplicationDataModel.FieldBoundaries;
 using AgGateway.ADAPT.ApplicationDataModel.Guidance;
@@ -48,6 +49,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Models
         public List<RasterGridPrescription> RasterPrescriptions { get; private set; }
 
         public List<LoggedData> Tasks { get; private set; }
+        public List<Summary> Summaries { get; private set; }
         public List<GuidanceAllocation> GuidanceAllocations { get; private set; }
         public List<GuidanceShift> GuidanceShifts { get; private set; }
 
@@ -74,6 +76,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Models
             GuidanceAllocations = new List<GuidanceAllocation>();
             Contacts = new List<ContactInfo>();
             Machines = new Dictionary<string, DeviceElement>();
+            Summaries = new List<Summary>();
         }
 
         public void LoadLinkedIds(string elementId, CompoundIdentifier id)

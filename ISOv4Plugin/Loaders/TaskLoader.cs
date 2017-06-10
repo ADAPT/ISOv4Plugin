@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Xml;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
+using AgGateway.ADAPT.ApplicationDataModel.Documents;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ISOv4Plugin.Extensions;
 using AgGateway.ADAPT.ISOv4Plugin.ImportMappers;
@@ -82,6 +83,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
 
             LoadGuidanceAllocations(inputNode, task);
             LoadCommentAllocations(inputNode, task);
+            LoadSummary(inputNode, task);
+
             task.Id.UniqueIds.Add(new UniqueId
             {
                 Id = taskId,
@@ -132,6 +135,19 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
         private void LoadCommentAllocations(XmlNode inputNode, LoggedData task)
         {
             task.Notes = CommentAllocationLoader.Load(inputNode, _taskDocument);
+        }
+
+        private void LoadSummary(XmlNode inputNode, LoggedData task)
+        {
+            var summaryData = TaskSummaryLoader.Load(inputNode.SelectNodes("TIM"));
+            if (summaryData == null)
+                return;
+
+            var summary = new Summary();
+            summary.SummaryData = summaryData;
+            _taskDocument.Summaries.Add(summary);
+
+            task.SummaryId = summary.Id.ReferenceId;
         }
     }
 }

@@ -150,6 +150,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin
             var documents = new Documents();
             documents.GuidanceAllocations = taskDocument.GuidanceAllocations;
             documents.LoggedData = taskDocument.Tasks;
+            documents.Summaries = taskDocument.Summaries;
 
             dataModel.Documents = documents;
 

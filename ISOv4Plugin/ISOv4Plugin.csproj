@@ -107,6 +107,8 @@
     <Compile Include="ImportMappers\ProductMappers\CropTypeMapper.cs" />
     <Compile Include="ImportMappers\TimeScopeMapper.cs" />
     <Compile Include="ImportMappers\UniqueIdMapper.cs" />
+    <Compile Include="Loaders\SummaryLoader.cs" />
+    <Compile Include="Loaders\TimestampLoader.cs" />
     <Compile Include="Loaders\AllocationTimestampLoader.cs" />
     <Compile Include="Loaders\CommentAllocationLoader.cs" />
     <Compile Include="Loaders\CommentLoader.cs" />
