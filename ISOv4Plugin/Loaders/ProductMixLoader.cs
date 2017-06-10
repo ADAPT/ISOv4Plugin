@@ -14,24 +14,24 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
         private XmlNode _rootNode;
         private string _baseFolder;
         private TaskDataDocument _taskDocument;
-        private Dictionary<string, ProductMix> _productMixes;
+        private Dictionary<string, MixProduct> _productMixes;
 
         private ProductMixLoader(TaskDataDocument taskDocument)
         {
             _taskDocument = taskDocument;
             _rootNode = _taskDocument.RootNode;
             _baseFolder = _taskDocument.BaseFolder;
-            _productMixes = new Dictionary<string, ProductMix>();
+            _productMixes = new Dictionary<string, MixProduct>();
         }
 
-        public static Dictionary<string, ProductMix> Load(TaskDataDocument taskDocument)
+        public static Dictionary<string, MixProduct> Load(TaskDataDocument taskDocument)
         {
             var loader = new ProductMixLoader(taskDocument);
 
             return loader.Load();
         }
 
-        private Dictionary<string, ProductMix> Load()
+        private Dictionary<string, MixProduct> Load()
         {
             LoadProductMixes(_rootNode.SelectNodes("PDT"));
             ProcessExternalNodes();
@@ -62,7 +62,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
             }
         }
 
-        private ProductMix LoadProductMix(XmlNode inputNode, out string productId)
+        private MixProduct LoadProductMix(XmlNode inputNode, out string productId)
         {
             productId = string.Empty;
             if (!IsProductMix(inputNode))
@@ -93,9 +93,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
                 && inputNode.SelectNodes("PRN").Count > 0;
         }
 
-        private ProductMix GetProduct(XmlNode inputNode)
+        private MixProduct GetProduct(XmlNode inputNode)
         {
-            var product = new ProductMix { ProductType = ProductTypeEnum.Mix, Form = ProductFormEnum.Unknown };
+            var product = new MixProduct { ProductType = ProductTypeEnum.Mix, Form = ProductFormEnum.Unknown };
 
             var groupId = inputNode.GetXmlNodeValue("@C");
             if (string.IsNullOrEmpty(groupId))
@@ -134,7 +134,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
             return null;
         }
 
-        private void LoadTotalQuantity(XmlNode inputNode, ProductMix productMix)
+        private void LoadTotalQuantity(XmlNode inputNode, MixProduct productMix)
         {
             var quantityValue = inputNode.GetXmlNodeValue("@G");
 
@@ -149,7 +149,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
             productMix.TotalQuantity = new NumericRepresentationValue(null, userUnit.ToAdaptUnit(), numericValue);
         }
 
-        private bool LoadProductComponents(XmlNodeList inputNodes, ProductMix productMix)
+        private bool LoadProductComponents(XmlNodeList inputNodes, MixProduct productMix)
         {
             List<Ingredient> components = new List<Ingredient>();
             foreach (XmlNode productRelationNode in inputNodes)
@@ -164,7 +164,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
             return true;
         }
 
-        private Ingredient LoadProductRelation(XmlNode productRelationNode, ProductMix productMix)
+        private Ingredient LoadProductRelation(XmlNode productRelationNode, MixProduct productMix)
         {
             var productId = productRelationNode.GetXmlNodeValue("@A");
             var productQuantity = productRelationNode.GetXmlNodeValue("@B");

@@ -140,9 +140,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
             return pattern;
         }
 
-        private static CenterPivot LoadCenterPivotPattern(XmlNode lineNode)
+        private static PivotGuidancePattern LoadCenterPivotPattern(XmlNode lineNode)
         {
-            var pattern = new CenterPivot { GuidancePatternType = GuidancePatternTypeEnum.CenterPivot };
+            var pattern = new PivotGuidancePattern { GuidancePatternType = GuidancePatternTypeEnum.CenterPivot };
 
             var pointNodes = lineNode.SelectNodes("PNT");
             if (pointNodes.Count < 1 || pointNodes.Count > 3)

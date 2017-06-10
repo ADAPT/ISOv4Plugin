@@ -161,7 +161,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin
             var products = new List<Product>();
             products.AddRange(taskDocument.CropVarieties.Values);
             products.AddRange(taskDocument.ProductMixes.Values);
-            products.AddRange(taskDocument.Products.Values.OfType<FertilizerProduct>());
+            products.AddRange(taskDocument.Products.Values.OfType<GenericProduct>());
 
             return products;
         }

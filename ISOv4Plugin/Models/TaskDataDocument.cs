@@ -33,7 +33,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Models
         public Dictionary<string, Field> Fields { get; private set; }
         public List<FieldBoundary> FieldBoundaries { get; private set; }
         public Dictionary<string, Crop> Crops { get; private set; }
-        public Dictionary<string, CropVariety> CropVarieties { get; private set; }
+        public Dictionary<string, CropVarietyProduct> CropVarieties { get; private set; }
         public Dictionary<string, CropZone> CropZones { get; private set; }
         public List<ContactInfo> Contacts { get; private set; }
 
@@ -42,7 +42,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Models
         public Dictionary<string, Product> Products { get; private set; }
 
         public Dictionary<string, GuidanceGroupDescriptor> GuidanceGroups { get; private set; }
-        public Dictionary<string, ProductMix> ProductMixes { get; private set; }
+        public Dictionary<string, MixProduct> ProductMixes { get; private set; }
         public List<Ingredient> Ingredients { get; private set; }
 
         public List<RasterGridPrescription> RasterPrescriptions { get; private set; }
@@ -67,7 +67,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Models
         {
             FieldBoundaries = new List<FieldBoundary>();
             GuidanceGroups = new Dictionary<string, GuidanceGroupDescriptor>();
-            CropVarieties = new Dictionary<string, CropVariety>();
+            CropVarieties = new Dictionary<string, CropVarietyProduct>();
             Ingredients = new List<Ingredient>();
             CropZones = new Dictionary<string, CropZone>();
             UnitsByItemId = new Dictionary<string, IsoUnit>();

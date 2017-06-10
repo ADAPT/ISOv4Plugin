@@ -51,7 +51,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
             return workerId;
         }
 
-        private ContactInfo FindContactInfo(int contactInfoId)
+        private ContactInfo FindContactInfo(int? contactInfoId)
         {
             if (TaskWriter.DataModel.Catalog.ContactInfo == null ||
                 TaskWriter.DataModel.Catalog.ContactInfo.Count == 0)

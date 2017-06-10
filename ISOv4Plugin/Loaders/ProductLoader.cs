@@ -89,7 +89,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
 
         private Product GetProduct(XmlNode inputNode)
         {
-            var product = new FertilizerProduct { ProductType = ProductTypeEnum.Generic, Form = ProductFormEnum.Unknown };
+            var product = new GenericProduct { ProductType = ProductTypeEnum.Generic, Form = ProductFormEnum.Unknown };
 
             var groupId = inputNode.GetXmlNodeValue("@C");
             if (string.IsNullOrEmpty(groupId))

@@ -26,7 +26,7 @@ namespace ISOv4PluginTest.Writers
             // Setup
             var taskWriter = new TaskDocumentWriter();
             var adaptDocument = TestHelpers.LoadFromJson<ApplicationDataModel>(TestData.TestData.SingleProduct);
-            var fertilizerProduct = new FertilizerProduct{ Description = "product"};
+            var fertilizerProduct = new GenericProduct{ Description = "product", ProductType = ProductTypeEnum.Fertilizer};
             fertilizerProduct.Id.ReferenceId = -1;
             adaptDocument.Catalog.Products.Add(fertilizerProduct);
 

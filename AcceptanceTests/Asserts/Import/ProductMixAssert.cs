@@ -10,7 +10,7 @@ namespace AcceptanceTests.Asserts.Import
 {
     public class ProductMixAssert
     {
-        public static void AreEqual(XmlNode productNode, XmlNodeList productNodes, ProductMix productMix, Catalog catalog, Dictionary<string, List<UniqueId>> linkList)
+        public static void AreEqual(XmlNode productNode, XmlNodeList productNodes, MixProduct productMix, Catalog catalog, Dictionary<string, List<UniqueId>> linkList)
         {
             if (productNode.GetXmlAttribute("A") == null || productNode.GetXmlAttribute("B") == null)
                 return;
