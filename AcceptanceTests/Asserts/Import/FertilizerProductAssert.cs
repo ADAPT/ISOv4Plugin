@@ -9,7 +9,7 @@ namespace AcceptanceTests.Asserts.Import
 {
     public class FertilizerProductAssert
     {
-        public static void AreEqual(XmlNode productNode, FertilizerProduct fertilizerProduct, Dictionary<string, List<UniqueId>> linkList)
+        public static void AreEqual(XmlNode productNode, CropNutritionProduct fertilizerProduct, Dictionary<string, List<UniqueId>> linkList)
         {
             if (productNode.GetXmlAttribute("A") == null || productNode.GetXmlAttribute("B") == null)
                 return;

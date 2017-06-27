@@ -159,7 +159,7 @@
                 }
             },
             {
-                "$type": "AgGateway.ADAPT.ApplicationDataModel.Guidance.CenterPivot, AgGateway.ADAPT.ApplicationDataModel",
+                "$type": "AgGateway.ADAPT.ApplicationDataModel.Guidance.PivotGuidancePattern, AgGateway.ADAPT.ApplicationDataModel",
                 "Center": {
                     "X": 1,
                     "Y": 2,

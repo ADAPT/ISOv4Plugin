@@ -11,6 +11,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
     public interface IMeterMapper
     {
         List<WorkingData> Map(TIM tim, IEnumerable<ISOSpatialRow> isoRecords, int sectionId);
+        WorkingData ConvertToBaseType(WorkingData meter);
     }
 
     public class MeterMapper : IMeterMapper
@@ -43,6 +44,27 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
                 meters.AddRange(Map(dlv, isoSpatialRows, sectionId, order));
             }
             return meters;
+        }
+
+        public WorkingData ConvertToBaseType(WorkingData meter)
+        {
+            if (meter is ISOEnumeratedMeter)
+            {
+                var enumMeter = (ISOEnumeratedMeter)meter;
+                var newMeter = new EnumeratedWorkingData
+                {
+                    AppliedLatency = enumMeter.AppliedLatency,
+                    DeviceElementUseId = enumMeter.DeviceElementUseId,
+                    ReportedLatency = enumMeter.ReportedLatency,
+                    Representation = enumMeter.Representation,
+                    ValueCodes = enumMeter.ValueCodes,
+                };
+                newMeter.Id.ReferenceId = meter.Id.ReferenceId;
+                newMeter.Id.UniqueIds = meter.Id.UniqueIds;
+
+                return newMeter;
+            }
+            return meter;
         }
 
         private IEnumerable<WorkingData> Map(DLV dlv, IEnumerable<ISOSpatialRow> isoSpatialRows, int sectionId, int order)

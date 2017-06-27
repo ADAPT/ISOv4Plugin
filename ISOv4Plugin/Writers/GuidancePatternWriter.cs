@@ -97,7 +97,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
 
                 case GuidancePatternTypeEnum.CenterPivot:
                     {
-                        var pivot = guidancePattern as CenterPivot;
+                        var pivot = guidancePattern as PivotGuidancePattern;
                         if (pivot == null || pivot.Center == null)
                             return null;
                         return "4";
@@ -218,7 +218,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
                     break;
 
                 case GuidancePatternTypeEnum.CenterPivot:
-                    WritePivot(writer, guidancePattern as CenterPivot);
+                    WritePivot(writer, guidancePattern as PivotGuidancePattern);
                     break;
 
                 case GuidancePatternTypeEnum.Spiral:
@@ -249,7 +249,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
             ShapeWriter.WriteLine(writer, line, "5");
         }
 
-        private static void WritePivot(XmlWriter writer, CenterPivot centerPivot)
+        private static void WritePivot(XmlWriter writer, PivotGuidancePattern centerPivot)
         {
             var line = new LineString { Points = new List<Point>() };
             line.Points.Add(centerPivot.Center);

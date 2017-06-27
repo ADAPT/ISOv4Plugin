@@ -77,7 +77,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin
                 var taskDataDocument = ConvertTaskDataFileToModel(taskDataFile, dataModel);
 
                 var iso11783TaskData = _xmlReader.Read(taskDataFile);
-                _importer.Import(iso11783TaskData, dataPath, dataModel, taskDataDocument.LinkedIds);
+                _importer.Import(iso11783TaskData, Path.GetDirectoryName(taskDataFile), dataModel, taskDataDocument.LinkedIds);
                 adms.Add(dataModel);
             }
 
@@ -150,6 +150,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin
             var documents = new Documents();
             documents.GuidanceAllocations = taskDocument.GuidanceAllocations;
             documents.LoggedData = taskDocument.Tasks;
+            documents.Summaries = taskDocument.Summaries;
 
             dataModel.Documents = documents;
 
@@ -161,7 +162,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin
             var products = new List<Product>();
             products.AddRange(taskDocument.CropVarieties.Values);
             products.AddRange(taskDocument.ProductMixes.Values);
-            products.AddRange(taskDocument.Products.Values.OfType<FertilizerProduct>());
+            products.AddRange(taskDocument.Products.Values.OfType<CropNutritionProduct>());
 
             return products;
         }

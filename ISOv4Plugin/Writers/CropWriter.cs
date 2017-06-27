@@ -58,8 +58,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
                 TaskWriter.DataModel.Catalog.Products.Count == 0)
                 return;
 
-            var cropVarieties = new List<CropVariety>();
-            foreach (var cropVariety in TaskWriter.DataModel.Catalog.Products.Where(x => x is CropVariety).Cast<CropVariety>())
+            var cropVarieties = new List<CropVarietyProduct>();
+            foreach (var cropVariety in TaskWriter.DataModel.Catalog.Products.Where(x => x is CropVarietyProduct).Cast<CropVarietyProduct>())
             {
                 if (cropVariety.CropId == cropId.Id.ReferenceId)
                     cropVarieties.Add(cropVariety);

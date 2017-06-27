@@ -50,11 +50,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers
             var sections = _sectionMapper.Map(new List<TIM> {tim}, isoRecords); 
             var meters = sections != null ? sections.SelectMany(x => x.GetWorkingDatas()).ToList() : new List<WorkingData>();
 
+            var sectionsSimple = _sectionMapper.ConvertToBaseTypes(sections);
+
             var operationData = new OperationData
             {
                 GetSpatialRecords = () => _spatialRecordMapper.Map(isoRecords, meters),
                 MaxDepth = 0,
-                GetDeviceElementUses = x => x == 0 ? sections : new List<DeviceElementUse>(),
+                GetDeviceElementUses = x => x == 0 ? sectionsSimple : new List<DeviceElementUse>(),
                 PrescriptionId = prescrptionId
             };
             operationData.Id.UniqueIds.Add(_uniqueIdMapper.Map(tlg.A));
