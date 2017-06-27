@@ -16,7 +16,7 @@ namespace AcceptanceTests.Asserts.Import
             {
                 if (productNodes[i].GetXmlAttribute("F") == "1")//fertilizerProduct
                 {
-                    var matchingFertilizer = catalog.Products.Single(fp => fp.Id.FindIsoId() == productNodes[i].GetXmlAttribute("A")) as GenericProduct;
+                    var matchingFertilizer = catalog.Products.Single(fp => fp.Id.FindIsoId() == productNodes[i].GetXmlAttribute("A")) as CropNutritionProduct;
                     FertilizerProductAssert.AreEqual(productNodes[i], matchingFertilizer, linkList);
                     
                 } 

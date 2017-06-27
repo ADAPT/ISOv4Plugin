@@ -26,7 +26,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
 
         private void WriteProducts(XmlWriter writer)
         {
-            WriteProducts(writer, TaskWriter.DataModel.Catalog.Products.Where(x => x is GenericProduct || x is CropProtectionProduct));
+            WriteProducts(writer, TaskWriter.DataModel.Catalog.Products.Where(x => x is CropNutritionProduct || x is CropProtectionProduct));
             WriteProductMixes(writer, TaskWriter.DataModel.Catalog.Products.Where(x => x is MixProduct).Cast<MixProduct>().ToList());
         }
 
