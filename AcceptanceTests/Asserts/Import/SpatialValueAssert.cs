@@ -31,9 +31,9 @@ namespace AcceptanceTests.Asserts.Import
                 }
                 if (meter is EnumeratedWorkingData)
                 {
-                    var isoEnumeratedMeter = meter as ISOEnumeratedMeter;
-                    var enumeratedValue = isoEnumeratedMeter.GetEnumeratedValue(isoValue, isoEnumeratedMeter);
-                    Assert.AreEqual(enumeratedValue.Representation.Description, meter.Representation.Description);
+                    //var isoEnumeratedMeter = meter as ISOEnumeratedMeter;
+                    //var enumeratedValue = isoEnumeratedMeter.GetEnumeratedValue(isoValue, isoEnumeratedMeter);
+                    //Assert.AreEqual(enumeratedValue.Representation.Description, meter.Representation.Description);
                 }
             }
         }

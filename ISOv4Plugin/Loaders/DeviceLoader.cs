@@ -91,13 +91,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
             byte deviceGroup;
             if (!byte.TryParse(machineInfo.Substring(0, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out deviceGroup))
                 return false;
+            deviceGroup >>= 4;
 
-            if (deviceGroup != 2) // Agricultural devices
+            if ((deviceGroup & 0x07) != 2) // Agricultural devices
                 return false;
 
             byte deviceClass;
             if (!byte.TryParse(machineInfo.Substring(2, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out deviceClass))
                 return false;
+            deviceClass >>= 1;
 
             machine.DeviceClassification = GetMachineType(deviceClass);
 

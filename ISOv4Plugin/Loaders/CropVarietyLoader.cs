@@ -7,9 +7,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
 {
     public static class CropVarietyLoader
     {
-        public static Dictionary<string, CropVariety> Load(XmlNodeList inputNodes)
+        public static Dictionary<string, CropVarietyProduct> Load(XmlNodeList inputNodes)
         {
-            var varieties = new Dictionary<string, CropVariety>();
+            var varieties = new Dictionary<string, CropVarietyProduct>();
             foreach (XmlNode inputNode in inputNodes)
             {
                 string varietyId;
@@ -21,14 +21,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Loaders
             return varieties;
         }
 
-        private static CropVariety LoadVariety(XmlNode inputNode, out string varietyId)
+        private static CropVarietyProduct LoadVariety(XmlNode inputNode, out string varietyId)
         {
             varietyId = inputNode.GetXmlNodeValue("@A");
             var description = inputNode.GetXmlNodeValue("@B");
             if (string.IsNullOrEmpty(varietyId) || string.IsNullOrEmpty(description))
                 return null;
 
-            var variety = new CropVariety
+            var variety = new CropVarietyProduct
             {
                 ProductType = ProductTypeEnum.Variety, 
                 Description = description

@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ISO11783_TaskData TaskControllerVersion=""
+                   VersionMinor="1"
+                   ManagementSoftwareManufacturer="Topcon Precision Agriculture"
+                   DataTransferOrigin="2"
+                   ManagementSoftwareVersion="1.0"
+                   TaskControllerManufacturer=""
+                   VersionMajor="4" >
+
+  <TIM A="2017-05-31T18:58:50.535Z" B="2017-05-31T20:55:18.543Z" D="4">
+    <DLV A="0074" B="1364729" C="DET-1"/>
+    <DLV A="0075" B="58145064" C="DET-1"/>
+    <DLV A="0077" B="6972" C="DET-1"/>
+    <DLV A="0051" B="5641" C="DET-3"/>
+  </TIM>
+
+  <TIM A="2017-05-31T20:56:19.710Z" B="2017-05-31T20:57:42.932Z" D="4">
+    <DLV A="0074" B="1377297" C="DET-1"/>
+    <DLV A="0075" B="58668680" C="DET-1"/>
+    <DLV A="0077" B="7043" C="DET-1"/>
+    <DLV A="0051" B="5666" C="DET-3"/>
+  </TIM>
+
+</ISO11783_TaskData>

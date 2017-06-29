@@ -26,8 +26,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
 
         private void WriteProducts(XmlWriter writer)
         {
-            WriteProducts(writer, TaskWriter.DataModel.Catalog.Products.Where(x => x is FertilizerProduct || x is CropProtectionProduct));
-            WriteProductMixes(writer, TaskWriter.DataModel.Catalog.Products.Where(x => x is ProductMix).Cast<ProductMix>().ToList());
+            WriteProducts(writer, TaskWriter.DataModel.Catalog.Products.Where(x => x is CropNutritionProduct || x is CropProtectionProduct));
+            WriteProductMixes(writer, TaskWriter.DataModel.Catalog.Products.Where(x => x is MixProduct).Cast<MixProduct>().ToList());
         }
 
         private void WriteProducts(XmlWriter writer, IEnumerable<Product> products)
@@ -42,7 +42,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
             }
         }
 
-        private void WriteProductMixes(XmlWriter writer, List<ProductMix> productMixes)
+        private void WriteProductMixes(XmlWriter writer, List<MixProduct> productMixes)
         {
             if (productMixes == null)
                 return;
@@ -68,7 +68,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
             return productId;
         }
 
-        private string WriteProductMix(XmlWriter writer, ProductMix productMix)
+        private string WriteProductMix(XmlWriter writer, MixProduct productMix)
         {
             var productId = productMix.Id.FindIsoId() ?? GenerateId();
             TaskWriter.Ids.Add(productId, productMix.Id);

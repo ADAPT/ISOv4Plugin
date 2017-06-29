@@ -51,7 +51,7 @@ namespace AcceptanceTests.Steps
         [Then(@"iso is imported to adapt")]
         public void ThenIsoIsImportedToAdapt()
         {
-            var currentPath = ScenarioContext.Current.DataCardPath();
+            var currentPath = Path.Combine(ScenarioContext.Current.DataCardPath(), "TASKDATA");
 
             var linkList = LoadLinkList(currentPath);
 
@@ -64,7 +64,7 @@ namespace AcceptanceTests.Steps
         [Then(@"Adapt is exported to ISO")]
         public void ThenAdaptIsExportedToIso()
         {
-            var currentPath = ScenarioContext.Current.ExportPath();
+            var currentPath = Path.Combine(ScenarioContext.Current.DataCardPath(), "TASKDATA");
 
             var linkList = LoadLinkList(currentPath);
             foreach (var applicationDataModel in ScenarioContext.Current.ApplicationDataModel())
@@ -83,7 +83,7 @@ namespace AcceptanceTests.Steps
 
         private static Dictionary<string, List<UniqueId>> LoadLinkList(string currentPath)
         {
-            var linkListFile = Path.Combine(currentPath, "TASKDATA", "LINKLIST.XML");
+            var linkListFile = Path.Combine(currentPath, "LINKLIST.XML");
             if (!File.Exists(linkListFile)) 
                 return new Dictionary<string, List<UniqueId>>();
 

@@ -12,7 +12,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
         {
         }
 
-        public void Write(XmlWriter writer, List<CropVariety> cropVarieties)
+        public void Write(XmlWriter writer, List<CropVarietyProduct> cropVarieties)
         {
             if (cropVarieties.Count == 0)
                 return;
@@ -23,7 +23,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Writers
             }
         }
 
-        private void WriteCropVariety(XmlWriter writer, CropVariety cropVariety)
+        private void WriteCropVariety(XmlWriter writer, CropVarietyProduct cropVariety)
         {
             var cropVarietyId = cropVariety.Id.FindIsoId() ?? GenerateId();
             TaskWriter.Ids.Add(cropVarietyId, cropVariety.Id);

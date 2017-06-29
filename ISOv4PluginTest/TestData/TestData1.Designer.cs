@@ -1519,6 +1519,105 @@ namespace ISOv4PluginTest.TestData {
         ///                   TaskControllerManufacturer=&quot;&quot;
         ///                   VersionMajor=&quot;4&quot; &gt;
         ///
+        ///  
+        ///&lt;/ISO11783_TaskData&gt;.
+        /// </summary>
+        internal static string Summary1 {
+            get {
+                return ResourceManager.GetString("Summary1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt;
+        ///&lt;ISO11783_TaskData TaskControllerVersion=&quot;&quot;
+        ///                   VersionMinor=&quot;1&quot;
+        ///                   ManagementSoftwareManufacturer=&quot;Topcon Precision Agriculture&quot;
+        ///                   DataTransferOrigin=&quot;2&quot;
+        ///                   ManagementSoftwareVersion=&quot;1.0&quot;
+        ///                   TaskControllerManufacturer=&quot;&quot;
+        ///                   VersionMajor=&quot;4&quot; &gt;
+        ///
+        ///  &lt;TIM A=&quot;2016-02-02T14:01:01.111Z&quot; D=&quot;1&quot;&gt;
+        ///    &lt;DLV A=&quot;0074&quot; B=&quot;1364729&quot; C=&quot;DET-1&quot;/&gt;
+        ///    &lt;DLV A=&quot;0075&quot; B=&quot;58145064&quot; C=&quot; [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string Summary2 {
+            get {
+                return ResourceManager.GetString("Summary2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt;
+        ///&lt;ISO11783_TaskData TaskControllerVersion=&quot;&quot;
+        ///                   VersionMinor=&quot;1&quot;
+        ///                   ManagementSoftwareManufacturer=&quot;Topcon Precision Agriculture&quot;
+        ///                   DataTransferOrigin=&quot;2&quot;
+        ///                   ManagementSoftwareVersion=&quot;1.0&quot;
+        ///                   TaskControllerManufacturer=&quot;&quot;
+        ///                   VersionMajor=&quot;4&quot; &gt;
+        ///
+        ///  &lt;TIM A=&quot;2017-05-31T18:58:50.535Z&quot; B=&quot;2017-05-31T20:55:18.543Z&quot; D=&quot;4&quot;&gt;
+        ///    &lt;DLV A=&quot;0074&quot; B=&quot;1364729&quot; C=&quot;DET-1&quot;/&gt;
+        ///    &lt; [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string Summary3 {
+            get {
+                return ResourceManager.GetString("Summary3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt;
+        ///&lt;ISO11783_TaskData TaskControllerVersion=&quot;&quot;
+        ///                   VersionMinor=&quot;1&quot;
+        ///                   ManagementSoftwareManufacturer=&quot;Topcon Precision Agriculture&quot;
+        ///                   DataTransferOrigin=&quot;2&quot;
+        ///                   ManagementSoftwareVersion=&quot;1.0&quot;
+        ///                   TaskControllerManufacturer=&quot;&quot;
+        ///                   VersionMajor=&quot;4&quot; &gt;
+        ///
+        ///  &lt;TIM A=&quot;2017-05-31T18:58:50.535Z&quot; B=&quot;2017-05-31T20:55:18.543Z&quot; D=&quot;4&quot;&gt;
+        ///    &lt;DLV A=&quot;0074&quot; B=&quot;1364729&quot; C=&quot;DET-1&quot;/&gt;
+        ///    &lt; [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string Summary4 {
+            get {
+                return ResourceManager.GetString("Summary4", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt;
+        ///&lt;ISO11783_TaskData TaskControllerVersion=&quot;&quot;
+        ///                   VersionMinor=&quot;1&quot;
+        ///                   ManagementSoftwareManufacturer=&quot;Topcon Precision Agriculture&quot;
+        ///                   DataTransferOrigin=&quot;2&quot;
+        ///                   ManagementSoftwareVersion=&quot;1.0&quot;
+        ///                   TaskControllerManufacturer=&quot;&quot;
+        ///                   VersionMajor=&quot;4&quot; &gt;
+        ///
+        ///  &lt;TIM A=&quot;2017-05-31T18:58:50.535Z&quot; B=&quot;2017-05-31T20:55:18.543Z&quot; D=&quot;4&quot;&gt;
+        ///    &lt;DLV B=&quot;1364729&quot; C=&quot;DET-1&quot;/&gt;
+        ///    &lt;DLV A=&quot;00 [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string Summary5 {
+            get {
+                return ResourceManager.GetString("Summary5", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt;
+        ///&lt;ISO11783_TaskData TaskControllerVersion=&quot;&quot;
+        ///                   VersionMinor=&quot;1&quot;
+        ///                   ManagementSoftwareManufacturer=&quot;Topcon Precision Agriculture&quot;
+        ///                   DataTransferOrigin=&quot;2&quot;
+        ///                   ManagementSoftwareVersion=&quot;1.0&quot;
+        ///                   TaskControllerManufacturer=&quot;&quot;
+        ///                   VersionMajor=&quot;4&quot; &gt;
+        ///
         ///  &lt;ASP A=&quot;2016-02-02T14:01:01.111Z&quot; D=&quot;1&quot;&gt;
         ///  &lt;/ASP&gt;  
         ///  
