@@ -1,4 +1,8 @@
-﻿using System.Collections.Generic;
+﻿/*
+ * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
+*/
+
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
@@ -9,6 +13,7 @@ using UnitOfMeasure = AgGateway.ADAPT.ApplicationDataModel.Common.UnitOfMeasure;
 using AdaptRepresentation = AgGateway.ADAPT.ApplicationDataModel.Representations.Representation;
 using EnumeratedRepresentation = AgGateway.ADAPT.Representation.RepresentationSystem.EnumeratedRepresentation;
 using NumericRepresentation = AgGateway.ADAPT.Representation.RepresentationSystem.NumericRepresentation;
+using System;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Representation
 {
@@ -41,18 +46,18 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Representation
 
             if (enumeratedRep != null)
                 return enumeratedRep.ToModelRepresentation();
-
-            return new ApplicationDataModel.Representations.NumericRepresentation {Code = ddi.ToString(CultureInfo.InvariantCulture), CodeSource = RepresentationCodeSourceEnum.ISO11783_DDI};
+            
+            return new ApplicationDataModel.Representations.NumericRepresentation {Code = ddi.ToString("X4"), CodeSource = RepresentationCodeSourceEnum.ISO11783_DDI};
         }
 
-        public int? Map(AdaptRepresentation adapRepresentation)
+        public int? Map(AdaptRepresentation adaptRepresentation)
         {
-            if (adapRepresentation == null)
+            if (adaptRepresentation == null)
                 return null;
 
-            var matchingRepresentation = RepresentationManager.Instance.Representations[adapRepresentation.Code];
+            var matchingRepresentation = RepresentationManager.Instance.Representations[adaptRepresentation.Code];
 
-            return matchingRepresentation != null 
+            return matchingRepresentation != null
                 ? matchingRepresentation.Ddi
                 : null;
         }

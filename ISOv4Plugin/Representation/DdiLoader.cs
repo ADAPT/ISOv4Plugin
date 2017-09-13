@@ -1,4 +1,8 @@
-﻿using System;
+﻿/*
+ * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
+*/
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;

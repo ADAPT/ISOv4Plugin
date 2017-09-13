@@ -1,4 +1,8 @@
-using AgGateway.ADAPT.ISOv4Plugin.Models;
+/*
+ * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
+*/
+
+using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
 {
@@ -6,7 +10,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
     {
         public int Id { get; set; }
 
-        public DLV Dlv { get; set; }
+        public ISODataLogValue DataLogValue { get; set; }
 
         public double Value { get; set; }
     }
