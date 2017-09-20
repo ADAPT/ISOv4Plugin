@@ -1,3 +1,7 @@
+/*
+ * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
+*/
+
 namespace AgGateway.ADAPT.ISOv4Plugin.Representation
 {
     public class DdiDefinition

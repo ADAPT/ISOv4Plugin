@@ -1,65 +1,45 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿/*
+ * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
+*/
+
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
-using AgGateway.ADAPT.ApplicationDataModel.Common;
-using AgGateway.ADAPT.ApplicationDataModel.Prescriptions;
-using AgGateway.ADAPT.ApplicationDataModel.Products;
-using AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders;
-using AgGateway.ADAPT.ISOv4Plugin.Models;
-using AgGateway.ADAPT.ISOv4Plugin.Writers;
+using System.Xml;
+using System.IO;
+using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
+using AgGateway.ADAPT.ISOv4Plugin.Mappers;
+using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 
 namespace AgGateway.ADAPT.ISOv4Plugin
 {
-    public class Plugin : IPlugin
+    public class Plugin : AgGateway.ADAPT.ApplicationDataModel.ADM.IPlugin
     {
-        private readonly IXmlReader _xmlReader;
-        private readonly IImporter _importer;
-        private readonly IExporter _exporter;
         private const string FileName = "TASKDATA.XML";
 
-        public Plugin() : this(new XmlReader(), new Importer(), new Exporter())
-        {
-            
-        }
-        public Plugin(IXmlReader xmlReader, IImporter importer, IExporter exporter)
-        {
-            _xmlReader = xmlReader;
-            _importer = importer;
-            _exporter = exporter;
-            Name = "ISO Plugin";
-            Version = "0.1.1";
-            Owner = "AgGateway & Contributors";
-        }
+        #region IPlugin Members
+        string IPlugin.Name => "ISO v4 Plugin";
 
-        public void Initialize(string args = null)
+        string IPlugin.Version => "";
+
+        string IPlugin.Owner => "";
+
+        void IPlugin.Export(ApplicationDataModel.ADM.ApplicationDataModel dataModel, string exportPath, Properties properties)
         {
-        }
+            //Convert the ADAPT model into the ISO model
+            TaskDataMapper taskDataMapper = new TaskDataMapper(exportPath.WithTaskDataPath(), properties);
+            ISO11783_TaskData taskData = taskDataMapper.Export(dataModel);
 
-        public IList<IError> ValidateDataOnCard(string dataPath, Properties properties = null)
-        {
-            var errors = new List<IError>();
-            var taskDataFiles = GetListOfTaskDataFiles(dataPath);
-            if (!taskDataFiles.Any())
-                return errors;
+            //Serialize the ISO model to XML
+            TaskDocumentWriter writer = new TaskDocumentWriter();
+            writer.WriteTaskData(exportPath, taskData);
 
-            foreach (var taskDataFile in taskDataFiles)
-            {
-                var taskDocument = new TaskDataDocument();
-                if (taskDocument.LoadFromFile(taskDataFile) == false)
-                {
-                    errors.AddRange(taskDocument.Errors);
-                }
-            }
-
-            return errors;
-        }
-
-        public bool IsDataCardSupported(string dataPath, Properties properties = null)
-        {
-            var taskDataFiles = GetListOfTaskDataFiles(dataPath);
-            return taskDataFiles.Any();
+            //Serialize the Link List
+            ISO11783_LinkList linkList = taskDataMapper.ISOLinkList;
+            writer.WriteLinkList(exportPath, linkList);
         }
 
         public IList<ApplicationDataModel.ADM.ApplicationDataModel> Import(string dataPath, Properties properties = null)
@@ -72,49 +52,66 @@ namespace AgGateway.ADAPT.ISOv4Plugin
 
             foreach (var taskDataFile in taskDataFiles)
             {
-                var dataModel = new ApplicationDataModel.ADM.ApplicationDataModel();
+                //Deserialize the ISOXML into the ISO models
+                XmlDocument document = new XmlDocument();
+                document.Load(taskDataFile);
+                XmlNode rootNode = document.SelectSingleNode("ISO11783_TaskData");
+                ISO11783_TaskData taskData = ISO11783_TaskData.ReadXML(rootNode, dataPath);
 
-                var taskDataDocument = ConvertTaskDataFileToModel(taskDataFile, dataModel);
+                //Load any LinkList
+                ISO11783_LinkList linkList = null;
+                ISOAttachedFile linkListFile = taskData.ChildElements.OfType<ISOAttachedFile>().SingleOrDefault(afe => afe.FileType == 1);
+                if (linkListFile != null)
+                {
+                    XmlDocument linkDocument = new XmlDocument();
+                    string linkPath = Path.Combine(dataPath.WithTaskDataPath(), linkListFile.FilenamewithExtension);
+                    linkDocument.Load(linkPath);
+                    XmlNode linkRoot = linkDocument.SelectSingleNode("ISO11783LinkList");
+                    linkList = ISO11783_LinkList.ReadXML(linkRoot, dataPath);
+                }
 
-                var iso11783TaskData = _xmlReader.Read(taskDataFile);
-                _importer.Import(iso11783TaskData, Path.GetDirectoryName(taskDataFile), dataModel, taskDataDocument.LinkedIds);
+                //Convert the ISO model to ADAPT
+                TaskDataMapper taskDataMapper = new TaskDataMapper(dataPath.WithTaskDataPath(), properties);
+                ApplicationDataModel.ADM.ApplicationDataModel dataModel = taskDataMapper.Import(taskData, linkList);
+
                 adms.Add(dataModel);
             }
 
             return adms;
         }
 
-        public void Export(ApplicationDataModel.ADM.ApplicationDataModel dataModel, string exportPath, Properties properties = null)
+        Properties _properties = null;
+        Properties IPlugin.GetProperties(string dataPath)
         {
-            using (var taskWriter = new TaskDocumentWriter())
+            if (_properties == null)
             {
-                var taskDataPath = Path.Combine(exportPath, "TASKDATA");
-                var iso11783TaskData = _exporter.Export(dataModel, taskDataPath, taskWriter);
-
-                var filePath = Path.Combine(taskDataPath, FileName);
-                if (iso11783TaskData != null)
-                {
-                    var xml = Encoding.UTF8.GetString(taskWriter.XmlStream.ToArray());
-                    File.WriteAllText(filePath, xml);
-                    LinkListWriter.Write(taskDataPath, taskWriter.Ids);
-                }
+                _properties = new Properties();
+                _properties.SetProperty(ISOGrid.GridTypeProperty, "2");
             }
-        }
-        
-        public Properties GetProperties(string dataPath)
-        {
-            return new Properties();
+            return _properties;
         }
 
-        public string Name { get; private set; }
-        public string Version { get; private set; }
-        public string Owner { get; private set; }
+        void IPlugin.Initialize(string args)
+        {
+        }
+
+        public bool IsDataCardSupported(string dataPath, Properties properties = null)
+        {
+            var taskDataFiles = GetListOfTaskDataFiles(dataPath);
+            return taskDataFiles.Any();
+        }
+
+        IList<IError> IPlugin.ValidateDataOnCard(string dataPath, Properties properties)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion IPlugin Members
 
         private static List<string> GetListOfTaskDataFiles(string dataPath)
         {
             var taskDataFiles = new List<string>();
 
-            var inputPath = Path.Combine(dataPath, "Taskdata");
+            var inputPath = dataPath.WithTaskDataPath(); 
             if (Directory.Exists(inputPath))
                 taskDataFiles.AddRange(Directory.GetFiles(inputPath, FileName));
 
@@ -122,49 +119,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin
                 taskDataFiles.AddRange(Directory.GetFiles(dataPath, FileName));
 
             return taskDataFiles;
-        }
-
-        private static TaskDataDocument ConvertTaskDataFileToModel(string taskDataFile, ApplicationDataModel.ADM.ApplicationDataModel dataModel)
-        {
-            var taskDocument = new TaskDataDocument();
-            if (taskDocument.LoadFromFile(taskDataFile) == false)
-                return taskDocument;
-
-            var catalog = new Catalog();
-            catalog.Growers = taskDocument.Customers.Values.ToList();
-            catalog.Farms = taskDocument.Farms.Values.ToList();
-            catalog.Fields = taskDocument.Fields.Values.ToList();
-            catalog.GuidanceGroups = taskDocument.GuidanceGroups.Values.Select(x => x.Group).ToList();
-            catalog.GuidancePatterns = taskDocument.GuidanceGroups.Values.SelectMany(x => x.Patterns.Values).ToList();
-            catalog.Crops = taskDocument.Crops.Values.ToList();
-            catalog.CropZones = taskDocument.CropZones.Values.ToList();
-            catalog.DeviceElements = taskDocument.Machines.Values.ToList();
-            catalog.FieldBoundaries = taskDocument.FieldBoundaries;
-            catalog.Ingredients = taskDocument.Ingredients;
-            catalog.Prescriptions = taskDocument.RasterPrescriptions.Cast<Prescription>().ToList();
-            catalog.ContactInfo = taskDocument.Contacts;
-            catalog.Products = AddAllProducts(taskDocument);
-
-            dataModel.Catalog = catalog;
-
-            var documents = new Documents();
-            documents.GuidanceAllocations = taskDocument.GuidanceAllocations;
-            documents.LoggedData = taskDocument.Tasks;
-            documents.Summaries = taskDocument.Summaries;
-
-            dataModel.Documents = documents;
-
-            return taskDocument;
-        }
-
-        private static List<Product> AddAllProducts(TaskDataDocument taskDocument)
-        {
-            var products = new List<Product>();
-            products.AddRange(taskDocument.CropVarieties.Values);
-            products.AddRange(taskDocument.ProductMixes.Values);
-            products.AddRange(taskDocument.Products.Values.OfType<CropNutritionProduct>());
-
-            return products;
         }
     }
 }
