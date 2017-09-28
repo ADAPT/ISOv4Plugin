@@ -145,6 +145,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 {
                     task.Times.AddRange(ExportSummary(summary));
                 }
+
+                List<ISOProductAllocation> productAllocations = GetProductAllocationsForSummary(summary);
+                if (productAllocations != null)
+                {
+                    task.ProductAllocations.AddRange(productAllocations);
+                }
             }
 
             //Comments
@@ -231,6 +237,26 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 times.Add(time);
             }
             return times;
+        }
+
+        private List<ISOProductAllocation> GetProductAllocationsForSummary(Summary summary)
+        {
+            List<ISOProductAllocation> productAllocations = null;
+            if (summary.OperationSummaries.Any())
+            {
+                productAllocations = new List<ISOProductAllocation>();
+                foreach (OperationSummary operationSummary in summary.OperationSummaries)
+                {
+                    foreach (StampedMeteredValues values in operationSummary.Data)
+                    {
+                        ISOProductAllocation pan = new ISOProductAllocation();
+                        pan.AllocationStamp = AllocationStampMapper.ExportAllocationStamp(values.Stamp);
+                        pan.ProductIdRef = TaskDataMapper.ISOIdMap.FindByADAPTId(operationSummary.ProductId);
+                        productAllocations.Add(pan);
+                    }
+                }
+            }
+            return productAllocations;
         }
 
         #endregion Export LoggedData
@@ -508,7 +534,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             if (isoLoggedTask.Times.Any(t => t.HasStart && t.HasStop && t.HasType)) //Nothing added without a Start, Stop, Type attributes
             {
                 Summary summary = new Summary();
-                summary.SummaryData = ImportSummaryData(isoLoggedTask);
+                summary.SummaryData = ImportSummaryData(isoLoggedTask); //Does not have a product reference
+                summary.OperationSummaries = ImportOperationSummaries(isoLoggedTask);  //Includes a product reference
                 if (DataModel.Documents.Summaries == null)
                 {
                     DataModel.Documents.Summaries = new List<Summary>();
@@ -527,57 +554,190 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return loggedData;
         }
 
+        #region Import Summary Data
         private List<StampedMeteredValues> ImportSummaryData(ISOTask isoLoggedTask)
         {
             List<StampedMeteredValues> stampedValuesList = new List<StampedMeteredValues>();
             foreach (ISOTime time in isoLoggedTask.Times.Where(t => t.HasStart && t.HasStop && t.HasType)) //Nothing added without a Start, Stop, Type attributes
             {
-                StampedMeteredValues stampedValues = new StampedMeteredValues();
-
-                //TimeScope
-                stampedValues.Stamp = new TimeScope();
-                stampedValues.Stamp.TimeStamp1 = time.Start;
-                stampedValues.Stamp.TimeStamp2 = time.Stop;
-                if (time.Stop == null && time.Duration != null)
-                {
-                    //Calculate the Stop time if missing and duration present
-                    stampedValues.Stamp.TimeStamp2 = stampedValues.Stamp.TimeStamp1.Value.AddSeconds(time.Duration.Value);
-                }
-                stampedValues.Stamp.DateContext = time.Type == ISOEnumerations.ISOTimeType.Planned ? DateContextEnum.ProposedStart : DateContextEnum.ActualStart;
-                stampedValues.Stamp.Duration = stampedValues.Stamp.TimeStamp2.GetValueOrDefault() - stampedValues.Stamp.TimeStamp1.GetValueOrDefault();
-
-                //Values
-                foreach (ISODataLogValue dlv in time.DataLogValues)
-                {
-                    if (dlv.ProcessDataDDI == null)
-                    {
-                        return null;
-                    }
-                    int ddi = dlv.ProcessDataDDI.AsInt32DDI();
-
-                    long dataValue = 0;
-                    if (dlv.ProcessDataValue.HasValue)
-                    {
-                        dataValue = dlv.ProcessDataValue.Value;
-                    }
-
-                    var unitOfMeasure = RepresentationMapper.GetUnitForDdi(ddi);
-                    if (!DDIs.ContainsKey(ddi) || unitOfMeasure == null)
-                    {
-                        return null;
-                    }
-
-                    DdiDefinition ddiDefintion = DDIs[ddi];
-                    stampedValues.Values.Add(new MeteredValue
-                    {
-                        Value = new NumericRepresentationValue(RepresentationMapper.Map(ddi) as NumericRepresentation,
-                            unitOfMeasure, new NumericValue(unitOfMeasure, dataValue * ddiDefintion.Resolution))
-                    });
-                }
-                stampedValuesList.Add(stampedValues);
+                stampedValuesList.Add(GetStampedMeteredValuesForTime(time));
             }
             return stampedValuesList;
         }
+
+        private List<OperationSummary> ImportOperationSummaries(ISOTask isoLoggedTask)
+        {
+            List<OperationSummary> operationSummaries = null;
+            if (isoLoggedTask.ProductAllocations.Any())
+            {
+                operationSummaries = new List<OperationSummary>();
+                if (isoLoggedTask.ProductAllocations.Count == 1) 
+                {
+                    //There is a single product allocation on the task
+                    string isoProductRef = isoLoggedTask.ProductAllocations.Single().ProductIdRef;
+                    string isoDeviceElementRef = isoLoggedTask.ProductAllocations.Single().DeviceElementIdRef;
+                    OperationSummary summary = GetOperationSummary(isoLoggedTask, isoProductRef, isoDeviceElementRef);
+                    if (summary != null)
+                    {
+                        operationSummaries.Add(summary);
+                    }
+                }
+                else if (isoLoggedTask.ProductAllocations.Select(p => p.ProductIdRef).Distinct().Count() == 1)
+                {
+                    //There is a single product on multiple allocations
+                    string isoProductRef = isoLoggedTask.ProductAllocations.Select(p => p.ProductIdRef).First();
+                    OperationSummary summary = GetOperationSummary(isoLoggedTask, isoProductRef, null);
+                    if (summary != null)
+                    {
+                        operationSummaries.Add(summary);
+                    }
+                }
+                else
+                {
+                    //There are multiple products.
+                    //Try to reconcile product allocations to individual Time DataLogValues via overlapping times and matching device elements
+                    foreach (ISOTime time in isoLoggedTask.Times.Where(t => t.HasStart && t.HasStop && t.HasType))
+                    {
+                        IEnumerable<string> distinctDeviceElements = time.DataLogValues.Select(d => d.DeviceElementIdRef).Distinct();
+                        foreach (string det in distinctDeviceElements)
+                        {
+                            List<ISOProductAllocation> matchingPans = GetProductAllocationsForTime(time, isoLoggedTask, det);
+                            IEnumerable<string> distinctProductRefs = matchingPans.Select(p => p.ProductIdRef).Distinct();
+                            if (distinctProductRefs.Count() == 1 && TaskDataMapper.ADAPTIdMap.FindByISOId(distinctProductRefs.Single()).HasValue)
+                            {
+                                OperationSummary operationSummary = new OperationSummary();
+                                operationSummary.ProductId = TaskDataMapper.ADAPTIdMap.FindByISOId(distinctProductRefs.Single()).Value;
+                                operationSummary.Data = new List<StampedMeteredValues>();
+
+                                StampedMeteredValues values = GetStampedMeteredValuesForTime(time, det);
+                                if (values != null)
+                                {
+                                    operationSummary.Data.Add(values);
+                                }
+                                operationSummaries.Add(operationSummary);
+                            }
+                            //else unable to reconcile product allocations to this device element.   Multiple products in context of single total.
+                        }
+                    }
+                }
+            }
+
+            return operationSummaries;
+        }
+
+        private OperationSummary GetOperationSummary(ISOTask isoLoggedTask, string productIDRef, string deviceElementIDRef)
+        {
+            OperationSummary operationSummary = null;
+            if (TaskDataMapper.ADAPTIdMap.FindByISOId(productIDRef).HasValue)
+            {
+                operationSummary = new OperationSummary();
+                operationSummary.ProductId = TaskDataMapper.ADAPTIdMap.FindByISOId(productIDRef).Value;
+                operationSummary.Data = new List<StampedMeteredValues>();
+                foreach (ISOTime time in isoLoggedTask.Times.Where(t => t.HasStart && t.HasStop && t.HasType)) //Nothing added without a Start, Stop, Type attributes
+                {
+                    StampedMeteredValues values = GetStampedMeteredValuesForTime(time, deviceElementIDRef);
+                    if (values != null)
+                    {
+                        operationSummary.Data.Add(values);
+                    }
+                }
+            }
+            return operationSummary;
+        }
+
+        private List<ISOProductAllocation> GetProductAllocationsForTime(ISOTime time, ISOTask isoLoggedTask, string deviceElementFilter)
+        {
+            List<ISOProductAllocation> allocations = new List<ISOProductAllocation>();
+            List<ISOProductAllocation> orderedFilteredPans = isoLoggedTask.ProductAllocations.Where(p => p.DeviceElementIdRef == null || p.DeviceElementIdRef == deviceElementFilter).OrderBy(p => p.AllocationStamp.Start.Value).ToList();
+            for (int i = 0; i < orderedFilteredPans.Count; i++)
+            {
+                ISOProductAllocation pan = orderedFilteredPans[i];
+                if (pan.AllocationStamp.Stop.HasValue)
+                {
+                    //PAN must fit inside TIM
+                    if (pan.AllocationStamp.Start >= time.Start && pan.AllocationStamp.Stop <= time.Stop)
+                    {
+                        allocations.Add(pan);
+                    }
+                }
+                else if (i < orderedFilteredPans.Count - 1)
+                {
+                    //No Stop but a subsequent PAN; use start of next PAN as an implicit stop
+                    DateTime nextPanStart = orderedFilteredPans[i + 1].AllocationStamp.Start.Value;
+                    if (pan.AllocationStamp.Start >= time.Start && nextPanStart <= time.Stop)
+                    {
+                        allocations.Add(pan);
+                    }
+                }
+                else if (pan.AllocationStamp.Start < time.Stop)
+                {
+                    //No subsequent PAN; include if starts prior to time stop
+                    allocations.Add(pan);
+                }
+            }
+            return allocations;
+        }
+
+        private StampedMeteredValues GetStampedMeteredValuesForTime(ISOTime time, string deviceElementFilter = null)
+        {
+            StampedMeteredValues stampedValues = new StampedMeteredValues();
+
+            //TimeScope
+            stampedValues.Stamp = new TimeScope();
+            stampedValues.Stamp.TimeStamp1 = time.Start;
+            stampedValues.Stamp.TimeStamp2 = time.Stop;
+            if (time.Stop == null && time.Duration != null)
+            {
+                //Calculate the Stop time if missing and duration present
+                stampedValues.Stamp.TimeStamp2 = stampedValues.Stamp.TimeStamp1.Value.AddSeconds(time.Duration.Value);
+            }
+            stampedValues.Stamp.DateContext = time.Type == ISOEnumerations.ISOTimeType.Planned ? DateContextEnum.ProposedStart : DateContextEnum.ActualStart;
+            stampedValues.Stamp.Duration = stampedValues.Stamp.TimeStamp2.GetValueOrDefault() - stampedValues.Stamp.TimeStamp1.GetValueOrDefault();
+
+            //Values
+            foreach (ISODataLogValue dlv in time.DataLogValues)
+            {
+                MeteredValue value = GetSummaryMeteredValue(dlv);
+                if (value != null) 
+                {
+                    if (deviceElementFilter == null || deviceElementFilter == dlv.DeviceElementIdRef)
+                    {
+                        stampedValues.Values.Add(value);
+                    }
+                }
+            }
+            return stampedValues;
+        }
+
+        private MeteredValue GetSummaryMeteredValue(ISODataLogValue dlv)
+        {
+            if (dlv.ProcessDataDDI == null)
+            {
+                return null;
+            }
+            int ddi = dlv.ProcessDataDDI.AsInt32DDI();
+
+            long dataValue = 0;
+            if (dlv.ProcessDataValue.HasValue)
+            {
+                dataValue = dlv.ProcessDataValue.Value;
+            }
+
+            var unitOfMeasure = RepresentationMapper.GetUnitForDdi(ddi);
+            if (!DDIs.ContainsKey(ddi) || unitOfMeasure == null)
+            {
+                return null;
+            }
+
+            DdiDefinition ddiDefintion = DDIs[ddi];
+
+            return new MeteredValue
+            {
+                Value = new NumericRepresentationValue(RepresentationMapper.Map(ddi) as NumericRepresentation,
+                    unitOfMeasure, new NumericValue(unitOfMeasure, dataValue * ddiDefintion.Resolution))
+            };
+        }
+        #endregion Import Summary Data
 
         #endregion Import Logged Data
 

@@ -52,7 +52,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Allocation Stamps
             if (adaptGuidanceAllocation.TimeScopes.Any())
             {
-                gan.AllocationStamps = AllocationStampMapper.ExportAllocationStamps(adaptGuidanceAllocation.TimeScopes).ToList();
+                gan.AllocationStamp = AllocationStampMapper.ExportAllocationStamps(adaptGuidanceAllocation.TimeScopes).FirstOrDefault();
             }
 
             //Guidance Shift
@@ -93,9 +93,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
             //Allocation Stamps
-            if (isoGuidanceAllocation.AllocationStamps.Any())
+            if (isoGuidanceAllocation.AllocationStamp != null)
             {
-                adaptGuidanceAllocation.TimeScopes = AllocationStampMapper.ImportAllocationStamps(isoGuidanceAllocation.AllocationStamps).ToList();
+                adaptGuidanceAllocation.TimeScopes = AllocationStampMapper.ImportAllocationStamps(new List<ISOAllocationStamp>() { isoGuidanceAllocation.AllocationStamp }).ToList();
             }
 
             //Guidance Shift

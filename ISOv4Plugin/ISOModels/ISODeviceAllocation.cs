@@ -10,18 +10,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
     public class ISODeviceAllocation : ISOElement
     {
-        public ISODeviceAllocation()
-        {
-            AllocationStamps = new List<ISOAllocationStamp>();
-        }
-
         //Attributes
         public string ClientNAMEValue { get; set; }
         public string ClientNAMEMask { get; set; }
         public string DeviceIdRef { get; set; }
 
         //Child Elements
-        public List<ISOAllocationStamp> AllocationStamps {get; set;}
+        public ISOAllocationStamp AllocationStamp {get; set;}
 
 
         public override XmlWriter WriteXML(XmlWriter xmlBuilder)
@@ -30,7 +25,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteXmlAttribute("A", ClientNAMEValue);
             xmlBuilder.WriteXmlAttribute("B", ClientNAMEMask);
             xmlBuilder.WriteXmlAttribute("C", DeviceIdRef);
-            foreach (ISOAllocationStamp item in AllocationStamps) { item.WriteXML(xmlBuilder); }
+            if (AllocationStamp != null)
+            {
+                AllocationStamp.WriteXML(xmlBuilder);
+            }
             xmlBuilder.WriteEndElement();
             return xmlBuilder;
         }
@@ -41,11 +39,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             item.ClientNAMEValue = node.GetXmlNodeValue("@A");
             item.ClientNAMEMask = node.GetXmlNodeValue("@B");
             item.DeviceIdRef = node.GetXmlNodeValue("@C");
-            XmlNodeList aspNodes = node.SelectNodes("ASP");
-            if (aspNodes != null)
-            {
-                item.AllocationStamps.AddRange(ISOAllocationStamp.ReadXML(aspNodes));
-            }
+            item.AllocationStamp = ISOAllocationStamp.ReadXML(node.SelectSingleNode("ASP"));
             return item;
         }
 

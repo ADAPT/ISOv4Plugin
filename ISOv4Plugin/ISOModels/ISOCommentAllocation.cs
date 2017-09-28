@@ -10,18 +10,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
     public class ISOCommentAllocation : ISOElement
     {
-        public ISOCommentAllocation()
-        {
-            AllocationStamps = new List<ISOAllocationStamp>();
-        }
-
         //Attributes
         public string CodedCommentIdRef { get; set; }
         public string CodedCommentListValueIdRef { get; set; }
         public string FreeCommentText { get; set; }
 
         //Child Elements
-        public List<ISOAllocationStamp> AllocationStamps {get; set;}
+        public ISOAllocationStamp AllocationStamp { get; set; }
 
 
         public override XmlWriter WriteXML(XmlWriter xmlBuilder)
@@ -30,7 +25,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteXmlAttribute("A", CodedCommentIdRef);
             xmlBuilder.WriteXmlAttribute("B", CodedCommentListValueIdRef);
             xmlBuilder.WriteXmlAttribute("C", FreeCommentText);
-            foreach (ISOAllocationStamp item in AllocationStamps) { item.WriteXML(xmlBuilder); }
+            if (AllocationStamp != null)
+            {
+                AllocationStamp.WriteXML(xmlBuilder);
+            }
             xmlBuilder.WriteEndElement();
             return xmlBuilder;
         }
@@ -41,12 +39,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             item.CodedCommentIdRef = node.GetXmlNodeValue("@A");
             item.CodedCommentListValueIdRef = node.GetXmlNodeValue("@B");
             item.FreeCommentText = node.GetXmlNodeValue("@C");
-            
-            XmlNodeList aspNodes = node.SelectNodes("ASP");
-            if (aspNodes != null)
-            {
-                item.AllocationStamps.AddRange(ISOAllocationStamp.ReadXML(aspNodes));
-            }
+            item.AllocationStamp = ISOAllocationStamp.ReadXML(node.SelectSingleNode("ASP"));
             return item;
         }
 

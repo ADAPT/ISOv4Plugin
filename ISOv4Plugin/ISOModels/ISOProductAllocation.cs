@@ -12,11 +12,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
     public class ISOProductAllocation : ISOElement
     {
-        public ISOProductAllocation()
-        {
-            AllocationStamps = new List<ISOAllocationStamp>();
-        }
-
         //Attributes
         public string ProductIdRef { get; set; }
         public string QuantityDDI { get; set; }
@@ -26,7 +21,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         public string ValuePresentationIdRef { get; set; }
 
         //Child Elements
-        public List<ISOAllocationStamp> AllocationStamps {get; set;}
+        public ISOAllocationStamp AllocationStamp {get; set;}
 
 
         public override XmlWriter WriteXML(XmlWriter xmlBuilder)
@@ -38,7 +33,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteXmlAttribute<ISOTransferMode>("D", TransferMode);
             xmlBuilder.WriteXmlAttribute("E", DeviceElementIdRef);
             xmlBuilder.WriteXmlAttribute("F", ValuePresentationIdRef);
-            foreach (ISOAllocationStamp item in AllocationStamps) { item.WriteXML(xmlBuilder); }
+            if (AllocationStamp != null)
+            {
+                AllocationStamp.WriteXML(xmlBuilder);
+            }
             xmlBuilder.WriteEndElement();
             return xmlBuilder;
         }
@@ -52,11 +50,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             item.TransferMode = (ISOTransferMode?)(node.GetXmlNodeValueAsNullableInt("@D"));
             item.DeviceElementIdRef = node.GetXmlNodeValue("@E");
             item.ValuePresentationIdRef = node.GetXmlNodeValue("@F");
-            XmlNodeList aspNodes = node.SelectNodes("ASP");
-            if (aspNodes != null)
-            {
-                item.AllocationStamps.AddRange(ISOAllocationStamp.ReadXML(aspNodes));
-            }
+            item.AllocationStamp = ISOAllocationStamp.ReadXML(node.SelectSingleNode("ASP"));
             return item;
         }
 
