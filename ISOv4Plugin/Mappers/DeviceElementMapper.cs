@@ -198,7 +198,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     break;
                 case ISODeviceElementType.Function:
                     deviceElement.DeviceElementType = DeviceElementTypeEnum.Function;
-                    AddSectionConfiguration(isoDeviceElement, deviceElement, rootDeviceHierarchy);  
+                    AddImplementConfiguration(isoDeviceElement, deviceElement, rootDeviceHierarchy);
                     break;
                 case ISODeviceElementType.Section:
                     deviceElement.DeviceElementType = DeviceElementTypeEnum.Section;
