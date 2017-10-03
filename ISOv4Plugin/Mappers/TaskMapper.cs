@@ -30,12 +30,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
     {
         CodedCommentListMapper _commentListMapper;
         CodedCommentMapper _commentMapper;
-        GridMapper _gridMapper;
+        PrescriptionMapper _prescriptionMapper;
         public TaskMapper(TaskDataMapper taskDataMapper, CodedCommentListMapper commentListMapper, CodedCommentMapper commentMapper) : base(taskDataMapper, "TSK")
         {
             _commentListMapper = commentListMapper;
             _commentMapper = commentMapper;
-            _gridMapper = new GridMapper(taskDataMapper);
         }
 
         #region Export
@@ -58,7 +57,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             if (workItem.WorkItemOperationIds.Any())
             {
-                PrescriptionMapper rxMapper = new PrescriptionMapper(TaskDataMapper, _gridMapper, _commentMapper);
+                if (_prescriptionMapper == null)
+                {
+                    _prescriptionMapper = new PrescriptionMapper(TaskDataMapper, _commentMapper);
+                }
                 foreach (int operationID in workItem.WorkItemOperationIds)
                 {
                     WorkItemOperation operation = DataModel.Documents.WorkItemOperations.FirstOrDefault(o => o.Id.ReferenceId == operationID);
@@ -67,7 +69,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         Prescription prescription = DataModel.Catalog.Prescriptions.FirstOrDefault(p => p.Id.ReferenceId == operation.PrescriptionId.Value);
                         if (prescription != null)
                         {
-                            ISOTask task = rxMapper.ExportPrescription(workItem, isoGridType, prescription);
+                            ISOTask task = _prescriptionMapper.ExportPrescription(workItem, isoGridType, prescription);
                             tasks.Add(task);
                         }
                     }
@@ -303,6 +305,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 else
                 {
                     workItem.FieldId = pfdID.Value;
+                    if (DataModel.Catalog.CropZones.Count(c => c.FieldId == pfdID) == 1)
+                    {
+                        //There is a single cropZone for the field.  
+                        workItem.CropZoneId = DataModel.Catalog.CropZones.Single(c => c.FieldId == pfdID).Id.ReferenceId;
+                    }
                 }
             }
 
@@ -368,11 +375,21 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 workItem.GuidanceAllocationIds.AddRange(allocations.Select(p => p.Id.ReferenceId));
             }
 
+            //Comments
+            if (isoPrescribedTask.CommentAllocations.Any())
+            {
+                CommentAllocationMapper canMapper = new CommentAllocationMapper(TaskDataMapper, _commentMapper);
+                workItem.Notes = canMapper.ImportCommentAllocations(isoPrescribedTask.CommentAllocations).ToList();
+            }
+
             //Prescription
             if (isoPrescribedTask.HasPrescription)
             {
-                PrescriptionMapper rxMapper = new PrescriptionMapper(TaskDataMapper, _gridMapper, _commentMapper);
-                Prescription rx = rxMapper.ImportPrescription(isoPrescribedTask, workItem);
+                if (_prescriptionMapper == null)
+                {
+                    _prescriptionMapper = new PrescriptionMapper(TaskDataMapper, _commentMapper);
+                }
+                Prescription rx = _prescriptionMapper.ImportPrescription(isoPrescribedTask, workItem);
 
                 //Add to the Prescription the Catalog
                 List<Prescription> prescriptions = DataModel.Catalog.Prescriptions as List<Prescription>;
@@ -460,6 +477,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 else
                 {
                     loggedData.FieldId = pfdID.Value;
+                    if (DataModel.Catalog.CropZones.Count(c => c.FieldId == pfdID) == 1)
+                    {
+                        //There is a single cropZone for the field.  
+                        loggedData.CropZoneId = DataModel.Catalog.CropZones.Single(c => c.FieldId == pfdID).Id.ReferenceId;
+                    }
                 }
             }
 

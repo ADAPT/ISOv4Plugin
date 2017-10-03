@@ -17,8 +17,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
     public interface IPolygonMapper
     {
-        IEnumerable<ISOPolygon> ExportPolygons(IEnumerable<Polygon> adaptPolygons, ISOPolygonType PolygonType, ISOLineStringType lineStringType);
-        ISOPolygon ExportPolygon(Polygon adaptPolygon, ISOPolygonType PolygonType, ISOLineStringType lineStringType);
+        IEnumerable<ISOPolygon> ExportPolygons(IEnumerable<Polygon> adaptPolygons, ISOPolygonType PolygonType);
+        ISOPolygon ExportPolygon(Polygon adaptPolygon, ISOPolygonType PolygonType);
         IEnumerable<Polygon> ImportPolygons(IEnumerable<ISOPolygon> isoPolygons);
         Polygon ImportPolygon(ISOPolygon isoPolygon);
     }
@@ -30,18 +30,18 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         }
 
         #region Export
-        public IEnumerable<ISOPolygon> ExportPolygons(IEnumerable<Polygon> adaptPolygons, ISOPolygonType polygonType, ISOLineStringType lineStringType)
+        public IEnumerable<ISOPolygon> ExportPolygons(IEnumerable<Polygon> adaptPolygons, ISOPolygonType polygonType)
         {
             List <ISOPolygon> polygons = new List<ISOPolygon>();
             foreach (Polygon polygon in adaptPolygons)
             {
-                ISOPolygon ISOPolygon = ExportPolygon(polygon, polygonType, lineStringType);
+                ISOPolygon ISOPolygon = ExportPolygon(polygon, polygonType);
                 polygons.Add(ISOPolygon);
             }
             return polygons;
         }
 
-        public ISOPolygon ExportPolygon(Polygon adaptPolygon, ISOPolygonType polygonType, ISOLineStringType lineStringType)
+        public ISOPolygon ExportPolygon(Polygon adaptPolygon, ISOPolygonType polygonType)
         {
             ISOPolygon ISOPolygon = new ISOPolygon();
 

@@ -121,7 +121,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             if (adaptGuidancePattern.BoundingPolygon != null)
             {
                 PolygonMapper polygonMapper = new PolygonMapper(TaskDataMapper);
-                gpn.BoundaryPolygons = polygonMapper.ExportPolygons(adaptGuidancePattern.BoundingPolygon.Polygons, ISOPolygonType.Other, ISOLineStringType.PolygonExterior).ToList();
+                gpn.BoundaryPolygons = polygonMapper.ExportPolygons(adaptGuidancePattern.BoundingPolygon.Polygons, ISOPolygonType.Other).ToList();
             }
 
             return gpn;
