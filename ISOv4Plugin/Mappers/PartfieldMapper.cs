@@ -100,7 +100,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             FieldBoundary boundary = DataModel.Catalog.FieldBoundaries.SingleOrDefault(b => b.FieldId == adaptField.Id.ReferenceId);
             if (boundary != null)
             {
-                IEnumerable<ISOPolygon> isoPolygons = polygonMapper.ExportPolygons(boundary.SpatialData.Polygons, ISOEnumerations.ISOPolygonType.PartfieldBoundary, ISOEnumerations.ISOLineStringType.PolygonExterior);
+                IEnumerable<ISOPolygon> isoPolygons = polygonMapper.ExportPolygons(boundary.SpatialData.Polygons, ISOEnumerations.ISOPolygonType.PartfieldBoundary);
                 isoField.Polygons.AddRange(isoPolygons);
             }
 
@@ -152,7 +152,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             if (cropZone.BoundingRegion != null)
             {
                 PolygonMapper polygonMapper = new PolygonMapper(TaskDataMapper);
-                isoField.Polygons = polygonMapper.ExportPolygons(cropZone.BoundingRegion.Polygons, ISOEnumerations.ISOPolygonType.PartfieldBoundary, ISOEnumerations.ISOLineStringType.PolygonExterior).ToList();
+                isoField.Polygons = polygonMapper.ExportPolygons(cropZone.BoundingRegion.Polygons, ISOEnumerations.ISOPolygonType.PartfieldBoundary).ToList();
             }
 
             //Guidance

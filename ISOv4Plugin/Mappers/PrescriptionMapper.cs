@@ -37,11 +37,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         private ADAPT.Representation.UnitSystem.UnitOfMeasureConverter _unitConverter;
         private CodedCommentMapper _commentMapper;
         private GridMapper _gridMapper;
-        public PrescriptionMapper(TaskDataMapper taskDataMapper, GridMapper gridMapper, CodedCommentMapper commentMapper)
+        public PrescriptionMapper(TaskDataMapper taskDataMapper, CodedCommentMapper commentMapper)
             :base (taskDataMapper, "TSK")
         {
             _unitConverter = new ADAPT.Representation.UnitSystem.UnitOfMeasureConverter();
-            _gridMapper = gridMapper;
+            _gridMapper = new GridMapper(taskDataMapper, this);
             _commentMapper = commentMapper;
         }
 
@@ -164,12 +164,37 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         private void ExportVectorPrescription(ISOTask task, VectorPrescription rx)
         {
-            throw new NotImplementedException();
+            byte i = 0;
+            foreach (RxShapeLookup shapeLookup in rx.RxShapeLookups)
+            {
+                ISOTreatmentZone tzn = new ISOTreatmentZone();
+                tzn.TreatmentZoneCode = i++;
+                foreach (RxRate rxRate in shapeLookup.Rates)
+                {
+                    tzn.ProcessDataVariables.Add(ExportProcessDataVariable(rxRate, rx));
+                }
+
+                PolygonMapper polygonMapper = new PolygonMapper(TaskDataMapper);
+                tzn.Polygons = polygonMapper.ExportPolygons(shapeLookup.Shape.Polygons, ISOEnumerations.ISOPolygonType.TreatmentZone).ToList();
+                task.TreatmentZones.Add(tzn);
+            }         
         }
 
         private void ExportManualPresciption(ISOTask task, ManualPrescription rx)
         {
-            throw new NotImplementedException();
+            ISOTreatmentZone tzn = new ISOTreatmentZone();
+            tzn.TreatmentZoneDesignator = "Default Treatment Zone";
+            tzn.TreatmentZoneCode = 1;
+
+            foreach (ProductUse productUse in rx.ProductUses)
+            {
+                var isoUnit = DetermineIsoUnit(rx.RxProductLookups.First(p => p.ProductId == productUse.ProductId).UnitOfMeasure);
+                string productIDRef = TaskDataMapper.ISOIdMap.FindByADAPTId(productUse.ProductId);
+                ISOProcessDataVariable pdv = ExportProcessDataVariable(productUse.Rate, productIDRef, isoUnit);
+                tzn.ProcessDataVariables.Add(pdv);
+            }
+
+            task.TreatmentZones.Add(tzn);
         }
 
         private List<byte> ExportTreatmentZonesForType1(ISOTask task, RasterGridPrescription prescription)
@@ -183,7 +208,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 string key = GetRxRatesKey(cellRates);
                 if (!treatmentZones.ContainsKey(key))
                 {
-                    ISOTreatmentZone tzn = GetNewType1TreatmentZone(cellRates, tznCounter);
+                    ISOTreatmentZone tzn = GetNewType1TreatmentZone(cellRates, tznCounter, prescription);
                     treatmentZones.Add(key, tzn);
                     task.TreatmentZones.Add(tzn);
                     tznCounter++;
@@ -201,21 +226,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
             //Adds a treatment zone for a new rate combination
-            ISOTreatmentZone GetNewType1TreatmentZone(RxRates rates, byte counter)
+            ISOTreatmentZone GetNewType1TreatmentZone(RxRates rates, byte counter, Prescription rx)
             {
                 ISOTreatmentZone treatmentZone = new ISOTreatmentZone() { TreatmentZoneCode = counter, TreatmentZoneDesignator = $"TreatmentZone {counter.ToString()}" };
 
                 foreach (RxRate rate in rates.RxRate)
                 {
-                    ISOProcessDataVariable processDataVariable = new ISOProcessDataVariable();
-                    RxProductLookup lookup = prescription.RxProductLookups.FirstOrDefault(l => l.Id.ReferenceId == rate.RxProductLookupId);
-                    if (lookup != null)
-                    {
-                        processDataVariable.ProductIdRef = TaskDataMapper.ISOIdMap.FindByADAPTId(lookup.ProductId.Value);
-                        processDataVariable.ProcessDataDDI = DetermineVariableDDI(lookup.UnitOfMeasure).AsHexDDI();
-                        processDataVariable.ProcessDataValue = (long)rate.Rate; 
-                    }
-                    treatmentZone.ProcessDataVariables.Add(processDataVariable);
+                    treatmentZone.ProcessDataVariables.Add(ExportProcessDataVariable(rate, rx));
                 }
                 return treatmentZone;
             }
@@ -290,7 +307,20 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return UnitFactory.Instance.GetUnitByDimension(rateUnit.Dimension);
         }
 
-        private ISOProcessDataVariable ExportProcessDataVariable(NumericRepresentationValue value, string productId, ISOUnit unit)
+        private ISOProcessDataVariable ExportProcessDataVariable(RxRate rxRate, Prescription rx)
+        {
+            ISOProcessDataVariable processDataVariable = new ISOProcessDataVariable();
+            RxProductLookup lookup = rx.RxProductLookups.FirstOrDefault(l => l.Id.ReferenceId == rxRate.RxProductLookupId);
+            if (lookup != null)
+            {
+                processDataVariable.ProductIdRef = TaskDataMapper.ISOIdMap.FindByADAPTId(lookup.ProductId.Value);
+                processDataVariable.ProcessDataDDI = DetermineVariableDDI(lookup.UnitOfMeasure).AsHexDDI();
+                processDataVariable.ProcessDataValue = (long)rxRate.Rate;
+            }
+            return processDataVariable;
+        }
+
+        private ISOProcessDataVariable ExportProcessDataVariable(NumericRepresentationValue value, string isoProductIdRef, ISOUnit unit)
         {
             if (value != null && value.Value != null)
             {
@@ -308,10 +338,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
                 var dataVariable = new ISOProcessDataVariable
                 {
-                    ProductIdRef = productId,
+                    ProductIdRef = isoProductIdRef,
                     ProcessDataValue = (long)targetValue,
-                    ProcessDataDDI = DetermineVariableDDI(adaptUnit).AsHexDDI() //TODO This needs work
-                    //TODO VPN
+                    ProcessDataDDI = DetermineVariableDDI(adaptUnit).AsHexDDI()
                 };
 
                 return dataVariable;
@@ -346,6 +375,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     return ISOEnumerations.ISOTaskStatus.Planned;
             }
         }
+
         #endregion Export
 
         #region Import
@@ -359,21 +389,149 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
             else if (task.HasVectorPrescription)
             {
-                //TODO Vector prescription
+                prescription = ImportVectorPrescription(task, workItem);
             }
             else if (task.HasManualPrescription)
             {
-                //TODO Task has PDVs but no grid or polygons.   Manual prescription.
-            }
-
-            if (task.CommentAllocations.Any())
-            {
-                CommentAllocationMapper canMapper = new CommentAllocationMapper(TaskDataMapper, _commentMapper);
-                workItem.Notes = canMapper.ImportCommentAllocations(task.CommentAllocations).ToList();
+                prescription = ImportManualPrescription(task, workItem);
             }
 
             return prescription;
          }
+
+        public VectorPrescription ImportVectorPrescription(ISOTask task, WorkItem workItem)
+        {
+            VectorPrescription vectorRx = new VectorPrescription();
+            ImportSharedPrescriptionProperties(task, workItem, vectorRx);
+            vectorRx.RxShapeLookups = new List<RxShapeLookup>();
+            foreach (ISOTreatmentZone treatmentZone in task.TreatmentZones)
+            {
+                RxShapeLookup shapeLookup = new RxShapeLookup();
+
+                //Rates
+                shapeLookup.Rates = new List<RxRate>();
+                foreach (ISOProcessDataVariable pdv in treatmentZone.ProcessDataVariables)
+                {
+                    int? productID = TaskDataMapper.ADAPTIdMap.FindByISOId(pdv.ProductIdRef);
+                    if (productID.HasValue)
+                    {
+                        shapeLookup.Rates.Add(PrescriptionMapper.ImportRate(productID.Value, pdv.ProcessDataValue, vectorRx));
+                    }
+                }
+
+                //Shapes
+                PolygonMapper polygonMapper = new PolygonMapper(TaskDataMapper);
+                shapeLookup.Shape = new MultiPolygon();
+                shapeLookup.Shape.Polygons = polygonMapper.ImportPolygons(treatmentZone.Polygons).ToList();
+
+                //Add to the collection
+                vectorRx.RxShapeLookups.Add(shapeLookup);
+            }
+
+            return vectorRx;
+        }
+
+        public ManualPrescription ImportManualPrescription(ISOTask task, WorkItem workItem)
+        {
+            ManualPrescription manualRx = null;
+            if (task.DefaultTreatmentZone != null)
+            {
+                foreach (ISOProcessDataVariable pdv in task.DefaultTreatmentZone.ProcessDataVariables)
+                {
+                    if (manualRx == null)
+                    {
+                        manualRx = new ManualPrescription();
+                        manualRx.ProductUses = new List<ProductUse>();
+                        manualRx.ProductIds = new List<int>();
+                        ImportSharedPrescriptionProperties(task, workItem, manualRx);
+                    }
+
+                    if (pdv.ProductIdRef != null) //Products on ISO Rxs are optional, but without a place to store a product-agnostic prescription, those will not be imported here.
+                    {
+                        ProductUse productUse = new ProductUse();
+                        int? productID = TaskDataMapper.ADAPTIdMap.FindByISOId(pdv.ProductIdRef);
+                        if (productID.HasValue)
+                        {
+                            productUse.ProductId = productID.Value;
+                            manualRx.ProductIds.Add(productID.Value);
+                        }
+                        productUse.Rate = pdv.ProcessDataValue.AsNumericRepresentationValue(pdv.ProcessDataDDI, RepresentationMapper);
+                        manualRx.ProductUses.Add(productUse);
+                    }
+                }
+            }
+            return manualRx;
+        }
+
+        internal void ImportSharedPrescriptionProperties(ISOTask task, WorkItem workItem, Prescription prescription)
+        {
+            //Description
+            prescription.Description = task.TaskDesignator;
+
+            //CropZone/Field
+            if (workItem.CropZoneId.HasValue)
+            {
+                prescription.CropZoneId = workItem.CropZoneId.Value;
+            }
+            else if (workItem.FieldId.HasValue)
+            {
+                prescription.FieldId = workItem.FieldId.Value;
+            }
+
+            //Products
+            prescription.ProductIds = new List<int>();
+            foreach (ISOTreatmentZone treatmentZone in task.TreatmentZones)
+            {
+                foreach (var dataVariable in treatmentZone.ProcessDataVariables)
+                {
+                    if (!string.IsNullOrEmpty(dataVariable.ProductIdRef))
+                    {
+                        int? productID = TaskDataMapper.ADAPTIdMap[dataVariable.ProductIdRef];
+                        if (productID.HasValue)
+                        {
+                            //ProductIDs
+                            if (!prescription.ProductIds.Contains(productID.Value))
+                            {
+                                prescription.ProductIds.Add(productID.Value);
+                            }
+
+                            //Product Lookups
+                            int ddi = dataVariable.ProcessDataDDI.AsInt32DDI();
+                            var rxProductLookup = new RxProductLookup
+                            {
+                                ProductId = productID,
+                                UnitOfMeasure = UnitFactory.Instance.GetUnitByDDI(ddi).ToAdaptUnit(),
+                                Representation = (NumericRepresentation)RepresentationMapper.Map(ddi)
+                            };
+
+                            if (!prescription.RxProductLookups.Any(r => r.ProductId == rxProductLookup.ProductId))
+                            {
+                                prescription.RxProductLookups.Add(rxProductLookup);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        internal static RxRate ImportRate(int productId, double productRate, Prescription prescription)
+        {
+            RxProductLookup rxProductLookup = prescription.RxProductLookups.SingleOrDefault(x => x.ProductId == productId);
+            if (rxProductLookup != null)
+            {
+                var rxRate = new RxRate
+                {
+                    Rate = productRate,
+                    RxProductLookupId = rxProductLookup.Id.ReferenceId,
+                };
+
+                return rxRate;
+            }
+            else
+            {
+                return null;
+            }
+        }
 
         #endregion Import
     }

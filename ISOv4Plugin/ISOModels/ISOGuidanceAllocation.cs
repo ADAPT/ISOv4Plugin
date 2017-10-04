@@ -12,7 +12,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
     {
         public ISOGuidanceAllocation()
         {
-            AllocationStamps = new List<ISOAllocationStamp>();
             GuidanceShifts = new List<ISOGuidanceShift>();
         }
 
@@ -20,7 +19,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         public string GuidanceGroupIdRef { get; set; }
 
         //Child Elements
-        public List<ISOAllocationStamp> AllocationStamps {get; set;}
+        public ISOAllocationStamp AllocationStamp { get; set; }
         public List<ISOGuidanceShift> GuidanceShifts { get; set; }
 
 
@@ -28,7 +27,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         {
             xmlBuilder.WriteStartElement("GAN");
             xmlBuilder.WriteXmlAttribute("A", GuidanceGroupIdRef);
-            foreach (ISOAllocationStamp item in AllocationStamps) { item.WriteXML(xmlBuilder); }
+            if (AllocationStamp != null)
+            {
+                AllocationStamp.WriteXML(xmlBuilder);
+            }
             foreach (ISOGuidanceShift item in GuidanceShifts) { item.WriteXML(xmlBuilder); }
             xmlBuilder.WriteEndElement();
             return xmlBuilder;
@@ -38,12 +40,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         {
             ISOGuidanceAllocation item = new ISOGuidanceAllocation();
             item.GuidanceGroupIdRef = node.GetXmlNodeValue("@A");
-
-            XmlNodeList aspNodes = node.SelectNodes("ASP");
-            if (aspNodes != null)
-            {
-                item.AllocationStamps.AddRange(ISOAllocationStamp.ReadXML(aspNodes));
-            }
+            item.AllocationStamp = ISOAllocationStamp.ReadXML(node.SelectSingleNode("ASP"));
 
             XmlNodeList gstNodes = node.SelectNodes("GST");
             if (gstNodes != null)

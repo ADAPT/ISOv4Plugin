@@ -54,7 +54,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Allocation Stamps
             if (adaptWorkerAllocation.TimeScopes.Any())
             {
-                wan.AllocationStamps = AllocationStampMapper.ExportAllocationStamps(adaptWorkerAllocation.TimeScopes).ToList();
+                wan.AllocationStamp = AllocationStampMapper.ExportAllocationStamps(adaptWorkerAllocation.TimeScopes).FirstOrDefault();
             }
 
             return wan;
@@ -88,9 +88,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
             //Allocation Stamps
-            if (isoWorkerAllocation.AllocationStamps.Any())
+            if (isoWorkerAllocation.AllocationStamp != null)
             {
-                adaptWorkerAllocation.TimeScopes = AllocationStampMapper.ImportAllocationStamps(isoWorkerAllocation.AllocationStamps).ToList();
+                adaptWorkerAllocation.TimeScopes = AllocationStampMapper.ImportAllocationStamps(new List<ISOAllocationStamp>() { isoWorkerAllocation.AllocationStamp }).ToList();
             }
 
             return adaptWorkerAllocation;

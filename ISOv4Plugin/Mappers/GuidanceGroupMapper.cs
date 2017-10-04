@@ -75,7 +75,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             if (adaptGuidanceGroup.BoundingPolygon != null)
             { 
                 PolygonMapper polygonMapper = new PolygonMapper(TaskDataMapper);
-                isoGroup.BoundaryPolygons = polygonMapper.ExportPolygons(adaptGuidanceGroup.BoundingPolygon.Polygons, ISOPolygonType.Other, ISOLineStringType.PolygonExterior).ToList();
+                isoGroup.BoundaryPolygons = polygonMapper.ExportPolygons(adaptGuidanceGroup.BoundingPolygon.Polygons, ISOPolygonType.Other).ToList();
             }
 
             return isoGroup;

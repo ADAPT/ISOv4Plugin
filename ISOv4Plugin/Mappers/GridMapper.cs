@@ -36,8 +36,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
     public class GridMapper : BaseMapper, IGridMapper
     {
-        public GridMapper(TaskDataMapper taskDataMapper) : base(taskDataMapper, "GRD")
+        private PrescriptionMapper _prescriptionMapper;
+        public GridMapper(TaskDataMapper taskDataMapper, PrescriptionMapper prescriptionMapper) : base(taskDataMapper, "GRD")
         {
+            _prescriptionMapper = prescriptionMapper;
         }
 
         #region Export
@@ -172,7 +174,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         {
             RasterGridPrescription rasterPrescription = new RasterGridPrescription();
 
-            ImportSharedPrescriptionProperties(task, workItem, rasterPrescription);
+            _prescriptionMapper.ImportSharedPrescriptionProperties(task, workItem, rasterPrescription);
 
             GridDescriptor gridDescriptor = LoadGridDescriptor(task, TaskDataPath);
             if (gridDescriptor != null)
@@ -193,40 +195,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 ImportRates(task, gridDescriptor, rasterPrescription);
             }
             return rasterPrescription;
-        }
-
-        private void ImportSharedPrescriptionProperties(ISOTask task, WorkItem workItem, Prescription prescription)
-        {
-            //Description
-            prescription.Description = task.TaskDesignator;
-
-            //CropZone/Field
-            if (workItem.CropZoneId.HasValue)
-            {
-                prescription.CropZoneId = workItem.CropZoneId.Value;
-            }
-            else if (workItem.FieldId.HasValue)
-            {
-                prescription.FieldId = workItem.FieldId.Value;
-            }
-
-            //Products
-            HashSet<int> productIds = new HashSet<int>();
-            foreach (ISOTreatmentZone treatmentZone in task.TreatmentZones)
-            {
-                foreach (var dataVariable in treatmentZone.ProcessDataVariables)
-                {
-                    if (!string.IsNullOrEmpty(dataVariable.ProductIdRef))
-                    {
-                        int? productID = TaskDataMapper.ADAPTIdMap[dataVariable.ProductIdRef];
-                        if (productID.HasValue)
-                        {
-                            productIds.Add(productID.Value);
-                        }
-                    }
-                }
-                prescription.ProductIds = productIds.ToList();
-            }
         }
 
         private GridDescriptor LoadGridDescriptor(ISOTask task, string dataPath)
@@ -263,11 +231,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         {
             if (task.PositionLostTreatmentZone != null)
             {
-                prescription.LossOfGpsRate = LoadRatesFromTreatmentZone(task.PositionLostTreatmentZone).FirstOrDefault();
+                prescription.LossOfGpsRate = ImportTreatmentZoneAsNumericRepValue(task.PositionLostTreatmentZone);
             }
             if (task.OutOfFieldTreatmentZone != null)
             {
-                prescription.OutOfFieldRate = LoadRatesFromTreatmentZone(task.OutOfFieldTreatmentZone).FirstOrDefault();
+                prescription.OutOfFieldRate = ImportTreatmentZoneAsNumericRepValue(task.OutOfFieldTreatmentZone);
             }
 
             if (gridDescriptor.TreatmentZoneCodes != null)
@@ -277,8 +245,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 if (treatmentZone == null)
                     return;
 
-                LoadRateUnits(treatmentZone, prescription);
-                prescription.Rates = LoadRatesFromTreatmentZones(gridDescriptor, task.TreatmentZones, prescription.ProductIds, prescription);
+                prescription.Rates = ImportRatesFromTreatmentZones(gridDescriptor, task.TreatmentZones, prescription.ProductIds, prescription);
             }
             else if (gridDescriptor.ProductRates != null)
             {
@@ -287,53 +254,28 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 if (treatmentZoneTemplate == null)
                     return;
 
-
-                LoadRateUnits(treatmentZoneTemplate, prescription);
-                prescription.Rates = LoadRatesFromProducts(gridDescriptor, prescription.ProductIds, prescription);
+                prescription.Rates = ImportRatesFromProducts(gridDescriptor, prescription.ProductIds, prescription);
             }
         }
 
-        private void LoadRateUnits(ISOTreatmentZone treatmentZone, RasterGridPrescription prescription)
-        {
-            if (prescription.RxProductLookups == null)
-                prescription.RxProductLookups = new List<RxProductLookup>();
-
-            var rxRates = new List<RxRate>();
-            foreach (var dataVariable in treatmentZone.ProcessDataVariables)
-            {
-                int productID = TaskDataMapper.ADAPTIdMap[dataVariable.ProductIdRef].Value;
-                Product product = DataModel.Catalog.Products.FirstOrDefault(p => p.Id.ReferenceId == productID);
-                int ddi = dataVariable.ProcessDataDDI.AsInt32DDI();
-                var rxProductLookup = new RxProductLookup
-                {
-                    ProductId = productID,
-                    UnitOfMeasure = UnitFactory.Instance.GetUnitByDDI(ddi).ToAdaptUnit(),
-                    Representation = (NumericRepresentation)RepresentationMapper.Map(ddi)
-                };
-                prescription.RxProductLookups.Add(rxProductLookup);
-            }
-        }
-
-        private List<RxRates> LoadRatesFromProducts(GridDescriptor gridDescriptor, List<int> productIds, RasterGridPrescription prescription)
+        private List<RxRates> ImportRatesFromProducts(GridDescriptor gridDescriptor, List<int> productIds, RasterGridPrescription prescription)
         {
             var rates = new List<RxRates>();
             foreach (var productRates in gridDescriptor.ProductRates)
             {
                 var rate = new RxRates { RxRate = new List<RxRate>() };
-
                 for (int productIndex = 0; productIndex < productRates.Count; productIndex++)
                 {
                     int adaptProductId = productIds[productIndex];
-                    AddRate(adaptProductId, productRates[productIndex], rate, prescription, null);
+                    rate.RxRate.Add(PrescriptionMapper.ImportRate(adaptProductId, productRates[productIndex], prescription));
                 }
-
                 rates.Add(rate);
             }
 
             return rates;
         }
 
-        private List<RxRates> LoadRatesFromTreatmentZones(GridDescriptor gridDescriptor, IEnumerable<ISOTreatmentZone> treatmentZones, List<int> productIds, RasterGridPrescription prescription)
+        private List<RxRates> ImportRatesFromTreatmentZones(GridDescriptor gridDescriptor, IEnumerable<ISOTreatmentZone> treatmentZones, List<int> productIds, RasterGridPrescription prescription)
         {
             var rates = new List<RxRates>();
             foreach (var treatmentZoneCode in gridDescriptor.TreatmentZoneCodes)
@@ -345,12 +287,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 }
 
                 var rate = new RxRates { RxRate = new List<RxRate>() };
-
-                for (int i = 0; i < treatmentZone.ProcessDataVariables.Count; i++)
+                foreach (ISOProcessDataVariable pdv in treatmentZone.ProcessDataVariables)
                 {
-                    ISOProcessDataVariable dataVariable = treatmentZone.ProcessDataVariables[i];
-                    UnitOfMeasure uom = dataVariable.ToAdaptUnit(RepresentationMapper, ISOTaskData);
-                    AddRate(productIds[i], dataVariable.ProcessDataValue, rate, prescription, uom);
+                    if (!string.IsNullOrEmpty(pdv.ProductIdRef))
+                    {
+                        int? productID = TaskDataMapper.ADAPTIdMap.FindByISOId(pdv.ProductIdRef);
+                        if (productID.HasValue)
+                        {
+                            rate.RxRate.Add(PrescriptionMapper.ImportRate(productID.Value, pdv.ProcessDataValue, prescription));
+                        }
+                    }
                 }
 
                 rates.Add(rate);
@@ -359,48 +305,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return rates;
         }
 
-        private List<NumericRepresentationValue> LoadRatesFromTreatmentZone(ISOTreatmentZone treatmentZone)
+        private NumericRepresentationValue ImportTreatmentZoneAsNumericRepValue(ISOTreatmentZone treatmentZone)
         {
-            var rates = new List<NumericRepresentationValue>();
-
             if (treatmentZone.ProcessDataVariables == null || treatmentZone.ProcessDataVariables.Count == 0)
             {
-                return rates;
+                return null;
             }
 
-            foreach (ISOProcessDataVariable dataVariable in treatmentZone.ProcessDataVariables)
-            {
-                rates.Add(dataVariable.AsNumericRepresentationValue(RepresentationMapper, ISOTaskData));
-            }
-            return rates;
+            return treatmentZone.ProcessDataVariables.First().AsNumericRepresentationValue(RepresentationMapper, ISOTaskData); //In this situation, there should be only one PDV
         }
-
-        private static void AddRate(int productId, double productRate, RxRates rates, RasterGridPrescription prescription, UnitOfMeasure uom)
-        {
-            RxProductLookup rxProductLookup;
-            if (prescription.RxProductLookups.Any(x => x.ProductId == productId))
-            {
-                rxProductLookup = prescription.RxProductLookups.Single(x => x.ProductId == productId);
-            }
-            else
-            {
-                rxProductLookup = new RxProductLookup
-                {
-                    ProductId = productId,
-                    UnitOfMeasure = uom
-                };
-                prescription.RxProductLookups.Add(rxProductLookup);
-            }
-
-            var rxRate = new RxRate
-            {
-                Rate = productRate,
-                RxProductLookupId = rxProductLookup.Id.ReferenceId,
-            };
-
-            rates.RxRate.Add(rxRate);
-        }
-
         #endregion Import
     }
 }

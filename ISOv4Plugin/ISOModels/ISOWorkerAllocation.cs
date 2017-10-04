@@ -10,22 +10,20 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
     public class ISOWorkerAllocation : ISOElement
     {
-        public ISOWorkerAllocation()
-        {
-            AllocationStamps = new List<ISOAllocationStamp>();
-        }
-
         //Attributes
         public string WorkerIdRef { get; set; }
 
         //Child Elements
-        public List<ISOAllocationStamp> AllocationStamps {get; set;}
-        
+        public ISOAllocationStamp AllocationStamp { get; set; }
+
         public override XmlWriter WriteXML(XmlWriter xmlBuilder)
         {
             xmlBuilder.WriteStartElement("WAN");
             xmlBuilder.WriteXmlAttribute("A", WorkerIdRef);
-            foreach (ISOAllocationStamp item in AllocationStamps) { item.WriteXML(xmlBuilder); }
+            if (AllocationStamp != null)
+            {
+                AllocationStamp.WriteXML(xmlBuilder);
+            }
             xmlBuilder.WriteEndElement();
             return xmlBuilder;
         }
@@ -34,11 +32,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         {
             ISOWorkerAllocation item = new ISOWorkerAllocation();
             item.WorkerIdRef = node.GetXmlNodeValue("@A");
-            XmlNodeList aspNodes = node.SelectNodes("ASP");
-            if (aspNodes != null)
-            {
-                item.AllocationStamps.AddRange(ISOAllocationStamp.ReadXML(aspNodes));
-            }
+            item.AllocationStamp = ISOAllocationStamp.ReadXML(node.SelectSingleNode("ASP"));
             return item;
         }
 

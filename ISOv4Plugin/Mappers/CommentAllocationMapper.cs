@@ -73,7 +73,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Allocation Stamps
             if (note.TimeStamps.Any())
             {
-                commentAllocation.AllocationStamps = AllocationStampMapper.ExportAllocationStamps(note.TimeStamps).ToList();
+                commentAllocation.AllocationStamp = AllocationStampMapper.ExportAllocationStamps(note.TimeStamps).FirstOrDefault();
             }
 
             return commentAllocation;
@@ -102,9 +102,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             Note adaptNote = new Note();
 
             //Allocation Stamps
-            if (isoCommentAllocation.AllocationStamps.Any())
+            if (isoCommentAllocation.AllocationStamp != null)
             {
-                adaptNote.TimeStamps = AllocationStampMapper.ImportAllocationStamps(isoCommentAllocation.AllocationStamps).ToList();
+                adaptNote.TimeStamps = AllocationStampMapper.ImportAllocationStamps(new List<ISOAllocationStamp>() {isoCommentAllocation.AllocationStamp }).ToList();
             }
 
             //Coded Comment
