@@ -45,35 +45,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         //Set the DeviceElementConfiguration ID 
                         adaptDeviceConfigurationId = config.Id.ReferenceId;
 
-                        //Update Width as appropriate
-                        if (config is SectionConfiguration)
-                        {
-                            SectionConfiguration sectionConfig = config as SectionConfiguration;
-                            if (sectionConfig.SectionWidth == null || sectionConfig.SectionWidth.Value == null || sectionConfig.SectionWidth.Value.Value == 0d)
-                            {
-                                sectionConfig.SectionWidth = GetWidthFromSpatialData(isoRecords, isoDeviceElementID);
-                            }
-                            if (sectionConfig.InlineOffset == null || sectionConfig.InlineOffset.Value == null || sectionConfig.InlineOffset.Value.Value == 0d)
-                            {
-                                sectionConfig.InlineOffset = GetXOffsetFromSpatialData(isoRecords, isoDeviceElementID);
-                            }
-                            if (sectionConfig.LateralOffset == null || sectionConfig.LateralOffset.Value == null || sectionConfig.LateralOffset.Value.Value == 0d)
-                            {
-                                sectionConfig.LateralOffset = GetYOffsetFromSpatialData(isoRecords, isoDeviceElementID);
-                            }
-                        }
-                        else if (config is ImplementConfiguration)
-                        {
-                            ImplementConfiguration implementConfig = config as ImplementConfiguration;
-                            if (implementConfig.Width == null || implementConfig.Width.Value == null || implementConfig.Width.Value.Value == 0d)
-                            {
-                                implementConfig.Width = GetWidthFromSpatialData(isoRecords, isoDeviceElementID);
-                            }
-                            if (implementConfig.YOffset == null || implementConfig.YOffset.Value == null || implementConfig.YOffset.Value.Value == 0d)
-                            {
-                                implementConfig.YOffset = GetYOffsetFromSpatialData(isoRecords, isoDeviceElementID);
-                            }
-                        }
+                        //Read any spatially-listed widths/offsets on this data onto the DeviceElementConfiguration objects
+                        hierarchy.SetWidthsAndOffsetsFromSpatialData(isoRecords, config, RepresentationMapper);
                     }
 
                     //Create the DeviceElementUse
@@ -93,89 +66,24 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return sections;
         }
 
-        private NumericRepresentationValue GetWidthFromSpatialData(IEnumerable<ISOSpatialRow> isoRecords, string isoDeviceElementID)
-        {
-            double maxWidth = 0d;
-            string updatedWidthDDI = null;
-            ISOSpatialRow rowWithMaxWidth = isoRecords.FirstOrDefault(r => r.SpatialValues.Any(s => s.DataLogValue.DeviceElementIdRef == isoDeviceElementID &&
-                                                                                                    s.DataLogValue.ProcessDataDDI == "0046"));
-            if (rowWithMaxWidth != null)
-            {
-                maxWidth = rowWithMaxWidth.SpatialValues.Single(s => s.DataLogValue.DeviceElementIdRef == isoDeviceElementID && s.DataLogValue.ProcessDataDDI == "0046").Value;
-                updatedWidthDDI = "0046";
-            }
-            else
-            {
-                //Find the largest working width
-                IEnumerable<ISOSpatialRow> rows = isoRecords.Where(r => r.SpatialValues.Any(s => s.DataLogValue.DeviceElementIdRef == isoDeviceElementID &&
-                                                                                                 s.DataLogValue.ProcessDataDDI == "0043"));
-                if (rows.Any())
-                {
-                    foreach (ISOSpatialRow row in rows)
-                    {
-                        double value = row.SpatialValues.Single(s => s.DataLogValue.DeviceElementIdRef == isoDeviceElementID && s.DataLogValue.ProcessDataDDI == "0043").Value;
-                        if (value > maxWidth)
-                        {
-                            maxWidth = value;
-                        }
-                    }
-                    updatedWidthDDI = "0043";
-                }
-            }
-
-            if (updatedWidthDDI != null)
-            {
-                int ddi = updatedWidthDDI.AsInt32DDI();
-                return ((long)maxWidth).AsNumericRepresentationValue(ddi, RepresentationMapper);
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        private NumericRepresentationValue GetYOffsetFromSpatialData(IEnumerable<ISOSpatialRow> isoRecords, string isoDeviceElementID)
-        {
-            double offset = 0d;
-            ISOSpatialRow firstYOffset = isoRecords.FirstOrDefault(r => r.SpatialValues.Any(s => s.DataLogValue.DeviceElementIdRef == isoDeviceElementID &&
-                                                                                                    s.DataLogValue.ProcessDataDDI == "0087"));
-            if (firstYOffset != null)
-            {
-                offset = firstYOffset.SpatialValues.Single(s => s.DataLogValue.DeviceElementIdRef == isoDeviceElementID &&
-                                                                                                    s.DataLogValue.ProcessDataDDI == "0087").Value;
-                int ddi = "0087".AsInt32DDI();
-                return ((long)offset).AsNumericRepresentationValue(ddi, RepresentationMapper);
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        private NumericRepresentationValue GetXOffsetFromSpatialData(IEnumerable<ISOSpatialRow> isoRecords, string isoDeviceElementID)
-        {
-            double offset = 0d;
-            ISOSpatialRow firstXOffset = isoRecords.FirstOrDefault(r => r.SpatialValues.Any(s => s.DataLogValue.DeviceElementIdRef == isoDeviceElementID &&
-                                                                                                    s.DataLogValue.ProcessDataDDI == "0086"));
-            if (firstXOffset != null)
-            {
-                offset = firstXOffset.SpatialValues.Single(s => s.DataLogValue.DeviceElementIdRef == isoDeviceElementID &&
-                                                                                                    s.DataLogValue.ProcessDataDDI == "0086").Value;
-                int ddi = "0086".AsInt32DDI();
-                return ((long)offset).AsNumericRepresentationValue(ddi, RepresentationMapper);
-            }
-            else
-            {
-                return null;
-            }
-        }
-
+        /// <summary>
+        /// This call exists to translate any enumerated workingDatas (managed as a derived type within the plugin) back to an ADAPT-framework native type.   
+        /// All other workingDatas pass through unchanged.  The containing DeviceElementUses are cloned, except for referencing the translated workingDatas.
+        /// </summary>
+        /// <param name="sections"></param>
+        /// <returns></returns>
         public List<DeviceElementUse> ConvertToBaseTypes(List<DeviceElementUse> sections)
         {
             return sections.Select(x => {
                 var section = new DeviceElementUse();
                 var meters = x.GetWorkingDatas().Select(y => _workingDataMapper.ConvertToBaseType(y)).ToList();
                 section.GetWorkingDatas = () => meters;
+                section.Depth = x.Depth;
+                section.Order = x.Order;
+                section.OperationDataId = x.OperationDataId;
+                section.TotalDistanceTravelled = x.TotalDistanceTravelled;
+                section.TotalElapsedTime = x.TotalElapsedTime;
+                section.DeviceConfigurationId = x.DeviceConfigurationId;
                 return section;
                 }).ToList();
         }

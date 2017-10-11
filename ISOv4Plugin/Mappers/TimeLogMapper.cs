@@ -371,7 +371,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             WorkingDataMapper workingDataMapper = new WorkingDataMapper(new EnumeratedMeterFactory(), TaskDataMapper);
             SectionMapper sectionMapper = new SectionMapper(workingDataMapper, TaskDataMapper);
             SpatialRecordMapper spatialMapper = new SpatialRecordMapper(new RepresentationValueInterpolator(), sectionMapper, workingDataMapper);
-            IEnumerable<ISOSpatialRow> isoRecords = ReadTimeLog(isoTimeLog, this.TaskDataPath);
+            IEnumerable<ISOSpatialRow> isoRecords = ReadTimeLog(isoTimeLog, this.TaskDataPath).ToList(); //ToList() avoids multiple binary reads
 
             if (isoRecords != null)
             {
@@ -383,7 +383,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 IEnumerable<DeviceElementUse> sections = sectionMapper.Map(isoTimeLog.GetTimeElement(this.TaskDataPath), isoRecords, operationData.Id.ReferenceId);
 
                 var workingDatas = sections != null ? sections.SelectMany(x => x.GetWorkingDatas()).ToList() : new List<WorkingData>();
-                var sectionsSimple = sectionMapper.ConvertToBaseTypes(sections.ToList());
+                var sectionsSimple = sectionMapper.ConvertToBaseTypes(sections.ToList()); 
 
                 operationData.GetSpatialRecords = () => spatialMapper.Map(isoRecords, workingDatas);
                 operationData.MaxDepth = sections.Count() > 0 ? sections.Select(s => s.Depth).Max() : 0;

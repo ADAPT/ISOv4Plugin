@@ -4,8 +4,11 @@
 
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
 using AgGateway.ADAPT.ApplicationDataModel.Equipment;
+using AgGateway.ADAPT.ApplicationDataModel.Representations;
+using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
 using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
+using AgGateway.ADAPT.ISOv4Plugin.Representation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,7 +19,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
 {
     public class DeviceHierarchy
     {
-        public DeviceHierarchy(IEnumerable<ISODevice> devices)
+        public DeviceHierarchy(IEnumerable<ISODevice> devices, RepresentationMapper representationMapper)
         {
             DeviceElementHierarchies = new Dictionary<string, DeviceElementHierarchy>();
             foreach (ISODevice device in devices)
@@ -24,7 +27,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                 ISODeviceElement rootDeviceElement = device.DeviceElements.SingleOrDefault(det => det.DeviceElementType == ISODeviceElementType.Device);
                 if (rootDeviceElement != null)
                 {
-                    DeviceElementHierarchies.Add(device.DeviceId, new DeviceElementHierarchy(rootDeviceElement, 0));
+                    DeviceElementHierarchies.Add(device.DeviceId, new DeviceElementHierarchy(rootDeviceElement, 0, representationMapper));
                 }
             }
         }
@@ -35,7 +38,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
         {
             foreach (DeviceElementHierarchy hierarchy in this.DeviceElementHierarchies.Values)
             {
-                DeviceElementHierarchy foundModel = hierarchy.GetModelByISODeviceElementID(isoDeviceElementId);
+                DeviceElementHierarchy foundModel = hierarchy.FromDeviceElementID(isoDeviceElementId);
                 if (foundModel != null)
                 {
                     return foundModel;
@@ -53,7 +56,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
 
     public class DeviceElementHierarchy
     {
-        public DeviceElementHierarchy(ISODeviceElement deviceElement, int depth, HashSet<int> crawledElements = null)
+        public DeviceElementHierarchy(ISODeviceElement deviceElement, int depth, RepresentationMapper representationMapper, HashSet<int> crawledElements = null)
         {
             //This Hashset will track that we don't build infinite hierarchies.   
             //The plugin does not support peer control at this time.
@@ -70,31 +73,33 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                 Depth = depth;
                 Order = deviceElement.DeviceElementNumber; //Reusing this number for now.
 
-                //Device Property Assigned Widths & Offsets
+                //DeviceProperty assigned Widths & Offsets
+                //DeviceProcessData assigned values will be assigned as the SectionMapper reads timelog data.
+
                 //Width
                 ISODeviceProperty widthProperty = deviceElement.DeviceProperties.FirstOrDefault(dpt => dpt.DDI == "0046");
                 if (widthProperty != null)
                 {
-                    Width = widthProperty.Value;
+                    Width = widthProperty.Value.AsNumericRepresentationValue("0046", representationMapper);
                 }
 
                 //Offsets
                 ISODeviceProperty xOffsetProperty = deviceElement.DeviceProperties.FirstOrDefault(dpt => dpt.DDI == "0086");
                 if (xOffsetProperty != null)
                 {
-                    XOffset = xOffsetProperty.Value;
+                    XOffset = xOffsetProperty.Value.AsNumericRepresentationValue("0086", representationMapper);
                 }
 
                 ISODeviceProperty yOffsetProperty = deviceElement.DeviceProperties.FirstOrDefault(dpt => dpt.DDI == "0087");
                 if (yOffsetProperty != null)
                 {
-                    YOffset = yOffsetProperty.Value;
+                    YOffset = yOffsetProperty.Value.AsNumericRepresentationValue("0087", representationMapper);
                 }
 
                 ISODeviceProperty zOffsetProperty = deviceElement.DeviceProperties.FirstOrDefault(dpt => dpt.DDI == "0088");
                 if (zOffsetProperty != null)
                 {
-                    ZOffset = xOffsetProperty.Value;
+                    ZOffset = xOffsetProperty.Value.AsNumericRepresentationValue("0088", representationMapper);
                 }
 
                 //Children
@@ -105,9 +110,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                     Children = new List<DeviceElementHierarchy>();
                     foreach (ISODeviceElement det in childDeviceElements)
                     {
-                        DeviceElementHierarchy child = new DeviceElementHierarchy(det, childDepth, _crawledElements);
+                        DeviceElementHierarchy child = new DeviceElementHierarchy(det, childDepth, representationMapper, _crawledElements);
                         Children.Add(child);
-                        //Width += child.Width;
                     }
                 }
             }
@@ -120,17 +124,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
         public ISODeviceElementType Type { get; set; }
         private HashSet<int> _crawledElements;
 
-        public long? Width { get; set; }
-        public long? XOffset { get; set; }
-        public long? YOffset { get; set; }
-        public long? ZOffset { get; set; }
-        ////public long LeftExtreme { get { return YOffset - (Width / 2); } }  
-        ////public long RightExtreme { get { return YOffset + (Width / 2); } }
-
+        public NumericRepresentationValue Width { get; set; }
+        public NumericRepresentationValue XOffset { get; set; }
+        public NumericRepresentationValue YOffset { get; set; }
+        public NumericRepresentationValue ZOffset { get; set; }
 
         public List<DeviceElementHierarchy> Children { get; set; }
 
-        public DeviceElementHierarchy GetModelByISODeviceElementID(string deviceElementID)
+        public DeviceElementHierarchy FromDeviceElementID(string deviceElementID)
         {
             if (DeviceElement.DeviceElementId == deviceElementID)
             {
@@ -140,7 +141,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
             {
                 foreach (DeviceElementHierarchy child in Children)
                 {
-                    DeviceElementHierarchy childModel = child.GetModelByISODeviceElementID(deviceElementID);
+                    DeviceElementHierarchy childModel = child.FromDeviceElementID(deviceElementID);
                     if (childModel != null)
                     {
                         return childModel;
@@ -150,11 +151,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
             return null;
         }
 
-        public long? GetLowestLevelSectionWidth()
+        public NumericRepresentationValue GetLowestLevelSectionWidth()
         {
             int maxDepth = GetMaxDepth();
             IEnumerable<DeviceElementHierarchy> lowestLevelItems = GetElementsAtDepth(maxDepth);
-            if (lowestLevelItems.Any() && lowestLevelItems.All(i => i.Width.HasValue && i.Width.Value == lowestLevelItems.First().Width.Value))
+            if (lowestLevelItems.Any() && lowestLevelItems.All(i => i.Width != null && i.Width.Value != null && i.Width.Value.Value == lowestLevelItems.First().Width.Value.Value))
             {
                 return lowestLevelItems.First().Width;
             }
@@ -212,7 +213,187 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
             }
             return list;              
         }
+
+        public void SetWidthsAndOffsetsFromSpatialData(IEnumerable<ISOSpatialRow> isoRecords, DeviceElementConfiguration config, RepresentationMapper representationMapper)
+        {
+            //Set values on this object and associated DeviceElementConfiguration 
+            if (Width == null)
+            {
+                Width = GetWidthFromSpatialData(isoRecords, DeviceElement.DeviceElementId, representationMapper);
+            }
+
+            if (config.Offsets == null)
+            {
+                config.Offsets = new List<NumericRepresentationValue>();
+            }
+
+            if (XOffset == null)
+            {
+                XOffset = GetXOffsetFromSpatialData(isoRecords, DeviceElement.DeviceElementId, representationMapper);
+                if (XOffset != null)
+                {
+                    config.Offsets.Add(XOffset);
+                }
+            }
+
+            if (YOffset == null)
+            {
+                YOffset = GetYOffsetFromSpatialData(isoRecords, DeviceElement.DeviceElementId, representationMapper);
+                if (YOffset != null)
+                {
+                    config.Offsets.Add(YOffset);
+                }
+            }
+
+            if (ZOffset == null)
+            {
+                ZOffset = GetZOffsetFromSpatialData(isoRecords, DeviceElement.DeviceElementId, representationMapper);
+                if (ZOffset != null)
+                {
+                    config.Offsets.Add(ZOffset);
+                }
+            }
+
+            //Update config values as appropriate
+            if (config is SectionConfiguration)
+            {
+                SectionConfiguration sectionConfig = config as SectionConfiguration;
+                if (sectionConfig.SectionWidth == null)
+                {
+                    sectionConfig.SectionWidth = Width;
+                }
+                if (sectionConfig.InlineOffset == null)
+                {
+                    sectionConfig.InlineOffset = XOffset;
+                }
+                if (sectionConfig.LateralOffset == null)
+                {
+                    sectionConfig.LateralOffset = YOffset;
+                }
+            }
+            else if (config is ImplementConfiguration)
+            {
+                ImplementConfiguration implementConfig = config as ImplementConfiguration;
+                if (implementConfig.Width == null)
+                {
+                    implementConfig.Width = Width;
+                }
+                if (implementConfig.YOffset == null)
+                {
+                    implementConfig.YOffset = YOffset;
+                }
+            }
+            else if (config is MachineConfiguration)
+            {
+                MachineConfiguration machineConfig = config as MachineConfiguration;
+                if (machineConfig.GpsReceiverXOffset == null)
+                {
+                    machineConfig.GpsReceiverXOffset = XOffset;
+                }
+                if (machineConfig.GpsReceiverYOffset == null)
+                {
+                    machineConfig.GpsReceiverYOffset = YOffset;
+                }
+                if (machineConfig.GpsReceiverZOffset == null)
+                {
+                    machineConfig.GpsReceiverZOffset = ZOffset;
+                }
+            }
+        }
+
+        private NumericRepresentationValue GetWidthFromSpatialData(IEnumerable<ISOSpatialRow> isoRecords, string isoDeviceElementID, RepresentationMapper representationMapper)
+        {
+            double maxWidth = 0d;
+            string updatedWidthDDI = null;
+            ISOSpatialRow rowWithMaxWidth = isoRecords.FirstOrDefault(r => r.SpatialValues.Any(s => s.DataLogValue.DeviceElementIdRef == isoDeviceElementID &&
+                                                                                                    s.DataLogValue.ProcessDataDDI == "0046"));
+            if (rowWithMaxWidth != null)
+            {
+                maxWidth = rowWithMaxWidth.SpatialValues.Single(s => s.DataLogValue.DeviceElementIdRef == isoDeviceElementID && s.DataLogValue.ProcessDataDDI == "0046").Value;
+                updatedWidthDDI = "0046";
+            }
+            else
+            {
+                //Find the largest working width
+                IEnumerable<ISOSpatialRow> rows = isoRecords.Where(r => r.SpatialValues.Any(s => s.DataLogValue.DeviceElementIdRef == isoDeviceElementID &&
+                                                                                                 s.DataLogValue.ProcessDataDDI == "0043"));
+                if (rows.Any())
+                {
+                    foreach (ISOSpatialRow row in rows)
+                    {
+                        double value = row.SpatialValues.Single(s => s.DataLogValue.DeviceElementIdRef == isoDeviceElementID && s.DataLogValue.ProcessDataDDI == "0043").Value;
+                        if (value > maxWidth)
+                        {
+                            maxWidth = value;
+                        }
+                    }
+                    updatedWidthDDI = "0043";
+                }
+            }
+
+            if (updatedWidthDDI != null)
+            {
+                int ddi = updatedWidthDDI.AsInt32DDI();
+                return ((long)maxWidth).AsNumericRepresentationValue(ddi, representationMapper);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        private NumericRepresentationValue GetYOffsetFromSpatialData(IEnumerable<ISOSpatialRow> isoRecords, string isoDeviceElementID, RepresentationMapper representationMapper)
+        {
+            double offset = 0d;
+            ISOSpatialRow firstYOffset = isoRecords.FirstOrDefault(r => r.SpatialValues.Any(s => s.DataLogValue.DeviceElementIdRef == isoDeviceElementID &&
+                                                                                                    s.DataLogValue.ProcessDataDDI == "0087"));
+            if (firstYOffset != null)
+            {
+                offset = firstYOffset.SpatialValues.Single(s => s.DataLogValue.DeviceElementIdRef == isoDeviceElementID &&
+                                                                                                    s.DataLogValue.ProcessDataDDI == "0087").Value;
+                int ddi = "0087".AsInt32DDI();
+                return ((long)offset).AsNumericRepresentationValue(ddi, representationMapper);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        private NumericRepresentationValue GetXOffsetFromSpatialData(IEnumerable<ISOSpatialRow> isoRecords, string isoDeviceElementID, RepresentationMapper representationMapper)
+        {
+            double offset = 0d;
+            ISOSpatialRow firstXOffset = isoRecords.FirstOrDefault(r => r.SpatialValues.Any(s => s.DataLogValue.DeviceElementIdRef == isoDeviceElementID &&
+                                                                                                    s.DataLogValue.ProcessDataDDI == "0086"));
+            if (firstXOffset != null)
+            {
+                offset = firstXOffset.SpatialValues.Single(s => s.DataLogValue.DeviceElementIdRef == isoDeviceElementID &&
+                                                                                                    s.DataLogValue.ProcessDataDDI == "0086").Value;
+                int ddi = "0086".AsInt32DDI();
+                return ((long)offset).AsNumericRepresentationValue(ddi, representationMapper);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        private NumericRepresentationValue GetZOffsetFromSpatialData(IEnumerable<ISOSpatialRow> isoRecords, string isoDeviceElementID, RepresentationMapper representationMapper)
+        {
+            double offset = 0d;
+            ISOSpatialRow firstZOffset = isoRecords.FirstOrDefault(r => r.SpatialValues.Any(s => s.DataLogValue.DeviceElementIdRef == isoDeviceElementID &&
+                                                                                                    s.DataLogValue.ProcessDataDDI == "0088"));
+            if (firstZOffset != null)
+            {
+                offset = firstZOffset.SpatialValues.Single(s => s.DataLogValue.DeviceElementIdRef == isoDeviceElementID &&
+                                                                                                    s.DataLogValue.ProcessDataDDI == "0088").Value;
+                int ddi = "0088".AsInt32DDI();
+                return ((long)offset).AsNumericRepresentationValue(ddi, representationMapper);
+            }
+            else
+            {
+                return null;
+            }
+        }
     }
-
-
 }

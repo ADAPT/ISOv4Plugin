@@ -261,7 +261,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             IEnumerable<ISODevice> devices = taskData.ChildElements.OfType<ISODevice>();
             if (devices.Any())
             {
-                DeviceHierarchy = new DeviceHierarchy(devices);
+                DeviceHierarchy = new DeviceHierarchy(devices, RepresentationMapper);
 
                 DeviceMapper deviceMapper = new DeviceMapper(this);
                 AdaptDataModel.Catalog.DeviceModels.AddRange(deviceMapper.ImportDevices(devices));

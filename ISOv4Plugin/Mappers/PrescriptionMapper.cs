@@ -185,6 +185,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             ISOTreatmentZone tzn = new ISOTreatmentZone();
             tzn.TreatmentZoneDesignator = "Default Treatment Zone";
             tzn.TreatmentZoneCode = 1;
+            task.DefaultTreatmentZoneCode = tzn.TreatmentZoneCode;
 
             foreach (ProductUse productUse in rx.ProductUses)
             {
@@ -249,8 +250,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             var outOfFieldTreatmentZone = new ISOTreatmentZone { TreatmentZoneDesignator = "Out of Field", ProcessDataVariables = new List<ISOProcessDataVariable>() };
             var defaultTreatmentZone = new ISOTreatmentZone { TreatmentZoneDesignator = "Default", ProcessDataVariables = new List<ISOProcessDataVariable>() };
 
-            var defaultRate = new NumericRepresentationValue(null, new NumericValue(prescription.RxProductLookups.First().UnitOfMeasure, 0)); //We are always setting a 0 default rate
-
             foreach (var productId in prescription.ProductIds)
             {
                 var isoUnit = DetermineIsoUnit(prescription.RxProductLookups.First(p => p.ProductId == productId).UnitOfMeasure);  
@@ -271,7 +270,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 {
                     outOfFieldTreatmentZone.ProcessDataVariables.Add(oofPDV);
                 }
-                ISOProcessDataVariable defaultPDV = ExportProcessDataVariable(defaultRate, isoProductId, isoUnit);
+                ISOProcessDataVariable defaultPDV = ExportProcessDataVariable(prescription.LossOfGpsRate, isoProductId, isoUnit);  //ADAPT doesn't have a separate Default Rate.  Using Loss of GPS Rate as a logical equivalent for a default rate.
                 if (defaultPDV != null)
                 {
                     defaultTreatmentZone.ProcessDataVariables.Add(defaultPDV);
@@ -324,22 +323,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         {
             if (value != null && value.Value != null)
             {
-                var targetValue = value.Value.Value;
-
-                // Convert input value to Iso unit
                 UnitOfMeasure adaptUnit = unit.ToAdaptUnit();
-                UnitOfMeasure srcUnit = null;
-                if (adaptUnit != null && value.Value.UnitOfMeasure != null &&
-                    adaptUnit.Dimension == value.Value.UnitOfMeasure.Dimension)
-                {
-                    srcUnit = value.Value.UnitOfMeasure;
-                    targetValue = _unitConverter.Convert(srcUnit.ToInternalUom(), adaptUnit.ToInternalUom(), targetValue);
-                }
-
                 var dataVariable = new ISOProcessDataVariable
                 {
                     ProductIdRef = isoProductIdRef,
-                    ProcessDataValue = (long)targetValue,
+                    ProcessDataValue = value.AsLongViaMappedDDI(RepresentationMapper),
                     ProcessDataDDI = DetermineVariableDDI(adaptUnit).AsHexDDI()
                 };
 
