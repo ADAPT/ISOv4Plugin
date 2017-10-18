@@ -74,15 +74,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             TaskDataMapper.ISOIdMap.Add(adaptField.Id.ReferenceId, fieldID);
 
             //Customer & Farm ID
-            if (adaptField.FarmId.HasValue)
-            { 
-                isoField.FarmIdRef = TaskDataMapper.ISOIdMap.FindByADAPTId(adaptField.FarmId.Value);
-                Farm adaptFarm = DataModel.Catalog.Farms.FirstOrDefault(f => f.Id.ReferenceId == adaptField.FarmId);
-                if (adaptFarm != null)
-                {
-                    isoField.CustomerIdRef = TaskDataMapper.ISOIdMap.FindByADAPTId(adaptFarm.GrowerId.Value);
-                }
-            }
+            ExportFarmAndGrower(adaptField, isoField);
 
             //isoField.PartfieldCode = ?  
 
@@ -139,8 +131,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Parent Field ID
             isoField.FieldIdRef = TaskDataMapper.ISOIdMap.FindByADAPTId(cropZone.FieldId);
 
+            //Customer & Farm ID
+            Field field = DataModel.Catalog.Fields.FirstOrDefault(f => f.Id.ReferenceId == cropZone.FieldId);
+            if (field != null)
+            {
+                ExportFarmAndGrower(field, isoField);
+            }
+
+
             //Area
-            if(cropZone.Area != null)
+            if (cropZone.Area != null)
             { 
                 isoField.PartfieldArea = (long)(cropZone.Area.Value.ConvertToUnit(new CompositeUnitOfMeasure("m2")));
             }
@@ -178,6 +178,19 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
             return isoField;
+        }
+
+        private void ExportFarmAndGrower(Field field, ISOPartfield isoField)
+        {
+            if (field.FarmId.HasValue)
+            {
+                isoField.FarmIdRef = TaskDataMapper.ISOIdMap.FindByADAPTId(field.FarmId.Value);
+                Farm adaptFarm = DataModel.Catalog.Farms.FirstOrDefault(f => f.Id.ReferenceId == field.FarmId);
+                if (adaptFarm != null)
+                {
+                    isoField.CustomerIdRef = TaskDataMapper.ISOIdMap.FindByADAPTId(adaptFarm.GrowerId.Value);
+                }
+            }
         }
         #endregion Export 
 
@@ -220,7 +233,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             TaskDataMapper.ADAPTIdMap.Add(isoPartfield.PartfieldID, field.Id.ReferenceId);
 
             //Farm ID
-            field.FarmId = TaskDataMapper.ADAPTIdMap.FindByISOId(isoPartfield.FieldIdRef);
+            field.FarmId = TaskDataMapper.ADAPTIdMap.FindByISOId(isoPartfield.FarmIdRef);
 
             //Area
             if (isoPartfield.PartfieldArea.HasValue)
