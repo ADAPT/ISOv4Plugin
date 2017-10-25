@@ -63,8 +63,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     if (!string.IsNullOrEmpty(isoDeviceElementID))
                     {
                         isoConnection.DeviceElementIdRef_0 = isoDeviceElementID;
-                        DeviceElementHierarchy deviceElementHierarchy = TaskDataMapper.DeviceHierarchy.GetRelevantHierarchy(isoDeviceElementID);
-                        isoConnection.DeviceIdRef_0 = deviceElementHierarchy.Device.DeviceId;
+                        DeviceElementHierarchy deviceElementHierarchy = TaskDataMapper.DeviceElementHierarchies.GetRelevantHierarchy(isoDeviceElementID);
+                        isoConnection.DeviceIdRef_0 = deviceElementHierarchy.DeviceElement.Device.DeviceId;
                     }
                 }
             }
@@ -80,8 +80,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     if (!string.IsNullOrEmpty(isoDeviceElementID))
                     {
                         isoConnection.DeviceElementIdRef_1 = isoDeviceElementID;
-                        DeviceElementHierarchy deviceElementHierarchy = TaskDataMapper.DeviceHierarchy.GetRelevantHierarchy(isoDeviceElementID);
-                        isoConnection.DeviceIdRef_1 = deviceElementHierarchy.Device.DeviceId;
+                        DeviceElementHierarchy deviceElementHierarchy = TaskDataMapper.DeviceElementHierarchies.GetRelevantHierarchy(isoDeviceElementID);
+                        isoConnection.DeviceIdRef_1 = deviceElementHierarchy.DeviceElement.Device.DeviceId;
                     }
                 }
             }
@@ -123,7 +123,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             if (deviceElementID.HasValue)
             {
                 DeviceElement adaptDeviceElement = DataModel.Catalog.DeviceElements.Single(d => d.Id.ReferenceId == deviceElementID.Value);
-                ISODeviceElement isoDeviceElement = TaskDataMapper.DeviceHierarchy.GetISODeviceElementFromID(isoConnection.DeviceElementIdRef_0);
+                ISODeviceElement isoDeviceElement = TaskDataMapper.DeviceElementHierarchies.GetISODeviceElementFromID(isoConnection.DeviceElementIdRef_0);
                 Connector adaptConnector1 = AddOrFindConnector(adaptDeviceElement, isoDeviceElement);
                 if (adaptConnector1 != null)
                 {
@@ -143,7 +143,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             if (deviceElementID.HasValue)
             {
                 DeviceElement adaptDeviceElement = DataModel.Catalog.DeviceElements.Single(d => d.Id.ReferenceId == deviceElementID.Value);
-                ISODeviceElement isoDeviceElement = TaskDataMapper.DeviceHierarchy.GetISODeviceElementFromID(isoConnection.DeviceElementIdRef_1);
+                ISODeviceElement isoDeviceElement = TaskDataMapper.DeviceElementHierarchies.GetISODeviceElementFromID(isoConnection.DeviceElementIdRef_1);
                 Connector adaptConnector2 = AddOrFindConnector(adaptDeviceElement, isoDeviceElement);
                 if (adaptConnector2 != null)
                 {
@@ -171,7 +171,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             DeviceElementConfiguration config = DataModel.Catalog.DeviceElementConfigurations.FirstOrDefault(c => c.DeviceElementId == adaptDeviceElement.Id.ReferenceId);
             if (config == null)
             {
-                config = DeviceElementMapper.AddDeviceElementConfiguration(isoDeviceElement, adaptDeviceElement, TaskDataMapper.DeviceHierarchy.GetRelevantHierarchy(isoDeviceElement.DeviceElementId), DataModel.Catalog);
+                config = DeviceElementMapper.AddDeviceElementConfiguration(adaptDeviceElement, TaskDataMapper.DeviceElementHierarchies.GetRelevantHierarchy(isoDeviceElement.DeviceElementId), DataModel.Catalog);
             }
             Connector adaptConnector = DataModel.Catalog.Connectors.FirstOrDefault(c => c.DeviceElementConfigurationId == config.Id.ReferenceId);
             if (adaptConnector == null)

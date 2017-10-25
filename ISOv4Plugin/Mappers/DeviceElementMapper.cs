@@ -114,7 +114,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 return null;
             }
 
-            DeviceElementHierarchy deviceElementHierarchy = TaskDataMapper.DeviceHierarchy.DeviceElementHierarchies[isoDevice.DeviceId];
+            DeviceElementHierarchy deviceElementHierarchy = TaskDataMapper.DeviceElementHierarchies.Items[isoDevice.DeviceId];
 
             //Import device elements
             List<DeviceElement> adaptDeviceElements = new List<DeviceElement>();
@@ -208,34 +208,54 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         break;
                 }
             }
-            AddDeviceElementConfiguration(isoDeviceElement, deviceElement, rootDeviceHierarchy, DataModel.Catalog);
+
+            DeviceElementHierarchy deviceElementHierarchy = TaskDataMapper.DeviceElementHierarchies.GetRelevantHierarchy(isoDeviceElement.DeviceElementId);
+            if (HasGeometryInformation(deviceElementHierarchy))
+            {
+                AddDeviceElementConfiguration(deviceElement, deviceElementHierarchy, DataModel.Catalog);
+            }
 
             return deviceElement;
         }
 
-        public static DeviceElementConfiguration AddDeviceElementConfiguration(ISODeviceElement isoDeviceElement, DeviceElement adaptDeviceElement, DeviceElementHierarchy deviceHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
+        private bool HasGeometryInformation(DeviceElementHierarchy deviceElementHierarchy)
+        {
+            return deviceElementHierarchy.Width.HasValue || deviceElementHierarchy.XOffset.HasValue || deviceElementHierarchy.YOffset.HasValue || deviceElementHierarchy.ZOffset.HasValue;
+        }
+
+        public static DeviceElementConfiguration AddDeviceElementConfiguration(DeviceElement adaptDeviceElement, DeviceElementHierarchy deviceHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
         {
             switch (adaptDeviceElement.DeviceElementType)
             {
                 case DeviceElementTypeEnum.Machine:
-                    return AddMachineConfiguration(isoDeviceElement, adaptDeviceElement, deviceHierarchy, catalog);
+                    return AddMachineConfiguration(adaptDeviceElement, deviceHierarchy, catalog);
                 case DeviceElementTypeEnum.Implement:
-                case DeviceElementTypeEnum.Function: 
-                    return AddImplementConfiguration(isoDeviceElement, adaptDeviceElement, deviceHierarchy, catalog);
+                    return AddImplementConfiguration(adaptDeviceElement, deviceHierarchy, catalog);
+                case DeviceElementTypeEnum.Function:
+                    if (deviceHierarchy.Parent.DeviceElement.DeviceElementType != ISODeviceElementType.Function)
+                    {
+                        //Function is the entire implement
+                        return AddImplementConfiguration(adaptDeviceElement, deviceHierarchy, catalog);
+                    }
+                    else
+                    {
+                        //Function is part of the implement.  I.e., TC-GEO example 9
+                        return AddSectionConfiguration(adaptDeviceElement, deviceHierarchy, catalog);
+                    }
                 case DeviceElementTypeEnum.Section:
                 case DeviceElementTypeEnum.Unit:
-                    return AddSectionConfiguration(isoDeviceElement, adaptDeviceElement, deviceHierarchy, catalog);
+                    return AddSectionConfiguration(adaptDeviceElement, deviceHierarchy, catalog);
                 default:
                     return null;
             }
         }
 
-        public static MachineConfiguration AddMachineConfiguration(ISODeviceElement isoDeviceElement, DeviceElement adaptDeviceElement, DeviceElementHierarchy deviceHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
+        public static MachineConfiguration AddMachineConfiguration(DeviceElement adaptDeviceElement, DeviceElementHierarchy deviceHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
         {
             MachineConfiguration machineConfig = new MachineConfiguration();
 
             //Description
-            machineConfig.Description = isoDeviceElement.DeviceElementDesignator;
+            machineConfig.Description = deviceHierarchy.DeviceElement.DeviceElementDesignator;
 
             //Device Element ID
             machineConfig.DeviceElementId = adaptDeviceElement.Id.ReferenceId;
@@ -244,57 +264,57 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             machineConfig.Offsets = new List<NumericRepresentationValue>();
             if (deviceHierarchy.XOffset != null)
             {
-                machineConfig.Offsets.Add(deviceHierarchy.XOffset);
-                machineConfig.GpsReceiverXOffset = deviceHierarchy.XOffset;
+                machineConfig.Offsets.Add(deviceHierarchy.XOffsetRepresentation);
+                machineConfig.GpsReceiverXOffset = deviceHierarchy.XOffsetRepresentation;
             }
             if (deviceHierarchy.YOffset != null)
             {
-                machineConfig.Offsets.Add(deviceHierarchy.YOffset);
-                machineConfig.GpsReceiverYOffset = deviceHierarchy.YOffset;
+                machineConfig.Offsets.Add(deviceHierarchy.YOffsetRepresentation);
+                machineConfig.GpsReceiverYOffset = deviceHierarchy.YOffsetRepresentation;
             }
             if (deviceHierarchy.ZOffset != null)
             {
-                machineConfig.Offsets.Add(deviceHierarchy.ZOffset);
-                machineConfig.GpsReceiverZOffset = deviceHierarchy.ZOffset;
+                machineConfig.Offsets.Add(deviceHierarchy.ZOffsetRepresentation);
+                machineConfig.GpsReceiverZOffset = deviceHierarchy.ZOffsetRepresentation;
             }
 
             catalog.DeviceElementConfigurations.Add(machineConfig);
             return machineConfig;
         }
 
-        public static ImplementConfiguration AddImplementConfiguration(ISODeviceElement isoDeviceElement, DeviceElement adaptDeviceElement, DeviceElementHierarchy rootDeviceHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
+        public static ImplementConfiguration AddImplementConfiguration(DeviceElement adaptDeviceElement, DeviceElementHierarchy deviceHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
         {
             ImplementConfiguration implementConfig = new ImplementConfiguration();
 
             //Description
-            implementConfig.Description = isoDeviceElement.DeviceElementDesignator;
+            implementConfig.Description = deviceHierarchy.DeviceElement.DeviceElementDesignator;
 
             //Device Element ID
             implementConfig.DeviceElementId = adaptDeviceElement.Id.ReferenceId;
 
             //Offsets
             implementConfig.Offsets = new List<NumericRepresentationValue>();
-            if (rootDeviceHierarchy.XOffset != null)
+            if (deviceHierarchy.XOffsetRepresentation != null)
             {
-                implementConfig.Offsets.Add(rootDeviceHierarchy.XOffset);
+                implementConfig.Offsets.Add(deviceHierarchy.XOffsetRepresentation);
             }
-            if (rootDeviceHierarchy.YOffset != null)
+            if (deviceHierarchy.YOffsetRepresentation != null)
             {
-                implementConfig.Offsets.Add(implementConfig.YOffset);
+                implementConfig.Offsets.Add(deviceHierarchy.YOffsetRepresentation);
             }
-            if (rootDeviceHierarchy.ZOffset != null)
+            if (deviceHierarchy.ZOffsetRepresentation != null)
             {
-                implementConfig.Offsets.Add(rootDeviceHierarchy.ZOffset);
+                implementConfig.Offsets.Add(deviceHierarchy.ZOffsetRepresentation);
             }
 
             //Total Width 
-            if (rootDeviceHierarchy.Width != null)
+            if (deviceHierarchy.Width != null)
             {
-                implementConfig.PhysicalWidth = rootDeviceHierarchy.Width;
+                implementConfig.PhysicalWidth = deviceHierarchy.WidthRepresentation;
             }
 
             //Row Width
-            NumericRepresentationValue rowWidth = rootDeviceHierarchy.GetLowestLevelSectionWidth();
+            NumericRepresentationValue rowWidth = deviceHierarchy.GetLowestLevelSectionWidth();
             if (rowWidth != null)
             {
                 implementConfig.Width = rowWidth;
@@ -305,38 +325,32 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return implementConfig;
         }
 
-        public static SectionConfiguration AddSectionConfiguration(ISODeviceElement isoDeviceElement, DeviceElement adaptDeviceElement, DeviceElementHierarchy rootDeviceHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
+        public static SectionConfiguration AddSectionConfiguration(DeviceElement adaptDeviceElement, DeviceElementHierarchy deviceHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
         {
-            DeviceElementHierarchy section = rootDeviceHierarchy.FromDeviceElementID(isoDeviceElement.DeviceElementId);
-            if (section == null)
-            {
-                return null;
-            }
-
             SectionConfiguration sectionConfiguration = new SectionConfiguration();
 
             //Description
-            sectionConfiguration.Description = isoDeviceElement.DeviceElementDesignator;
+            sectionConfiguration.Description = deviceHierarchy.DeviceElement.DeviceElementDesignator;
 
             //Device Element ID
             sectionConfiguration.DeviceElementId = adaptDeviceElement.Id.ReferenceId;
 
             //Width & Offsets
-            if (section.Width != null)
+            if (deviceHierarchy.Width != null)
             {
-                sectionConfiguration.SectionWidth = section.Width;
+                sectionConfiguration.SectionWidth = deviceHierarchy.WidthRepresentation;
             }
 
             sectionConfiguration.Offsets = new List<NumericRepresentationValue>();
-            if (section.XOffset != null)
+            if (deviceHierarchy.XOffset != null)
             {
-                sectionConfiguration.InlineOffset = section.XOffset;
-                sectionConfiguration.Offsets.Add(section.XOffset);
+                sectionConfiguration.InlineOffset = deviceHierarchy.XOffsetRepresentation;
+                sectionConfiguration.Offsets.Add(deviceHierarchy.XOffsetRepresentation);
             }
-            if (section.YOffset != null)
+            if (deviceHierarchy.YOffset != null)
             {
-                sectionConfiguration.LateralOffset = section.YOffset;
-                sectionConfiguration.Offsets.Add(section.YOffset);
+                sectionConfiguration.LateralOffset = deviceHierarchy.YOffsetRepresentation;
+                sectionConfiguration.Offsets.Add(deviceHierarchy.YOffsetRepresentation);
             }
 
             catalog.DeviceElementConfigurations.Add(sectionConfiguration);
@@ -378,7 +392,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             DeviceElementHierarchy hierarchy = rootDeviceHierarchy.FromDeviceElementID(isoDeviceElement.DeviceElementId);
 
             HitchPoint hitch = new HitchPoint();
-            hitch.ReferencePoint = new ReferencePoint() { XOffset = hierarchy.XOffset, YOffset = hierarchy.YOffset, ZOffset = hierarchy.ZOffset };
+            hitch.ReferencePoint = new ReferencePoint() { XOffset = hierarchy.XOffsetRepresentation, YOffset = hierarchy.YOffsetRepresentation, ZOffset = hierarchy.ZOffsetRepresentation };
             hitch.HitchTypeEnum = HitchTypeEnum.Unkown;
             DataModel.Catalog.HitchPoints.Add(hitch);
 

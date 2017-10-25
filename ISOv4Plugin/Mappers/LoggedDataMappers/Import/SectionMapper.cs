@@ -6,6 +6,7 @@ using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using System;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
+using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
@@ -33,33 +34,81 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             foreach (string isoDeviceElementID in distinctDeviceElementIDs)
             {
                 //For now we are treating multiple top level Device Elements all as Depth 0.   We are not rationalizing multiple devices into one hierarchy.
-                DeviceElementHierarchy hierarchy = TaskDataMapper.DeviceHierarchy.GetRelevantHierarchy(isoDeviceElementID);
+                DeviceElementHierarchy hierarchy = TaskDataMapper.DeviceElementHierarchies.GetRelevantHierarchy(isoDeviceElementID);
                 if (hierarchy != null)
                 {
-                    //Find DeviceConfigurationID
-                    int adaptDeviceElementId = TaskDataMapper.ADAPTIdMap[isoDeviceElementID].Value;
-                    int adaptDeviceConfigurationId = 0;
-                    DeviceElementConfiguration config = DataModel.Catalog.DeviceElementConfigurations.SingleOrDefault(c => c.DeviceElementId == adaptDeviceElementId);
-                    if (config != null)
+                    DeviceElementUse deviceElementUse = null;
+                    List<WorkingData> workingDatas = new List<WorkingData>();
+
+
+                    if (hierarchy.DeviceElement.DeviceElementType == ISOEnumerations.ISODeviceElementType.Bin
+                       && (hierarchy.Parent.DeviceElement.DeviceElementType == ISOEnumerations.ISODeviceElementType.Function ||
+                           hierarchy.Parent.DeviceElement.DeviceElementType == ISOEnumerations.ISODeviceElementType.Device))
                     {
-                        //Set the DeviceElementConfiguration ID 
-                        adaptDeviceConfigurationId = config.Id.ReferenceId;
+                        //-------------------------------------------------------------------------------------------------------------------------------------
+                        //Bin children of functions or devices carry data that effectively belong to the parent device element in ISO.  See TC-GEO examples 5-8.
+                        //Find the parent DeviceElementUse and add the data to that object.
+                        int? parentDeviceElementID = TaskDataMapper.ADAPTIdMap.FindByISOId(hierarchy.Parent.DeviceElement.DeviceElementId);
+                        if (parentDeviceElementID.HasValue)
+                        {
+                            DeviceElementConfiguration parentConfig = DataModel.Catalog.DeviceElementConfigurations.SingleOrDefault(c => c.DeviceElementId == parentDeviceElementID);
+                            if (parentConfig == null)
+                            {
+                                DeviceElement adaptDeviceElement = DataModel.Catalog.DeviceElements.Single(d => d.Id.ReferenceId == parentDeviceElementID);
+                                parentConfig = DeviceElementMapper.AddDeviceElementConfiguration(adaptDeviceElement, hierarchy, DataModel.Catalog);
+                            }
+                            deviceElementUse = sections.SingleOrDefault(d => d.DeviceConfigurationId == parentConfig.Id.ReferenceId);
+                            if (deviceElementUse == null)
+                            {
+                                deviceElementUse = new DeviceElementUse();
+                                deviceElementUse.Depth = hierarchy.Depth - 1;
+                                deviceElementUse.Order = hierarchy.Order; //TODO this may have repeated order ids.
+                                deviceElementUse.OperationDataId = operationDataId;
+                                deviceElementUse.DeviceConfigurationId = parentConfig.Id.ReferenceId;
+                            }
+                            List<WorkingData> binData = _workingDataMapper.Map(time, isoRecords, deviceElementUse, hierarchy.Parent.DeviceElement.DeviceElementId, sections);
+                            if (binData.Any())
+                            {
+                                workingDatas.AddRange(binData);
+                            }
+                        }
+                        //---------------------
+                    }
+                    else
+                    {
+                        //Find DeviceConfigurationID
+                        int adaptDeviceElementId = TaskDataMapper.ADAPTIdMap[isoDeviceElementID].Value;
+                        DeviceElementConfiguration config = DataModel.Catalog.DeviceElementConfigurations.SingleOrDefault(c => c.DeviceElementId == adaptDeviceElementId);
+                        if (config == null)
+                        {
+                            DeviceElement adaptDeviceElement = DataModel.Catalog.DeviceElements.Single(d => d.Id.ReferenceId == adaptDeviceElementId);
+                            config = DeviceElementMapper.AddDeviceElementConfiguration(adaptDeviceElement, hierarchy, DataModel.Catalog);
+                        }
 
                         //Read any spatially-listed widths/offsets on this data onto the DeviceElementConfiguration objects
                         hierarchy.SetWidthsAndOffsetsFromSpatialData(isoRecords, config, RepresentationMapper);
+
+                        //Create the DeviceElementUse
+                        deviceElementUse = new DeviceElementUse();
+                        deviceElementUse.Depth = hierarchy.Depth;
+                        deviceElementUse.Order = hierarchy.Order; //TODO this may have repeated order ids.
+                        deviceElementUse.OperationDataId = operationDataId;
+                        deviceElementUse.DeviceConfigurationId = config.Id.ReferenceId;
+
+                        //Add Working Data for any data on this device element
+                        List<WorkingData> standardData = _workingDataMapper.Map(time, isoRecords, deviceElementUse, isoDeviceElementID, sections);
+                        if (standardData.Any())
+                        {
+                            workingDatas.AddRange(standardData);
+                        }
                     }
 
-                    //Create the DeviceElementUse
-                    var deviceElementUse = new DeviceElementUse();
-                    deviceElementUse.Depth = hierarchy.Depth;
-                    deviceElementUse.Order = hierarchy.Order; //TODO this may have repeated order ids.
-                    deviceElementUse.OperationDataId = operationDataId;
-                    deviceElementUse.DeviceConfigurationId = adaptDeviceConfigurationId;
+                    deviceElementUse.GetWorkingDatas = () => workingDatas;
 
-                    var meters = _workingDataMapper.Map(time, isoRecords, deviceElementUse, isoDeviceElementID, sections);
-                    deviceElementUse.GetWorkingDatas = () => meters;
-
-                    sections.Add(deviceElementUse);
+                    if (!sections.Contains(deviceElementUse))
+                    {
+                        sections.Add(deviceElementUse);
+                    }
                 }
             }
 

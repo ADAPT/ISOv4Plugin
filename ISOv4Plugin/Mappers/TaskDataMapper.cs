@@ -45,7 +45,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         public ISO11783_TaskData ISOTaskData { get; private set; }
         public ISO11783_LinkList ISOLinkList { get; private set; }
         public UniqueIdMapper UniqueIDMapper { get; set; }
-        public DeviceHierarchy DeviceHierarchy { get; set; }
+        public DeviceElementHierarchies DeviceElementHierarchies { get; set; }
 
         internal RepresentationMapper RepresentationMapper { get; private set; }
         internal Dictionary<int, DdiDefinition> DDIs { get; private set; }
@@ -295,7 +295,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             IEnumerable<ISODevice> devices = taskData.ChildElements.OfType<ISODevice>();
             if (devices.Any())
             {
-                DeviceHierarchy = new DeviceHierarchy(devices, RepresentationMapper);
+                DeviceElementHierarchies = new DeviceElementHierarchies(devices, RepresentationMapper);
 
                 DeviceMapper deviceMapper = new DeviceMapper(this);
                 AdaptDataModel.Catalog.DeviceModels.AddRange(deviceMapper.ImportDevices(devices));
