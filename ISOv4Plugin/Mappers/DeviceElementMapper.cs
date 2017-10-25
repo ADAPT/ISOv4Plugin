@@ -2,23 +2,17 @@
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
-using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
-using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AgGateway.ADAPT.ApplicationDataModel.Logistics;
-using AgGateway.ADAPT.ApplicationDataModel.Shapes;
-using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
-using AgGateway.ADAPT.ApplicationDataModel.Guidance;
 using AgGateway.ADAPT.ApplicationDataModel.Equipment;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
-using System.Globalization;
+using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
+using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
+using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using AgGateway.ADAPT.Representation.RepresentationSystem;
 using AgGateway.ADAPT.Representation.RepresentationSystem.ExtensionMethods;
-using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
@@ -191,12 +185,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                             deviceClassification.Value.Code == DefinedTypeEnumerationInstanceList.dtiUtilityVehicle.DomainTag))
                         {
                             deviceElement.DeviceElementType = DeviceElementTypeEnum.Machine;
-                            AddMachineConfiguration(isoDeviceElement, deviceElement, rootDeviceHierarchy);
                         }
                         else
                         {
                             deviceElement.DeviceElementType = DeviceElementTypeEnum.Implement;
-                            AddImplementConfiguration(isoDeviceElement, deviceElement, rootDeviceHierarchy);
                         }
                         break;
                     case ISODeviceElementType.Bin:
@@ -204,39 +196,46 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         break;
                     case ISODeviceElementType.Function:
                         deviceElement.DeviceElementType = DeviceElementTypeEnum.Function;
-                        AddImplementConfiguration(isoDeviceElement, deviceElement, rootDeviceHierarchy);
                         break;
                     case ISODeviceElementType.Section:
                         deviceElement.DeviceElementType = DeviceElementTypeEnum.Section;
-                        AddSectionConfiguration(isoDeviceElement, deviceElement, rootDeviceHierarchy);
                         break;
                     case ISODeviceElementType.Unit:
                         deviceElement.DeviceElementType = DeviceElementTypeEnum.Unit;
-                        AddSectionConfiguration(isoDeviceElement, deviceElement, rootDeviceHierarchy);
                         break;
                     case ISODeviceElementType.Navigation:
-                        deviceElement.DeviceElementType = DeviceElementTypeEnum.Unit;
-                        AddMachineConfiguration(isoDeviceElement, deviceElement, rootDeviceHierarchy.FromDeviceElementID(isoDeviceElement.DeviceElementId));
+                        deviceElement.DeviceElementType = DeviceElementTypeEnum.Unit; 
                         break;
                 }
             }
+            AddDeviceElementConfiguration(isoDeviceElement, deviceElement, rootDeviceHierarchy, DataModel.Catalog);
 
             return deviceElement;
         }
 
-        /// <summary>
-        /// Sets GPS offsets for navigation receiver
-        /// </summary>
-        /// <param name="ISODeviceElement"></param>
-        /// <param name="adaptDeviceElement"></param>
-        /// <param name="deviceHierarchy"></param>
-        /// <returns></returns>
-        private MachineConfiguration AddMachineConfiguration(ISODeviceElement ISODeviceElement, DeviceElement adaptDeviceElement, DeviceElementHierarchy deviceHierarchy)
+        public static DeviceElementConfiguration AddDeviceElementConfiguration(ISODeviceElement isoDeviceElement, DeviceElement adaptDeviceElement, DeviceElementHierarchy deviceHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
+        {
+            switch (adaptDeviceElement.DeviceElementType)
+            {
+                case DeviceElementTypeEnum.Machine:
+                    return AddMachineConfiguration(isoDeviceElement, adaptDeviceElement, deviceHierarchy, catalog);
+                case DeviceElementTypeEnum.Implement:
+                case DeviceElementTypeEnum.Function: 
+                    return AddImplementConfiguration(isoDeviceElement, adaptDeviceElement, deviceHierarchy, catalog);
+                case DeviceElementTypeEnum.Section:
+                case DeviceElementTypeEnum.Unit:
+                    return AddSectionConfiguration(isoDeviceElement, adaptDeviceElement, deviceHierarchy, catalog);
+                default:
+                    return null;
+            }
+        }
+
+        public static MachineConfiguration AddMachineConfiguration(ISODeviceElement isoDeviceElement, DeviceElement adaptDeviceElement, DeviceElementHierarchy deviceHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
         {
             MachineConfiguration machineConfig = new MachineConfiguration();
 
             //Description
-            machineConfig.Description = ISODeviceElement.DeviceElementDesignator;
+            machineConfig.Description = isoDeviceElement.DeviceElementDesignator;
 
             //Device Element ID
             machineConfig.DeviceElementId = adaptDeviceElement.Id.ReferenceId;
@@ -259,16 +258,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 machineConfig.GpsReceiverZOffset = deviceHierarchy.ZOffset;
             }
 
-            DataModel.Catalog.DeviceElementConfigurations.Add(machineConfig);
+            catalog.DeviceElementConfigurations.Add(machineConfig);
             return machineConfig;
         }
 
-        private ImplementConfiguration AddImplementConfiguration(ISODeviceElement ISODeviceElement, DeviceElement adaptDeviceElement, DeviceElementHierarchy rootDeviceHierarchy)
+        public static ImplementConfiguration AddImplementConfiguration(ISODeviceElement isoDeviceElement, DeviceElement adaptDeviceElement, DeviceElementHierarchy rootDeviceHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
         {
             ImplementConfiguration implementConfig = new ImplementConfiguration();
 
             //Description
-            implementConfig.Description = ISODeviceElement.DeviceElementDesignator;
+            implementConfig.Description = isoDeviceElement.DeviceElementDesignator;
 
             //Device Element ID
             implementConfig.DeviceElementId = adaptDeviceElement.Id.ReferenceId;
@@ -301,12 +300,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 implementConfig.Width = rowWidth;
             }
             
-            DataModel.Catalog.DeviceElementConfigurations.Add(implementConfig);
+            catalog.DeviceElementConfigurations.Add(implementConfig);
 
             return implementConfig;
         }
 
-        private SectionConfiguration AddSectionConfiguration(ISODeviceElement isoDeviceElement, DeviceElement adaptDeviceElement, DeviceElementHierarchy rootDeviceHierarchy)
+        public static SectionConfiguration AddSectionConfiguration(ISODeviceElement isoDeviceElement, DeviceElement adaptDeviceElement, DeviceElementHierarchy rootDeviceHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
         {
             DeviceElementHierarchy section = rootDeviceHierarchy.FromDeviceElementID(isoDeviceElement.DeviceElementId);
             if (section == null)
@@ -340,7 +339,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 sectionConfiguration.Offsets.Add(section.YOffset);
             }
 
-            DataModel.Catalog.DeviceElementConfigurations.Add(sectionConfiguration);
+            catalog.DeviceElementConfigurations.Add(sectionConfiguration);
             return sectionConfiguration;
         }
 

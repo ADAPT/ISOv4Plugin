@@ -44,8 +44,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         protected string GenerateId(byte idLength = 0)
         {
+            return GenerateID(idLength, XmlPrefix, _itemId++);
+        }
+
+        public static string GenerateID(byte idLength, string xmlPrefix, int itemID)
+        {
             var formatString = string.Format(CultureInfo.InvariantCulture, "{{0}}{{1:D{0}}}", idLength == 0 ? 0 : idLength);
-            return string.Format(CultureInfo.InvariantCulture, formatString, XmlPrefix, _itemId++);
+            return string.Format(CultureInfo.InvariantCulture, formatString, xmlPrefix, itemID);
         }
 
         protected void ExportUniqueIDs(CompoundIdentifier id, string isoIDRef)

@@ -84,7 +84,7 @@
     <Compile Include="ISOEnumerations\ISOTaskStatus.cs" />
     <Compile Include="ISOEnumerations\ISOTimeType.cs" />
     <Compile Include="ISOEnumerations\ISOTransferMode.cs" />
-    <Compile Include="ISOModels\ISO11738_LinkList.cs" />
+    <Compile Include="ISOModels\ISO11783_LinkList.cs" />
     <Compile Include="ISOModels\ISO11783_TaskData.cs" />
     <Compile Include="ISOModels\ISOAllocationStamp.cs" />
     <Compile Include="ISOModels\ISOAttachedFile.cs" />
@@ -136,6 +136,8 @@
     <Compile Include="Mappers\CodedCommentListMapper.cs" />
     <Compile Include="Mappers\CodedCommentMapper.cs" />
     <Compile Include="Mappers\CommentAllocationMapper.cs" />
+    <Compile Include="Mappers\ConnectionMapper.cs" />
+    <Compile Include="Mappers\DataLogTriggerMapper.cs" />
     <Compile Include="Mappers\CropTypeMapper.cs" />
     <Compile Include="Mappers\CropVarietyMapper.cs" />
     <Compile Include="Mappers\CustomerMapper.cs" />

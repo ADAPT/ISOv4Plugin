@@ -50,6 +50,33 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         internal RepresentationMapper RepresentationMapper { get; private set; }
         internal Dictionary<int, DdiDefinition> DDIs { get; private set; }
 
+        CodedCommentListMapper _commentListMapper;
+        public CodedCommentListMapper CommentListMapper
+        {
+            get
+            {
+                if (_commentListMapper == null)
+                {
+                    _commentListMapper = new CodedCommentListMapper(this);
+                }
+                return _commentListMapper;
+            }
+        }
+
+        CodedCommentMapper _commentMapper;
+        public CodedCommentMapper CommentMapper
+        {
+            get
+            {
+                if (_commentMapper == null)
+                {
+                    _commentMapper = new CodedCommentMapper(this, CommentListMapper);
+                }
+                return _commentMapper;
+            }
+        }
+
+
         public ISO11783_TaskData Export(ApplicationDataModel.ADM.ApplicationDataModel adm)
         {
             AdaptDataModel = adm;
@@ -76,10 +103,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             ISOLinkList.TaskControllerVersion = "";
             ISOLinkList.FileVersion = "";
             UniqueIDMapper = new UniqueIdMapper(ISOLinkList);
-
-            //Create Comment Mappers
-            CodedCommentListMapper commentListMapper = new CodedCommentListMapper(this);
-            CodedCommentMapper commentMapper = new CodedCommentMapper(this, commentListMapper);
 
             //Crops
             if (adm.Catalog.Crops != null)
@@ -169,7 +192,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Tasks
             if (AdaptDataModel.Documents.WorkItems.Any() || AdaptDataModel.Documents.LoggedData.Any())
             {
-                TaskMapper taskMapper = new TaskMapper(this, commentListMapper, commentMapper);
+                TaskMapper taskMapper = new TaskMapper(this);
                 if (AdaptDataModel.Documents.WorkItems != null)
                 {
                     //Prescriptions
@@ -196,7 +219,18 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
             //Add Comments
-            ISOTaskData.ChildElements.AddRange(commentMapper.ExportedComments);
+            ISOTaskData.ChildElements.AddRange(CommentMapper.ExportedComments);
+
+            //Add LinkList Attached File Reference
+            if (ISOLinkList.LinkGroups.Any())
+            {
+                ISOAttachedFile afe = new ISOAttachedFile();
+                afe.FilenamewithExtension = "LINKLIST.XML";
+                afe.Preserve = ISOEnumerations.ISOAttachedFilePreserve.Preserve;
+                afe.ManufacturerGLN = string.Empty;
+                afe.FileType = 1;
+                ISOTaskData.ChildElements.Add(afe);
+            }
 
             return ISOTaskData;
         }
@@ -279,7 +313,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             IEnumerable<ISOTask> loggedTasks = taskData.ChildElements.OfType<ISOTask>().Where(t => t.IsLoggedDataTask);
             if (prescribedTasks.Any() || loggedTasks.Any())
             {
-                TaskMapper taskMapper = new TaskMapper(this, commentListMapper, commentMapper);
+                TaskMapper taskMapper = new TaskMapper(this);
                 if (prescribedTasks.Any())
                 {
                     //Prescribed Tasks

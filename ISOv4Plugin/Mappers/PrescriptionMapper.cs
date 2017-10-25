@@ -23,6 +23,7 @@ using AgGateway.ADAPT.ApplicationDataModel.Documents;
 using AgGateway.ADAPT.Representation.UnitSystem.ExtensionMethods;
 using AgGateway.ADAPT.ApplicationDataModel.Logistics;
 using AgGateway.ADAPT.ApplicationDataModel.Guidance;
+using AgGateway.ADAPT.ApplicationDataModel.Equipment;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
@@ -35,14 +36,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
     public class PrescriptionMapper : BaseMapper
     {
         private ADAPT.Representation.UnitSystem.UnitOfMeasureConverter _unitConverter;
-        private CodedCommentMapper _commentMapper;
         private GridMapper _gridMapper;
-        public PrescriptionMapper(TaskDataMapper taskDataMapper, CodedCommentMapper commentMapper)
+        private ConnectionMapper _connectionMapper;
+        public PrescriptionMapper(TaskDataMapper taskDataMapper, ConnectionMapper connectionMapper)
             :base (taskDataMapper, "TSK")
         {
             _unitConverter = new ADAPT.Representation.UnitSystem.UnitOfMeasureConverter();
             _gridMapper = new GridMapper(taskDataMapper, this);
-            _commentMapper = commentMapper;
+            _connectionMapper = connectionMapper;
         }
 
         #region Export
@@ -84,7 +85,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Comments
             if (workItem.Notes.Any())
             {
-                CommentAllocationMapper canMapper = new CommentAllocationMapper(TaskDataMapper, _commentMapper);
+                CommentAllocationMapper canMapper = new CommentAllocationMapper(TaskDataMapper);
                 task.CommentAllocations = canMapper.ExportCommentAllocations(workItem.Notes).ToList();
             }
 
@@ -118,6 +119,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     }
                 }
                 task.GuidanceAllocations = guidanceAllocationMapper.ExportGuidanceAllocations(allocations).ToList();
+            }
+
+            //Connections
+            if (workItem.EquipmentConfigurationGroup != null)
+            {
+                _connectionMapper.ExportConnections(workItem.Id.ReferenceId, workItem.EquipmentConfigurationGroup.EquipmentConfigurations);
             }
 
             //Status
@@ -271,10 +278,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     outOfFieldTreatmentZone.ProcessDataVariables.Add(oofPDV);
                 }
                 ISOProcessDataVariable defaultPDV = ExportProcessDataVariable(prescription.LossOfGpsRate, isoProductId, isoUnit);  //ADAPT doesn't have a separate Default Rate.  Using Loss of GPS Rate as a logical equivalent for a default rate.
-                if (defaultPDV != null)
+                if (defaultPDV == null)
                 {
-                    defaultTreatmentZone.ProcessDataVariables.Add(defaultPDV);
+                    //Add 0 as the default rate so that we have at least one PDV to reference
+                    var defaultRate = new NumericRepresentationValue(null, new NumericValue(prescription.RxProductLookups.First().UnitOfMeasure, 0));
+                    defaultPDV = ExportProcessDataVariable(defaultRate, isoProductId, isoUnit);
                 }
+                defaultTreatmentZone.ProcessDataVariables.Add(defaultPDV);
             }
 
             if (lossOfSignalTreatmentZone.ProcessDataVariables.Count > 0)
@@ -499,6 +509,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         }
                     }
                 }
+            }
+
+            //Connections
+            if (task.Connections.Any())
+            {
+                IEnumerable<EquipmentConfiguration> equipConfigs = _connectionMapper.ImportConnections(task);
+
+                workItem.EquipmentConfigurationGroup = new EquipmentConfigurationGroup();
+                workItem.EquipmentConfigurationGroup.EquipmentConfigurations = equipConfigs.ToList();
+
+                DataModel.Catalog.EquipmentConfigurations.AddRange(equipConfigs);
             }
         }
         

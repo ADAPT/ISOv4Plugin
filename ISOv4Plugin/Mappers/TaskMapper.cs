@@ -4,6 +4,7 @@
 
 using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.Documents;
+using AgGateway.ADAPT.ApplicationDataModel.Equipment;
 using AgGateway.ADAPT.ApplicationDataModel.Guidance;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ApplicationDataModel.Logistics;
@@ -28,13 +29,47 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
     public class TaskMapper : BaseMapper, ITaskMapper
     {
-        CodedCommentListMapper _commentListMapper;
-        CodedCommentMapper _commentMapper;
-        PrescriptionMapper _prescriptionMapper;
-        public TaskMapper(TaskDataMapper taskDataMapper, CodedCommentListMapper commentListMapper, CodedCommentMapper commentMapper) : base(taskDataMapper, "TSK")
+        public TaskMapper(TaskDataMapper taskDataMapper) : base(taskDataMapper, "TSK")
         {
-            _commentListMapper = commentListMapper;
-            _commentMapper = commentMapper;
+        }
+
+        PrescriptionMapper _prescriptionMapper;
+        public PrescriptionMapper PrescriptionMapper
+        {
+            get
+            {
+                if (_prescriptionMapper == null)
+                {
+                    _prescriptionMapper = new PrescriptionMapper(TaskDataMapper, ConnectionMapper);
+                }
+                return _prescriptionMapper;
+            }
+        }
+
+        TimeLogMapper _timeLogMapper;
+        public TimeLogMapper TimeLogMapper
+        {
+            get
+            {
+                if (_timeLogMapper == null)
+                {
+                    _timeLogMapper = new TimeLogMapper(TaskDataMapper);
+                }
+                return _timeLogMapper;
+            }
+        }
+
+        ConnectionMapper _connectionMapper;
+        public ConnectionMapper ConnectionMapper
+        {
+            get
+            {
+                if (_connectionMapper == null)
+                {
+                    _connectionMapper = new ConnectionMapper(TaskDataMapper);
+                }
+                return _connectionMapper;
+            }
         }
 
         #region Export
@@ -57,10 +92,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             if (workItem.WorkItemOperationIds.Any())
             {
-                if (_prescriptionMapper == null)
-                {
-                    _prescriptionMapper = new PrescriptionMapper(TaskDataMapper, _commentMapper);
-                }
                 foreach (int operationID in workItem.WorkItemOperationIds)
                 {
                     WorkItemOperation operation = DataModel.Documents.WorkItemOperations.FirstOrDefault(o => o.Id.ReferenceId == operationID);
@@ -69,7 +100,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         Prescription prescription = DataModel.Catalog.Prescriptions.FirstOrDefault(p => p.Id.ReferenceId == operation.PrescriptionId.Value);
                         if (prescription != null)
                         {
-                            ISOTask task = _prescriptionMapper.ExportPrescription(workItem, isoGridType, prescription);
+                            ISOTask task = PrescriptionMapper.ExportPrescription(workItem, isoGridType, prescription);
                             tasks.Add(task);
                         }
                     }
@@ -132,11 +163,18 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Status
             task.TaskStatus = ISOEnumerations.ISOTaskStatus.Completed;
 
-            //Time Logs
             if (loggedData.OperationData.Any())
             {
-                TimeLogMapper tlogMapper = new TimeLogMapper(TaskDataMapper);
-                task.TimeLogs = tlogMapper.ExportTimeLogs(loggedData.OperationData, TaskDataPath).ToList();
+                //Time Logs
+                task.TimeLogs = TimeLogMapper.ExportTimeLogs(loggedData.OperationData, TaskDataPath).ToList();
+
+                //Connections
+                IEnumerable<int> taskEquipmentConfigIDs = loggedData.OperationData.SelectMany(o => o.EquipmentConfigurationIds);
+                if (taskEquipmentConfigIDs.Any())
+                {
+                    IEnumerable<EquipmentConfiguration> taskEquipmentConfigs = DataModel.Catalog.EquipmentConfigurations.Where(d => taskEquipmentConfigIDs.Contains(d.Id.ReferenceId));
+                    ConnectionMapper.ExportConnections(loggedData.Id.ReferenceId, taskEquipmentConfigs);
+                }
             }
 
             //Summaries
@@ -158,7 +196,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Comments
             if (loggedData.Notes.Any())
             {
-                CommentAllocationMapper canMapper = new CommentAllocationMapper(TaskDataMapper, _commentMapper);
+                CommentAllocationMapper canMapper = new CommentAllocationMapper(TaskDataMapper);
                 task.CommentAllocations = canMapper.ExportCommentAllocations(loggedData.Notes).ToList();
             }
 
@@ -378,18 +416,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Comments
             if (isoPrescribedTask.CommentAllocations.Any())
             {
-                CommentAllocationMapper canMapper = new CommentAllocationMapper(TaskDataMapper, _commentMapper);
+                CommentAllocationMapper canMapper = new CommentAllocationMapper(TaskDataMapper);
                 workItem.Notes = canMapper.ImportCommentAllocations(isoPrescribedTask.CommentAllocations).ToList();
             }
 
             //Prescription
             if (isoPrescribedTask.HasPrescription)
             {
-                if (_prescriptionMapper == null)
-                {
-                    _prescriptionMapper = new PrescriptionMapper(TaskDataMapper, _commentMapper);
-                }
-                Prescription rx = _prescriptionMapper.ImportPrescription(isoPrescribedTask, workItem);
+                Prescription rx = PrescriptionMapper.ImportPrescription(isoPrescribedTask, workItem);
 
                 //Add to the Prescription the Catalog
                 List<Prescription> prescriptions = DataModel.Catalog.Prescriptions as List<Prescription>;
@@ -548,12 +582,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Comments
             if (isoLoggedTask.CommentAllocations.Any())
             {
-                CommentAllocationMapper canMapper = new CommentAllocationMapper(TaskDataMapper, _commentMapper);
+                CommentAllocationMapper canMapper = new CommentAllocationMapper(TaskDataMapper);
                 loggedData.Notes = canMapper.ImportCommentAllocations(isoLoggedTask.CommentAllocations).ToList();
             }
 
             //Summaries
-            if (isoLoggedTask.Times.Any(t => t.HasStart && t.HasStop && t.HasType)) //Nothing added without a Start, Stop, Type attributes
+            if (isoLoggedTask.Times.Any(t => t.HasStart && t.HasType)) //Nothing added without a Start & Type attribute
             {
                 Summary summary = new Summary();
                 summary.SummaryData = ImportSummaryData(isoLoggedTask); //Does not have a product reference
@@ -569,8 +603,18 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Operation Data
             if (isoLoggedTask.TimeLogs.Any())
             {
-                TimeLogMapper tlogMapper = new TimeLogMapper(TaskDataMapper);
-                loggedData.OperationData = tlogMapper.ImportTimeLogs(isoLoggedTask.TimeLogs);
+                loggedData.OperationData = TimeLogMapper.ImportTimeLogs(isoLoggedTask.TimeLogs);
+            }
+
+            //Connections
+            if (isoLoggedTask.Connections.Any())
+            {
+                IEnumerable<EquipmentConfiguration> equipConfigs = ConnectionMapper.ImportConnections(isoLoggedTask);
+
+                loggedData.EquipmentConfigurationGroup = new EquipmentConfigurationGroup();
+                loggedData.EquipmentConfigurationGroup.EquipmentConfigurations = equipConfigs.ToList();
+
+                DataModel.Catalog.EquipmentConfigurations.AddRange(equipConfigs);
             }
 
             return loggedData;
@@ -580,7 +624,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         private List<StampedMeteredValues> ImportSummaryData(ISOTask isoLoggedTask)
         {
             List<StampedMeteredValues> stampedValuesList = new List<StampedMeteredValues>();
-            foreach (ISOTime time in isoLoggedTask.Times.Where(t => t.HasStart && t.HasStop && t.HasType)) //Nothing added without a Start, Stop, Type attributes
+            foreach (ISOTime time in isoLoggedTask.Times.Where(t => t.HasStart && t.HasType)) //Nothing added without a Start and Type attribute
             {
                 stampedValuesList.Add(GetStampedMeteredValuesForTime(time));
             }
@@ -618,7 +662,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 {
                     //There are multiple products.
                     //Try to reconcile product allocations to individual Time DataLogValues via overlapping times and matching device elements
-                    foreach (ISOTime time in isoLoggedTask.Times.Where(t => t.HasStart && t.HasStop && t.HasType))
+                    foreach (ISOTime time in isoLoggedTask.Times.Where(t => t.HasStart && t.HasType))
                     {
                         IEnumerable<string> distinctDeviceElements = time.DataLogValues.Select(d => d.DeviceElementIdRef).Distinct();
                         foreach (string det in distinctDeviceElements)
@@ -655,7 +699,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 operationSummary = new OperationSummary();
                 operationSummary.ProductId = TaskDataMapper.ADAPTIdMap.FindByISOId(productIDRef).Value;
                 operationSummary.Data = new List<StampedMeteredValues>();
-                foreach (ISOTime time in isoLoggedTask.Times.Where(t => t.HasStart && t.HasStop && t.HasType)) //Nothing added without a Start, Stop, Type attributes
+                foreach (ISOTime time in isoLoggedTask.Times.Where(t => t.HasStart && t.HasType)) //Nothing added without a Start and Type attribute
                 {
                     StampedMeteredValues values = GetStampedMeteredValuesForTime(time, deviceElementIDRef);
                     if (values != null)
@@ -707,7 +751,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //TimeScope
             stampedValues.Stamp = new TimeScope();
             stampedValues.Stamp.TimeStamp1 = time.Start;
-            stampedValues.Stamp.TimeStamp2 = time.Stop;
+            if (time.Stop != null)
+            {
+                stampedValues.Stamp.TimeStamp2 = time.Stop;
+            }
+
             if (time.Stop == null && time.Duration != null)
             {
                 //Calculate the Stop time if missing and duration present

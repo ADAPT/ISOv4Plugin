@@ -27,7 +27,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                 ISODeviceElement rootDeviceElement = device.DeviceElements.SingleOrDefault(det => det.DeviceElementType == ISODeviceElementType.Device);
                 if (rootDeviceElement != null)
                 {
-                    DeviceElementHierarchies.Add(device.DeviceId, new DeviceElementHierarchy(rootDeviceElement, 0, representationMapper));
+                    DeviceElementHierarchies.Add(device.DeviceId, new DeviceElementHierarchy(device, rootDeviceElement, 0, representationMapper));
                 }
             }
         }
@@ -56,7 +56,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
 
     public class DeviceElementHierarchy
     {
-        public DeviceElementHierarchy(ISODeviceElement deviceElement, int depth, RepresentationMapper representationMapper, HashSet<int> crawledElements = null)
+        public DeviceElementHierarchy(ISODevice device, ISODeviceElement deviceElement, int depth, RepresentationMapper representationMapper, HashSet<int> crawledElements = null)
         {
             //This Hashset will track that we don't build infinite hierarchies.   
             //The plugin does not support peer control at this time.
@@ -70,6 +70,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
             {
                 Type = deviceElement.DeviceElementType;
                 DeviceElement = deviceElement;
+                Device = device;
                 Depth = depth;
                 Order = deviceElement.DeviceElementNumber; //Reusing this number for now.
 
@@ -110,7 +111,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                     Children = new List<DeviceElementHierarchy>();
                     foreach (ISODeviceElement det in childDeviceElements)
                     {
-                        DeviceElementHierarchy child = new DeviceElementHierarchy(det, childDepth, representationMapper, _crawledElements);
+                        DeviceElementHierarchy child = new DeviceElementHierarchy(device, det, childDepth, representationMapper, _crawledElements);
                         Children.Add(child);
                     }
                 }
@@ -118,6 +119,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
         }
 
         public ISODeviceElement DeviceElement { get; private set; }
+        public ISODevice Device { get; private set; }
 
         public int Depth { get; set; }
         public int Order { get; set; }
