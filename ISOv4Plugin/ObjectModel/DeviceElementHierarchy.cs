@@ -73,7 +73,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                 Type = deviceElement.DeviceElementType;
                 DeviceElement = deviceElement;
                 Depth = depth;
-                Order = deviceElement.DeviceElementNumber; //Reusing this number for now.
+                Order = deviceElement.DeviceElementNumber; //Using this number as analagous to this purpose.  The ISO spec requires these numbers increment from left to right.
 
                 //DeviceProperty assigned Widths & Offsets
                 //DeviceProcessData assigned values will be assigned as the SectionMapper reads timelog data.

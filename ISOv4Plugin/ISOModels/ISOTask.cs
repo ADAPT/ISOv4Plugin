@@ -41,6 +41,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 
         //Child Elements
         public ISOGrid Grid { get; set; }
+        public ISOOperTechPractice OperationTechPractice { get; set; }
         public List<ISOTreatmentZone> TreatmentZones { get; set; }
         public List<ISOTime> Times { get; set; }
         public List<ISOWorkerAllocation> WorkerAllocations { get; set; }
@@ -91,6 +92,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             if (Grid != null)
             {
                 Grid.WriteXML(xmlBuilder);
+            }
+
+            if (OperationTechPractice != null)
+            {
+                OperationTechPractice.WriteXML(xmlBuilder);
             }
 
             foreach (ISOTreatmentZone item in TreatmentZones) { item.WriteXML(xmlBuilder); }
@@ -198,6 +204,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             if (ganNodes != null)
             {
                 task.GuidanceAllocations.AddRange(ISOGuidanceAllocation.ReadXML(ganNodes));
+            }
+
+            //OperTechPractice
+            XmlNode otpNode = taskNode.SelectSingleNode("OTP");
+            if (otpNode != null)
+            {
+                task.OperationTechPractice = ISOOperTechPractice.ReadXML(otpNode);
             }
 
             return task;

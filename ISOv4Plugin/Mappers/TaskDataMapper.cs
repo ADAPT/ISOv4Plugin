@@ -34,6 +34,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             RepresentationMapper = new RepresentationMapper();
             DDIs = DdiLoader.Ddis;
             Properties = properties;
+            DeviceOperationTypes = new DeviceOperationTypes();
         }
 
         public string BaseFolder { get; private set; }
@@ -49,6 +50,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         internal RepresentationMapper RepresentationMapper { get; private set; }
         internal Dictionary<int, DdiDefinition> DDIs { get; private set; }
+        internal DeviceOperationTypes DeviceOperationTypes { get; private set; }
 
         CodedCommentListMapper _commentListMapper;
         public CodedCommentListMapper CommentListMapper
@@ -307,6 +309,27 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             {
                 WorkerMapper workerMapper = new WorkerMapper(this);
                 AdaptDataModel.Catalog.Persons.AddRange(workerMapper.Import(workers));
+            }
+
+
+            //Cultural Practices
+            IEnumerable<ISOCulturalPractice> practices = taskData.ChildElements.OfType<ISOCulturalPractice>();
+            if (practices.Any())
+            {
+                foreach (ISOCulturalPractice cpc in practices)
+                {
+                    (AdaptDataModel.Documents.WorkOrders as List<WorkOrder>).Add(new WorkOrder() { Description = cpc.CulturalPracticeDesignator });
+                }
+            }
+
+            //OperationTechniques
+            IEnumerable<ISOOperationTechnique> techniques = taskData.ChildElements.OfType<ISOOperationTechnique>();
+            if (techniques.Any())
+            {
+                foreach (ISOOperationTechnique otq in techniques)
+                {
+                    (AdaptDataModel.Documents.WorkOrders as List<WorkOrder>).Add(new WorkOrder() { Description = otq.OperationTechniqueDesignator });
+                }
             }
 
             IEnumerable<ISOTask> prescribedTasks = taskData.ChildElements.OfType<ISOTask>().Where(t => t.IsWorkItemTask);

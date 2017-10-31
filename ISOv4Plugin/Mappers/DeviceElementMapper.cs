@@ -204,7 +204,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         deviceElement.DeviceElementType = DeviceElementTypeEnum.Unit;
                         break;
                     case ISODeviceElementType.Navigation:
-                        deviceElement.DeviceElementType = DeviceElementTypeEnum.Unit; 
+                        deviceElement.DeviceElementType = DeviceElementTypeEnum.Machine; 
                         break;
                 }
             }
@@ -428,53 +428,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 return null;
             deviceClass >>= 1;
 
-            AgGateway.ADAPT.ApplicationDataModel.Representations.EnumerationMember machineType;
-            switch (deviceClass)
+            AgGateway.ADAPT.ApplicationDataModel.Representations.EnumerationMember machineType = DefinedTypeEnumerationInstanceList.dtiTractor.ToModelEnumMember(); //Default
+
+            DeviceOperationType deviceType = DeviceOperationTypes.SingleOrDefault(d => d.ClientNAMEMachineType == deviceClass);
+            if (deviceType != null)
             {
-                case 0: // Non-specific systems
-                    machineType = DefinedTypeEnumerationInstanceList.dtiMachineTypeOther.ToModelEnumMember();
-                    break;
-                case 1: // Tractor
-                    machineType = DefinedTypeEnumerationInstanceList.dtiTractor.ToModelEnumMember();
-                    break;
-                //case 2: // Tillage
-                //case 3: // Secondary tillage
-                //case 4: // Planters/seeders
-
-                case 5: // Fertilizers
-                case 6: // Sprayers
-                    machineType = DefinedTypeEnumerationInstanceList.dtiSprayer.ToModelEnumMember();
-                    break;
-
-                case 7: // Harvesters
-                case 8: // Root harvesters
-                    machineType = DefinedTypeEnumerationInstanceList.dtiCombine.ToModelEnumMember();
-                    break;
-
-                case 9: // Forage
-                    machineType = DefinedTypeEnumerationInstanceList.dtiForageHarvester.ToModelEnumMember();
-                    break;
-
-                case 10: // Irrigation
-                    machineType = DefinedTypeEnumerationInstanceList.dtiIrrigationSystem.ToModelEnumMember();
-                    break;
-
-                case 11: // Transport/trailer
-                case 12: // Farm yard operations
-                case 13: // Powered auxilliary devices
-                case 14: // Special crops
-                case 15: // Earth work
-                case 16: // Skidder
-                    machineType = DefinedTypeEnumerationInstanceList.dtiUtilityVehicle.ToModelEnumMember();
-                    break;
-
-                default:
-                    machineType = DefinedTypeEnumerationInstanceList.dtiTractor.ToModelEnumMember();
-                    break;
+                machineType = deviceType.MachineEnumerationMember.ToModelEnumMember();
             }
 
             return new EnumeratedValue { Representation = RepresentationInstanceList.dtMachineType.ToModelRepresentation(), Value = machineType };
         }
+
         #endregion Import
     }
 }

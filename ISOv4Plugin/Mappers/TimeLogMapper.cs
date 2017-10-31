@@ -19,6 +19,9 @@ using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using AgGateway.ADAPT.ISOv4Plugin.Representation;
 using AgGateway.ADAPT.ApplicationDataModel.Equipment;
 using System.IO;
+using AgGateway.ADAPT.ApplicationDataModel.Common;
+using AgGateway.ADAPT.Representation.RepresentationSystem;
+using AgGateway.ADAPT.Representation.RepresentationSystem.ExtensionMethods;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
@@ -371,16 +374,18 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             WorkingDataMapper workingDataMapper = new WorkingDataMapper(new EnumeratedMeterFactory(), TaskDataMapper);
             SectionMapper sectionMapper = new SectionMapper(workingDataMapper, TaskDataMapper);
             SpatialRecordMapper spatialMapper = new SpatialRecordMapper(new RepresentationValueInterpolator(), sectionMapper, workingDataMapper);
-            IEnumerable<ISOSpatialRow> isoRecords = ReadTimeLog(isoTimeLog, this.TaskDataPath).ToList(); //ToList() avoids multiple binary reads
-
+            IEnumerable<ISOSpatialRow> isoRecords = ReadTimeLog(isoTimeLog, this.TaskDataPath);
             if (isoRecords != null)
             {
+                isoRecords = isoRecords.ToList(); //ToList() avoids multiple spatial reads
+
                 OperationData operationData = new OperationData();
 
                 //This line will necessarily invoke a spatial read in order to find 
                 //1)The correct number of CondensedWorkState working datas to create 
                 //2)Any Widths and Offsets stored in the spatial data
-                IEnumerable<DeviceElementUse> sections = sectionMapper.Map(isoTimeLog.GetTimeElement(this.TaskDataPath), isoRecords, operationData.Id.ReferenceId);
+                ISOTime time = isoTimeLog.GetTimeElement(this.TaskDataPath);
+                IEnumerable<DeviceElementUse> sections = sectionMapper.Map(time, isoRecords, operationData.Id.ReferenceId);
 
                 var workingDatas = sections != null ? sections.SelectMany(x => x.GetWorkingDatas()).ToList() : new List<WorkingData>();
                 var sectionsSimple = sectionMapper.ConvertToBaseTypes(sections.ToList()); 
@@ -389,10 +394,43 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 operationData.MaxDepth = sections.Count() > 0 ? sections.Select(s => s.Depth).Max() : 0;
                 operationData.GetDeviceElementUses = x => x == 0 ? sectionsSimple : new List<DeviceElementUse>();
                 operationData.PrescriptionId = prescriptionID;
+                operationData.OperationType = GetOperationTypeFromLoggingDevices(time);
 
                 return operationData;
             }
             return null;
+        }
+
+        private OperationTypeEnum GetOperationTypeFromLoggingDevices(ISOTime time)
+        {
+            HashSet<DeviceOperationType> representedTypes = new HashSet<DeviceOperationType>();
+            IEnumerable<string> distinctDeviceElementIDs = time.DataLogValues.Select(d => d.DeviceElementIdRef).Distinct();
+            foreach (string isoDeviceElementID in distinctDeviceElementIDs)
+            {
+                int? deviceElementID = TaskDataMapper.ADAPTIdMap.FindByISOId(isoDeviceElementID);
+                if (deviceElementID.HasValue)
+                {
+                    DeviceElement deviceElement = DataModel.Catalog.DeviceElements.FirstOrDefault(d => d.Id.ReferenceId == deviceElementID.Value);
+                    if (deviceElement != null && deviceElement.DeviceClassification != null)
+                    {
+                        DeviceOperationType deviceOperationType = DeviceOperationTypes.FirstOrDefault(d => d.MachineEnumerationMember.ToModelEnumMember().Value == deviceElement.DeviceClassification.Value.Value);
+                        if (deviceOperationType != null)
+                        {
+                            representedTypes.Add(deviceOperationType);
+                        }
+                    }
+                }
+            }
+
+            DeviceOperationType deviceType = representedTypes.FirstOrDefault(t => t.ClientNAMEMachineType >= 2 && t.ClientNAMEMachineType <= 11);
+            if (deviceType != null)
+            {
+                //2-11 represent known types of operations
+                //These will map to implement devices and will govern the actual operation type.
+                //Return the first such device type
+                return deviceType.OperationType;
+            }
+            return OperationTypeEnum.Unknown;
         }
 
         private IEnumerable<ISOSpatialRow> ReadTimeLog(ISOTimeLog timeLog, string dataPath)

@@ -33,7 +33,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             IEnumerable<string> distinctDeviceElementIDs = time.DataLogValues.Select(d => d.DeviceElementIdRef).Distinct();
             foreach (string isoDeviceElementID in distinctDeviceElementIDs)
             {
-                //For now we are treating multiple top level Device Elements all as Depth 0.   We are not rationalizing multiple devices into one hierarchy.
                 DeviceElementHierarchy hierarchy = TaskDataMapper.DeviceElementHierarchies.GetRelevantHierarchy(isoDeviceElementID);
                 if (hierarchy != null)
                 {
@@ -48,6 +47,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         //-------------------------------------------------------------------------------------------------------------------------------------
                         //Bin children of functions or devices carry data that effectively belong to the parent device element in ISO.  See TC-GEO examples 5-8.
                         //Find the parent DeviceElementUse and add the data to that object.
+                        //Per the TC-GEO spec: "The location of the Bin type device elements as children of the boom specifies that the products from these bins are all distributed through that boom."
                         int? parentDeviceElementID = TaskDataMapper.ADAPTIdMap.FindByISOId(hierarchy.Parent.DeviceElement.DeviceElementId);
                         if (parentDeviceElementID.HasValue)
                         {
@@ -61,8 +61,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                             if (deviceElementUse == null)
                             {
                                 deviceElementUse = new DeviceElementUse();
-                                deviceElementUse.Depth = hierarchy.Depth - 1;
-                                deviceElementUse.Order = hierarchy.Order; //TODO this may have repeated order ids.
+                                deviceElementUse.Depth = hierarchy.Parent.Depth;
+                                deviceElementUse.Order = hierarchy.Parent.Order;
                                 deviceElementUse.OperationDataId = operationDataId;
                                 deviceElementUse.DeviceConfigurationId = parentConfig.Id.ReferenceId;
                             }
@@ -91,7 +91,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         //Create the DeviceElementUse
                         deviceElementUse = new DeviceElementUse();
                         deviceElementUse.Depth = hierarchy.Depth;
-                        deviceElementUse.Order = hierarchy.Order; //TODO this may have repeated order ids.
+                        deviceElementUse.Order = hierarchy.Order; 
                         deviceElementUse.OperationDataId = operationDataId;
                         deviceElementUse.DeviceConfigurationId = config.Id.ReferenceId;
 
