@@ -26,7 +26,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteStartElement("AFE");
             xmlBuilder.WriteXmlAttribute("A", FilenamewithExtension);
             xmlBuilder.WriteXmlAttribute("B", ((int)Preserve).ToString());
-            xmlBuilder.WriteXmlAttribute("C", ManufacturerGLN );
+            xmlBuilder.WriteAttributeString("C", ManufacturerGLN); //Override suppression of empty strings
             xmlBuilder.WriteXmlAttribute<byte>("D", FileType);
             xmlBuilder.WriteXmlAttribute("E", FileVersion);
             xmlBuilder.WriteXmlAttribute<long>("F", FileLength);

@@ -84,7 +84,7 @@
     <Compile Include="ISOEnumerations\ISOTaskStatus.cs" />
     <Compile Include="ISOEnumerations\ISOTimeType.cs" />
     <Compile Include="ISOEnumerations\ISOTransferMode.cs" />
-    <Compile Include="ISOModels\ISO11738_LinkList.cs" />
+    <Compile Include="ISOModels\ISO11783_LinkList.cs" />
     <Compile Include="ISOModels\ISO11783_TaskData.cs" />
     <Compile Include="ISOModels\ISOAllocationStamp.cs" />
     <Compile Include="ISOModels\ISOAttachedFile.cs" />
@@ -94,6 +94,7 @@
     <Compile Include="ISOModels\ISOConnection.cs" />
     <Compile Include="ISOModels\ISOCropType.cs" />
     <Compile Include="ISOModels\ISOCropVariety.cs" />
+    <Compile Include="ISOModels\ISOCulturalPractice.cs" />
     <Compile Include="ISOModels\ISOCustomer.cs" />
     <Compile Include="ISOModels\ISODataLogTrigger.cs" />
     <Compile Include="ISOModels\ISODataLogValue.cs" />
@@ -114,6 +115,9 @@
     <Compile Include="ISOModels\ISOLineString.cs" />
     <Compile Include="ISOModels\ISOLink.cs" />
     <Compile Include="ISOModels\ISOLinkGroup.cs" />
+    <Compile Include="ISOModels\ISOOperationTechnique.cs" />
+    <Compile Include="ISOModels\ISOOperTechPractice.cs" />
+    <Compile Include="ISOModels\ISOOperationTechniqueReference.cs" />
     <Compile Include="ISOModels\ISOPartfield.cs" />
     <Compile Include="ISOModels\ISOPoint.cs" />
     <Compile Include="ISOModels\ISOPolygon.cs" />
@@ -136,6 +140,8 @@
     <Compile Include="Mappers\CodedCommentListMapper.cs" />
     <Compile Include="Mappers\CodedCommentMapper.cs" />
     <Compile Include="Mappers\CommentAllocationMapper.cs" />
+    <Compile Include="Mappers\ConnectionMapper.cs" />
+    <Compile Include="Mappers\DataLogTriggerMapper.cs" />
     <Compile Include="Mappers\CropTypeMapper.cs" />
     <Compile Include="Mappers\CropVarietyMapper.cs" />
     <Compile Include="Mappers\CustomerMapper.cs" />
@@ -177,6 +183,7 @@
     <Compile Include="Mappers\WorkerMapper.cs" />
     <Compile Include="ObjectModel\DeviceElementHierarchy.cs" />
     <Compile Include="ObjectModel\GridDescriptor.cs" />
+    <Compile Include="ObjectModel\DeviceOperationTypes.cs" />
     <Compile Include="ObjectModel\ISOSpatialRow.cs" />
     <Compile Include="ObjectModel\ISOUnit.cs" />
     <Compile Include="ObjectModel\SpatialValue.cs" />

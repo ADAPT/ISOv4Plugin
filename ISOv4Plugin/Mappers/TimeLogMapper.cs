@@ -19,6 +19,9 @@ using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using AgGateway.ADAPT.ISOv4Plugin.Representation;
 using AgGateway.ADAPT.ApplicationDataModel.Equipment;
 using System.IO;
+using AgGateway.ADAPT.ApplicationDataModel.Common;
+using AgGateway.ADAPT.Representation.RepresentationSystem;
+using AgGateway.ADAPT.Representation.RepresentationSystem.ExtensionMethods;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
@@ -372,27 +375,62 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             SectionMapper sectionMapper = new SectionMapper(workingDataMapper, TaskDataMapper);
             SpatialRecordMapper spatialMapper = new SpatialRecordMapper(new RepresentationValueInterpolator(), sectionMapper, workingDataMapper);
             IEnumerable<ISOSpatialRow> isoRecords = ReadTimeLog(isoTimeLog, this.TaskDataPath);
-
             if (isoRecords != null)
             {
+                isoRecords = isoRecords.ToList(); //ToList() avoids multiple spatial reads
+
                 OperationData operationData = new OperationData();
 
                 //This line will necessarily invoke a spatial read in order to find 
                 //1)The correct number of CondensedWorkState working datas to create 
                 //2)Any Widths and Offsets stored in the spatial data
-                IEnumerable<DeviceElementUse> sections = sectionMapper.Map(isoTimeLog.GetTimeElement(this.TaskDataPath), isoRecords, operationData.Id.ReferenceId);
+                ISOTime time = isoTimeLog.GetTimeElement(this.TaskDataPath);
+                IEnumerable<DeviceElementUse> sections = sectionMapper.Map(time, isoRecords, operationData.Id.ReferenceId);
 
                 var workingDatas = sections != null ? sections.SelectMany(x => x.GetWorkingDatas()).ToList() : new List<WorkingData>();
-                var sectionsSimple = sectionMapper.ConvertToBaseTypes(sections.ToList());
+                var sectionsSimple = sectionMapper.ConvertToBaseTypes(sections.ToList()); 
 
                 operationData.GetSpatialRecords = () => spatialMapper.Map(isoRecords, workingDatas);
                 operationData.MaxDepth = sections.Count() > 0 ? sections.Select(s => s.Depth).Max() : 0;
                 operationData.GetDeviceElementUses = x => x == 0 ? sectionsSimple : new List<DeviceElementUse>();
                 operationData.PrescriptionId = prescriptionID;
+                operationData.OperationType = GetOperationTypeFromLoggingDevices(time);
 
                 return operationData;
             }
             return null;
+        }
+
+        private OperationTypeEnum GetOperationTypeFromLoggingDevices(ISOTime time)
+        {
+            HashSet<DeviceOperationType> representedTypes = new HashSet<DeviceOperationType>();
+            IEnumerable<string> distinctDeviceElementIDs = time.DataLogValues.Select(d => d.DeviceElementIdRef).Distinct();
+            foreach (string isoDeviceElementID in distinctDeviceElementIDs)
+            {
+                int? deviceElementID = TaskDataMapper.ADAPTIdMap.FindByISOId(isoDeviceElementID);
+                if (deviceElementID.HasValue)
+                {
+                    DeviceElement deviceElement = DataModel.Catalog.DeviceElements.FirstOrDefault(d => d.Id.ReferenceId == deviceElementID.Value);
+                    if (deviceElement != null && deviceElement.DeviceClassification != null)
+                    {
+                        DeviceOperationType deviceOperationType = DeviceOperationTypes.FirstOrDefault(d => d.MachineEnumerationMember.ToModelEnumMember().Value == deviceElement.DeviceClassification.Value.Value);
+                        if (deviceOperationType != null)
+                        {
+                            representedTypes.Add(deviceOperationType);
+                        }
+                    }
+                }
+            }
+
+            DeviceOperationType deviceType = representedTypes.FirstOrDefault(t => t.ClientNAMEMachineType >= 2 && t.ClientNAMEMachineType <= 11);
+            if (deviceType != null)
+            {
+                //2-11 represent known types of operations
+                //These will map to implement devices and will govern the actual operation type.
+                //Return the first such device type
+                return deviceType.OperationType;
+            }
+            return OperationTypeEnum.Unknown;
         }
 
         private IEnumerable<ISOSpatialRow> ReadTimeLog(ISOTimeLog timeLog, string dataPath)
@@ -424,68 +462,85 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 {
                     while (binaryReader.BaseStream.Position < binaryReader.BaseStream.Length)
                     {
-                        ISOPosition position = templateTime.Positions.FirstOrDefault();
+                        ISOPosition templatePosition = templateTime.Positions.FirstOrDefault();
 
                         var record = new ISOSpatialRow { TimeStart = GetStartTime(templateTime, binaryReader) };
 
-                        if (position != null)
+                        if (templatePosition != null)
                         {
-                            record.NorthPosition = ReadInt32((double?)position.PositionNorth, position.HasPositionNorth, binaryReader).GetValueOrDefault(0);
-                            record.EastPosition = ReadInt32((double?)position.PositionEast, position.HasPositionEast, binaryReader).GetValueOrDefault(0);
-                            record.Elevation = ReadInt32(position.PositionUp, position.HasPositionUp, binaryReader);
-                            record.PositionStatus = ReadByte((byte?)position.PositionStatus, position.HasPositionStatus, binaryReader);
-                            record.PDOP = ReadShort((double?)position.PDOP, position.HasPDOP, binaryReader);
-                            record.HDOP = ReadShort((double?)position.HDOP, position.HasHDOP, binaryReader);
-                            record.NumberOfSatellites = ReadByte(position.NumberOfSatellites, position.HasNumberOfSatellites, binaryReader);
+                            //North and East are required binary data
+                            record.NorthPosition = ReadInt32((double?)templatePosition.PositionNorth, templatePosition.HasPositionNorth, binaryReader).GetValueOrDefault(0);
+                            record.EastPosition = ReadInt32((double?)templatePosition.PositionEast, templatePosition.HasPositionEast, binaryReader).GetValueOrDefault(0);
 
-                            SetGpsUtcDateTime(position, record, binaryReader);
+                            if (templatePosition.HasPositionUp) //Optional position attributes will be included in the binary only if a corresponding attribute is present in the PTN element
+                            {
+                                record.Elevation = ReadInt32(templatePosition.PositionUp, templatePosition.HasPositionUp, binaryReader);
+                            }
+
+                            //Position status is required
+                            record.PositionStatus = ReadByte((byte?)templatePosition.PositionStatus, templatePosition.HasPositionStatus, binaryReader);
+
+                            if (templatePosition.HasPDOP)
+                            {
+                                record.PDOP = ReadShort((double?)templatePosition.PDOP, templatePosition.HasPDOP, binaryReader);
+                            }
+
+                            if (templatePosition.HasHDOP)
+                            {
+                                record.HDOP = ReadShort((double?)templatePosition.HDOP, templatePosition.HasHDOP, binaryReader);
+                            }
+
+                            if (templatePosition.HasNumberOfSatellites)
+                            {
+                                record.NumberOfSatellites = ReadByte(templatePosition.NumberOfSatellites, templatePosition.HasNumberOfSatellites, binaryReader);
+                            }
+
+                            if (templatePosition.HasGpsUtcDate)
+                            {
+                                if (templatePosition.GpsUtcDate.HasValue)
+                                {
+                                    record.GpsUtcDate = (short)templatePosition.GpsUtcDate.Value;
+                                }
+                                else
+                                {
+                                    record.GpsUtcDate = binaryReader.ReadInt16();
+                                }
+                                
+                            }
+
+                            if (templatePosition.HasGpsUtcTime)
+                            {
+                                if (templatePosition.GpsUtcTime.HasValue)
+                                {
+                                    record.GpsUtcTime = Convert.ToInt32(templatePosition.GpsUtcTime.Value);
+                                }
+                                else
+                                {
+                                    record.GpsUtcTime = binaryReader.ReadInt32();
+                                }
+                            }
+
+                            if (record.GpsUtcDate != null && record.GpsUtcTime != null)
+                            {
+                                record.GpsUtcDateTime = _firstDayOf1980.AddDays((double)record.GpsUtcDate).AddMilliseconds((double)record.GpsUtcTime);
+                            }
                         }
 
-                        SetSpatialValues(templateTime, record, binaryReader);
+                        var numberOfDLVs = binaryReader.ReadByte();
+                        record.SpatialValues = new List<SpatialValue>();
+
+                        for (int i = 0; i < numberOfDLVs; i++)
+                        {
+                            var order = binaryReader.ReadByte();
+                            var value = binaryReader.ReadInt32();
+
+                            record.SpatialValues.Add(CreateSpatialValue(templateTime, order, value));
+                        }
+
                         yield return record;
                     }
                 }
             }
-
-            private static void SetSpatialValues(ISOTime templateTime, ISOSpatialRow record, System.IO.BinaryReader binaryReader)
-            {
-                var numberOfDLVs = binaryReader.ReadByte();
-                record.SpatialValues = new List<SpatialValue>();
-
-                for (int i = 0; i < numberOfDLVs; i++)
-                {
-                    var order = binaryReader.ReadByte();
-                    var value = binaryReader.ReadInt32();
-
-                    record.SpatialValues.Add(CreateSpatialValue(templateTime, order, value));
-                }
-            }
-
-            private void SetGpsUtcDateTime(ISOPosition position, ISOSpatialRow record, System.IO.BinaryReader binaryReader)
-            {
-                if (position.HasGpsUtcDate)
-                {
-                    if (position.GpsUtcDate.HasValue)
-                        record.GpsUtcTime = Convert.ToInt32(position.GpsUtcDate.Value);
-                    else
-                        record.GpsUtcTime = binaryReader.ReadInt32();
-                }
-
-                if (position.HasGpsUtcTime)
-                {
-                    if (position.GpsUtcTime.HasValue)
-                        record.GpsUtcDate = (short)position.GpsUtcTime.Value;
-                    else
-                        record.GpsUtcDate = binaryReader.ReadInt16();
-                }
-
-                if (record.GpsUtcDate != null && record.GpsUtcTime != null)
-                {
-                    record.GpsUtcDateTime = _firstDayOf1980.AddDays((double)record.GpsUtcDate).AddMilliseconds((double)record.GpsUtcTime);
-                }
-            }
-
-
 
             private static short? ReadShort(double? value, bool specified, System.IO.BinaryReader binaryReader)
             {

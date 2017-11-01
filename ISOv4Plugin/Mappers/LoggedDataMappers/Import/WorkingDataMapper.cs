@@ -47,7 +47,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
             //Add the Working Datas for this DeviceElement
-            var deviceElementDLVs = allDLVs.Where(dlv => dlv.DeviceElementIdRef == isoDeviceElementID);
+            IEnumerable<ISODataLogValue> deviceElementDLVs = allDLVs.Where(dlv => dlv.DeviceElementIdRef == isoDeviceElementID);
             foreach (ISODataLogValue dlv in deviceElementDLVs)
             {
                 IEnumerable<WorkingData> newWorkingDatas = Map(dlv, isoSpatialRows, deviceElementUse, dlv.Order, pendingDeviceElementUses);
@@ -124,7 +124,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         private void UpdateCondensedWorkingDatas(List<WorkingData> condensedWorkingDatas, ISODataLogValue dlv, DeviceElementUse deviceElementUse, List<DeviceElementUse> pendingDeviceElementUses)
         {
-            ISODeviceElement isoDeviceElement = TaskDataMapper.DeviceHierarchy.GetISODeviceElementFromID(dlv.DeviceElementIdRef);
+            ISODeviceElement isoDeviceElement = TaskDataMapper.DeviceElementHierarchies.GetISODeviceElementFromID(dlv.DeviceElementIdRef);
             IEnumerable<ISODeviceElement> isoSectionElements = isoDeviceElement.ChildDeviceElements.Where(d => d.DeviceElementType == ISOEnumerations.ISODeviceElementType.Section);
             if (isoSectionElements.Count() > 0 && isoSectionElements.Count() == condensedWorkingDatas.Count)
             {

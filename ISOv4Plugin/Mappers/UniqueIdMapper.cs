@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
-    public class UniqueIdMapper
+    public class UniqueIdMapper 
     {
         public UniqueIdMapper(ISO11783_LinkList linkList)
         {
@@ -17,6 +17,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         }
 
         public ISO11783_LinkList LinkList { get; private set; }
+
+        private int _lgpID = 1;
 
         public const string IsoSource = "http://dictionary.isobus.net/isobus/";
 
@@ -44,6 +46,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     if (linkGroup == null)
                     {
                         linkGroup = new ISOLinkGroup() { LinkGroupType = ISOEnumerations.ISOLinkGroupType.UUID, LinkGroupDesignator = "UUIDs", Links = new List<ISOLink>() };
+                        linkGroup.LinkGroupId = BaseMapper.GenerateID(0, "LGP", _lgpID++); //Special ID invocation here due to class relationships
                         LinkList.LinkGroups.Add(linkGroup);
                     }
                 }

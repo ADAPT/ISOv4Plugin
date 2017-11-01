@@ -2,23 +2,17 @@
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
-using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
-using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AgGateway.ADAPT.ApplicationDataModel.Logistics;
-using AgGateway.ADAPT.ApplicationDataModel.Shapes;
-using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
-using AgGateway.ADAPT.ApplicationDataModel.Guidance;
 using AgGateway.ADAPT.ApplicationDataModel.Equipment;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
-using System.Globalization;
+using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
+using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
+using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using AgGateway.ADAPT.Representation.RepresentationSystem;
 using AgGateway.ADAPT.Representation.RepresentationSystem.ExtensionMethods;
-using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
@@ -120,7 +114,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 return null;
             }
 
-            DeviceElementHierarchy deviceElementHierarchy = TaskDataMapper.DeviceHierarchy.DeviceElementHierarchies[isoDevice.DeviceId];
+            DeviceElementHierarchy deviceElementHierarchy = TaskDataMapper.DeviceElementHierarchies.Items[isoDevice.DeviceId];
 
             //Import device elements
             List<DeviceElement> adaptDeviceElements = new List<DeviceElement>();
@@ -177,163 +171,231 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
             //Device Element Type
-            switch (isoDeviceElement.DeviceElementType)
+            if (IsConnectorDeviceElement(isoDeviceElement))
             {
-                case ISODeviceElementType.Device:  //This is the root device element
-                    if (deviceClassification != null && deviceClassification.Value != null &&
-                        (deviceClassification.Value.Code == DefinedTypeEnumerationInstanceList.dtiTractor.DomainTag ||
-                        deviceClassification.Value.Code == DefinedTypeEnumerationInstanceList.dtiUtilityVehicle.DomainTag))
-                    {
-                        deviceElement.DeviceElementType = DeviceElementTypeEnum.Machine;
-                        AddMachineConfiguration(isoDeviceElement, deviceElement, rootDeviceHierarchy);
-                    }
-                    else
-                    {
-                        deviceElement.DeviceElementType = DeviceElementTypeEnum.Implement;
-                        AddImplementConfiguration(isoDeviceElement, deviceElement, rootDeviceHierarchy);
-                    }
-                    break;
-                case ISODeviceElementType.Bin:
-                    deviceElement.DeviceElementType = DeviceElementTypeEnum.Bin;
-                    break;
-                case ISODeviceElementType.Function:
-                    deviceElement.DeviceElementType = DeviceElementTypeEnum.Function;
-                    AddImplementConfiguration(isoDeviceElement, deviceElement, rootDeviceHierarchy);
-                    break;
-                case ISODeviceElementType.Section:
-                    deviceElement.DeviceElementType = DeviceElementTypeEnum.Section;
-                    AddSectionConfiguration(isoDeviceElement, deviceElement, rootDeviceHierarchy);
-                    break;
-                case ISODeviceElementType.Unit:
-                    deviceElement.DeviceElementType = DeviceElementTypeEnum.Unit;
-                    AddSectionConfiguration(isoDeviceElement, deviceElement, rootDeviceHierarchy);
-                    break;
-                case ISODeviceElementType.Connector:
-                    AddConnector(isoDeviceElement, deviceElement); //TODO review implementation
-                    break;
-                case ISODeviceElementType.Navigation:
-                    //TODO 
-                    break;
+                AddConnector(rootDeviceHierarchy, isoDeviceElement, deviceElement);
+            }
+            else
+            {
+                switch (isoDeviceElement.DeviceElementType)
+                {
+                    case ISODeviceElementType.Device:  //This is the root device element
+                        if (deviceClassification != null && deviceClassification.Value != null &&
+                            (deviceClassification.Value.Code == DefinedTypeEnumerationInstanceList.dtiTractor.DomainTag ||
+                            deviceClassification.Value.Code == DefinedTypeEnumerationInstanceList.dtiUtilityVehicle.DomainTag))
+                        {
+                            deviceElement.DeviceElementType = DeviceElementTypeEnum.Machine;
+                        }
+                        else
+                        {
+                            deviceElement.DeviceElementType = DeviceElementTypeEnum.Implement;
+                        }
+                        break;
+                    case ISODeviceElementType.Bin:
+                        deviceElement.DeviceElementType = DeviceElementTypeEnum.Bin;
+                        break;
+                    case ISODeviceElementType.Function:
+                        deviceElement.DeviceElementType = DeviceElementTypeEnum.Function;
+                        break;
+                    case ISODeviceElementType.Section:
+                        deviceElement.DeviceElementType = DeviceElementTypeEnum.Section;
+                        break;
+                    case ISODeviceElementType.Unit:
+                        deviceElement.DeviceElementType = DeviceElementTypeEnum.Unit;
+                        break;
+                    case ISODeviceElementType.Navigation:
+                        deviceElement.DeviceElementType = DeviceElementTypeEnum.Machine; 
+                        break;
+                }
+            }
+
+            DeviceElementHierarchy deviceElementHierarchy = TaskDataMapper.DeviceElementHierarchies.GetRelevantHierarchy(isoDeviceElement.DeviceElementId);
+            if (HasGeometryInformation(deviceElementHierarchy))
+            {
+                AddDeviceElementConfiguration(deviceElement, deviceElementHierarchy, DataModel.Catalog);
             }
 
             return deviceElement;
         }
 
-        private MachineConfiguration AddMachineConfiguration(ISODeviceElement ISODeviceElement, DeviceElement adaptDeviceElement, DeviceElementHierarchy rootDeviceHierarchy)
+        private bool HasGeometryInformation(DeviceElementHierarchy deviceElementHierarchy)
+        {
+            return deviceElementHierarchy.Width.HasValue || deviceElementHierarchy.XOffset.HasValue || deviceElementHierarchy.YOffset.HasValue || deviceElementHierarchy.ZOffset.HasValue;
+        }
+
+        public static DeviceElementConfiguration AddDeviceElementConfiguration(DeviceElement adaptDeviceElement, DeviceElementHierarchy deviceHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
+        {
+            switch (adaptDeviceElement.DeviceElementType)
+            {
+                case DeviceElementTypeEnum.Machine:
+                    return AddMachineConfiguration(adaptDeviceElement, deviceHierarchy, catalog);
+                case DeviceElementTypeEnum.Implement:
+                    return AddImplementConfiguration(adaptDeviceElement, deviceHierarchy, catalog);
+                case DeviceElementTypeEnum.Function:
+                    if (deviceHierarchy.Parent.DeviceElement.DeviceElementType != ISODeviceElementType.Function)
+                    {
+                        //Function is the entire implement
+                        return AddImplementConfiguration(adaptDeviceElement, deviceHierarchy, catalog);
+                    }
+                    else
+                    {
+                        //Function is part of the implement.  I.e., TC-GEO example 9
+                        return AddSectionConfiguration(adaptDeviceElement, deviceHierarchy, catalog);
+                    }
+                case DeviceElementTypeEnum.Section:
+                case DeviceElementTypeEnum.Unit:
+                    return AddSectionConfiguration(adaptDeviceElement, deviceHierarchy, catalog);
+                default:
+                    return null;
+            }
+        }
+
+        public static MachineConfiguration AddMachineConfiguration(DeviceElement adaptDeviceElement, DeviceElementHierarchy deviceHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
         {
             MachineConfiguration machineConfig = new MachineConfiguration();
 
             //Description
-            machineConfig.Description = ISODeviceElement.DeviceElementDesignator;
+            machineConfig.Description = deviceHierarchy.DeviceElement.DeviceElementDesignator;
 
             //Device Element ID
             machineConfig.DeviceElementId = adaptDeviceElement.Id.ReferenceId;
 
             //Offsets
             machineConfig.Offsets = new List<NumericRepresentationValue>();
-            if (rootDeviceHierarchy.XOffset.HasValue)
+            if (deviceHierarchy.XOffset != null)
             {
-                machineConfig.Offsets.Add(rootDeviceHierarchy.XOffset.Value.AsNumericRepresentationValue("0086", RepresentationMapper));
+                machineConfig.Offsets.Add(deviceHierarchy.XOffsetRepresentation);
+                machineConfig.GpsReceiverXOffset = deviceHierarchy.XOffsetRepresentation;
             }
-            if (rootDeviceHierarchy.YOffset.HasValue)
+            if (deviceHierarchy.YOffset != null)
             {
-                machineConfig.Offsets.Add(rootDeviceHierarchy.YOffset.Value.AsNumericRepresentationValue("0087", RepresentationMapper));
+                machineConfig.Offsets.Add(deviceHierarchy.YOffsetRepresentation);
+                machineConfig.GpsReceiverYOffset = deviceHierarchy.YOffsetRepresentation;
             }
-            if (rootDeviceHierarchy.ZOffset.HasValue)
+            if (deviceHierarchy.ZOffset != null)
             {
-                machineConfig.Offsets.Add(rootDeviceHierarchy.ZOffset.Value.AsNumericRepresentationValue("0088", RepresentationMapper));
+                machineConfig.Offsets.Add(deviceHierarchy.ZOffsetRepresentation);
+                machineConfig.GpsReceiverZOffset = deviceHierarchy.ZOffsetRepresentation;
             }
 
-            DataModel.Catalog.DeviceElementConfigurations.Add(machineConfig);
+            catalog.DeviceElementConfigurations.Add(machineConfig);
             return machineConfig;
         }
 
-        private ImplementConfiguration AddImplementConfiguration(ISODeviceElement ISODeviceElement, DeviceElement adaptDeviceElement, DeviceElementHierarchy rootDeviceHierarchy)
+        public static ImplementConfiguration AddImplementConfiguration(DeviceElement adaptDeviceElement, DeviceElementHierarchy deviceHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
         {
             ImplementConfiguration implementConfig = new ImplementConfiguration();
 
             //Description
-            implementConfig.Description = ISODeviceElement.DeviceElementDesignator;
+            implementConfig.Description = deviceHierarchy.DeviceElement.DeviceElementDesignator;
 
             //Device Element ID
             implementConfig.DeviceElementId = adaptDeviceElement.Id.ReferenceId;
 
             //Offsets
-            if (rootDeviceHierarchy.YOffset.HasValue)
-            {
-                implementConfig.YOffset = rootDeviceHierarchy.YOffset.Value.AsNumericRepresentationValue("0087", RepresentationMapper);
-            }
-
-
             implementConfig.Offsets = new List<NumericRepresentationValue>();
-            if (rootDeviceHierarchy.XOffset.HasValue)
+            if (deviceHierarchy.XOffsetRepresentation != null)
             {
-                implementConfig.Offsets.Add(rootDeviceHierarchy.XOffset.Value.AsNumericRepresentationValue("0086", RepresentationMapper));
+                implementConfig.Offsets.Add(deviceHierarchy.XOffsetRepresentation);
             }
-            if (rootDeviceHierarchy.YOffset.HasValue)
+            if (deviceHierarchy.YOffsetRepresentation != null)
             {
-                implementConfig.Offsets.Add(implementConfig.YOffset);
+                implementConfig.Offsets.Add(deviceHierarchy.YOffsetRepresentation);
             }
-            if (rootDeviceHierarchy.ZOffset.HasValue)
+            if (deviceHierarchy.ZOffsetRepresentation != null)
             {
-                implementConfig.Offsets.Add(rootDeviceHierarchy.ZOffset.Value.AsNumericRepresentationValue("0088", RepresentationMapper));
+                implementConfig.Offsets.Add(deviceHierarchy.ZOffsetRepresentation);
             }
 
             //Total Width 
-            if (rootDeviceHierarchy.Width.HasValue)
+            if (deviceHierarchy.Width != null)
             {
-                implementConfig.PhysicalWidth = rootDeviceHierarchy.Width.Value.AsNumericRepresentationValue("0046", RepresentationMapper);
+                implementConfig.PhysicalWidth = deviceHierarchy.WidthRepresentation;
             }
 
             //Row Width
-            long? rowWidth = rootDeviceHierarchy.GetLowestLevelSectionWidth();
-            if (rowWidth.HasValue)
+            NumericRepresentationValue rowWidth = deviceHierarchy.GetLowestLevelSectionWidth();
+            if (rowWidth != null)
             {
-                implementConfig.Width = rowWidth.Value.AsNumericRepresentationValue("0046", RepresentationMapper);
+                implementConfig.Width = rowWidth;
             }
             
-            DataModel.Catalog.DeviceElementConfigurations.Add(implementConfig);
+            catalog.DeviceElementConfigurations.Add(implementConfig);
 
             return implementConfig;
         }
 
-        private SectionConfiguration AddSectionConfiguration(ISODeviceElement isoDeviceElement, DeviceElement adaptDeviceElement, DeviceElementHierarchy rootDeviceHierarchy)
+        public static SectionConfiguration AddSectionConfiguration(DeviceElement adaptDeviceElement, DeviceElementHierarchy deviceHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
         {
-            DeviceElementHierarchy section = rootDeviceHierarchy.GetModelByISODeviceElementID(isoDeviceElement.DeviceElementId);
-            if (section == null)
-            {
-                return null;
-            }
-
             SectionConfiguration sectionConfiguration = new SectionConfiguration();
 
             //Description
-            sectionConfiguration.Description = isoDeviceElement.DeviceElementDesignator;
+            sectionConfiguration.Description = deviceHierarchy.DeviceElement.DeviceElementDesignator;
 
             //Device Element ID
             sectionConfiguration.DeviceElementId = adaptDeviceElement.Id.ReferenceId;
 
             //Width & Offsets
-            if (section.Width.HasValue)
+            if (deviceHierarchy.Width != null)
             {
-                sectionConfiguration.SectionWidth = section.Width.Value.AsNumericRepresentationValue("0046", RepresentationMapper);
+                sectionConfiguration.SectionWidth = deviceHierarchy.WidthRepresentation;
             }
 
-            if (section.XOffset.HasValue)
+            sectionConfiguration.Offsets = new List<NumericRepresentationValue>();
+            if (deviceHierarchy.XOffset != null)
             {
-                sectionConfiguration.InlineOffset = section.XOffset.Value.AsNumericRepresentationValue("0086", RepresentationMapper);
+                sectionConfiguration.InlineOffset = deviceHierarchy.XOffsetRepresentation;
+                sectionConfiguration.Offsets.Add(deviceHierarchy.XOffsetRepresentation);
             }
-            if (section.YOffset.HasValue)
+            if (deviceHierarchy.YOffset != null)
             {
-                sectionConfiguration.LateralOffset = section.YOffset.Value.AsNumericRepresentationValue("0087", RepresentationMapper);
+                sectionConfiguration.LateralOffset = deviceHierarchy.YOffsetRepresentation;
+                sectionConfiguration.Offsets.Add(deviceHierarchy.YOffsetRepresentation);
             }
 
-            DataModel.Catalog.DeviceElementConfigurations.Add(sectionConfiguration);
+            catalog.DeviceElementConfigurations.Add(sectionConfiguration);
             return sectionConfiguration;
         }
 
-        private void AddConnector(ISODeviceElement isoDeviceElement, DeviceElement deviceElement)
+        private bool IsConnectorDeviceElement(ISODeviceElement isoDeviceElement)
         {
+            if (isoDeviceElement.DeviceElementType == ISODeviceElementType.Connector)
+            {
+                return true;
+            }
+            else
+            {
+                //Treat any other type except Navigation (e.g., Function) with X,Y,Z offsets only as Connectors
+                if (isoDeviceElement.DeviceElementType != ISODeviceElementType.Navigation &&
+                    ((isoDeviceElement.DeviceProcessDatas.Count() == 3 && !isoDeviceElement.DeviceProcessDatas.Any(d => d.DDI != "0086" || d.DDI != "0087" || d.DDI != "0088"))
+                    || (isoDeviceElement.DeviceProperties.Count() == 3 && !isoDeviceElement.DeviceProperties.Any(d => d.DDI != "0086" || d.DDI != "0087" || d.DDI != "0088"))))
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
+
+
+        /// <summary>
+        /// Adds a connector with a hitch at the given reference point, referencing the parent DeviceElement as the DeviceElementConfiguration
+        /// </summary>
+        /// <param name="rootDeviceHierarchy"></param>
+        /// <param name="isoDeviceElement"></param>
+        /// <param name="deviceElement"></param>
+        private void AddConnector(DeviceElementHierarchy rootDeviceHierarchy, ISODeviceElement isoDeviceElement, DeviceElement deviceElement)
+        {
+            DeviceElementHierarchy hierarchy = rootDeviceHierarchy.FromDeviceElementID(isoDeviceElement.DeviceElementId);
+
+            HitchPoint hitch = new HitchPoint();
+            hitch.ReferencePoint = new ReferencePoint() { XOffset = hierarchy.XOffsetRepresentation, YOffset = hierarchy.YOffsetRepresentation, ZOffset = hierarchy.ZOffsetRepresentation };
+            hitch.HitchTypeEnum = HitchTypeEnum.Unkown;
+            DataModel.Catalog.HitchPoints.Add(hitch);
+
             if (isoDeviceElement.Parent is ISODeviceElement && (isoDeviceElement.Parent as ISODeviceElement).DeviceElementType != ISODeviceElementType.Connector)
             {
                 DeviceElementConfiguration parentElementConfiguration = DataModel.Catalog.DeviceElementConfigurations.FirstOrDefault(d => d.DeviceElementId == deviceElement.ParentDeviceId);
@@ -341,6 +403,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 {
                     Connector connector = new Connector();
                     connector.DeviceElementConfigurationId = parentElementConfiguration.Id.ReferenceId;
+                    connector.HitchPointId = hitch.Id.ReferenceId;
                     DataModel.Catalog.Connectors.Add(connector);
                 }
             }
@@ -365,53 +428,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 return null;
             deviceClass >>= 1;
 
-            AgGateway.ADAPT.ApplicationDataModel.Representations.EnumerationMember machineType;
-            switch (deviceClass)
+            AgGateway.ADAPT.ApplicationDataModel.Representations.EnumerationMember machineType = DefinedTypeEnumerationInstanceList.dtiTractor.ToModelEnumMember(); //Default
+
+            DeviceOperationType deviceType = DeviceOperationTypes.SingleOrDefault(d => d.ClientNAMEMachineType == deviceClass);
+            if (deviceType != null)
             {
-                case 0: // Non-specific systems
-                    machineType = DefinedTypeEnumerationInstanceList.dtiMachineTypeOther.ToModelEnumMember();
-                    break;
-                case 1: // Tractor
-                    machineType = DefinedTypeEnumerationInstanceList.dtiTractor.ToModelEnumMember();
-                    break;
-                //case 2: // Tillage
-                //case 3: // Secondary tillage
-                //case 4: // Planters/seeders
-
-                case 5: // Fertilizers
-                case 6: // Sprayers
-                    machineType = DefinedTypeEnumerationInstanceList.dtiSprayer.ToModelEnumMember();
-                    break;
-
-                case 7: // Harvesters
-                case 8: // Root harvesters
-                    machineType = DefinedTypeEnumerationInstanceList.dtiCombine.ToModelEnumMember();
-                    break;
-
-                case 9: // Forage
-                    machineType = DefinedTypeEnumerationInstanceList.dtiForageHarvester.ToModelEnumMember();
-                    break;
-
-                case 10: // Irrigation
-                    machineType = DefinedTypeEnumerationInstanceList.dtiIrrigationSystem.ToModelEnumMember();
-                    break;
-
-                case 11: // Transport/trailer
-                case 12: // Farm yard operations
-                case 13: // Powered auxilliary devices
-                case 14: // Special crops
-                case 15: // Earth work
-                case 16: // Skidder
-                    machineType = DefinedTypeEnumerationInstanceList.dtiUtilityVehicle.ToModelEnumMember();
-                    break;
-
-                default:
-                    machineType = DefinedTypeEnumerationInstanceList.dtiTractor.ToModelEnumMember();
-                    break;
+                machineType = deviceType.MachineEnumerationMember.ToModelEnumMember();
             }
 
             return new EnumeratedValue { Representation = RepresentationInstanceList.dtMachineType.ToModelRepresentation(), Value = machineType };
         }
+
         #endregion Import
     }
 }

@@ -93,6 +93,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             }
             ProcessExternalNodes(taskDataNode, "CTP", baseFolder, taskData, ISOCropType.ReadXML);
 
+            //Cultural Practices
+            XmlNodeList cpcNodes = taskDataNode.SelectNodes("CPC");
+            if (cpcNodes != null)
+            {
+                taskData.ChildElements.AddRange(ISOCulturalPractice.ReadXML(cpcNodes));
+            }
+            ProcessExternalNodes(taskDataNode, "CPC", baseFolder, taskData, ISOCulturalPractice.ReadXML);
+
             //Customers
             XmlNodeList ctrNodes = taskDataNode.SelectNodes("CTR");
             if (ctrNodes != null)
@@ -116,6 +124,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
                 taskData.ChildElements.AddRange(ISOFarm.ReadXML(frmNodes));
             }
             ProcessExternalNodes(taskDataNode, "FRM", baseFolder, taskData, ISOFarm.ReadXML);
+
+            //Operation Techniques
+            XmlNodeList otqNodes = taskDataNode.SelectNodes("OTQ");
+            if (otqNodes != null)
+            {
+                taskData.ChildElements.AddRange(ISOOperationTechnique.ReadXML(otqNodes));
+            }
+            ProcessExternalNodes(taskDataNode, "OTQ", baseFolder, taskData, ISOOperationTechnique.ReadXML);
 
             //Partfields
             XmlNodeList pfdNodes = taskDataNode.SelectNodes("PFD");

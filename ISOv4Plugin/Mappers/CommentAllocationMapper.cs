@@ -31,10 +31,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
     public class CommentAllocationMapper : BaseMapper, ICommentAllocationMapper
     {
-        CodedCommentMapper _commentMapper;
-        public CommentAllocationMapper(TaskDataMapper taskDataMapper, CodedCommentMapper commentMapper) : base(taskDataMapper, "CAN")
+        public CommentAllocationMapper(TaskDataMapper taskDataMapper) : base(taskDataMapper, "CAN")
         {
-            _commentMapper = commentMapper;
         }
 
         #region Export
@@ -61,7 +59,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             {
                 if (note.Value.Representation != null)
                 {
-                    ISOCodedComment comment = _commentMapper.ExportCodedComment(note.Value);
+                    ISOCodedComment comment = TaskDataMapper.CommentMapper.ExportCodedComment(note.Value);
                     ISOCodedCommentListValue value = comment.CodedCommentListValues.FirstOrDefault(c => c.CodedCommentListValueDesignator == note.Value.Value.Value);
                     if (value != null)
                     {
@@ -115,7 +113,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 if (comment != null)
                 {
                     adaptNote.Description = comment.CodedCommentDesignator;
-                    adaptNote.Value = _commentMapper.ImportCodedComment(comment);
+                    adaptNote.Value = TaskDataMapper.CommentMapper.ImportCodedComment(comment);
                     adaptNote.Value.Value = adaptNote.Value.Representation.EnumeratedMembers.FirstOrDefault(m => m.Value == value.CodedCommentListValueDesignator);
                 }
             }

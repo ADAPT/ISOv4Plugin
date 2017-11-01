@@ -34,6 +34,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             RepresentationMapper = new RepresentationMapper();
             DDIs = DdiLoader.Ddis;
             Properties = properties;
+            DeviceOperationTypes = new DeviceOperationTypes();
         }
 
         public string BaseFolder { get; private set; }
@@ -45,10 +46,38 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         public ISO11783_TaskData ISOTaskData { get; private set; }
         public ISO11783_LinkList ISOLinkList { get; private set; }
         public UniqueIdMapper UniqueIDMapper { get; set; }
-        public DeviceHierarchy DeviceHierarchy { get; set; }
+        public DeviceElementHierarchies DeviceElementHierarchies { get; set; }
 
         internal RepresentationMapper RepresentationMapper { get; private set; }
         internal Dictionary<int, DdiDefinition> DDIs { get; private set; }
+        internal DeviceOperationTypes DeviceOperationTypes { get; private set; }
+
+        CodedCommentListMapper _commentListMapper;
+        public CodedCommentListMapper CommentListMapper
+        {
+            get
+            {
+                if (_commentListMapper == null)
+                {
+                    _commentListMapper = new CodedCommentListMapper(this);
+                }
+                return _commentListMapper;
+            }
+        }
+
+        CodedCommentMapper _commentMapper;
+        public CodedCommentMapper CommentMapper
+        {
+            get
+            {
+                if (_commentMapper == null)
+                {
+                    _commentMapper = new CodedCommentMapper(this, CommentListMapper);
+                }
+                return _commentMapper;
+            }
+        }
+
 
         public ISO11783_TaskData Export(ApplicationDataModel.ADM.ApplicationDataModel adm)
         {
@@ -76,10 +105,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             ISOLinkList.TaskControllerVersion = "";
             ISOLinkList.FileVersion = "";
             UniqueIDMapper = new UniqueIdMapper(ISOLinkList);
-
-            //Create Comment Mappers
-            CodedCommentListMapper commentListMapper = new CodedCommentListMapper(this);
-            CodedCommentMapper commentMapper = new CodedCommentMapper(this, commentListMapper);
 
             //Crops
             if (adm.Catalog.Crops != null)
@@ -169,7 +194,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Tasks
             if (AdaptDataModel.Documents.WorkItems.Any() || AdaptDataModel.Documents.LoggedData.Any())
             {
-                TaskMapper taskMapper = new TaskMapper(this, commentListMapper, commentMapper);
+                TaskMapper taskMapper = new TaskMapper(this);
                 if (AdaptDataModel.Documents.WorkItems != null)
                 {
                     //Prescriptions
@@ -196,7 +221,18 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
             //Add Comments
-            ISOTaskData.ChildElements.AddRange(commentMapper.ExportedComments);
+            ISOTaskData.ChildElements.AddRange(CommentMapper.ExportedComments);
+
+            //Add LinkList Attached File Reference
+            if (ISOLinkList.LinkGroups.Any())
+            {
+                ISOAttachedFile afe = new ISOAttachedFile();
+                afe.FilenamewithExtension = "LINKLIST.XML";
+                afe.Preserve = ISOEnumerations.ISOAttachedFilePreserve.Preserve;
+                afe.ManufacturerGLN = string.Empty;
+                afe.FileType = 1;
+                ISOTaskData.ChildElements.Add(afe);
+            }
 
             return ISOTaskData;
         }
@@ -261,7 +297,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             IEnumerable<ISODevice> devices = taskData.ChildElements.OfType<ISODevice>();
             if (devices.Any())
             {
-                DeviceHierarchy = new DeviceHierarchy(devices);
+                DeviceElementHierarchies = new DeviceElementHierarchies(devices, RepresentationMapper);
 
                 DeviceMapper deviceMapper = new DeviceMapper(this);
                 AdaptDataModel.Catalog.DeviceModels.AddRange(deviceMapper.ImportDevices(devices));
@@ -275,11 +311,32 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 AdaptDataModel.Catalog.Persons.AddRange(workerMapper.Import(workers));
             }
 
+
+            //Cultural Practices
+            IEnumerable<ISOCulturalPractice> practices = taskData.ChildElements.OfType<ISOCulturalPractice>();
+            if (practices.Any())
+            {
+                foreach (ISOCulturalPractice cpc in practices)
+                {
+                    (AdaptDataModel.Documents.WorkOrders as List<WorkOrder>).Add(new WorkOrder() { Description = cpc.CulturalPracticeDesignator });
+                }
+            }
+
+            //OperationTechniques
+            IEnumerable<ISOOperationTechnique> techniques = taskData.ChildElements.OfType<ISOOperationTechnique>();
+            if (techniques.Any())
+            {
+                foreach (ISOOperationTechnique otq in techniques)
+                {
+                    (AdaptDataModel.Documents.WorkOrders as List<WorkOrder>).Add(new WorkOrder() { Description = otq.OperationTechniqueDesignator });
+                }
+            }
+
             IEnumerable<ISOTask> prescribedTasks = taskData.ChildElements.OfType<ISOTask>().Where(t => t.IsWorkItemTask);
             IEnumerable<ISOTask> loggedTasks = taskData.ChildElements.OfType<ISOTask>().Where(t => t.IsLoggedDataTask);
             if (prescribedTasks.Any() || loggedTasks.Any())
             {
-                TaskMapper taskMapper = new TaskMapper(this, commentListMapper, commentMapper);
+                TaskMapper taskMapper = new TaskMapper(this);
                 if (prescribedTasks.Any())
                 {
                     //Prescribed Tasks

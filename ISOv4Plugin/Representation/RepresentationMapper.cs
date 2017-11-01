@@ -35,19 +35,23 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Representation
 
         public AdaptRepresentation Map(int ddi)
         {
-            var matchingDdi = _ddis[ddi];
-            var representation = RepresentationManager.Instance.Representations.FirstOrDefault(x => x.Ddi.GetValueOrDefault() == matchingDdi.Id);
+            if (_ddis.ContainsKey(ddi))
+            {
+                var matchingDdi = _ddis[ddi];
+                var representation = RepresentationManager.Instance.Representations.FirstOrDefault(x => x.Ddi.GetValueOrDefault() == matchingDdi.Id);
 
-            var numericRep = representation as NumericRepresentation;
-            if (numericRep != null)
-                return numericRep.ToModelRepresentation();
+                var numericRep = representation as NumericRepresentation;
+                if (numericRep != null)
+                    return numericRep.ToModelRepresentation();
 
-            var enumeratedRep = representation as EnumeratedRepresentation;
+                var enumeratedRep = representation as EnumeratedRepresentation;
 
-            if (enumeratedRep != null)
-                return enumeratedRep.ToModelRepresentation();
-            
-            return new ApplicationDataModel.Representations.NumericRepresentation {Code = ddi.ToString("X4"), CodeSource = RepresentationCodeSourceEnum.ISO11783_DDI};
+                if (enumeratedRep != null)
+                    return enumeratedRep.ToModelRepresentation();
+
+                return new ApplicationDataModel.Representations.NumericRepresentation { Code = ddi.ToString("X4"), CodeSource = RepresentationCodeSourceEnum.ISO11783_DDI };
+            }
+            return null;
         }
 
         public int? Map(AdaptRepresentation adaptRepresentation)

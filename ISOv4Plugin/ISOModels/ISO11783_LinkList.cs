@@ -39,6 +39,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteAttributeString("ManagementSoftwareVersion", ManagementSoftwareVersion ?? string.Empty);
             xmlBuilder.WriteAttributeString("TaskControllerManufacturer", TaskControllerManufacturer ?? string.Empty);
             xmlBuilder.WriteAttributeString("TaskControllerVersion", TaskControllerVersion ?? string.Empty);
+            xmlBuilder.WriteAttributeString("DataTransferOrigin", ((int)DataTransferOrigin).ToString() ?? string.Empty);
             xmlBuilder.WriteAttributeString("FileVersion", FileVersion ?? string.Empty);
             foreach (ISOLinkGroup item in LinkGroups) { item.WriteXML(xmlBuilder); }
 
@@ -57,7 +58,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             linkList.ManagementSoftwareVersion = linkListNode.GetXmlNodeValue("@ManagementSoftwareVersion") ?? string.Empty;
             linkList.TaskControllerManufacturer = linkListNode.GetXmlNodeValue("@TaskControllerManufacturer") ?? string.Empty;
             linkList.TaskControllerVersion = linkListNode.GetXmlNodeValue("@TaskControllerVersion") ?? string.Empty;
-            linkList.DataTransferOrigin = (ISOTaskDataTransferOrigin)(Int32.Parse(linkListNode.GetXmlNodeValue("@DataTransferOrigin")));
+            string origin = linkListNode.GetXmlNodeValue("@DataTransferOrigin");
+            if (!string.IsNullOrEmpty(origin))
+            {
+                linkList.DataTransferOrigin = (ISOTaskDataTransferOrigin)(Int32.Parse(origin));
+            }
+            else
+            {
+                linkList.DataTransferOrigin = ISOTaskDataTransferOrigin.FMIS; //No Unknown in ISO
+            }
+           
             linkList.FileVersion = linkListNode.GetXmlNodeValue("@FileVersion") ?? string.Empty;
 
             XmlNodeList lgpNodes = linkListNode.SelectNodes("LGP");
