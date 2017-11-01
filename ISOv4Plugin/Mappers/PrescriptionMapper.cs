@@ -225,25 +225,26 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
             return rateCodePerCell;
 
-            //Determines a unique key that describes the products and rates assigned to each cell.
-            string GetRxRatesKey(RxRates rates)
-            {
-                string key = string.Empty;
-                rates.RxRate.ForEach(r => key += $"{r.RxProductLookupId}:{r.Rate}|");
-                return key;
-            }
+        }
 
-            //Adds a treatment zone for a new rate combination
-            ISOTreatmentZone GetNewType1TreatmentZone(RxRates rates, byte counter, Prescription rx)
-            {
-                ISOTreatmentZone treatmentZone = new ISOTreatmentZone() { TreatmentZoneCode = counter, TreatmentZoneDesignator = $"TreatmentZone {counter.ToString()}" };
+        //Determines a unique key that describes the products and rates assigned to each cell.
+        private string GetRxRatesKey(RxRates rates)
+        {
+            string key = string.Empty;
+            rates.RxRate.ForEach(r => key += $"{r.RxProductLookupId}:{r.Rate}|");
+            return key;
+        }
 
-                foreach (RxRate rate in rates.RxRate)
-                {
-                    treatmentZone.ProcessDataVariables.Add(ExportProcessDataVariable(rate, rx));
-                }
-                return treatmentZone;
+        //Adds a treatment zone for a new rate combination
+        private ISOTreatmentZone GetNewType1TreatmentZone(RxRates rates, byte counter, Prescription rx)
+        {
+            ISOTreatmentZone treatmentZone = new ISOTreatmentZone() { TreatmentZoneCode = counter, TreatmentZoneDesignator = $"TreatmentZone {counter.ToString()}" };
+
+            foreach (RxRate rate in rates.RxRate)
+            {
+                treatmentZone.ProcessDataVariables.Add(ExportProcessDataVariable(rate, rx));
             }
+            return treatmentZone;
         }
 
         private ISOTreatmentZone ExportTreatmentZonesForType2(ISOTask task, RasterGridPrescription prescription)
