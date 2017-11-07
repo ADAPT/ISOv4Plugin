@@ -57,6 +57,19 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
             }
         }
 
+        public static int GetXmlNodeValueAsInt(this XmlNode xmlNode, string xPath)
+        {
+            int? value = xmlNode.GetXmlNodeValueAsNullableInt(xPath);
+            if (value.HasValue)
+            {
+                return value.Value;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
         public static  bool IsAttributePresent(this XmlNode node, string attributeName)
         {
             if (node.SelectSingleNode("@" + attributeName) == null)
@@ -77,6 +90,20 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
                 return null;
             }
         }
+
+        public static long GetXmlNodeValueAsLong(this XmlNode xmlNode, string xPath)
+        {
+            long? value = xmlNode.GetXmlNodeValueAsNullableLong(xPath);
+            if (value.HasValue)
+            {
+                return value.Value;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
 
         public static DateTime? GetXmlNodeValueAsNullableDateTime(this XmlNode xmlNode, string xPath)
         {
@@ -106,6 +133,19 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
             }
         }
 
+        public static byte GetXmlNodeValueAsByte(this XmlNode xmlNode, string xPath)
+        {
+            byte? value = xmlNode.GetXmlNodeValueAsNullableByte(xPath);
+            if (value.HasValue)
+            {
+                return value.Value;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
         public static double? GetXmlNodeValueAsNullableDouble(this XmlNode xmlNode, string xPath)
         {
             string value = GetXmlNodeValue(xmlNode, xPath);
@@ -120,6 +160,19 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
             }
         }
 
+        public static double GetXmlNodeValueAsDouble(this XmlNode xmlNode, string xPath)
+        {
+            double? value = xmlNode.GetXmlNodeValueAsNullableDouble(xPath);
+            if (value.HasValue)
+            {
+                return value.Value;
+            }
+            else
+            {
+                return 0d;
+            }
+        }
+
         public static decimal? GetXmlNodeValueAsNullableDecimal(this XmlNode xmlNode, string xPath)
         {
             string value = GetXmlNodeValue(xmlNode, xPath);
@@ -131,6 +184,19 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
             else
             {
                 return null;
+            }
+        }
+
+        public static decimal GetXmlNodeValueAsDecimal(this XmlNode xmlNode, string xPath)
+        {
+            decimal? value = xmlNode.GetXmlNodeValueAsNullableDecimal(xPath);
+            if (value.HasValue)
+            {
+                return value.Value;
+            }
+            else
+            {
+                return 0m;
             }
         }
 

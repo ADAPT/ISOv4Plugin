@@ -42,9 +42,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 
             ISOAttachedFile item = new ISOAttachedFile();
             item.FilenamewithExtension = node.GetXmlNodeValue("@A");
-            item.Preserve = (ISOAttachedFilePreserve)(Int32.Parse(node.GetXmlNodeValue("@B")));
+            item.Preserve = (ISOAttachedFilePreserve)(node.GetXmlNodeValueAsInt("@B"));
             item.ManufacturerGLN  = node.GetXmlNodeValue("@C");
-            item.FileType = node.GetXmlNodeValueAsNullableByte("@D").Value;
+            item.FileType = node.GetXmlNodeValueAsByte("@D");
             item.FileVersion = node.GetXmlNodeValue("@E");
             item.FileLength = node.GetXmlNodeValueAsNullableLong("@F");
             return item;

@@ -58,8 +58,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             ISO11783_TaskData taskData = new ISO11783_TaskData();
 
             //Attributes
-            taskData.VersionMajor = Int32.Parse(taskDataNode.GetXmlNodeValue("@VersionMajor"));
-            taskData.VersionMinor = Int32.Parse(taskDataNode.GetXmlNodeValue("@VersionMinor"));
+            taskData.VersionMajor = taskDataNode.GetXmlNodeValueAsInt("@VersionMajor");
+            taskData.VersionMinor = taskDataNode.GetXmlNodeValueAsInt("@VersionMinor");
             taskData.ManagementSoftwareManufacturer = taskDataNode.GetXmlNodeValue("@ManagementSoftwareManufacturer") ?? string.Empty;
             taskData.ManagementSoftwareVersion = taskDataNode.GetXmlNodeValue("@ManagementSoftwareVersion") ?? string.Empty;
             taskData.TaskControllerManufacturer = taskDataNode.GetXmlNodeValue("@TaskControllerManufacturer") ?? string.Empty;

@@ -36,8 +36,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         {
             ISOValuePresentation presentation = new ISOValuePresentation();
             presentation.ValuePresentationID = node.GetXmlNodeValue("@A");
-            presentation.Offset = node.GetXmlNodeValueAsNullableLong("@B").Value;
-            presentation.Scale = node.GetXmlNodeValueAsNullableDouble("@C").Value;
+            presentation.Offset = node.GetXmlNodeValueAsLong("@B");
+            presentation.Scale = node.GetXmlNodeValueAsDouble("@C");
             presentation.NumberOfDecimals = byte.Parse(node.GetXmlNodeValue("@D"));
             presentation.UnitDesignator = node.GetXmlNodeValue("@E");
             presentation.ColourLegendIdRef = node.GetXmlNodeValue("@F");

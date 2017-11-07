@@ -36,7 +36,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             ISOTimeLog item = new ISOTimeLog();
             item.Filename = node.GetXmlNodeValue("@A");
             item.Filelength = node.GetXmlNodeValueAsNullableLong("@B");
-            item.TimeLogType = node.GetXmlNodeValueAsNullableByte("@C").Value;
+            item.TimeLogType = node.GetXmlNodeValueAsByte("@C");
             return item;
         }
 

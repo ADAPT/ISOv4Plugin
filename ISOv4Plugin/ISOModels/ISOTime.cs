@@ -55,7 +55,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             time.Start = node.GetXmlNodeValueAsNullableDateTime("@A");
             time.Stop = node.GetXmlNodeValueAsNullableDateTime("@B");
             time.Duration = node.GetXmlNodeValueAsNullableLong("@C");
-            time.Type = (ISOTimeType)(Int32.Parse(node.GetXmlNodeValue("@D")));
+            time.Type = (ISOTimeType)(node.GetXmlNodeValueAsInt("@D"));
 
             time.HasStart = node.IsAttributePresent("A");
             time.HasStop = node.IsAttributePresent("B");

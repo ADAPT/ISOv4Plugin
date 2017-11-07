@@ -55,11 +55,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         {
             ISODeviceElement item = new ISODeviceElement(device);
             item.DeviceElementId  = node.GetXmlNodeValue("@A");
-            item.DeviceElementObjectId  = node.GetXmlNodeValueAsNullableInt("@B").Value;
-            item.DeviceElementType  = (ISODeviceElementType)(Int32.Parse(node.GetXmlNodeValue("@C")));
+            item.DeviceElementObjectId  = node.GetXmlNodeValueAsInt("@B");
+            item.DeviceElementType  = (ISODeviceElementType)(node.GetXmlNodeValueAsInt("@C"));
             item.DeviceElementDesignator = node.GetXmlNodeValue("@D");
-            item.DeviceElementNumber = node.GetXmlNodeValueAsNullableInt("@E").Value;
-            item.ParentObjectId = node.GetXmlNodeValueAsNullableInt("@F").Value;
+            item.DeviceElementNumber = node.GetXmlNodeValueAsInt("@E");
+            item.ParentObjectId = node.GetXmlNodeValueAsInt("@F");
             XmlNodeList dorNodes = node.SelectNodes("DOR");
             if (dorNodes != null)
             {

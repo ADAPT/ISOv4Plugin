@@ -50,15 +50,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         public static ISOGrid ReadXML(XmlNode node)
         {
             ISOGrid grid = new ISOGrid();
-            grid.GridMinimumNorthPosition = node.GetXmlNodeValueAsNullableDecimal("@A").Value;
-            grid.GridMinimumEastPosition = node.GetXmlNodeValueAsNullableDecimal("@B").Value;
-            grid.GridCellNorthSize = node.GetXmlNodeValueAsNullableDouble("@C").Value;
-            grid.GridCellEastSize = node.GetXmlNodeValueAsNullableDouble("@D").Value;
-            grid.GridMaximumColumn = node.GetXmlNodeValueAsNullableLong("@E").Value;
-            grid.GridMaximumRow = node.GetXmlNodeValueAsNullableLong("@F").Value;
+            grid.GridMinimumNorthPosition = node.GetXmlNodeValueAsDecimal("@A");
+            grid.GridMinimumEastPosition = node.GetXmlNodeValueAsDecimal("@B");
+            grid.GridCellNorthSize = node.GetXmlNodeValueAsDouble("@C");
+            grid.GridCellEastSize = node.GetXmlNodeValueAsDouble("@D");
+            grid.GridMaximumColumn = node.GetXmlNodeValueAsLong("@E");
+            grid.GridMaximumRow = node.GetXmlNodeValueAsLong("@F");
             grid.Filename = node.GetXmlNodeValue("@G");
             grid.Filelength = node.GetXmlNodeValueAsNullableLong("@H");
-            grid.GridType = node.GetXmlNodeValueAsNullableByte("@I").Value;
+            grid.GridType = node.GetXmlNodeValueAsByte("@I");
             grid.TreatmentZoneCode = node.GetXmlNodeValueAsNullableByte("@J");
             return grid;
         }

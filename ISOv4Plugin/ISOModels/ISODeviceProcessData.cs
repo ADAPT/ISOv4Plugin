@@ -36,10 +36,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         public static ISODeviceProcessData ReadXML(XmlNode node)
         {
             ISODeviceProcessData item = new ISODeviceProcessData();
-            item.ObjectID = node.GetXmlNodeValueAsNullableInt("@A").Value;
+            item.ObjectID = node.GetXmlNodeValueAsInt("@A");
             item.DDI  = node.GetXmlNodeValue("@B");
-            item.Property  = node.GetXmlNodeValueAsNullableInt("@C").Value;
-            item.TriggerMethods = node.GetXmlNodeValueAsNullableInt("@D").Value;
+            item.Property  = node.GetXmlNodeValueAsInt("@C");
+            item.TriggerMethods = node.GetXmlNodeValueAsInt("@D");
             item.Designator = node.GetXmlNodeValue("@E");
             item.DeviceValuePresentationObjectId = node.GetXmlNodeValueAsNullableInt("@F");
 

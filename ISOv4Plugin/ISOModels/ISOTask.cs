@@ -124,7 +124,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             task.FarmIdRef = taskNode.GetXmlNodeValue("@D");
             task.PartFieldIdRef = taskNode.GetXmlNodeValue("@E");
             task.ResponsibleWorkerIdRef = taskNode.GetXmlNodeValue("@F");
-            task.TaskStatus = (ISOTaskStatus)(Int32.Parse(taskNode.GetXmlNodeValue("@G"))); 
+            task.TaskStatus = (ISOTaskStatus)(taskNode.GetXmlNodeValueAsInt("@G")); 
             task.DefaultTreatmentZoneCode = taskNode.GetXmlNodeValueAsNullableInt("@H");
             task.PositionLostTreatmentZoneCode = taskNode.GetXmlNodeValueAsNullableInt("@I");
             task.OutOfFieldTreatmentZoneCode = taskNode.GetXmlNodeValueAsNullableInt("@J");

@@ -27,7 +27,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         {
             ISOProductRelation item = new ISOProductRelation();
             item.ProductIdRef = node.GetXmlNodeValue("@A");
-            item.QuantityValue = node.GetXmlNodeValueAsNullableLong("@B").Value;
+            item.QuantityValue = node.GetXmlNodeValueAsLong("@B");
             return item;
         }
 
