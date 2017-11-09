@@ -109,10 +109,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             {
                 DeviceElementMapper detMapper = new DeviceElementMapper(TaskDataMapper);
                 IEnumerable<DeviceElement> deviceElements = detMapper.ImportDeviceElements(isoDevice);
-                if (deviceElements != null)
-                {
-                    DataModel.Catalog.DeviceElements.AddRange(deviceElements);
-                }
             }
 
             return deviceModel;

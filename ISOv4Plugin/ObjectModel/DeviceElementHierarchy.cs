@@ -54,6 +54,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
         }
     }
 
+    /// <summary>
+    /// This utility class serves to map the hierarchies of ISO DeviceElements within a single ISO Device.   Each ISODeviceElement will have a hierarchy object that references its parents and children.
+    /// Where the parent is null, it is the root device element in a device.
+    /// </summary>
     public class DeviceElementHierarchy
     {
         private RepresentationMapper _representationMapper;

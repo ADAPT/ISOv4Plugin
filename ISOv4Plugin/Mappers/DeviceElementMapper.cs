@@ -114,24 +114,33 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 return null;
             }
 
-            DeviceElementHierarchy deviceElementHierarchy = TaskDataMapper.DeviceElementHierarchies.Items[isoDevice.DeviceId];
+            DeviceElementHierarchy rootDeviceElementHierarchy = TaskDataMapper.DeviceElementHierarchies.Items[isoDevice.DeviceId];
 
             //Import device elements
             List<DeviceElement> adaptDeviceElements = new List<DeviceElement>();
 
             //Import down the hierarchy to ensure integrity of parent references
-            for (int i = 0; i <= deviceElementHierarchy.GetMaxDepth(); i++)
+            for (int i = 0; i <= rootDeviceElementHierarchy.GetMaxDepth(); i++)
             {
-                IEnumerable<ISODeviceElement> isoDeviceElements = deviceElementHierarchy.GetElementsAtDepth(i).Select(h => h.DeviceElement);
+                IEnumerable<ISODeviceElement> isoDeviceElements = rootDeviceElementHierarchy.GetElementsAtDepth(i).Select(h => h.DeviceElement);
                 foreach (ISODeviceElement isoDeviceElement in isoDeviceElements)
                 {
-                    DeviceElement adaptDeviceElement = ImportDeviceElement(isoDeviceElement, deviceClassification, deviceElementHierarchy);
-                    if (isoDeviceElement.DeviceElementType == ISODeviceElementType.Device)
+                    if (isoDeviceElement.DeviceElementType != ISODeviceElementType.Connector)
                     {
-                        //Setting the Device serial number on the root Device Element only
-                        adaptDeviceElement.SerialNumber = isoDevice.DeviceSerialNumber;
+                        DeviceElement adaptDeviceElement = ImportDeviceElement(isoDeviceElement, deviceClassification, rootDeviceElementHierarchy);
+                        if (isoDeviceElement.DeviceElementType == ISODeviceElementType.Device)
+                        {
+                            //Setting the Device serial number on the root Device Element only
+                            adaptDeviceElement.SerialNumber = isoDevice.DeviceSerialNumber;
+                        }
+                        adaptDeviceElements.Add(adaptDeviceElement);
+                        DataModel.Catalog.DeviceElements.Add(adaptDeviceElement);
                     }
-                    adaptDeviceElements.Add(adaptDeviceElement);
+                    else
+                    {
+                        //Connectors are not represented as DeviceElements in ADAPT
+                        AddConnector(rootDeviceElementHierarchy, isoDeviceElement);
+                    }
                 }
             }
 
@@ -171,42 +180,35 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
             //Device Element Type
-            if (IsConnectorDeviceElement(isoDeviceElement))
+            switch (isoDeviceElement.DeviceElementType)
             {
-                AddConnector(rootDeviceHierarchy, isoDeviceElement, deviceElement);
-            }
-            else
-            {
-                switch (isoDeviceElement.DeviceElementType)
-                {
-                    case ISODeviceElementType.Device:  //This is the root device element
-                        if (deviceClassification != null && deviceClassification.Value != null &&
-                            (deviceClassification.Value.Code == DefinedTypeEnumerationInstanceList.dtiTractor.DomainTag ||
-                            deviceClassification.Value.Code == DefinedTypeEnumerationInstanceList.dtiUtilityVehicle.DomainTag))
-                        {
-                            deviceElement.DeviceElementType = DeviceElementTypeEnum.Machine;
-                        }
-                        else
-                        {
-                            deviceElement.DeviceElementType = DeviceElementTypeEnum.Implement;
-                        }
-                        break;
-                    case ISODeviceElementType.Bin:
-                        deviceElement.DeviceElementType = DeviceElementTypeEnum.Bin;
-                        break;
-                    case ISODeviceElementType.Function:
-                        deviceElement.DeviceElementType = DeviceElementTypeEnum.Function;
-                        break;
-                    case ISODeviceElementType.Section:
-                        deviceElement.DeviceElementType = DeviceElementTypeEnum.Section;
-                        break;
-                    case ISODeviceElementType.Unit:
-                        deviceElement.DeviceElementType = DeviceElementTypeEnum.Unit;
-                        break;
-                    case ISODeviceElementType.Navigation:
-                        deviceElement.DeviceElementType = DeviceElementTypeEnum.Machine; 
-                        break;
-                }
+                case ISODeviceElementType.Device:  //This is the root device element
+                    if (deviceClassification != null && 
+                        deviceClassification.Value != null &&
+                        TaskDataMapper.DeviceOperationTypes.First(d => d.MachineEnumerationMember.DomainTag == deviceClassification.Value.Code).HasMachineConfiguration)
+                    {
+                        deviceElement.DeviceElementType = DeviceElementTypeEnum.Machine;
+                    }
+                    else
+                    {
+                        deviceElement.DeviceElementType = DeviceElementTypeEnum.Implement;
+                    }
+                    break;
+                case ISODeviceElementType.Bin:
+                    deviceElement.DeviceElementType = DeviceElementTypeEnum.Bin;
+                    break;
+                case ISODeviceElementType.Function:
+                    deviceElement.DeviceElementType = DeviceElementTypeEnum.Function;
+                    break;
+                case ISODeviceElementType.Section:
+                    deviceElement.DeviceElementType = DeviceElementTypeEnum.Section;
+                    break;
+                case ISODeviceElementType.Unit:
+                    deviceElement.DeviceElementType = DeviceElementTypeEnum.Unit;
+                    break;
+                case ISODeviceElementType.Navigation:
+                    deviceElement.DeviceElementType = DeviceElementTypeEnum.Machine;
+                    break;
             }
 
             DeviceElementHierarchy deviceElementHierarchy = TaskDataMapper.DeviceElementHierarchies.GetRelevantHierarchy(isoDeviceElement.DeviceElementId);
@@ -239,7 +241,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     }
                     else
                     {
-                        //Function is part of the implement.  I.e., TC-GEO example 9
+                        //Function is part of the implement.  I.e., TC-GEO example 9 / ISO 11783-10:2015(E) Figure F.24
                         return AddSectionConfiguration(adaptDeviceElement, deviceHierarchy, catalog);
                     }
                 case DeviceElementTypeEnum.Section:
@@ -357,54 +359,44 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return sectionConfiguration;
         }
 
-        private bool IsConnectorDeviceElement(ISODeviceElement isoDeviceElement)
-        {
-            if (isoDeviceElement.DeviceElementType == ISODeviceElementType.Connector)
-            {
-                return true;
-            }
-            else
-            {
-                //Treat any other type except Navigation (e.g., Function) with X,Y,Z offsets only as Connectors
-                if (isoDeviceElement.DeviceElementType != ISODeviceElementType.Navigation &&
-                    ((isoDeviceElement.DeviceProcessDatas.Count() == 3 && !isoDeviceElement.DeviceProcessDatas.Any(d => d.DDI != "0086" || d.DDI != "0087" || d.DDI != "0088"))
-                    || (isoDeviceElement.DeviceProperties.Count() == 3 && !isoDeviceElement.DeviceProperties.Any(d => d.DDI != "0086" || d.DDI != "0087" || d.DDI != "0088"))))
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-        }
-
-
-
         /// <summary>
         /// Adds a connector with a hitch at the given reference point, referencing the parent DeviceElement as the DeviceElementConfiguration
         /// </summary>
         /// <param name="rootDeviceHierarchy"></param>
-        /// <param name="isoDeviceElement"></param>
+        /// <param name="connectorDeviceElement"></param>
         /// <param name="deviceElement"></param>
-        private void AddConnector(DeviceElementHierarchy rootDeviceHierarchy, ISODeviceElement isoDeviceElement, DeviceElement deviceElement)
+        private void AddConnector(DeviceElementHierarchy rootDeviceHierarchy, ISODeviceElement connectorDeviceElement)
         {
-            DeviceElementHierarchy hierarchy = rootDeviceHierarchy.FromDeviceElementID(isoDeviceElement.DeviceElementId);
-
-            HitchPoint hitch = new HitchPoint();
-            hitch.ReferencePoint = new ReferencePoint() { XOffset = hierarchy.XOffsetRepresentation, YOffset = hierarchy.YOffsetRepresentation, ZOffset = hierarchy.ZOffsetRepresentation };
-            hitch.HitchTypeEnum = HitchTypeEnum.Unkown;
-            DataModel.Catalog.HitchPoints.Add(hitch);
-
-            if (isoDeviceElement.Parent is ISODeviceElement && (isoDeviceElement.Parent as ISODeviceElement).DeviceElementType != ISODeviceElementType.Connector)
+            //Per the TC-GEO specification, the connector is always a child of the root device element.
+            DeviceElementHierarchy hierarchy = rootDeviceHierarchy.FromDeviceElementID(connectorDeviceElement.DeviceElementId);
+            if (hierarchy.Parent == rootDeviceHierarchy)
             {
-                DeviceElementConfiguration parentElementConfiguration = DataModel.Catalog.DeviceElementConfigurations.FirstOrDefault(d => d.DeviceElementId == deviceElement.ParentDeviceId);
-                if (parentElementConfiguration != null)
+                int? rootDeviceElementID = TaskDataMapper.ADAPTIdMap.FindByISOId(rootDeviceHierarchy.DeviceElement.DeviceElementId);
+                if (rootDeviceElementID.HasValue)
                 {
-                    Connector connector = new Connector();
-                    connector.DeviceElementConfigurationId = parentElementConfiguration.Id.ReferenceId;
-                    connector.HitchPointId = hitch.Id.ReferenceId;
-                    DataModel.Catalog.Connectors.Add(connector);
+                    HitchPoint hitch = new HitchPoint();
+                    hitch.ReferencePoint = new ReferencePoint() { XOffset = hierarchy.XOffsetRepresentation, YOffset = hierarchy.YOffsetRepresentation, ZOffset = hierarchy.ZOffsetRepresentation };
+                    hitch.HitchTypeEnum = HitchTypeEnum.Unkown;
+                    DataModel.Catalog.HitchPoints.Add(hitch);
+
+                    DeviceElementConfiguration rootDeviceConfiguration = DataModel.Catalog.DeviceElementConfigurations.FirstOrDefault(d => d.DeviceElementId == rootDeviceElementID);
+                    if (rootDeviceConfiguration == null)
+                    {
+                        //Add a DeviceElementConfiguration for the root element in order that we may link the Connector to it.
+                        DeviceElement root = DataModel.Catalog.DeviceElements.FirstOrDefault(d => d.Id.ReferenceId == rootDeviceElementID);
+                        if (root != null)
+                        {
+                            rootDeviceConfiguration = DeviceElementMapper.AddDeviceElementConfiguration(root, rootDeviceHierarchy, DataModel.Catalog);
+                        }
+                    }
+
+                    if (rootDeviceConfiguration != null)
+                    {
+                        Connector connector = new Connector();
+                        connector.DeviceElementConfigurationId = rootDeviceConfiguration.Id.ReferenceId;
+                        connector.HitchPointId = hitch.Id.ReferenceId;
+                        DataModel.Catalog.Connectors.Add(connector);
+                    }
                 }
             }
         }
