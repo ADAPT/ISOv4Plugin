@@ -150,13 +150,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     int? deviceElementID = TaskDataMapper.ADAPTIdMap[targetSection.DeviceElementId];
                     if (deviceElementID.HasValue)
                     {
-                        DeviceElementConfiguration deviceElementConfig = DataModel.Catalog.DeviceElementConfigurations.SingleOrDefault(c => c.DeviceElementId == deviceElementID.Value);
-                        if (deviceElementConfig == null)
+                        DeviceElement deviceElement = DataModel.Catalog.DeviceElements.SingleOrDefault(d => d.Id.ReferenceId == deviceElementID.Value);
+                        if (deviceElement != null)
                         {
-                            DeviceElement deviceElement = DataModel.Catalog.DeviceElements.Single(d => d.Id.ReferenceId == deviceElementID.Value);
-                            deviceElementConfig = DeviceElementMapper.AddDeviceElementConfiguration(deviceElement, isoDeviceElementHierarchy.FromDeviceElementID(targetSection.DeviceElementId), DataModel.Catalog);
+                            DeviceElementConfiguration deviceElementConfig = DeviceElementMapper.GetDeviceElementConfiguration(deviceElement, isoDeviceElementHierarchy.FromDeviceElementID(targetSection.DeviceElementId), DataModel.Catalog);
+                            condensedDeviceElementUse.DeviceConfigurationId = deviceElementConfig.Id.ReferenceId;
                         }
-                        condensedDeviceElementUse.DeviceConfigurationId = deviceElementConfig.Id.ReferenceId;
                     }
                     condensedDeviceElementUse.GetWorkingDatas = () => new List<WorkingData> { workingData };
 
