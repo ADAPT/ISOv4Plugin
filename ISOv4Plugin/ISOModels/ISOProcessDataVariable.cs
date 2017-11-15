@@ -54,7 +54,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         {
             ISOProcessDataVariable pdv = new ISOProcessDataVariable();
             pdv.ProcessDataDDI = node.GetXmlNodeValue("@A");
-            pdv.ProcessDataValue = node.GetXmlNodeValueAsNullableLong("@B").Value;
+            pdv.ProcessDataValue = node.GetXmlNodeValueAsLong("@B");
             pdv.ProductIdRef = node.GetXmlNodeValue("@C");
             pdv.DeviceElementIdRef = node.GetXmlNodeValue("@D");
             pdv.ValuePresentationIdRef = node.GetXmlNodeValue("@E");

@@ -119,17 +119,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             StringBuilder descriptionBuilder = new StringBuilder();
 
             //First Device Element
-            int? deviceElementID = TaskDataMapper.ADAPTIdMap.FindByISOId(isoConnection.DeviceElementIdRef_0);
-            if (deviceElementID.HasValue)
+            int? connectorID = TaskDataMapper.ADAPTIdMap.FindByISOId(isoConnection.DeviceElementIdRef_0);
+            if (connectorID.HasValue)
             {
-                DeviceElement adaptDeviceElement = DataModel.Catalog.DeviceElements.Single(d => d.Id.ReferenceId == deviceElementID.Value);
+                Connector adaptConnector1 = DataModel.Catalog.Connectors.Single(d => d.Id.ReferenceId == connectorID.Value);
+                equipConfig.Connector1Id = adaptConnector1.Id.ReferenceId;
+
                 ISODeviceElement isoDeviceElement = TaskDataMapper.DeviceElementHierarchies.GetISODeviceElementFromID(isoConnection.DeviceElementIdRef_0);
-                Connector adaptConnector1 = AddOrFindConnector(adaptDeviceElement, isoDeviceElement);
-                if (adaptConnector1 != null)
-                {
-                    equipConfig.Connector1Id = adaptConnector1.Id.ReferenceId;
-                }
-                descriptionBuilder.Append(adaptDeviceElement.Description);
+                descriptionBuilder.Append(isoDeviceElement.Device.DeviceDesignator);
+                descriptionBuilder.Append(":");
+                descriptionBuilder.Append(isoDeviceElement.DeviceElementDesignator);
             }
             else
             {
@@ -139,22 +138,23 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             descriptionBuilder.Append("<->");
 
             //Second Device Element
-            deviceElementID = TaskDataMapper.ADAPTIdMap.FindByISOId(isoConnection.DeviceElementIdRef_1);
-            if (deviceElementID.HasValue)
+            connectorID = TaskDataMapper.ADAPTIdMap.FindByISOId(isoConnection.DeviceElementIdRef_1);
+            if (connectorID.HasValue)
             {
-                DeviceElement adaptDeviceElement = DataModel.Catalog.DeviceElements.Single(d => d.Id.ReferenceId == deviceElementID.Value);
+                Connector adaptConnector2 = DataModel.Catalog.Connectors.Single(d => d.Id.ReferenceId == connectorID.Value);
+                equipConfig.Connector2Id = adaptConnector2.Id.ReferenceId;
+
                 ISODeviceElement isoDeviceElement = TaskDataMapper.DeviceElementHierarchies.GetISODeviceElementFromID(isoConnection.DeviceElementIdRef_1);
-                Connector adaptConnector2 = AddOrFindConnector(adaptDeviceElement, isoDeviceElement);
-                if (adaptConnector2 != null)
-                {
-                    equipConfig.Connector2Id = adaptConnector2.Id.ReferenceId;
-                }
-                descriptionBuilder.Append(adaptDeviceElement.Description);
+                descriptionBuilder.Append(isoDeviceElement.Device.DeviceDesignator);
+                descriptionBuilder.Append(":");
+                descriptionBuilder.Append(isoDeviceElement.DeviceElementDesignator);
             }
             else
             {
                 descriptionBuilder.Append("Unknown");
             }
+
+            equipConfig.Description = descriptionBuilder.ToString();
 
             //DataLogTriggers
             if (task.DataLogTriggers.Any())
@@ -164,22 +164,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
             return equipConfig;
-        }
-
-        private Connector AddOrFindConnector(DeviceElement adaptDeviceElement, ISODeviceElement isoDeviceElement)
-        {
-            DeviceElementConfiguration config = DataModel.Catalog.DeviceElementConfigurations.FirstOrDefault(c => c.DeviceElementId == adaptDeviceElement.Id.ReferenceId);
-            if (config == null)
-            {
-                config = DeviceElementMapper.AddDeviceElementConfiguration(adaptDeviceElement, TaskDataMapper.DeviceElementHierarchies.GetRelevantHierarchy(isoDeviceElement.DeviceElementId), DataModel.Catalog);
-            }
-            Connector adaptConnector = DataModel.Catalog.Connectors.FirstOrDefault(c => c.DeviceElementConfigurationId == config.Id.ReferenceId);
-            if (adaptConnector == null)
-            {
-                adaptConnector = new Connector() { DeviceElementConfigurationId = config.Id.ReferenceId };
-                DataModel.Catalog.Connectors.Add(adaptConnector);
-            }
-            return adaptConnector;
         }
         #endregion Import
     }

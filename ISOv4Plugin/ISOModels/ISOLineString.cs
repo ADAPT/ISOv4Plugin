@@ -51,7 +51,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         public static ISOLineString ReadXML(XmlNode node)
         {
             ISOLineString lsg = new ISOLineString();
-            lsg.LineStringType = (ISOLineStringType)Int32.Parse(node.GetXmlNodeValue("@A"));
+            lsg.LineStringType = (ISOLineStringType)(node.GetXmlNodeValueAsInt("@A"));
             lsg.LineStringDesignator = node.GetXmlNodeValue("@B");
             lsg.LineStringWidth = node.GetXmlNodeValueAsNullableLong("@C");
             lsg.LineStringLength = node.GetXmlNodeValueAsNullableLong("@D");

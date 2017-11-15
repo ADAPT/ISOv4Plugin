@@ -24,7 +24,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         public static ISODeviceObjectReference ReadXML(XmlNode node)
         {
             ISODeviceObjectReference item = new ISODeviceObjectReference();
-            item.DeviceObjectId = node.GetXmlNodeValueAsNullableInt("@A").Value;
+            item.DeviceObjectId = node.GetXmlNodeValueAsInt("@A");
             return item;
         }
 

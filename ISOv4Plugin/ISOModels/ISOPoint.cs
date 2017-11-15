@@ -47,7 +47,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         public static ISOPoint ReadXML(XmlNode node)
         {
             ISOPoint point = new ISOPoint();
-            point.PointType = (ISOPointType)Int32.Parse(node.GetXmlNodeValue("@A"));
+            point.PointType = (ISOPointType)(node.GetXmlNodeValueAsInt("@A"));
             point.PointDesignator = node.GetXmlNodeValue("@B");
             point.PointNorth = node.GetXmlNodeValueAsNullableDecimal("@C");
             point.PointEast = node.GetXmlNodeValueAsNullableDecimal("@D");

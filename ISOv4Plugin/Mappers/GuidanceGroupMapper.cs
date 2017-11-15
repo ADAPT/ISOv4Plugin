@@ -91,8 +91,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             List<GuidanceGroup> adaptGuidanceGroups = new List<GuidanceGroup>();
             foreach (ISOGuidanceGroup isoGuidanceGroup in isoGuidanceGroups)
             {
-                GuidanceGroup adaptGuidanceGroup = ImportGuidanceGroup(isoGuidanceGroup);
-                adaptGuidanceGroups.Add(adaptGuidanceGroup);
+                if (!TaskDataMapper.ADAPTIdMap.ContainsKey(isoGuidanceGroup.GuidanceGroupId))
+                {
+                    GuidanceGroup adaptGuidanceGroup = ImportGuidanceGroup(isoGuidanceGroup);
+                    adaptGuidanceGroups.Add(adaptGuidanceGroup);
+                }
             }
 
             //Add the groups to the Catalog

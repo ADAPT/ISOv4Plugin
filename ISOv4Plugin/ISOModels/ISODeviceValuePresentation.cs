@@ -34,10 +34,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         public static ISODeviceValuePresentation ReadXML(XmlNode node)
         {
             ISODeviceValuePresentation item = new ISODeviceValuePresentation();
-            item.ObjectID = node.GetXmlNodeValueAsNullableInt("@A").Value;
-            item.Offset = node.GetXmlNodeValueAsNullableLong("@B").Value;
-            item.Scale = node.GetXmlNodeValueAsNullableDouble("@C").Value;
-            item.NumberOfDecimals = node.GetXmlNodeValueAsNullableByte("@D").Value;
+            item.ObjectID = node.GetXmlNodeValueAsInt("@A");
+            item.Offset = node.GetXmlNodeValueAsLong("@B");
+            item.Scale = node.GetXmlNodeValueAsDouble("@C");
+            item.NumberOfDecimals = node.GetXmlNodeValueAsByte("@D");
             item.UnitDesignator = node.GetXmlNodeValue("@E");
 
             return item;

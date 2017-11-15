@@ -48,7 +48,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 
             ISOLinkGroup item = new ISOLinkGroup();
             item.LinkGroupId  = node.GetXmlNodeValue("@A");
-            item.LinkGroupType = (ISOLinkGroupType)(Int32.Parse(node.GetXmlNodeValue("@B")));
+            item.LinkGroupType = (ISOLinkGroupType)(node.GetXmlNodeValueAsInt("@B"));
             item.ManufacturerGLN  = node.GetXmlNodeValue("@C");
             item.LinkGroupNamespace  = node.GetXmlNodeValue("@D");
             item.LinkGroupDesignator  = node.GetXmlNodeValue("@E");

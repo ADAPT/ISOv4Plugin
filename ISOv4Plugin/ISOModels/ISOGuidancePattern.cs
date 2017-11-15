@@ -21,12 +21,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         public string GuidancePatternId { get; set; }
         public string GuidancePatternDesignator { get; set; }
         public ISOGuidancePatternType GuidancePatternType { get; set; }
-        public ISOGuidancePatternOption GuidancePatternOptions { get; set; }
-        public ISOGuidancePatternPropagationDirection PropagationDirection { get; set; }
-        public ISOGuidancePatternExtension Extension { get; set; }
+        public ISOGuidancePatternOption? GuidancePatternOptions { get; set; }
+        public ISOGuidancePatternPropagationDirection? PropagationDirection { get; set; }
+        public ISOGuidancePatternExtension? Extension { get; set; }
         public decimal? Heading { get; set; }
         public long? Radius { get; set; }
-        public ISOGuidancePatternGNSSMethod GNSSMethod { get; set; }
+        public ISOGuidancePatternGNSSMethod? GNSSMethod { get; set; }
         public decimal? HorizontalAccuracy { get; set; }
         public decimal? VerticalAccuracy { get; set; }
         public string BaseStationRef { get; set; }
@@ -45,12 +45,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteXmlAttribute("A", GuidancePatternId);
             xmlBuilder.WriteXmlAttribute("B", GuidancePatternDesignator);
             xmlBuilder.WriteXmlAttribute("C", ((int)GuidancePatternType).ToString());
-            xmlBuilder.WriteXmlAttribute("D", ((int)GuidancePatternOptions).ToString());
-            xmlBuilder.WriteXmlAttribute("E", ((int)PropagationDirection).ToString());
-            xmlBuilder.WriteXmlAttribute("F", ((int)Extension).ToString());
+            xmlBuilder.WriteXmlAttribute<ISOGuidancePatternOption>("D", GuidancePatternOptions);
+            xmlBuilder.WriteXmlAttribute<ISOGuidancePatternPropagationDirection>("E", PropagationDirection);
+            xmlBuilder.WriteXmlAttribute<ISOGuidancePatternExtension>("F", Extension);
             xmlBuilder.WriteXmlAttribute("G", Heading);
             xmlBuilder.WriteXmlAttribute("H", Radius);
-            xmlBuilder.WriteXmlAttribute("I", ((int)GNSSMethod).ToString());
+            xmlBuilder.WriteXmlAttribute<ISOGuidancePatternGNSSMethod>("I", GNSSMethod);
             xmlBuilder.WriteXmlAttribute("J", HorizontalAccuracy);
             xmlBuilder.WriteXmlAttribute("K", VerticalAccuracy);
             xmlBuilder.WriteXmlAttribute("L", BaseStationRef);
@@ -74,13 +74,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             ISOGuidancePattern item = new ISOGuidancePattern();
             item.GuidancePatternId = node.GetXmlNodeValue("@A");
             item.GuidancePatternDesignator = node.GetXmlNodeValue("@B");
-            item.GuidancePatternType = (ISOGuidancePatternType)(Int32.Parse(node.GetXmlNodeValue("@C")));
-            item.GuidancePatternOptions = (ISOGuidancePatternOption)(Int32.Parse(node.GetXmlNodeValue("@D")));
-            item.PropagationDirection = (ISOGuidancePatternPropagationDirection)(Int32.Parse(node.GetXmlNodeValue("@E")));
-            item.Extension = (ISOGuidancePatternExtension)(Int32.Parse(node.GetXmlNodeValue("@F")));
+            item.GuidancePatternType = (ISOGuidancePatternType)(node.GetXmlNodeValueAsInt("@C"));
+            item.GuidancePatternOptions = (ISOGuidancePatternOption?)(node.GetXmlNodeValueAsNullableInt("@D"));
+            item.PropagationDirection = (ISOGuidancePatternPropagationDirection?)(node.GetXmlNodeValueAsNullableInt("@E"));
+            item.Extension = (ISOGuidancePatternExtension?)(node.GetXmlNodeValueAsNullableInt("@F"));
             item.Heading = node.GetXmlNodeValueAsNullableDecimal("@G");
             item.Radius = node.GetXmlNodeValueAsNullableLong("@H");
-            item.GNSSMethod = (ISOGuidancePatternGNSSMethod)(Int32.Parse(node.GetXmlNodeValue("@I")));
+            item.GNSSMethod = (ISOGuidancePatternGNSSMethod?)(node.GetXmlNodeValueAsNullableInt("@I"));
             item.HorizontalAccuracy = node.GetXmlNodeValueAsNullableDecimal("@J");
             item.VerticalAccuracy = node.GetXmlNodeValueAsNullableDecimal("@K");
             item.BaseStationRef = node.GetXmlNodeValue("@L");

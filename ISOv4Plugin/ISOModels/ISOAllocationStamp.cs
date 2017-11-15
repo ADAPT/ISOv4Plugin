@@ -49,7 +49,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             item.Start = node.GetXmlNodeValueAsNullableDateTime("@A");
             item.Stop = node.GetXmlNodeValueAsNullableDateTime("@B");
             item.Duration = node.GetXmlNodeValueAsNullableLong("@C");
-            item.Type = (ISOAllocationStampType)(Int32.Parse(node.GetXmlNodeValue("@D")));
+            item.Type = (ISOAllocationStampType)(node.GetXmlNodeValueAsInt("@D"));
 
             XmlNodeList ptnNodes = node.SelectNodes("PTN");
             if (ptnNodes != null)

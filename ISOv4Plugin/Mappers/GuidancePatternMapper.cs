@@ -359,7 +359,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return GuidancePatternTypeEnum.AbLine;
         }
 
-        private static GpsSourceEnum ImportGNSSMethod(ISOGuidancePatternGNSSMethod enumeration)
+        private static GpsSourceEnum ImportGNSSMethod(ISOGuidancePatternGNSSMethod? enumeration)
         {
             switch (enumeration)
             {
@@ -387,7 +387,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return GpsSourceEnum.Other;
         }
 
-        private static PropagationDirectionEnum ImportPropagationDirection(ISOGuidancePatternPropagationDirection propagationDirection)
+        private static PropagationDirectionEnum ImportPropagationDirection(ISOGuidancePatternPropagationDirection? propagationDirection)
         {
             switch (propagationDirection)
             {
@@ -403,7 +403,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return PropagationDirectionEnum.BothDirections;
         }
 
-        private static GuidanceExtensionEnum ImportExtension(ISOGuidancePatternExtension extension)
+        private static GuidanceExtensionEnum ImportExtension(ISOGuidancePatternExtension? extension)
         {
             switch (extension)
             {

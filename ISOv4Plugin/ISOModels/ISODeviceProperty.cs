@@ -34,9 +34,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         public static ISODeviceProperty ReadXML(XmlNode node)
         {
             ISODeviceProperty item = new ISODeviceProperty();
-            item.ObjectID = node.GetXmlNodeValueAsNullableInt("@A").Value;
+            item.ObjectID = node.GetXmlNodeValueAsInt("@A");
             item.DDI  = node.GetXmlNodeValue("@B");
-            item.Value = node.GetXmlNodeValueAsNullableLong("@C").Value;
+            item.Value = node.GetXmlNodeValueAsLong("@C");
             item.Designator = node.GetXmlNodeValue("@D");
             item.DeviceValuePresentationObjectId = node.GetXmlNodeValueAsNullableInt("@E");
 

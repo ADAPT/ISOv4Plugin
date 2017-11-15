@@ -52,7 +52,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         public static ISOTreatmentZone ReadXML(XmlNode tznNode)
         {
             ISOTreatmentZone treatmentZone = new ISOTreatmentZone();
-            treatmentZone.TreatmentZoneCode = tznNode.GetXmlNodeValueAsNullableByte("@A").Value;
+            treatmentZone.TreatmentZoneCode = tznNode.GetXmlNodeValueAsByte("@A");
             treatmentZone.TreatmentZoneDesignator = tznNode.GetXmlNodeValue("@B");
             treatmentZone.TreatmentZoneColour = tznNode.GetXmlNodeValueAsNullableByte("@C");
 

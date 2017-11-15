@@ -14,7 +14,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
     public interface IWorkingDataMapper
     {
-        List<WorkingData> Map(ISOTime time, IEnumerable<ISOSpatialRow> isoRecords, DeviceElementUse deviceElementUse, string isoDeviceElementID, List<DeviceElementUse> pendingDeviceElementUses);
+        List<WorkingData> Map(ISOTime time, IEnumerable<ISOSpatialRow> isoRecords, DeviceElementUse deviceElementUse, DeviceElementHierarchy isoDeviceElementHierarchy, List<DeviceElementUse> pendingDeviceElementUses);
         WorkingData ConvertToBaseType(WorkingData meter);
         Dictionary<int, ISODataLogValue> DataLogValuesByWorkingDataID { get; set; }
     }
@@ -34,7 +34,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             DataLogValuesByWorkingDataID = new Dictionary<int, ISODataLogValue>();
         }
 
-        public List<WorkingData> Map(ISOTime time, IEnumerable<ISOSpatialRow> isoSpatialRows, DeviceElementUse deviceElementUse, string isoDeviceElementID, List<DeviceElementUse> pendingDeviceElementUses)
+        public List<WorkingData> Map(ISOTime time, IEnumerable<ISOSpatialRow> isoSpatialRows, DeviceElementUse deviceElementUse, DeviceElementHierarchy isoDeviceElementHierarchy, List<DeviceElementUse> pendingDeviceElementUses)
         {
             var workingDatas = new List<WorkingData>();
 
@@ -47,10 +47,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
             //Add the Working Datas for this DeviceElement
-            IEnumerable<ISODataLogValue> deviceElementDLVs = allDLVs.Where(dlv => dlv.DeviceElementIdRef == isoDeviceElementID);
+            IEnumerable<ISODataLogValue> deviceElementDLVs = allDLVs.Where(dlv => dlv.DeviceElementIdRef == isoDeviceElementHierarchy.DeviceElement.DeviceElementId);
             foreach (ISODataLogValue dlv in deviceElementDLVs)
             {
-                IEnumerable<WorkingData> newWorkingDatas = Map(dlv, isoSpatialRows, deviceElementUse, dlv.Order, pendingDeviceElementUses);
+                IEnumerable<WorkingData> newWorkingDatas = Map(dlv, isoSpatialRows, deviceElementUse, dlv.Order, pendingDeviceElementUses, isoDeviceElementHierarchy);
                 if (newWorkingDatas.Count() > 0)
                 {
                     int ddi = dlv.ProcessDataDDI.AsInt32DDI();
@@ -86,7 +86,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return meter;
         }
 
-        private IEnumerable<WorkingData> Map(ISODataLogValue dlv, IEnumerable<ISOSpatialRow> isoSpatialRows, DeviceElementUse deviceElementUse, int order, List<DeviceElementUse> pendingDeviceElementUses)
+        private IEnumerable<WorkingData> Map(ISODataLogValue dlv, 
+                                             IEnumerable<ISOSpatialRow> isoSpatialRows, 
+                                             DeviceElementUse deviceElementUse, 
+                                             int order, 
+                                             List<DeviceElementUse> pendingDeviceElementUses,
+                                             DeviceElementHierarchy isoDeviceElementHierarchy)
         {
             var workingDatas = new List<WorkingData>();
             if (_ddis.ContainsKey(dlv.ProcessDataDDI.AsInt32DDI()))
@@ -105,7 +110,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
                 if (meterCreator is CondensedStateMeterCreator)
                 {
-                    UpdateCondensedWorkingDatas(workingDatas, dlv, deviceElementUse, pendingDeviceElementUses);
+                    UpdateCondensedWorkingDatas(workingDatas, dlv, deviceElementUse, pendingDeviceElementUses, isoDeviceElementHierarchy);
                 }
             }
             return workingDatas;
@@ -122,7 +127,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return meter;
         }
 
-        private void UpdateCondensedWorkingDatas(List<WorkingData> condensedWorkingDatas, ISODataLogValue dlv, DeviceElementUse deviceElementUse, List<DeviceElementUse> pendingDeviceElementUses)
+        private void UpdateCondensedWorkingDatas(List<WorkingData> condensedWorkingDatas, ISODataLogValue dlv, DeviceElementUse deviceElementUse, List<DeviceElementUse> pendingDeviceElementUses, DeviceElementHierarchy isoDeviceElementHierarchy)
         {
             ISODeviceElement isoDeviceElement = TaskDataMapper.DeviceElementHierarchies.GetISODeviceElementFromID(dlv.DeviceElementIdRef);
             IEnumerable<ISODeviceElement> isoSectionElements = isoDeviceElement.ChildDeviceElements.Where(d => d.DeviceElementType == ISOEnumerations.ISODeviceElementType.Section);
@@ -145,9 +150,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     int? deviceElementID = TaskDataMapper.ADAPTIdMap[targetSection.DeviceElementId];
                     if (deviceElementID.HasValue)
                     {
-                        DeviceElementConfiguration deviceElementConfig = DataModel.Catalog.DeviceElementConfigurations.SingleOrDefault(c => c.DeviceElementId == deviceElementID.Value);
-                        if (deviceElementConfig != null)
+                        DeviceElement deviceElement = DataModel.Catalog.DeviceElements.SingleOrDefault(d => d.Id.ReferenceId == deviceElementID.Value);
+                        if (deviceElement != null)
                         {
+                            DeviceElementConfiguration deviceElementConfig = DeviceElementMapper.GetDeviceElementConfiguration(deviceElement, isoDeviceElementHierarchy.FromDeviceElementID(targetSection.DeviceElementId), DataModel.Catalog);
                             condensedDeviceElementUse.DeviceConfigurationId = deviceElementConfig.Id.ReferenceId;
                         }
                     }

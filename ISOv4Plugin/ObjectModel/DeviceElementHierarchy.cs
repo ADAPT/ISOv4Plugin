@@ -54,6 +54,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
         }
     }
 
+    /// <summary>
+    /// This utility class serves to map the hierarchies of ISO DeviceElements within a single ISO Device.   Each ISODeviceElement will have a hierarchy object that references its parents and children.
+    /// Where the parent is null, it is the root device element in a device.
+    /// </summary>
     public class DeviceElementHierarchy
     {
         private RepresentationMapper _representationMapper;
@@ -286,35 +290,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
             }
 
             //Update config values as appropriate
-            if (config is SectionConfiguration)
-            {
-                SectionConfiguration sectionConfig = config as SectionConfiguration;
-                if (sectionConfig.SectionWidth == null)
-                {
-                    sectionConfig.SectionWidth = WidthRepresentation;
-                }
-                if (sectionConfig.InlineOffset == null)
-                {
-                    sectionConfig.InlineOffset = XOffsetRepresentation;
-                }
-                if (sectionConfig.LateralOffset == null)
-                {
-                    sectionConfig.LateralOffset = YOffsetRepresentation;
-                }
-            }
-            else if (config is ImplementConfiguration)
-            {
-                ImplementConfiguration implementConfig = config as ImplementConfiguration;
-                if (implementConfig.Width == null)
-                {
-                    implementConfig.Width = WidthRepresentation;
-                }
-                if (implementConfig.YOffset == null)
-                {
-                    implementConfig.YOffset = YOffsetRepresentation;
-                }
-            }
-            else if (config is MachineConfiguration)
+            if (this.DeviceElement.DeviceElementType == ISODeviceElementType.Navigation)
             {
                 MachineConfiguration machineConfig = config as MachineConfiguration;
                 if (machineConfig.GpsReceiverXOffset == null)
@@ -328,6 +304,33 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                 if (machineConfig.GpsReceiverZOffset == null)
                 {
                     machineConfig.GpsReceiverZOffset = ZOffsetRepresentation;
+                }
+            }
+            else
+            {
+                if (config is SectionConfiguration)
+                {
+                    SectionConfiguration sectionConfig = config as SectionConfiguration;
+                    if (sectionConfig.SectionWidth == null)
+                    {
+                        sectionConfig.SectionWidth = WidthRepresentation;
+                    }
+                    if (sectionConfig.InlineOffset == null)
+                    {
+                        sectionConfig.InlineOffset = XOffsetRepresentation;
+                    }
+                    if (sectionConfig.LateralOffset == null)
+                    {
+                        sectionConfig.LateralOffset = YOffsetRepresentation;
+                    }
+                }
+                else if (config is ImplementConfiguration)
+                {
+                    ImplementConfiguration implementConfig = config as ImplementConfiguration;
+                    if (implementConfig.Width == null)
+                    {
+                        implementConfig.Width = WidthRepresentation;
+                    }
                 }
             }
         }

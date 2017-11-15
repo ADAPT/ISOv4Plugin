@@ -52,8 +52,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         {
             ISO11783_LinkList linkList = new ISO11783_LinkList();
 
-            linkList.VersionMajor = Int32.Parse(linkListNode.GetXmlNodeValue("@VersionMajor"));
-            linkList.VersionMinor = Int32.Parse(linkListNode.GetXmlNodeValue("@VersionMinor"));
+            linkList.VersionMajor = linkListNode.GetXmlNodeValueAsInt("@VersionMajor");
+            linkList.VersionMinor = linkListNode.GetXmlNodeValueAsInt("@VersionMinor");
             linkList.ManagementSoftwareManufacturer = linkListNode.GetXmlNodeValue("@ManagementSoftwareManufacturer") ?? string.Empty;
             linkList.ManagementSoftwareVersion = linkListNode.GetXmlNodeValue("@ManagementSoftwareVersion") ?? string.Empty;
             linkList.TaskControllerManufacturer = linkListNode.GetXmlNodeValue("@TaskControllerManufacturer") ?? string.Empty;

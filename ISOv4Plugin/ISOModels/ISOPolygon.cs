@@ -49,7 +49,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         public static ISOPolygon ReadXML(XmlNode node)
         {
             ISOPolygon pln = new ISOPolygon();
-            pln.PolygonType = (ISOPolygonType)(Int32.Parse(node.GetXmlNodeValue("@A")));
+            pln.PolygonType = (ISOPolygonType)(node.GetXmlNodeValueAsInt("@A"));
             pln.PolygonDesignator = node.GetXmlNodeValue("@B");
             pln.PolygonArea = node.GetXmlNodeValueAsNullableLong("@C");
             pln.PolygonColour = node.GetXmlNodeValueAsNullableByte("@D");
