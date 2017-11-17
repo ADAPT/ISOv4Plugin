@@ -359,17 +359,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             List<OperationData> operations = new List<OperationData>();
             foreach (ISOTimeLog isoTimeLog in isoTimeLogs)
             {
-                OperationData operation = ImportTimeLog(isoTimeLog);
-                if (operation != null)
+                IEnumerable<OperationData> operationData = ImportTimeLog(isoTimeLog);
+                if (operationData != null)
                 {
-                    operations.Add(operation);
+                    operations.AddRange(operationData);
                 }
             }
 
             return operations;
         }
 
-        private OperationData ImportTimeLog(ISOTimeLog isoTimeLog, int? prescriptionID = null)
+        private IEnumerable<OperationData> ImportTimeLog(ISOTimeLog isoTimeLog, int? prescriptionID = null)
         {
             WorkingDataMapper workingDataMapper = new WorkingDataMapper(new EnumeratedMeterFactory(), TaskDataMapper);
             SectionMapper sectionMapper = new SectionMapper(workingDataMapper, TaskDataMapper);
@@ -377,26 +377,50 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             IEnumerable<ISOSpatialRow> isoRecords = ReadTimeLog(isoTimeLog, this.TaskDataPath);
             if (isoRecords != null)
             {
-                isoRecords = isoRecords.ToList(); //ToList() avoids multiple spatial reads
-
-                OperationData operationData = new OperationData();
-
-                //This line will necessarily invoke a spatial read in order to find 
-                //1)The correct number of CondensedWorkState working datas to create 
-                //2)Any Widths and Offsets stored in the spatial data
+                isoRecords = isoRecords.ToList(); //Avoids multiple reads
                 ISOTime time = isoTimeLog.GetTimeElement(this.TaskDataPath);
-                IEnumerable<DeviceElementUse> sections = sectionMapper.Map(time, isoRecords, operationData.Id.ReferenceId);
 
-                var workingDatas = sections != null ? sections.SelectMany(x => x.GetWorkingDatas()).ToList() : new List<WorkingData>();
-                var sectionsSimple = sectionMapper.ConvertToBaseTypes(sections.ToList()); 
+                //Identify unique devices represented in this TimeLog data
+                IEnumerable<string> deviceElementIDs = time.DataLogValues.Select(d => d.DeviceElementIdRef);
+                Dictionary<ISODevice, HashSet<string>> loggedDeviceElementsByDevice = new Dictionary<ISODevice, HashSet<string>>();
+                foreach (string deviceElementID in deviceElementIDs)
+                {
+                    ISODeviceElement isoDeviceElement = TaskDataMapper.DeviceElementHierarchies.GetISODeviceElementFromID(deviceElementID);
+                    if (isoDeviceElement != null)
+                    {
+                        ISODevice device = isoDeviceElement.Device;
+                        if (!loggedDeviceElementsByDevice.ContainsKey(device))
+                        {
+                            loggedDeviceElementsByDevice.Add(device, new HashSet<string>());
+                        }
+                        loggedDeviceElementsByDevice[device].Add(deviceElementID);
+                    }
+                }
 
-                operationData.GetSpatialRecords = () => spatialMapper.Map(isoRecords, workingDatas);
-                operationData.MaxDepth = sections.Count() > 0 ? sections.Select(s => s.Depth).Max() : 0;
-                operationData.GetDeviceElementUses = x => x == 0 ? sectionsSimple : new List<DeviceElementUse>();
-                operationData.PrescriptionId = prescriptionID;
-                operationData.OperationType = GetOperationTypeFromLoggingDevices(time);
+                //Split all devices in the same TimeLog into separate OperationData objects to handle multi-implement scenarios
+                //This will ensure implement geometries/DeviceElementUse Depths & Orders do not get confused between implements
+                List<OperationData> operationDatas = new List<OperationData>();
+                foreach (ISODevice dvc in loggedDeviceElementsByDevice.Keys.Where(dvc => dvc.DeviceProcessDatas.Any()))
+                {
+                    OperationData operationData = new OperationData();
 
-                return operationData;
+                    //This line will necessarily invoke a spatial read in order to find 
+                    //1)The correct number of CondensedWorkState working datas to create 
+                    //2)Any Widths and Offsets stored in the spatial data
+                    IEnumerable<DeviceElementUse> sections = sectionMapper.Map(time, isoRecords, operationData.Id.ReferenceId, loggedDeviceElementsByDevice[dvc]);
+
+                    var workingDatas = sections != null ? sections.SelectMany(x => x.GetWorkingDatas()).ToList() : new List<WorkingData>();
+                    var sectionsSimple = sectionMapper.ConvertToBaseTypes(sections.ToList());
+
+                    operationData.GetSpatialRecords = () => spatialMapper.Map(isoRecords, workingDatas);
+                    operationData.MaxDepth = sections.Count() > 0 ? sections.Select(s => s.Depth).Max() : 0;
+                    operationData.GetDeviceElementUses = x => x == 0 ? sectionsSimple : new List<DeviceElementUse>();
+                    operationData.PrescriptionId = prescriptionID;
+                    operationData.OperationType = GetOperationTypeFromLoggingDevices(time);
+                    operationDatas.Add(operationData);
+                }
+
+                return operationDatas;
             }
             return null;
         }

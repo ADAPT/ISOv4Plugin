@@ -300,7 +300,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             MachineConfiguration machineConfig = new MachineConfiguration();
 
             //Description
-            machineConfig.Description = deviceHierarchy.DeviceElement.DeviceElementDesignator;
+            machineConfig.Description = $"{deviceHierarchy.DeviceElement.Device.DeviceDesignator} : {deviceHierarchy.DeviceElement.DeviceElementDesignator}";
 
             //Device Element ID
             machineConfig.DeviceElementId = adaptDeviceElement.Id.ReferenceId;
@@ -344,7 +344,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             ImplementConfiguration implementConfig = new ImplementConfiguration();
 
             //Description
-            implementConfig.Description = deviceHierarchy.DeviceElement.DeviceElementDesignator;
+            implementConfig.Description = $"{deviceHierarchy.DeviceElement.Device.DeviceDesignator} : {deviceHierarchy.DeviceElement.DeviceElementDesignator}";
 
             //Device Element ID
             implementConfig.DeviceElementId = adaptDeviceElement.Id.ReferenceId;
@@ -387,7 +387,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             SectionConfiguration sectionConfiguration = new SectionConfiguration();
 
             //Description
-            sectionConfiguration.Description = deviceHierarchy.DeviceElement.DeviceElementDesignator;
+            sectionConfiguration.Description = $"{deviceHierarchy.DeviceElement.Device.DeviceDesignator} : {deviceHierarchy.DeviceElement.DeviceElementDesignator}";
+
 
             //Device Element ID
             sectionConfiguration.DeviceElementId = adaptDeviceElement.Id.ReferenceId;
