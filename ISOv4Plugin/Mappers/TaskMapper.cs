@@ -283,7 +283,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         private List<ISOProductAllocation> GetProductAllocationsForSummary(Summary summary)
         {
             List<ISOProductAllocation> productAllocations = null;
-            if (summary.OperationSummaries.Any())
+            if (summary.OperationSummaries != null && summary.OperationSummaries.Any())
             {
                 productAllocations = new List<ISOProductAllocation>();
                 foreach (OperationSummary operationSummary in summary.OperationSummaries)

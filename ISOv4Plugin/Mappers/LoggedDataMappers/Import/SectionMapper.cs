@@ -101,6 +101,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 section.TotalDistanceTravelled = x.TotalDistanceTravelled;
                 section.TotalElapsedTime = x.TotalElapsedTime;
                 section.DeviceConfigurationId = x.DeviceConfigurationId;
+                section.Id.ReferenceId = x.Id.ReferenceId;
+                section.Id.UniqueIds = x.Id.UniqueIds;
                 return section;
                 }).ToList();
         }
