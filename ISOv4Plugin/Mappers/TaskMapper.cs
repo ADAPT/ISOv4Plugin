@@ -265,12 +265,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         }
                         else
                         {
-                            if (numericValue.Representation.Code.Length == 4)
+                            if (numericValue.Representation.CodeSource == RepresentationCodeSourceEnum.ISO11783_DDI)
                             {
                                 dlv.ProcessDataDDI = numericValue.Representation.Code;
                                 dlv.ProcessDataValue = (long)numericValue.Value.Value;
                             }
-                            
                         }
                         time.DataLogValues.Add(dlv);
                     }
