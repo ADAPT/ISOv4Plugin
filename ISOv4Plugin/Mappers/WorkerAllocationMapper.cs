@@ -71,7 +71,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             foreach (ISOWorkerAllocation isoWorkerAllocation in isoWorkerAllocations)
             {
                 PersonRole adaptWorkerAllocation = ImportWorkerAllocation(isoWorkerAllocation);
-                adaptWorkerAllocations.Add(adaptWorkerAllocation);
+                if (adaptWorkerAllocation != null)
+                {
+                    adaptWorkerAllocations.Add(adaptWorkerAllocation);
+                }
             }
 
             return adaptWorkerAllocations;
@@ -79,21 +82,25 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         public PersonRole ImportWorkerAllocation(ISOWorkerAllocation isoWorkerAllocation)
         {
-            PersonRole adaptWorkerAllocation = new PersonRole();
-
-            //Worker ID
             if (TaskDataMapper.ADAPTIdMap.ContainsKey(isoWorkerAllocation.WorkerIdRef))
             {
-                 adaptWorkerAllocation.PersonId = TaskDataMapper.ADAPTIdMap[isoWorkerAllocation.WorkerIdRef].Value;
+                PersonRole adaptWorkerAllocation = new PersonRole();
+
+                //Worker ID
+                adaptWorkerAllocation.PersonId = TaskDataMapper.ADAPTIdMap[isoWorkerAllocation.WorkerIdRef].Value;
+
+                //Allocation Stamps
+                if (isoWorkerAllocation.AllocationStamp != null)
+                {
+                    adaptWorkerAllocation.TimeScopes = AllocationStampMapper.ImportAllocationStamps(new List<ISOAllocationStamp>() { isoWorkerAllocation.AllocationStamp }).ToList();
+                }
+
+                return adaptWorkerAllocation;
             }
 
-            //Allocation Stamps
-            if (isoWorkerAllocation.AllocationStamp != null)
-            {
-                adaptWorkerAllocation.TimeScopes = AllocationStampMapper.ImportAllocationStamps(new List<ISOAllocationStamp>() { isoWorkerAllocation.AllocationStamp }).ToList();
-            }
+            //If we can't map to a Person, no sense including a PersonRole 
+            return null;
 
-            return adaptWorkerAllocation;
         }
         #endregion Import
     }

@@ -54,7 +54,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         public List<ISOGuidanceAllocation> GuidanceAllocations { get; set; }
 
         public bool IsLoggedDataTask { get { return TaskStatus == ISOTaskStatus.Completed || TaskStatus == ISOTaskStatus.Paused || TaskStatus == ISOTaskStatus.Running; } }
-        public bool IsWorkItemTask { get { return !IsLoggedDataTask; } }
+        public bool IsWorkItemTask { get { return !IsLoggedDataTask || HasPrescription; } }
         public bool HasPrescription { get { return HasRasterPrescription || HasVectorPrescription || HasManualPrescription; } }
         public bool HasRasterPrescription { get { return Grid != null; } }
         public bool HasVectorPrescription { get { return TreatmentZones.Any(tz => tz.Polygons.Any()) ; } }

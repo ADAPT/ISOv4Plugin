@@ -30,8 +30,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
     public class TaskMapper : BaseMapper, ITaskMapper
     {
+        private Dictionary<string, int> _rxIDsByTask;
         public TaskMapper(TaskDataMapper taskDataMapper) : base(taskDataMapper, "TSK")
         {
+            _rxIDsByTask = new Dictionary<string, int>();
         }
 
         PrescriptionMapper _prescriptionMapper;
@@ -137,7 +139,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             TaskDataMapper.ISOIdMap.Add(loggedData.Id.ReferenceId, taskID);
 
             //Task Designator
-            task.TaskDesignator = $"Logged Data {loggedData.Id.ReferenceId}";
+            task.TaskDesignator = loggedData.Description;
 
             //Customer Ref
             if (loggedData.GrowerId.HasValue)
@@ -443,6 +445,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     operations.Add(operation);
                 }
                 workItem.WorkItemOperationIds.Add(operation.Id.ReferenceId);
+
+                //Track any prescription IDs to map to any completed TimeLog data 
+                _rxIDsByTask.Add(isoPrescribedTask.TaskID, rx.Id.ReferenceId);
             }
 
             return workItem;
@@ -489,7 +494,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             //Task ID
             loggedData.Id.UniqueIds.AddRange(ImportUniqueIDs(isoLoggedTask.TaskID));
-            TaskDataMapper.ADAPTIdMap.Add(isoLoggedTask.TaskID, loggedData.Id.ReferenceId);
+            if (!TaskDataMapper.ADAPTIdMap.ContainsKey(isoLoggedTask.TaskID))
+            {
+                TaskDataMapper.ADAPTIdMap.Add(isoLoggedTask.TaskID, loggedData.Id.ReferenceId);
+            }
+            else
+            {
+                //In the case where a TSK contains both TZN and TLG data, we'll store the LoggedData as the mapped Task.
+                //The Prescription ID will be assigned to the OperationData objects by means of the dictionary in this class.
+                TaskDataMapper.ADAPTIdMap[isoLoggedTask.TaskID] = loggedData.Id.ReferenceId;
+            }
 
             //Task Name
             loggedData.Description = isoLoggedTask.TaskDesignator;
@@ -602,7 +616,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Operation Data
             if (isoLoggedTask.TimeLogs.Any())
             {
-                loggedData.OperationData = TimeLogMapper.ImportTimeLogs(isoLoggedTask.TimeLogs);
+                //Find ID for any Prescription that may also be tied to this task
+                int? rxID = null;
+                if (_rxIDsByTask.ContainsKey(isoLoggedTask.TaskID))
+                {
+                    rxID = _rxIDsByTask[isoLoggedTask.TaskID];
+                }
+
+                loggedData.OperationData = TimeLogMapper.ImportTimeLogs(isoLoggedTask.TimeLogs, rxID);
             }
 
             //Connections

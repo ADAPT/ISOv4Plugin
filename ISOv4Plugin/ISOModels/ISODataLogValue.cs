@@ -26,7 +26,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         {
             xmlBuilder.WriteStartElement("DLV");
             xmlBuilder.WriteXmlAttribute("A", ProcessDataDDI);
-            xmlBuilder.WriteXmlAttribute<long>("B", ProcessDataValue);
+
+            //Custom behavior for ProcessDataValue to support TimeLog use with an empty B
+            string value = ProcessDataValue.HasValue ? ProcessDataValue.ToString() : string.Empty;
+            xmlBuilder.WriteAttributeString("B", value);
+
             xmlBuilder.WriteXmlAttribute("C", DeviceElementIdRef);
             xmlBuilder.WriteXmlAttribute("D", DataLogPGN);
             xmlBuilder.WriteXmlAttribute("E", DataLogPGNStartBit);

@@ -28,7 +28,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
     public interface ITimeLogMapper
     {
         IEnumerable<ISOTimeLog> ExportTimeLogs(IEnumerable<OperationData> operationDatas, string dataPath);
-        IEnumerable<OperationData> ImportTimeLogs(IEnumerable<ISOTimeLog> isoTimeLogs);
+        IEnumerable<OperationData> ImportTimeLogs(IEnumerable<ISOTimeLog> isoTimeLogs, int? prescriptionID);
     }
 
     public class TimeLogMapper : BaseMapper, ITimeLogMapper
@@ -138,7 +138,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             {
                 if (workingData.Representation != null && workingData.Representation.Code == "dtRecordingStatus" && workingData.DeviceElementUseId != 0)
                 {
-                    dlv.ProcessDataDDI = 161.AsHexDDI();
+                    dlv.ProcessDataDDI = 141.AsHexDDI(); //No support for exporting CondensedWorkState at this time
                 }
                 else
                 {
@@ -282,10 +282,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         value = _numericValueMapper.Map(numericMeter, spatialRecord);
                     }
 
-                    var isoEnumerateMeter = dlvMeters[0] as ISOEnumeratedMeter;
-                    if (isoEnumerateMeter != null && spatialRecord.GetMeterValue(isoEnumerateMeter) != null)
+                    var enumeratedMeter = dlvMeters[0] as EnumeratedWorkingData;
+                    if (enumeratedMeter != null && spatialRecord.GetMeterValue(enumeratedMeter) != null)
                     {
-                        value = _enumeratedValueMapper.Map(isoEnumerateMeter, dlvMeters, spatialRecord);
+                        value = _enumeratedValueMapper.Map(enumeratedMeter, dlvMeters, spatialRecord);
                     }
 
                     if (value == null)
@@ -320,10 +320,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         value = _numericValueMapper.Map(numericMeter, spatialRecord);
                     }
 
-                    var isoEnumerateMeter = meter as ISOEnumeratedMeter;
-                    if (isoEnumerateMeter != null && spatialRecord.GetMeterValue(isoEnumerateMeter) != null)
+                    var enumeratedMeter = meter as EnumeratedWorkingData;
+                    if (enumeratedMeter != null && spatialRecord.GetMeterValue(enumeratedMeter) != null)
                     {
-                        value = _enumeratedValueMapper.Map(isoEnumerateMeter, new List<WorkingData> { meter }, spatialRecord);
+                        value = _enumeratedValueMapper.Map(enumeratedMeter, new List<WorkingData> { meter }, spatialRecord);
                     }
 
                     if (value == null)
@@ -349,12 +349,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         #region Import
 
-        public IEnumerable<OperationData> ImportTimeLogs(IEnumerable<ISOTimeLog> isoTimeLogs)
+        public IEnumerable<OperationData> ImportTimeLogs(IEnumerable<ISOTimeLog> isoTimeLogs, int? prescriptionID)
         {
             List<OperationData> operations = new List<OperationData>();
             foreach (ISOTimeLog isoTimeLog in isoTimeLogs)
             {
-                IEnumerable<OperationData> operationData = ImportTimeLog(isoTimeLog);
+                IEnumerable<OperationData> operationData = ImportTimeLog(isoTimeLog, prescriptionID);
                 if (operationData != null)
                 {
                     operations.AddRange(operationData);
@@ -364,7 +364,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return operations;
         }
 
-        private IEnumerable<OperationData> ImportTimeLog(ISOTimeLog isoTimeLog, int? prescriptionID = null)
+        private IEnumerable<OperationData> ImportTimeLog(ISOTimeLog isoTimeLog, int? prescriptionID)
         {
             WorkingDataMapper workingDataMapper = new WorkingDataMapper(new EnumeratedMeterFactory(), TaskDataMapper);
             SectionMapper sectionMapper = new SectionMapper(workingDataMapper, TaskDataMapper);

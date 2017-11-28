@@ -245,11 +245,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
         /// <returns></returns>
         public static long AsLongViaMappedDDI(this NumericRepresentationValue value, RepresentationMapper mapper)
         {
-            int? ddi = mapper.Map(value.Representation);  
+            int? ddi = mapper.Map(value.Representation);
             if (ddi.HasValue)
             {
                 ISOUnit unit = UnitFactory.Instance.GetUnitByDDI(ddi.Value);
                 return (long)unit.ConvertToIsoUnit(value.Value.Value);
+            }
+            else if (value.Representation.CodeSource == RepresentationCodeSourceEnum.ISO11783_DDI)
+            {
+                //No need to convert if the value is natively a DDI
+                return (long)value.Value.Value;
             }
             return 0;
         }

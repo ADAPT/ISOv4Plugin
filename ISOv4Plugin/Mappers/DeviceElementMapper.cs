@@ -262,8 +262,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
 
-            if (HasGeometryInformation(deviceElementHierarchy)) //Geometry information is on DeviceProperty elements. 
+            if (HasGeometryInformation(deviceElementHierarchy)) 
             {
+                //Geometry information is on DeviceProperty elements. 
                 GetDeviceElementConfiguration(deviceElement, deviceElementHierarchy, DataModel.Catalog); //Add via the Get method to invoke business rules for configs
             }
 
@@ -336,7 +337,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
         }
 
-        public static MachineConfiguration AddMachineConfiguration(DeviceElement adaptDeviceElement, DeviceElementHierarchy deviceHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
+        private static MachineConfiguration AddMachineConfiguration(DeviceElement adaptDeviceElement, DeviceElementHierarchy deviceHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
         {
             MachineConfiguration machineConfig = new MachineConfiguration();
 
@@ -380,7 +381,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return machineConfig;
         }
 
-        public static ImplementConfiguration AddImplementConfiguration(DeviceElement adaptDeviceElement, DeviceElementHierarchy deviceHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
+        private static ImplementConfiguration AddImplementConfiguration(DeviceElement adaptDeviceElement, DeviceElementHierarchy deviceHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
         {
             ImplementConfiguration implementConfig = new ImplementConfiguration();
 
@@ -423,7 +424,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return implementConfig;
         }
 
-        public static SectionConfiguration AddSectionConfiguration(DeviceElement adaptDeviceElement, DeviceElementHierarchy deviceHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
+        private static SectionConfiguration AddSectionConfiguration(DeviceElement adaptDeviceElement, DeviceElementHierarchy deviceHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
         {
             SectionConfiguration sectionConfiguration = new SectionConfiguration();
 

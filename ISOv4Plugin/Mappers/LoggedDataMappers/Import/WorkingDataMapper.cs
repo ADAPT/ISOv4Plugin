@@ -105,7 +105,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             if(meterCreator != null)
             {
                 var isoEnumeratedMeters = meterCreator.CreateMeters(isoSpatialRows);
-                isoEnumeratedMeters.ForEach(x => DataLogValuesByWorkingDataID.Add(x.Id.ReferenceId, dlv));
+                foreach (ISOEnumeratedMeter enumeratedMeter in isoEnumeratedMeters)
+                {
+                    DataLogValuesByWorkingDataID.Add(enumeratedMeter.Id.ReferenceId, dlv);
+                    enumeratedMeter.DeviceElementUseId = deviceElementUse.Id.ReferenceId;
+                }
                 workingDatas.AddRange(isoEnumeratedMeters);
 
                 if (meterCreator is CondensedStateMeterCreator)
