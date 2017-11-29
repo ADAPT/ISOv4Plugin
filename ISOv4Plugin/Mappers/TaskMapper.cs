@@ -11,6 +11,7 @@ using AgGateway.ADAPT.ApplicationDataModel.Logistics;
 using AgGateway.ADAPT.ApplicationDataModel.Prescriptions;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
+using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
 using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 using AgGateway.ADAPT.ISOv4Plugin.Representation;
 using System;
@@ -29,8 +30,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
     public class TaskMapper : BaseMapper, ITaskMapper
     {
+        private Dictionary<string, int> _rxIDsByTask;
         public TaskMapper(TaskDataMapper taskDataMapper) : base(taskDataMapper, "TSK")
         {
+            _rxIDsByTask = new Dictionary<string, int>();
         }
 
         PrescriptionMapper _prescriptionMapper;
@@ -136,7 +139,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             TaskDataMapper.ISOIdMap.Add(loggedData.Id.ReferenceId, taskID);
 
             //Task Designator
-            task.TaskDesignator = $"Logged Data {loggedData.Id.ReferenceId}";
+            task.TaskDesignator = loggedData.Description;
 
             //Customer Ref
             if (loggedData.GrowerId.HasValue)
@@ -264,12 +267,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         }
                         else
                         {
-                            if (numericValue.Representation.Code.Length == 4)
+                            if (numericValue.Representation.CodeSource == RepresentationCodeSourceEnum.ISO11783_DDI)
                             {
                                 dlv.ProcessDataDDI = numericValue.Representation.Code;
                                 dlv.ProcessDataValue = (long)numericValue.Value.Value;
                             }
-                            
                         }
                         time.DataLogValues.Add(dlv);
                     }
@@ -282,7 +284,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         private List<ISOProductAllocation> GetProductAllocationsForSummary(Summary summary)
         {
             List<ISOProductAllocation> productAllocations = null;
-            if (summary.OperationSummaries.Any())
+            if (summary.OperationSummaries != null && summary.OperationSummaries.Any())
             {
                 productAllocations = new List<ISOProductAllocation>();
                 foreach (OperationSummary operationSummary in summary.OperationSummaries)
@@ -443,6 +445,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     operations.Add(operation);
                 }
                 workItem.WorkItemOperationIds.Add(operation.Id.ReferenceId);
+
+                //Track any prescription IDs to map to any completed TimeLog data 
+                _rxIDsByTask.Add(isoPrescribedTask.TaskID, rx.Id.ReferenceId);
             }
 
             return workItem;
@@ -489,7 +494,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             //Task ID
             loggedData.Id.UniqueIds.AddRange(ImportUniqueIDs(isoLoggedTask.TaskID));
-            TaskDataMapper.ADAPTIdMap.Add(isoLoggedTask.TaskID, loggedData.Id.ReferenceId);
+            if (!TaskDataMapper.ADAPTIdMap.ContainsKey(isoLoggedTask.TaskID))
+            {
+                TaskDataMapper.ADAPTIdMap.Add(isoLoggedTask.TaskID, loggedData.Id.ReferenceId);
+            }
+            else
+            {
+                //In the case where a TSK contains both TZN and TLG data, we'll store the LoggedData as the mapped Task.
+                //The Prescription ID will be assigned to the OperationData objects by means of the dictionary in this class.
+                TaskDataMapper.ADAPTIdMap[isoLoggedTask.TaskID] = loggedData.Id.ReferenceId;
+            }
 
             //Task Name
             loggedData.Description = isoLoggedTask.TaskDesignator;
@@ -589,9 +603,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Summaries
             if (isoLoggedTask.Times.Any(t => t.HasStart && t.HasType)) //Nothing added without a Start & Type attribute
             {
-                Summary summary = new Summary();
-                summary.SummaryData = ImportSummaryData(isoLoggedTask); //Does not have a product reference
-                summary.OperationSummaries = ImportOperationSummaries(isoLoggedTask);  //Includes a product reference
+                //An ADAPT LoggedData has exactly one summary.   This is what necessitates that ISO Task maps to LoggedData and ISO TimeLog maps to one or more Operation Data objects
+                Summary summary = ImportSummary(isoLoggedTask); 
                 if (DataModel.Documents.Summaries == null)
                 {
                     DataModel.Documents.Summaries = new List<Summary>();
@@ -603,7 +616,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Operation Data
             if (isoLoggedTask.TimeLogs.Any())
             {
-                loggedData.OperationData = TimeLogMapper.ImportTimeLogs(isoLoggedTask.TimeLogs);
+                //Find ID for any Prescription that may also be tied to this task
+                int? rxID = null;
+                if (_rxIDsByTask.ContainsKey(isoLoggedTask.TaskID))
+                {
+                    rxID = _rxIDsByTask[isoLoggedTask.TaskID];
+                }
+
+                loggedData.OperationData = TimeLogMapper.ImportTimeLogs(isoLoggedTask.TimeLogs, rxID);
             }
 
             //Connections
@@ -621,14 +641,58 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         }
 
         #region Import Summary Data
-        private List<StampedMeteredValues> ImportSummaryData(ISOTask isoLoggedTask)
+        private Summary ImportSummary(ISOTask isoLoggedTask)
         {
-            List<StampedMeteredValues> stampedValuesList = new List<StampedMeteredValues>();
-            foreach (ISOTime time in isoLoggedTask.Times.Where(t => t.HasStart && t.HasType)) //Nothing added without a Start and Type attribute
+            //Per ISO11783-10:2015(E) 6.8.3, the last Time element contains the comprehensive task totals.
+            //Earlier Time elements contain the task totals leading up to points where the Task was paused.
+            //As such, the Summary.TimeScopes will include detail on various intermittent Timescopes,
+            //and the Summary.SummaryData will contain totals from only the last time element.
+            //Summary.SummaryData.Stamp will be set to a comprehensive time stamp from the beginning of the first time to the end of the last.
+            Summary summary = null;
+            IEnumerable<ISOTime> timeElements = isoLoggedTask.Times.Where(t => t.HasStart && t.HasType);
+            if (timeElements.Any())
             {
-                stampedValuesList.Add(GetStampedMeteredValuesForTime(time));
+                summary = new Summary();
+
+                //TimeScopes
+                summary.TimeScopes = new List<TimeScope>();
+                foreach (ISOTime time in isoLoggedTask.Times.Where(t => t.HasStart && t.HasType)) //Nothing added without a Start and Type attribute
+                {
+                    TimeScope timeScope = new TimeScope();
+                    timeScope.TimeStamp1 = time.Start;
+                    if (time.Stop != null)
+                    {
+                        timeScope.TimeStamp2 = time.Stop;
+                    }
+
+                    if (time.Stop == null && time.Duration != null)
+                    {
+                        //Calculate the Stop time if missing and duration present
+                        timeScope.TimeStamp2 = timeScope.TimeStamp1.Value.AddSeconds(time.Duration.Value);
+                    }
+                    timeScope.DateContext = time.Type == ISOEnumerations.ISOTimeType.Planned ? DateContextEnum.ProposedStart : DateContextEnum.ActualStart;
+                    timeScope.Duration = timeScope.TimeStamp2.GetValueOrDefault() - timeScope.TimeStamp1.GetValueOrDefault();
+                    summary.TimeScopes.Add(timeScope);
+                }
+
+                //Summary Data - does not have a product reference
+                summary.SummaryData = ImportSummaryData(timeElements);               
+
+                //Operation Summaries - includes a product reference
+                summary.OperationSummaries = ImportOperationSummaries(isoLoggedTask);  
             }
-            return stampedValuesList;
+            return summary;
+        }
+
+        private List<StampedMeteredValues> ImportSummaryData(IEnumerable<ISOTime> timeElements)
+        {
+            List<StampedMeteredValues> summaryData = new List<StampedMeteredValues>();
+            foreach (ISOTimeType timeType in timeElements.Select(t => t.Type).Distinct())
+            {
+                //Times of each type get distinct StampedMeteredValues
+                summaryData.Add(GetStampedMeteredValuesForTimes(timeElements.Where(t => t.Type == timeType)));
+            }
+            return summaryData;
         }
 
         private List<OperationSummary> ImportOperationSummaries(ISOTask isoLoggedTask)
@@ -636,13 +700,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             List<OperationSummary> operationSummaries = null;
             if (isoLoggedTask.ProductAllocations.Any())
             {
+                IEnumerable<ISOTime> timeElements = isoLoggedTask.Times.Where(t => t.HasStart && t.HasType);
                 operationSummaries = new List<OperationSummary>();
                 if (isoLoggedTask.ProductAllocations.Count == 1) 
                 {
                     //There is a single product allocation on the task
                     string isoProductRef = isoLoggedTask.ProductAllocations.Single().ProductIdRef;
-                    string isoDeviceElementRef = isoLoggedTask.ProductAllocations.Single().DeviceElementIdRef;
-                    OperationSummary summary = GetOperationSummary(isoLoggedTask, isoProductRef, isoDeviceElementRef);
+                    OperationSummary summary = GetOperationSummary(timeElements, isoProductRef);
                     if (summary != null)
                     {
                         operationSummaries.Add(summary);
@@ -652,7 +716,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 {
                     //There is a single product on multiple allocations
                     string isoProductRef = isoLoggedTask.ProductAllocations.Select(p => p.ProductIdRef).First();
-                    OperationSummary summary = GetOperationSummary(isoLoggedTask, isoProductRef, null);
+                    OperationSummary summary = GetOperationSummary(timeElements, isoProductRef, null);
                     if (summary != null)
                     {
                         operationSummaries.Add(summary);
@@ -660,29 +724,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 }
                 else
                 {
-                    //There are multiple products.
-                    //Try to reconcile product allocations to individual Time DataLogValues via overlapping times and matching device elements
-                    foreach (ISOTime time in isoLoggedTask.Times.Where(t => t.HasStart && t.HasType))
+                    //There are multiple products.  Use any DeviceElements on the PANs to reconcile summaries. 
+                    foreach (string isoProductRef in isoLoggedTask.ProductAllocations.Select(p => p.ProductIdRef).Distinct())
                     {
-                        IEnumerable<string> distinctDeviceElements = time.DataLogValues.Select(d => d.DeviceElementIdRef).Distinct();
-                        foreach (string det in distinctDeviceElements)
+                        IEnumerable<string> deviceElementIDs = isoLoggedTask.ProductAllocations.Where(p => p.ProductIdRef == isoProductRef && p.DeviceElementIdRef != null)
+                                                                                               .Select(p => p.DeviceElementIdRef);
+                        OperationSummary summary = GetOperationSummary(timeElements, isoProductRef, deviceElementIDs);
+                        if (summary != null)
                         {
-                            List<ISOProductAllocation> matchingPans = GetProductAllocationsForTime(time, isoLoggedTask, det);
-                            IEnumerable<string> distinctProductRefs = matchingPans.Select(p => p.ProductIdRef).Distinct();
-                            if (distinctProductRefs.Count() == 1 && TaskDataMapper.ADAPTIdMap.FindByISOId(distinctProductRefs.Single()).HasValue)
-                            {
-                                OperationSummary operationSummary = new OperationSummary();
-                                operationSummary.ProductId = TaskDataMapper.ADAPTIdMap.FindByISOId(distinctProductRefs.Single()).Value;
-                                operationSummary.Data = new List<StampedMeteredValues>();
-
-                                StampedMeteredValues values = GetStampedMeteredValuesForTime(time, det);
-                                if (values != null)
-                                {
-                                    operationSummary.Data.Add(values);
-                                }
-                                operationSummaries.Add(operationSummary);
-                            }
-                            //else unable to reconcile product allocations to this device element.   Multiple products in context of single total.
+                            operationSummaries.Add(summary);
                         }
                     }
                 }
@@ -691,7 +741,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return operationSummaries;
         }
 
-        private OperationSummary GetOperationSummary(ISOTask isoLoggedTask, string productIDRef, string deviceElementIDRef)
+        private OperationSummary GetOperationSummary(IEnumerable<ISOTime> timeElements, string productIDRef, IEnumerable<string> deviceElementIDRefs = null)
         {
             OperationSummary operationSummary = null;
             if (TaskDataMapper.ADAPTIdMap.FindByISOId(productIDRef).HasValue)
@@ -699,78 +749,40 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 operationSummary = new OperationSummary();
                 operationSummary.ProductId = TaskDataMapper.ADAPTIdMap.FindByISOId(productIDRef).Value;
                 operationSummary.Data = new List<StampedMeteredValues>();
-                foreach (ISOTime time in isoLoggedTask.Times.Where(t => t.HasStart && t.HasType)) //Nothing added without a Start and Type attribute
-                {
-                    StampedMeteredValues values = GetStampedMeteredValuesForTime(time, deviceElementIDRef);
-                    if (values != null)
-                    {
-                        operationSummary.Data.Add(values);
-                    }
-                }
+                operationSummary.Data.Add(GetStampedMeteredValuesForTimes(timeElements, deviceElementIDRefs));
             }
             return operationSummary;
         }
 
-        private List<ISOProductAllocation> GetProductAllocationsForTime(ISOTime time, ISOTask isoLoggedTask, string deviceElementFilter)
-        {
-            List<ISOProductAllocation> allocations = new List<ISOProductAllocation>();
-            List<ISOProductAllocation> orderedFilteredPans = isoLoggedTask.ProductAllocations.Where(p => p.DeviceElementIdRef == null || p.DeviceElementIdRef == deviceElementFilter).OrderBy(p => p.AllocationStamp.Start.Value).ToList();
-            for (int i = 0; i < orderedFilteredPans.Count; i++)
-            {
-                ISOProductAllocation pan = orderedFilteredPans[i];
-                if (pan.AllocationStamp.Stop.HasValue)
-                {
-                    //PAN must fit inside TIM
-                    if (pan.AllocationStamp.Start >= time.Start && pan.AllocationStamp.Stop <= time.Stop)
-                    {
-                        allocations.Add(pan);
-                    }
-                }
-                else if (i < orderedFilteredPans.Count - 1)
-                {
-                    //No Stop but a subsequent PAN; use start of next PAN as an implicit stop
-                    DateTime nextPanStart = orderedFilteredPans[i + 1].AllocationStamp.Start.Value;
-                    if (pan.AllocationStamp.Start >= time.Start && nextPanStart <= time.Stop)
-                    {
-                        allocations.Add(pan);
-                    }
-                }
-                else if (pan.AllocationStamp.Start < time.Stop)
-                {
-                    //No subsequent PAN; include if starts prior to time stop
-                    allocations.Add(pan);
-                }
-            }
-            return allocations;
-        }
-
-        private StampedMeteredValues GetStampedMeteredValuesForTime(ISOTime time, string deviceElementFilter = null)
+        private StampedMeteredValues GetStampedMeteredValuesForTimes(IEnumerable<ISOTime> taskTimes, IEnumerable<string> deviceElementFilter = null)
         {
             StampedMeteredValues stampedValues = new StampedMeteredValues();
 
             //TimeScope
             stampedValues.Stamp = new TimeScope();
-            stampedValues.Stamp.TimeStamp1 = time.Start;
-            if (time.Stop != null)
+            stampedValues.Stamp.TimeStamp1 = taskTimes.First().Start;
+            if (taskTimes.Last().Stop != null)
             {
-                stampedValues.Stamp.TimeStamp2 = time.Stop;
+                stampedValues.Stamp.TimeStamp2 = taskTimes.Last().Stop;
             }
-
-            if (time.Stop == null && time.Duration != null)
+            else if (taskTimes.Last().Duration != null)
             {
                 //Calculate the Stop time if missing and duration present
-                stampedValues.Stamp.TimeStamp2 = stampedValues.Stamp.TimeStamp1.Value.AddSeconds(time.Duration.Value);
+                stampedValues.Stamp.TimeStamp2 = stampedValues.Stamp.TimeStamp1.Value.AddSeconds(taskTimes.Last().Duration.Value);
             }
-            stampedValues.Stamp.DateContext = time.Type == ISOEnumerations.ISOTimeType.Planned ? DateContextEnum.ProposedStart : DateContextEnum.ActualStart;
+
+            //All types should be the same
+            stampedValues.Stamp.DateContext = taskTimes.First().Type == ISOEnumerations.ISOTimeType.Planned ? DateContextEnum.ProposedStart : DateContextEnum.ActualStart;
+            //Duration will define the time from the first to the last time.   Gaps will be identifiable by examining Summary.Timescopes as defined above.
             stampedValues.Stamp.Duration = stampedValues.Stamp.TimeStamp2.GetValueOrDefault() - stampedValues.Stamp.TimeStamp1.GetValueOrDefault();
 
             //Values
-            foreach (ISODataLogValue dlv in time.DataLogValues)
+            foreach (ISODataLogValue dlv in taskTimes.Last().DataLogValues) //The last Time contains the comprehensive Task totals
             {
                 MeteredValue value = GetSummaryMeteredValue(dlv);
-                if (value != null) 
+                if (value != null)
                 {
-                    if (deviceElementFilter == null || deviceElementFilter == dlv.DeviceElementIdRef)
+                    if (deviceElementFilter == null || deviceElementFilter.Contains(dlv.DeviceElementIdRef))
                     {
                         stampedValues.Values.Add(value);
                     }

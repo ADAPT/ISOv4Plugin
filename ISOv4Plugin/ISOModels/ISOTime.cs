@@ -36,7 +36,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         public override XmlWriter WriteXML(XmlWriter xmlBuilder)
         {
             xmlBuilder.WriteStartElement("TIM");
-            xmlBuilder.WriteXmlAttribute("A", Start.HasValue ? Start.Value.ToString("yyyy-MM-ddThh:mm:ss") : "");
+
+            //Custom behavior for StartTime to support TimeLog use with an empty A
+            string start = Start.HasValue ? Start.Value.ToString("yyyy-MM-ddThh:mm:ss") : HasStart ? string.Empty : null;
+            if (start != null)
+            {
+                xmlBuilder.WriteAttributeString("A", start);
+            }
+
             xmlBuilder.WriteXmlAttribute("B", Stop.HasValue ? Stop.Value.ToString("yyyy-MM-ddThh:mm:ss") : "");
             xmlBuilder.WriteXmlAttribute<long>("C", Duration);
             xmlBuilder.WriteXmlAttribute("D", ((int)Type).ToString());

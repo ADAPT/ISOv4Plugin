@@ -12,7 +12,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
     public interface ISectionMapper
     {
-        List<DeviceElementUse> Map(ISOTime time, IEnumerable<ISOSpatialRow> isoRecords, int operationDataId);
+        List<DeviceElementUse> Map(ISOTime time, IEnumerable<ISOSpatialRow> isoRecords, int operationDataId, IEnumerable<string> isoDeviceElementIDs);
         List<DeviceElementUse> ConvertToBaseTypes(List<DeviceElementUse> meters);
     }
 
@@ -26,12 +26,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             _workingDataMapper = meterMapper;
         }
 
-        public List<DeviceElementUse> Map(ISOTime time, IEnumerable<ISOSpatialRow> isoRecords, int operationDataId)
+        public List<DeviceElementUse> Map(ISOTime time, IEnumerable<ISOSpatialRow> isoRecords, int operationDataId, IEnumerable<string> isoDeviceElementIDs)
         {
             var sections = new List<DeviceElementUse>();
-
-            IEnumerable<string> distinctDeviceElementIDs = time.DataLogValues.Select(d => d.DeviceElementIdRef).Distinct();
-            foreach (string isoDeviceElementID in distinctDeviceElementIDs)
+            foreach (string isoDeviceElementID in isoDeviceElementIDs)
             {
                 DeviceElementHierarchy hierarchy = TaskDataMapper.DeviceElementHierarchies.GetRelevantHierarchy(isoDeviceElementID);
                 if (hierarchy != null)
@@ -103,6 +101,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 section.TotalDistanceTravelled = x.TotalDistanceTravelled;
                 section.TotalElapsedTime = x.TotalElapsedTime;
                 section.DeviceConfigurationId = x.DeviceConfigurationId;
+                section.Id.ReferenceId = x.Id.ReferenceId;
+                section.Id.UniqueIds = x.Id.UniqueIds;
                 return section;
                 }).ToList();
         }

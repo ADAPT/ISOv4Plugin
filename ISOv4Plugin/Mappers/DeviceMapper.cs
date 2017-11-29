@@ -66,6 +66,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             {
                 DeviceElementMapper deviceElementMapper = new DeviceElementMapper(TaskDataMapper);
                 dvc.DeviceElements = deviceElementMapper.ExportDeviceElements(deviceElements, dvc).ToList();
+
+                //Device Properties
+                ExportDeviceProperties(dvc, deviceElements);
             }
 
             //Serial Number
@@ -75,6 +78,110 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
             return dvc;
+        }
+
+        private void ExportDeviceProperties(ISODevice device, IEnumerable<DeviceElement> deviceElements)
+        {
+            int objectID = 0;
+            foreach (DeviceElement deviceElement in deviceElements)
+            {
+                string isoID = TaskDataMapper.ISOIdMap.FindByADAPTId(deviceElement.Id.ReferenceId);
+                if (!string.IsNullOrEmpty(isoID))
+                {
+                    ISODeviceElement det = device.DeviceElements.SingleOrDefault(d => d.DeviceElementId == isoID);
+                    if (det != null)
+                    {
+                        IEnumerable<DeviceElementConfiguration> configs = DataModel.Catalog.DeviceElementConfigurations.Where(c => c.DeviceElementId == deviceElement.Id.ReferenceId);
+                        foreach (DeviceElementConfiguration config in configs)
+                        {
+                            if (config is MachineConfiguration)
+                            {
+                                MachineConfiguration machineConfig = config as MachineConfiguration;
+                                ISODeviceElement navigationElement = device.DeviceElements.FirstOrDefault(d => d.DeviceElementType == ISODeviceElementType.Navigation);
+                                if (navigationElement == null)
+                                {
+                                    if (machineConfig.GpsReceiverXOffset != null)
+                                    {
+                                        ExportDeviceProperty(device, navigationElement, machineConfig.GpsReceiverXOffset, ++objectID);
+                                    }
+                                    if (machineConfig.GpsReceiverYOffset != null)
+                                    {
+                                        ExportDeviceProperty(device, navigationElement, machineConfig.GpsReceiverYOffset, ++objectID);
+                                    }
+                                    if (machineConfig.GpsReceiverZOffset != null)
+                                    {
+                                        ExportDeviceProperty(device, navigationElement, machineConfig.GpsReceiverZOffset, ++objectID);
+                                    }
+                                }
+                            }
+                            else if (config is ImplementConfiguration)
+                            {
+                                ImplementConfiguration implementConfig = config as ImplementConfiguration;
+                                if (implementConfig.Width != null)
+                                {
+                                    ExportDeviceProperty(device, det, implementConfig.Width, ++objectID);
+                                }
+                                if (implementConfig.Offsets != null)
+                                {
+                                    implementConfig.Offsets.ForEach(o => ExportDeviceProperty(device, det, o, ++objectID));
+                                }
+                            }
+                            else if (config is SectionConfiguration)
+                            {
+                                SectionConfiguration sectionConfig = config as SectionConfiguration;
+                                if (sectionConfig.InlineOffset != null)
+                                {
+                                    ExportDeviceProperty(device, det, sectionConfig.InlineOffset, ++objectID);
+                                }
+                                if (sectionConfig.LateralOffset != null)
+                                {
+                                    ExportDeviceProperty(device, det, sectionConfig.LateralOffset, ++objectID);
+                                }
+                                if (sectionConfig.SectionWidth != null)
+                                {
+                                    ExportDeviceProperty(device, det, sectionConfig.SectionWidth, ++objectID);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void ExportDeviceProperty(ISODevice device, ISODeviceElement deviceElement, NumericRepresentationValue representationValue, int objectID)
+        {
+            ISODeviceProperty dpt = new ISODeviceProperty();
+            dpt.ObjectID = objectID;
+            switch (representationValue.Representation.Code)
+            {
+                case "0043":
+                case "0046":
+                    dpt.DDI = representationValue.Representation.Code;
+                    dpt.Designator = "Width";
+                    dpt.Value = representationValue.AsLongViaMappedDDI(RepresentationMapper);
+                    break;
+                case "vrOffsetInline":
+                    dpt.DDI = "0086";
+                    dpt.Designator = "XOffset";
+                    dpt.Value = representationValue.AsLongViaMappedDDI(RepresentationMapper);
+                    break;
+                case "vrOffsetLateral":
+                    dpt.DDI = "0087";
+                    dpt.Designator = "YOffset";
+                    dpt.Value = representationValue.AsLongViaMappedDDI(RepresentationMapper);
+                    break;
+                case "vrOffsetVertical":
+                    dpt.DDI = "0088";
+                    dpt.Designator = "ZOffset";
+                    dpt.Value = representationValue.AsLongViaMappedDDI(RepresentationMapper);
+                    break;
+            }
+
+            if (!string.IsNullOrEmpty(dpt.DDI))
+            {
+                device.DeviceProperties.Add(dpt);
+                deviceElement.DeviceObjectReferences.Add(new ISODeviceObjectReference() { DeviceObjectId = objectID });
+            }
         }
 
         #endregion Export 

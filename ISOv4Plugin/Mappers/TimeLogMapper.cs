@@ -23,12 +23,12 @@ using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.Representation.RepresentationSystem;
 using AgGateway.ADAPT.Representation.RepresentationSystem.ExtensionMethods;
 
-namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
+namespace AgGateway.ADAPT.ISOv4Plugin.Mappers 
 {
     public interface ITimeLogMapper
     {
         IEnumerable<ISOTimeLog> ExportTimeLogs(IEnumerable<OperationData> operationDatas, string dataPath);
-        IEnumerable<OperationData> ImportTimeLogs(IEnumerable<ISOTimeLog> isoTimeLogs);
+        IEnumerable<OperationData> ImportTimeLogs(IEnumerable<ISOTimeLog> isoTimeLogs, int? prescriptionID);
     }
 
     public class TimeLogMapper : BaseMapper, ITimeLogMapper
@@ -43,31 +43,46 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             List<ISOTimeLog> timeLogs = new List<ISOTimeLog>();
             foreach (OperationData operation in operationDatas)
             {
-                ISOTimeLog timeLog = ExportTimeLog(operation, dataPath);
-                timeLogs.Add(timeLog);
+                IEnumerable<SpatialRecord> spatialRecords = operation.GetSpatialRecords != null ? operation.GetSpatialRecords() : null;
+                if (spatialRecords != null && spatialRecords.Any()) //No need to export a timelog if no data
+                {
+                    ISOTimeLog timeLog = ExportTimeLog(operation, spatialRecords, dataPath);
+                    timeLogs.Add(timeLog);
+                }
             }
             return timeLogs;
         }
 
-        private ISOTimeLog ExportTimeLog(OperationData operation, string dataPath)
+        private ISOTimeLog ExportTimeLog(OperationData operation, IEnumerable<SpatialRecord> spatialRecords, string dataPath)
         {
             ISOTimeLog isoTimeLog = new ISOTimeLog();
 
             //ID
-            string id = operation.Id.FindIsoId() ?? GenerateId(5); 
+            string id = operation.Id.FindIsoId() ?? GenerateId(5);
             isoTimeLog.Filename = id;
             ExportUniqueIDs(operation.Id, id);
             TaskDataMapper.ISOIdMap.Add(operation.Id.ReferenceId, id);
 
-            List<DeviceElementUse> deviceElementUses = operation.GetAllSections(); //TODO the DeviceElementUses collection is not mapping to the WorkingData references
+            List<DeviceElementUse> deviceElementUses = operation.GetAllSections();
             IEnumerable<WorkingData> workingDatas = deviceElementUses.SelectMany(x => x.GetWorkingDatas()).ToList();
-            var spatialRecords = operation.GetSpatialRecords != null ? operation.GetSpatialRecords() : null;
 
             ISOTime isoTime = new ISOTime();
-            //isoTime.Start = //TODO
+            isoTime.HasStart = true;
             isoTime.Type = ISOTimeType.Effective;
             isoTime.DataLogValues = ExportDataLogValues(workingDatas, deviceElementUses).ToList();
-            //isoTime.Positions = //TODO
+
+            //Set the timelog data definition for PTN
+            ISOPosition position = new ISOPosition(); 
+            position.HasPositionNorth = true;
+            position.HasPositionEast = true;
+            position.HasPositionUp = true;
+            position.HasPositionStatus = true;
+            position.HasPDOP = false;
+            position.HasHDOP = false;
+            position.HasNumberOfSatellites = false;
+            position.HasGpsUtcTime = false;
+            position.HasGpsUtcTime = false;
+            isoTime.Positions.Add(position);
 
             //Write XML
             TaskDocumentWriter xmlWriter = new TaskDocumentWriter();
@@ -78,7 +93,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             BinaryWriter writer = new BinaryWriter();
             writer.Write(binFilePath, workingDatas.ToList(), spatialRecords);
 
-            return isoTimeLog;
+            return isoTimeLog;            
         }
 
         public IEnumerable<ISODataLogValue> ExportDataLogValues(IEnumerable<WorkingData> workingDatas, List<DeviceElementUse> deviceElementUses)
@@ -87,7 +102,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             {
                 return null;
             }
-
+            //This separate subroutine is necessary due to the iterator therein
             return ExportNonNullDataLogValues(workingDatas, deviceElementUses);
         }
 
@@ -119,20 +134,20 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //DDI
             int? mappedDDI = RepresentationMapper.Map(workingData.Representation);
             var dlv = new ISODataLogValue();
-            if (mappedDDI == null)
-            {
-                dlv.ProcessDataDDI = null;
-            }
-            else
+            if (mappedDDI != null)
             {
                 if (workingData.Representation != null && workingData.Representation.Code == "dtRecordingStatus" && workingData.DeviceElementUseId != 0)
                 {
-                    dlv.ProcessDataDDI = 161.AsHexDDI();
+                    dlv.ProcessDataDDI = 141.AsHexDDI(); //No support for exporting CondensedWorkState at this time
                 }
                 else
                 {
                     dlv.ProcessDataDDI = mappedDDI.Value.AsHexDDI();
                 }
+            }
+            else if (workingData.Representation.CodeSource == ApplicationDataModel.Representations.RepresentationCodeSourceEnum.ISO11783_DDI)
+            {
+                dlv.ProcessDataDDI = workingData.Representation.Code;
             }
 
             //DeviceElementIdRef
@@ -144,6 +159,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 {
                     if (TaskDataMapper.ISOIdMap.ContainsKey(deviceElementConfiguration.DeviceElementId))
                     {
+                        //This requires the Devices will have been mapped prior to the LoggedData
                         dlv.DeviceElementIdRef = TaskDataMapper.ISOIdMap[deviceElementConfiguration.DeviceElementId];
                     }
                 }
@@ -200,52 +216,34 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             private void WriteSpatialRecord(SpatialRecord spatialRecord, List<WorkingData> meters, MemoryStream memoryStream, Dictionary<WorkingData, int> metersByIsoIds)
             {
-                WriteTimeStart(spatialRecord.Timestamp, memoryStream);
-                WritePosition(spatialRecord.Geometry, memoryStream);
-                WriteMeterValues(spatialRecord, meters, memoryStream, metersByIsoIds);
-            }
+                //Start Time
+                var millisecondsSinceMidnight = (UInt32)new TimeSpan(0, spatialRecord.Timestamp.Hour, spatialRecord.Timestamp.Minute, spatialRecord.Timestamp.Second, spatialRecord.Timestamp.Millisecond).TotalMilliseconds;
+                memoryStream.Write(BitConverter.GetBytes(millisecondsSinceMidnight), 0, 4);
 
-            private void WriteTimeStart(DateTime timestamp, MemoryStream memoryStream)
-            {
-                var millisecondsSinceMidnight = (UInt32)new TimeSpan(0, timestamp.Hour, timestamp.Minute,
-                    timestamp.Second, timestamp.Millisecond).TotalMilliseconds;
+                var daysSinceJanOne1980 = (UInt16)(spatialRecord.Timestamp - (_januaryFirst1980)).TotalDays;
+                memoryStream.Write(BitConverter.GetBytes(daysSinceJanOne1980), 0, 2);
 
-                var daysSinceJanOne1980 = (UInt16)(timestamp - (_januaryFirst1980)).TotalDays;
+                //Position
+                var north = Int32.MaxValue; //"Not available" value for the Timelog
+                var east = Int32.MaxValue;
+                var up = Int32.MaxValue;
+                if (spatialRecord.Geometry != null)
+                {
+                    Point location = spatialRecord.Geometry as Point;
+                    if (location != null)
+                    {
+                        north = (Int32)(location.Y / CoordinateMultiplier);
+                        east = (Int32)(location.X / CoordinateMultiplier);
+                        up = (Int32)(location.Z.GetValueOrDefault());
+                    }
+                }
 
-                var millisecondsMemStream = new MemoryStream(BitConverter.GetBytes(millisecondsSinceMidnight));
-                millisecondsMemStream.WriteTo(memoryStream);
+                memoryStream.Write(BitConverter.GetBytes(north), 0, 4);
+                memoryStream.Write(BitConverter.GetBytes(east), 0, 4);
+                memoryStream.Write(BitConverter.GetBytes(up), 0, 4);
+                memoryStream.WriteByte((byte)ISOPositionStatus.NotAvailable);
 
-                var daysMemStream = new MemoryStream(BitConverter.GetBytes(daysSinceJanOne1980));
-                daysMemStream.WriteTo(memoryStream);
-            }
-
-            private void WritePosition(Shape geometry, MemoryStream memoryStream)
-            {
-                if (geometry == null)
-                    return;
-
-                var location = geometry as Point;
-
-                if (location == null) return;
-
-                var north = (Int32)(location.Y / CoordinateMultiplier);
-                var east = (Int32)(location.X / CoordinateMultiplier);
-                var up = (Int32)(location.Z.GetValueOrDefault());
-
-                var northStream = new MemoryStream(BitConverter.GetBytes(north));
-                northStream.WriteTo(memoryStream);
-
-                var eastStream = new MemoryStream(BitConverter.GetBytes(east));
-                eastStream.WriteTo(memoryStream);
-
-                var upStream = new MemoryStream(BitConverter.GetBytes(up));
-                upStream.WriteTo(memoryStream);
-            }
-
-            private readonly Dictionary<int, uint> _previousDlvs = new Dictionary<int, uint>();
-
-            private void WriteMeterValues(SpatialRecord spatialRecord, List<WorkingData> meters, MemoryStream memoryStream, Dictionary<WorkingData, int> metersByIsoIds)
-            {
+                //Values
                 var dlvOrders = metersByIsoIds.Values.Distinct();
                 Dictionary<int, uint> dlvsToWrite;
 
@@ -254,23 +252,20 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 else
                     dlvsToWrite = GetMeterValues(spatialRecord, meters, metersByIsoIds);
 
-                var numberOfMeters = (byte)dlvsToWrite.Count;
-                var numberOfMetersStream = new MemoryStream();
-                numberOfMetersStream.WriteByte(numberOfMeters);
-                numberOfMetersStream.WriteTo(memoryStream);
+                byte numberOfMeters = (byte)dlvsToWrite.Count;
+                memoryStream.WriteByte(numberOfMeters);
 
                 foreach (var key in dlvsToWrite.Keys)
                 {
-                    var order = (byte)key;
-                    var value = dlvsToWrite[key];
+                    byte order = (byte)key;
+                    uint value = dlvsToWrite[key];
 
                     memoryStream.WriteByte(order);
-
-                    var valueStream = new MemoryStream(BitConverter.GetBytes(value));
-                    valueStream.WriteTo(memoryStream);
+                    memoryStream.Write(BitConverter.GetBytes(value), 0, 4);
                 }
             }
 
+            private readonly Dictionary<int, uint> _previousDlvs = new Dictionary<int, uint>();
             private Dictionary<int, uint> GetMeterValues(SpatialRecord spatialRecord, List<WorkingData> meters, Dictionary<WorkingData, int> metersByIsoIds)
             {
                 var dlvsToWrite = new Dictionary<int, uint>();
@@ -287,10 +282,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         value = _numericValueMapper.Map(numericMeter, spatialRecord);
                     }
 
-                    var isoEnumerateMeter = dlvMeters[0] as ISOEnumeratedMeter;
-                    if (isoEnumerateMeter != null && spatialRecord.GetMeterValue(isoEnumerateMeter) != null)
+                    var enumeratedMeter = dlvMeters[0] as EnumeratedWorkingData;
+                    if (enumeratedMeter != null && spatialRecord.GetMeterValue(enumeratedMeter) != null)
                     {
-                        value = _enumeratedValueMapper.Map(isoEnumerateMeter, dlvMeters, spatialRecord);
+                        value = _enumeratedValueMapper.Map(enumeratedMeter, dlvMeters, spatialRecord);
                     }
 
                     if (value == null)
@@ -325,10 +320,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         value = _numericValueMapper.Map(numericMeter, spatialRecord);
                     }
 
-                    var isoEnumerateMeter = meter as ISOEnumeratedMeter;
-                    if (isoEnumerateMeter != null && spatialRecord.GetMeterValue(isoEnumerateMeter) != null)
+                    var enumeratedMeter = meter as EnumeratedWorkingData;
+                    if (enumeratedMeter != null && spatialRecord.GetMeterValue(enumeratedMeter) != null)
                     {
-                        value = _enumeratedValueMapper.Map(isoEnumerateMeter, new List<WorkingData> { meter }, spatialRecord);
+                        value = _enumeratedValueMapper.Map(enumeratedMeter, new List<WorkingData> { meter }, spatialRecord);
                     }
 
                     if (value == null)
@@ -354,22 +349,22 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         #region Import
 
-        public IEnumerable<OperationData> ImportTimeLogs(IEnumerable<ISOTimeLog> isoTimeLogs)
+        public IEnumerable<OperationData> ImportTimeLogs(IEnumerable<ISOTimeLog> isoTimeLogs, int? prescriptionID)
         {
             List<OperationData> operations = new List<OperationData>();
             foreach (ISOTimeLog isoTimeLog in isoTimeLogs)
             {
-                OperationData operation = ImportTimeLog(isoTimeLog);
-                if (operation != null)
+                IEnumerable<OperationData> operationData = ImportTimeLog(isoTimeLog, prescriptionID);
+                if (operationData != null)
                 {
-                    operations.Add(operation);
+                    operations.AddRange(operationData);
                 }
             }
 
             return operations;
         }
 
-        private OperationData ImportTimeLog(ISOTimeLog isoTimeLog, int? prescriptionID = null)
+        private IEnumerable<OperationData> ImportTimeLog(ISOTimeLog isoTimeLog, int? prescriptionID)
         {
             WorkingDataMapper workingDataMapper = new WorkingDataMapper(new EnumeratedMeterFactory(), TaskDataMapper);
             SectionMapper sectionMapper = new SectionMapper(workingDataMapper, TaskDataMapper);
@@ -377,26 +372,50 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             IEnumerable<ISOSpatialRow> isoRecords = ReadTimeLog(isoTimeLog, this.TaskDataPath);
             if (isoRecords != null)
             {
-                isoRecords = isoRecords.ToList(); //ToList() avoids multiple spatial reads
-
-                OperationData operationData = new OperationData();
-
-                //This line will necessarily invoke a spatial read in order to find 
-                //1)The correct number of CondensedWorkState working datas to create 
-                //2)Any Widths and Offsets stored in the spatial data
+                isoRecords = isoRecords.ToList(); //Avoids multiple reads
                 ISOTime time = isoTimeLog.GetTimeElement(this.TaskDataPath);
-                IEnumerable<DeviceElementUse> sections = sectionMapper.Map(time, isoRecords, operationData.Id.ReferenceId);
 
-                var workingDatas = sections != null ? sections.SelectMany(x => x.GetWorkingDatas()).ToList() : new List<WorkingData>();
-                var sectionsSimple = sectionMapper.ConvertToBaseTypes(sections.ToList()); 
+                //Identify unique devices represented in this TimeLog data
+                IEnumerable<string> deviceElementIDs = time.DataLogValues.Where(d => d.ProcessDataDDI != "DFFF" && d.ProcessDataDDI != "DFFE").Select(d => d.DeviceElementIdRef);
+                Dictionary<ISODevice, HashSet<string>> loggedDeviceElementsByDevice = new Dictionary<ISODevice, HashSet<string>>();
+                foreach (string deviceElementID in deviceElementIDs)
+                {
+                    ISODeviceElement isoDeviceElement = TaskDataMapper.DeviceElementHierarchies.GetISODeviceElementFromID(deviceElementID);
+                    if (isoDeviceElement != null)
+                    {
+                        ISODevice device = isoDeviceElement.Device;
+                        if (!loggedDeviceElementsByDevice.ContainsKey(device))
+                        {
+                            loggedDeviceElementsByDevice.Add(device, new HashSet<string>());
+                        }
+                        loggedDeviceElementsByDevice[device].Add(deviceElementID);
+                    }
+                }
 
-                operationData.GetSpatialRecords = () => spatialMapper.Map(isoRecords, workingDatas);
-                operationData.MaxDepth = sections.Count() > 0 ? sections.Select(s => s.Depth).Max() : 0;
-                operationData.GetDeviceElementUses = x => x == 0 ? sectionsSimple : new List<DeviceElementUse>();
-                operationData.PrescriptionId = prescriptionID;
-                operationData.OperationType = GetOperationTypeFromLoggingDevices(time);
+                //Split all devices in the same TimeLog into separate OperationData objects to handle multi-implement scenarios
+                //This will ensure implement geometries/DeviceElementUse Depths & Orders do not get confused between implements
+                List<OperationData> operationDatas = new List<OperationData>();
+                foreach (ISODevice dvc in loggedDeviceElementsByDevice.Keys)
+                {
+                    OperationData operationData = new OperationData();
 
-                return operationData;
+                    //This line will necessarily invoke a spatial read in order to find 
+                    //1)The correct number of CondensedWorkState working datas to create 
+                    //2)Any Widths and Offsets stored in the spatial data
+                    IEnumerable<DeviceElementUse> sections = sectionMapper.Map(time, isoRecords, operationData.Id.ReferenceId, loggedDeviceElementsByDevice[dvc]);
+
+                    var workingDatas = sections != null ? sections.SelectMany(x => x.GetWorkingDatas()).ToList() : new List<WorkingData>();
+                    var sectionsSimple = sectionMapper.ConvertToBaseTypes(sections.ToList());
+
+                    operationData.GetSpatialRecords = () => spatialMapper.Map(isoRecords, workingDatas);
+                    operationData.MaxDepth = sections.Count() > 0 ? sections.Select(s => s.Depth).Max() : 0;
+                    operationData.GetDeviceElementUses = x => x == 0 ? sectionsSimple : new List<DeviceElementUse>();
+                    operationData.PrescriptionId = prescriptionID;
+                    operationData.OperationType = GetOperationTypeFromLoggingDevices(time);
+                    operationDatas.Add(operationData);
+                }
+
+                return operationDatas;
             }
             return null;
         }

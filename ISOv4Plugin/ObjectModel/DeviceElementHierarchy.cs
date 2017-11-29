@@ -50,7 +50,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
         public ISODeviceElement GetISODeviceElementFromID(string deviceElementID)
         {
             DeviceElementHierarchy hierarchy = GetRelevantHierarchy(deviceElementID);
-            return hierarchy.DeviceElement;
+            if (hierarchy != null)
+            {
+                return hierarchy.DeviceElement;
+            }
+            return null;
         }
     }
 

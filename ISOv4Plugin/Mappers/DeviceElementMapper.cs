@@ -19,7 +19,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
     public interface IDeviceElementMapper
     {
         IEnumerable<ISODeviceElement> ExportDeviceElements(IEnumerable<DeviceElement> adaptDeviceElements, ISODevice isoDevice);
-        ISODeviceElement ExportDeviceElement(DeviceElement adaptDeviceElement, ISODevice isoDevice, List<ISODeviceElement> pendingDeviceElements);
+        ISODeviceElement ExportDeviceElement(DeviceElement adaptDeviceElement, ISODevice isoDevice, List<ISODeviceElement> pendingDeviceElements, int objectID, int deviceElementNumber);
         IEnumerable<DeviceElement> ImportDeviceElements(ISODevice isoDevice);
         DeviceElement ImportDeviceElement(ISODeviceElement isoDeviceElement, EnumeratedValue deviceClassification, DeviceElementHierarchy rootDeviceHierarchy);
     }
@@ -31,18 +31,44 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         }
 
         #region Export
-        public IEnumerable<ISODeviceElement> ExportDeviceElements(IEnumerable<DeviceElement> adaptDeviceElements, ISODevice isoDevice)
+        public IEnumerable<ISODeviceElement> ExportDeviceElements(IEnumerable<DeviceElement> adaptRootDeviceElements, ISODevice isoDevice)
         {
             List<ISODeviceElement> isoDeviceElements = new List<ISODeviceElement>();
-            foreach (DeviceElement adaptDeviceElement in adaptDeviceElements)
+            DeviceElement rootElement = null;
+            if (adaptRootDeviceElements.Count() == 1)
             {
-                ISODeviceElement isoGroup = ExportDeviceElement(adaptDeviceElement, isoDevice, isoDeviceElements);
-                isoDeviceElements.Add(isoGroup);
+                rootElement = adaptRootDeviceElements.Single();
             }
+            else
+            {
+                //Create a single root device element to align with the ISO requirement
+                rootElement = new DeviceElement();
+                rootElement.Description = isoDevice.DeviceDesignator;
+                List<DeviceElement> clonedRootElements = new List<DeviceElement>();
+                foreach (DeviceElement element in adaptRootDeviceElements)
+                {
+                    DeviceElement clone = new DeviceElement();
+                    clone.BrandId = element.BrandId;
+                    clone.ContextItems = element.ContextItems;
+                    clone.Description = element.Description;
+                    clone.DeviceClassification = element.DeviceClassification;
+                    clone.DeviceElementType = element.DeviceElementType;
+                    clone.DeviceModelId = element.DeviceModelId;
+                    clone.Id.ReferenceId = element.Id.ReferenceId;
+                    clone.Id.UniqueIds = element.Id.UniqueIds;
+                    clone.ManufacturerId = element.ManufacturerId;
+                    clone.ParentDeviceId = rootElement.Id.ReferenceId; //Assign the clone to the new single root
+                    clone.SerialNumber = element.SerialNumber;
+                    clone.SeriesId = element.SeriesId;
+                }
+            }
+
+            ExportDeviceElement(rootElement, isoDevice, isoDeviceElements, 1, 1);
+
             return isoDeviceElements;
         }
 
-        public ISODeviceElement ExportDeviceElement(DeviceElement adaptDeviceElement, ISODevice isoDevice, List<ISODeviceElement> pendingDeviceElements)
+        public ISODeviceElement ExportDeviceElement(DeviceElement adaptDeviceElement, ISODevice isoDevice, List<ISODeviceElement> pendingDeviceElements, int objectID, int elementNumber)
         {
             ISODeviceElement det = new ISODeviceElement(isoDevice);
 
@@ -51,6 +77,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             det.DeviceElementId = id;
             ExportUniqueIDs(adaptDeviceElement.Id, id);
             TaskDataMapper.ISOIdMap.Add(adaptDeviceElement.Id.ReferenceId, id);
+
+            //Object ID
+            det.DeviceElementObjectId = objectID;
+
+            //Device Element Number
+            det.DeviceElementNumber = elementNumber;
 
             //Designator
             det.DeviceElementDesignator = adaptDeviceElement.Description;
@@ -95,10 +127,19 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     det.ParentObjectId = 0;
                 }
             }
+    
+            //Add to the collection
+            pendingDeviceElements.Add(det);
+
+            //Child Elements
+            int deviceElementNumber = 1;
+            foreach (DeviceElement childElement in DataModel.Catalog.DeviceElements.Where(d => d.ParentDeviceId == adaptDeviceElement.Id.ReferenceId))
+            {
+                ExportDeviceElement(childElement, isoDevice, pendingDeviceElements, ++objectID, deviceElementNumber++);
+            }
 
             return det;
         }
-
         #endregion Export 
 
         #region Import
@@ -221,8 +262,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
 
-            if (HasGeometryInformation(deviceElementHierarchy)) //Geometry information is on DeviceProperty elements. 
+            if (HasGeometryInformation(deviceElementHierarchy)) 
             {
+                //Geometry information is on DeviceProperty elements. 
                 GetDeviceElementConfiguration(deviceElement, deviceElementHierarchy, DataModel.Catalog); //Add via the Get method to invoke business rules for configs
             }
 
@@ -295,12 +337,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
         }
 
-        public static MachineConfiguration AddMachineConfiguration(DeviceElement adaptDeviceElement, DeviceElementHierarchy deviceHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
+        private static MachineConfiguration AddMachineConfiguration(DeviceElement adaptDeviceElement, DeviceElementHierarchy deviceHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
         {
             MachineConfiguration machineConfig = new MachineConfiguration();
 
             //Description
-            machineConfig.Description = deviceHierarchy.DeviceElement.DeviceElementDesignator;
+            machineConfig.Description = $"{deviceHierarchy.DeviceElement.Device.DeviceDesignator} : {deviceHierarchy.DeviceElement.DeviceElementDesignator}";
 
             //Device Element ID
             machineConfig.DeviceElementId = adaptDeviceElement.Id.ReferenceId;
@@ -339,12 +381,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return machineConfig;
         }
 
-        public static ImplementConfiguration AddImplementConfiguration(DeviceElement adaptDeviceElement, DeviceElementHierarchy deviceHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
+        private static ImplementConfiguration AddImplementConfiguration(DeviceElement adaptDeviceElement, DeviceElementHierarchy deviceHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
         {
             ImplementConfiguration implementConfig = new ImplementConfiguration();
 
             //Description
-            implementConfig.Description = deviceHierarchy.DeviceElement.DeviceElementDesignator;
+            implementConfig.Description = $"{deviceHierarchy.DeviceElement.Device.DeviceDesignator} : {deviceHierarchy.DeviceElement.DeviceElementDesignator}";
 
             //Device Element ID
             implementConfig.DeviceElementId = adaptDeviceElement.Id.ReferenceId;
@@ -382,12 +424,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return implementConfig;
         }
 
-        public static SectionConfiguration AddSectionConfiguration(DeviceElement adaptDeviceElement, DeviceElementHierarchy deviceHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
+        private static SectionConfiguration AddSectionConfiguration(DeviceElement adaptDeviceElement, DeviceElementHierarchy deviceHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
         {
             SectionConfiguration sectionConfiguration = new SectionConfiguration();
 
             //Description
-            sectionConfiguration.Description = deviceHierarchy.DeviceElement.DeviceElementDesignator;
+            sectionConfiguration.Description = $"{deviceHierarchy.DeviceElement.Device.DeviceDesignator} : {deviceHierarchy.DeviceElement.DeviceElementDesignator}";
+
 
             //Device Element ID
             sectionConfiguration.DeviceElementId = adaptDeviceElement.Id.ReferenceId;

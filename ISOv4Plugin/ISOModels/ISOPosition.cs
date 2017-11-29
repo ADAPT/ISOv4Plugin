@@ -36,16 +36,63 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 
         public override XmlWriter WriteXML(XmlWriter xmlBuilder)
         {
+            //This write method has additional complexity to support the PTN behavior inside of TimeLogs
             xmlBuilder.WriteStartElement("PTN");
-            xmlBuilder.WriteXmlAttribute<decimal>("A", PositionNorth);
-            xmlBuilder.WriteXmlAttribute<decimal>("B", PositionEast);
-            xmlBuilder.WriteXmlAttribute("C", PositionUp);
-            xmlBuilder.WriteXmlAttribute("D", ((int)PositionStatus).ToString());
-            xmlBuilder.WriteXmlAttribute("E", PDOP);
-            xmlBuilder.WriteXmlAttribute("F", HDOP);
-            xmlBuilder.WriteXmlAttribute("G", NumberOfSatellites);
-            xmlBuilder.WriteXmlAttribute("H", GpsUtcTime);
-            xmlBuilder.WriteXmlAttribute("I", GpsUtcDate);
+
+            string north = PositionNorth.HasValue ? PositionNorth.ToString() : HasPositionNorth ? string.Empty : null;
+            if (north != null)
+            {
+                xmlBuilder.WriteAttributeString("A", north);
+            }
+
+            string east = PositionEast.HasValue ? PositionEast.ToString() : HasPositionEast ? string.Empty : null;
+            if (east != null)
+            {
+                xmlBuilder.WriteAttributeString("B", east);
+            }
+
+            string up = PositionUp.HasValue ? PositionUp.ToString() : HasPositionUp ? string.Empty : null;
+            if (up != null)
+            {
+                xmlBuilder.WriteAttributeString("C", up);
+            }
+
+            string status = PositionStatus.HasValue ? ((int)PositionStatus).ToString() : HasPositionStatus ? string.Empty : null;
+            if (status != null)
+            {
+                xmlBuilder.WriteAttributeString("D", status);
+            }
+
+            string pdop = PDOP.HasValue ? PDOP.ToString() : HasPDOP ? string.Empty : null;
+            if (pdop != null)
+            {
+                xmlBuilder.WriteAttributeString("E", pdop);
+            }
+
+            string hdop = HDOP.HasValue ? HDOP.ToString() : HasHDOP ? string.Empty : null;
+            if (hdop != null)
+            {
+                xmlBuilder.WriteAttributeString("F", hdop);
+            }
+
+            string satellites = NumberOfSatellites.HasValue ? NumberOfSatellites.ToString() : HasNumberOfSatellites ? string.Empty : null;
+            if (satellites != null)
+            {
+                xmlBuilder.WriteAttributeString("G", satellites);
+            }
+
+            string gpsTime = GpsUtcTime.HasValue ? GpsUtcTime.ToString() : HasGpsUtcTime ? string.Empty : null;
+            if (gpsTime != null)
+            {
+                xmlBuilder.WriteAttributeString("H", gpsTime);
+            }
+
+            string gpsDate = GpsUtcDate.HasValue ? GpsUtcDate.ToString() : HasGpsUtcDate ? string.Empty : null;
+            if (gpsDate != null)
+            {
+                xmlBuilder.WriteAttributeString("I", gpsDate);
+            }
+
             xmlBuilder.WriteEndElement();
 
             return xmlBuilder;
