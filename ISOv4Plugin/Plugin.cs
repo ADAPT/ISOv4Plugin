@@ -52,11 +52,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin
 
             foreach (var taskDataFile in taskDataFiles)
             {
+                //Per ISO11783-10:2015(E) 8.5, all related files are in the same directory as the TASKDATA.xml file.
+                //The TASKDATA directory is only required when exporting to removable media.
+                //As such, the plugin will import data in any directory structure, and always export to a TASKDATA directory.
+                string filePath = Path.GetDirectoryName(taskDataFile);
+
                 //Deserialize the ISOXML into the ISO models
                 XmlDocument document = new XmlDocument();
                 document.Load(taskDataFile);
                 XmlNode rootNode = document.SelectSingleNode("ISO11783_TaskData");
-                ISO11783_TaskData taskData = ISO11783_TaskData.ReadXML(rootNode, dataPath);
+                ISO11783_TaskData taskData = ISO11783_TaskData.ReadXML(rootNode, filePath);
 
                 //Load any LinkList
                 ISO11783_LinkList linkList = null;
@@ -64,14 +69,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin
                 if (linkListFile != null)
                 {
                     XmlDocument linkDocument = new XmlDocument();
-                    string linkPath = Path.Combine(dataPath.WithTaskDataPath(), linkListFile.FilenamewithExtension);
+                    string linkPath = Path.Combine(filePath, linkListFile.FilenamewithExtension);
                     linkDocument.Load(linkPath);
                     XmlNode linkRoot = linkDocument.SelectSingleNode("ISO11783LinkList");
-                    linkList = ISO11783_LinkList.ReadXML(linkRoot, dataPath);
+                    linkList = ISO11783_LinkList.ReadXML(linkRoot, filePath);
                 }
 
                 //Convert the ISO model to ADAPT
-                TaskDataMapper taskDataMapper = new TaskDataMapper(dataPath.WithTaskDataPath(), properties);
+                TaskDataMapper taskDataMapper = new TaskDataMapper(filePath, properties);
                 ApplicationDataModel.ADM.ApplicationDataModel dataModel = taskDataMapper.Import(taskData, linkList);
 
                 adms.Add(dataModel);
@@ -110,14 +115,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin
         private static List<string> GetListOfTaskDataFiles(string dataPath)
         {
             var taskDataFiles = new List<string>();
-
-            var inputPath = dataPath.WithTaskDataPath(); 
-            if (Directory.Exists(inputPath))
-                taskDataFiles.AddRange(Directory.GetFiles(inputPath, FileName));
-
-            if (!taskDataFiles.Any() && Directory.Exists(dataPath))
-                taskDataFiles.AddRange(Directory.GetFiles(dataPath, FileName));
-
+            if (Directory.Exists(dataPath))
+            {
+                taskDataFiles.AddRange(Directory.GetFiles(dataPath, FileName, SearchOption.AllDirectories));
+            }
             return taskDataFiles;
         }
     }

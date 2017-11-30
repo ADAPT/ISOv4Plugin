@@ -460,7 +460,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             if (templateTime != null && File.Exists(filePath))
             {
                 BinaryReader reader = new BinaryReader();
-                return reader.Read(dataPath.WithTaskDataPath(), filePath, templateTime);
+                return reader.Read(filePath, templateTime);
             }
             return null;
         }
@@ -469,7 +469,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         {
             private DateTime _firstDayOf1980 = new DateTime(1980, 01, 01);
 
-            public IEnumerable<ISOSpatialRow> Read(string dataPath, string fileName, ISOTime templateTime)
+            public IEnumerable<ISOSpatialRow> Read(string fileName, ISOTime templateTime)
             {
                 if (templateTime == null)
                     yield break;
