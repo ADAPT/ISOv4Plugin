@@ -176,7 +176,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 if (taskEquipmentConfigIDs.Any())
                 {
                     IEnumerable<EquipmentConfiguration> taskEquipmentConfigs = DataModel.Catalog.EquipmentConfigurations.Where(d => taskEquipmentConfigIDs.Contains(d.Id.ReferenceId));
-                    ConnectionMapper.ExportConnections(loggedData.Id.ReferenceId, taskEquipmentConfigs);
+                    task.Connections = ConnectionMapper.ExportConnections(loggedData.Id.ReferenceId, taskEquipmentConfigs).ToList();
                 }
             }
 
@@ -633,6 +633,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
                 loggedData.EquipmentConfigurationGroup = new EquipmentConfigurationGroup();
                 loggedData.EquipmentConfigurationGroup.EquipmentConfigurations = equipConfigs.ToList();
+
+                //Make a reference to the IDs on the OperationData
+                foreach (OperationData operationData in loggedData.OperationData)
+                {
+                    operationData.EquipmentConfigurationIds.AddRange(equipConfigs.Select(e => e.Id.ReferenceId));
+                }
 
                 DataModel.Catalog.EquipmentConfigurations.AddRange(equipConfigs);
             }

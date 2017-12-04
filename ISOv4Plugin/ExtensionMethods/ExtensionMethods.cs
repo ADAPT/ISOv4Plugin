@@ -24,7 +24,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
     public static class ExtensionMethods
     {
         private static readonly Regex IsoIdPattern = new Regex("^[A-Z]{3,4}-?[0-9]+$", RegexOptions.Compiled);
-        private static readonly Regex DigitsOnly = new Regex(@"[^\d]", RegexOptions.Compiled);
 
         public static TValue FindByADAPTId<TKey, TValue>(this Dictionary<TKey, TValue> items, TKey id) where TValue : class
         {
@@ -86,16 +85,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
             var isoId = stringIds.FirstOrDefault(s => IsoIdPattern.IsMatch(s.Id));
 
             return isoId != null ? isoId.Id : null;
-        }
-
-        public static int FindIntIsoId(this CompoundIdentifier adaptId)
-        {
-            var isoId = FindIsoId(adaptId);
-
-            if (isoId == null)
-                return -1;
-
-            return int.Parse(DigitsOnly.Replace(isoId, ""));
         }
 
         public static int AsInt32DDI(this string ddiHexString)

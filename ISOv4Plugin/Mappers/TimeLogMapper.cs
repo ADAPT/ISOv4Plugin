@@ -38,8 +38,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         }
 
         #region Export
+        private Dictionary<int, int> _dataLogValueOrdersByWorkingDataID;
         public IEnumerable<ISOTimeLog> ExportTimeLogs(IEnumerable<OperationData> operationDatas, string dataPath)
         {
+            _dataLogValueOrdersByWorkingDataID = new Dictionary<int, int>();
             List<ISOTimeLog> timeLogs = new List<ISOTimeLog>();
             foreach (OperationData operation in operationDatas)
             {
@@ -64,7 +66,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             TaskDataMapper.ISOIdMap.Add(operation.Id.ReferenceId, id);
 
             List<DeviceElementUse> deviceElementUses = operation.GetAllSections();
-            IEnumerable<WorkingData> workingDatas = deviceElementUses.SelectMany(x => x.GetWorkingDatas()).ToList();
+            List<WorkingData> workingDatas = deviceElementUses.SelectMany(x => x.GetWorkingDatas()).ToList();
 
             ISOTime isoTime = new ISOTime();
             isoTime.HasStart = true;
@@ -90,82 +92,61 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             //Write BIN
             var binFilePath = Path.Combine(dataPath, isoTimeLog.Filename + ".bin");
-            BinaryWriter writer = new BinaryWriter();
+            BinaryWriter writer = new BinaryWriter(_dataLogValueOrdersByWorkingDataID);
             writer.Write(binFilePath, workingDatas.ToList(), spatialRecords);
 
             return isoTimeLog;            
         }
 
-        public IEnumerable<ISODataLogValue> ExportDataLogValues(IEnumerable<WorkingData> workingDatas, List<DeviceElementUse> deviceElementUses)
+        public IEnumerable<ISODataLogValue> ExportDataLogValues(List<WorkingData> workingDatas, List<DeviceElementUse> deviceElementUses)
         {
             if (workingDatas == null)
             {
                 return null;
             }
-            //This separate subroutine is necessary due to the iterator therein
-            return ExportNonNullDataLogValues(workingDatas, deviceElementUses);
-        }
 
-        private IEnumerable<ISODataLogValue> ExportNonNullDataLogValues(IEnumerable<WorkingData> workingDatas, List<DeviceElementUse> deviceElementUses)
-        {
-            var dlvOrders = workingDatas.Select(x => x.Id.FindIntIsoId()).Distinct().OrderBy(y => y);
+            List<ISODataLogValue> dlvs = new List<ISODataLogValue>();
+            for(int i = 0; i < workingDatas.Count(); i++)
+            {
+                WorkingData workingData = workingDatas[i];
 
-            if (dlvOrders.Contains(-1))
-            {
-                var sortedWorkingDatas = workingDatas.OrderBy(x => x.Id.FindIntIsoId());
-
-                foreach (var workingData in sortedWorkingDatas)
+                //DDI
+                int? mappedDDI = RepresentationMapper.Map(workingData.Representation);
+                var dlv = new ISODataLogValue();
+                if (mappedDDI != null)
                 {
-                    yield return ExportDataLogValue(workingData, deviceElementUses);
-                }
-            }
-            else
-            {
-                foreach (var order in dlvOrders)
-                {
-                    var dlvMeter = workingDatas.First(x => x.Id.FindIntIsoId() == order);
-                    yield return ExportDataLogValue(dlvMeter, deviceElementUses);
-                }
-            }
-        }
-
-        public ISODataLogValue ExportDataLogValue(WorkingData workingData, List<DeviceElementUse> deviceElementUses)
-        {
-            //DDI
-            int? mappedDDI = RepresentationMapper.Map(workingData.Representation);
-            var dlv = new ISODataLogValue();
-            if (mappedDDI != null)
-            {
-                if (workingData.Representation != null && workingData.Representation.Code == "dtRecordingStatus" && workingData.DeviceElementUseId != 0)
-                {
-                    dlv.ProcessDataDDI = 141.AsHexDDI(); //No support for exporting CondensedWorkState at this time
-                }
-                else
-                {
-                    dlv.ProcessDataDDI = mappedDDI.Value.AsHexDDI();
-                }
-            }
-            else if (workingData.Representation.CodeSource == ApplicationDataModel.Representations.RepresentationCodeSourceEnum.ISO11783_DDI)
-            {
-                dlv.ProcessDataDDI = workingData.Representation.Code;
-            }
-
-            //DeviceElementIdRef
-            DeviceElementUse use = deviceElementUses.FirstOrDefault(d => d.Id.ReferenceId == workingData.DeviceElementUseId);
-            if (use != null)
-            {
-                DeviceElementConfiguration deviceElementConfiguration = DataModel.Catalog.DeviceElementConfigurations.FirstOrDefault(d => d.Id.ReferenceId == use.DeviceConfigurationId);
-                if (deviceElementConfiguration != null)
-                {
-                    if (TaskDataMapper.ISOIdMap.ContainsKey(deviceElementConfiguration.DeviceElementId))
+                    if (workingData.Representation != null && workingData.Representation.Code == "dtRecordingStatus" && workingData.DeviceElementUseId != 0)
                     {
-                        //This requires the Devices will have been mapped prior to the LoggedData
-                        dlv.DeviceElementIdRef = TaskDataMapper.ISOIdMap[deviceElementConfiguration.DeviceElementId];
+                        dlv.ProcessDataDDI = 141.AsHexDDI(); //No support for exporting CondensedWorkState at this time
+                    }
+                    else
+                    {
+                        dlv.ProcessDataDDI = mappedDDI.Value.AsHexDDI();
                     }
                 }
-            }
+                else if (workingData.Representation.CodeSource == ApplicationDataModel.Representations.RepresentationCodeSourceEnum.ISO11783_DDI)
+                {
+                    dlv.ProcessDataDDI = workingData.Representation.Code;
+                }
 
-            return dlv;
+                //DeviceElementIdRef
+                DeviceElementUse use = deviceElementUses.FirstOrDefault(d => d.Id.ReferenceId == workingData.DeviceElementUseId);
+                if (use != null)
+                {
+                    DeviceElementConfiguration deviceElementConfiguration = DataModel.Catalog.DeviceElementConfigurations.FirstOrDefault(d => d.Id.ReferenceId == use.DeviceConfigurationId);
+                    if (deviceElementConfiguration != null)
+                    {
+                        if (TaskDataMapper.ISOIdMap.ContainsKey(deviceElementConfiguration.DeviceElementId))
+                        {
+                            //This requires the Devices will have been mapped prior to the LoggedData
+                            dlv.DeviceElementIdRef = TaskDataMapper.ISOIdMap[deviceElementConfiguration.DeviceElementId];
+                        }
+                    }
+                }
+                dlvs.Add(dlv);
+                _dataLogValueOrdersByWorkingDataID.Add(workingData.Id.ReferenceId, i);
+            }
+            return dlvs;
         }
 
         private class BinaryWriter
@@ -175,16 +156,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             private readonly IEnumeratedValueMapper _enumeratedValueMapper;
             private readonly INumericValueMapper _numericValueMapper;
+            private Dictionary<int, int> _dlvOrdersByWorkingDataID;
 
-            public BinaryWriter() : this(new EnumeratedValueMapper(), new NumericValueMapper())
+            public BinaryWriter(Dictionary<int, int> dlvOrdersByWorkingDataID) : this(new EnumeratedValueMapper(), new NumericValueMapper(), dlvOrdersByWorkingDataID)
             {
-
             }
 
-            public BinaryWriter(IEnumeratedValueMapper enumeratedValueMapper, INumericValueMapper numericValueMapper)
+            public BinaryWriter(IEnumeratedValueMapper enumeratedValueMapper, INumericValueMapper numericValueMapper, Dictionary<int, int> dlvOrdersByWorkingDataID)
             {
                 _enumeratedValueMapper = enumeratedValueMapper;
                 _numericValueMapper = numericValueMapper;
+                _dlvOrdersByWorkingDataID = dlvOrdersByWorkingDataID;
             }
 
             public IEnumerable<ISOSpatialRow> Write(string fileName, List<WorkingData> meters, IEnumerable<SpatialRecord> spatialRecords)
@@ -192,13 +174,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 if (spatialRecords == null)
                     return null;
 
-                var metersByIsoIds = GetMeterToIsoIdCache(meters);
-
                 using (var memoryStream = new MemoryStream())
                 {
                     foreach (var spatialRecord in spatialRecords)
                     {
-                        WriteSpatialRecord(spatialRecord, meters, memoryStream, metersByIsoIds);
+                        WriteSpatialRecord(spatialRecord, meters, memoryStream);
                     }
                     var binaryWriter = new System.IO.BinaryWriter(File.Create(fileName));
                     binaryWriter.Write(memoryStream.ToArray());
@@ -209,12 +189,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 return null;
             }
 
-            private static Dictionary<WorkingData, int> GetMeterToIsoIdCache(List<WorkingData> meters)
-            {
-                return meters.ToDictionary(meter => meter, meter => meter.Id.FindIntIsoId());
-            }
-
-            private void WriteSpatialRecord(SpatialRecord spatialRecord, List<WorkingData> meters, MemoryStream memoryStream, Dictionary<WorkingData, int> metersByIsoIds)
+            private void WriteSpatialRecord(SpatialRecord spatialRecord, List<WorkingData> meters, MemoryStream memoryStream)
             {
                 //Start Time
                 var millisecondsSinceMidnight = (UInt32)new TimeSpan(0, spatialRecord.Timestamp.Hour, spatialRecord.Timestamp.Minute, spatialRecord.Timestamp.Second, spatialRecord.Timestamp.Millisecond).TotalMilliseconds;
@@ -244,13 +219,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 memoryStream.WriteByte((byte)ISOPositionStatus.NotAvailable);
 
                 //Values
-                var dlvOrders = metersByIsoIds.Values.Distinct();
-                Dictionary<int, uint> dlvsToWrite;
-
-                if (dlvOrders.Contains(-1))
-                    dlvsToWrite = GetMeterValuesAndAssignDlvNumbers(spatialRecord, meters);
-                else
-                    dlvsToWrite = GetMeterValues(spatialRecord, meters, metersByIsoIds);
+                Dictionary<int, uint> dlvsToWrite = GetMeterValues(spatialRecord, meters);
 
                 byte numberOfMeters = (byte)dlvsToWrite.Count;
                 memoryStream.WriteByte(numberOfMeters);
@@ -266,30 +235,34 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
             private readonly Dictionary<int, uint> _previousDlvs = new Dictionary<int, uint>();
-            private Dictionary<int, uint> GetMeterValues(SpatialRecord spatialRecord, List<WorkingData> meters, Dictionary<WorkingData, int> metersByIsoIds)
+            private Dictionary<int, uint> GetMeterValues(SpatialRecord spatialRecord, List<WorkingData> workingDatas)
             {
                 var dlvsToWrite = new Dictionary<int, uint>();
-                var metersWithValues = meters.Where(x => spatialRecord.GetMeterValue(x) != null);
-                var dlvOrders = metersWithValues.Select(m => metersByIsoIds[m]).Distinct();
+                var workingDatasWithValues = workingDatas.Where(x => spatialRecord.GetMeterValue(x) != null);
 
-                foreach (var order in dlvOrders)
+                foreach (WorkingData workingData in workingDatasWithValues)
                 {
-                    var dlvMeters = meters.Where(m => metersByIsoIds[m] == order).ToList();
-                    var numericMeter = dlvMeters[0] as NumericWorkingData;
+                    int order = _dlvOrdersByWorkingDataID[workingData.Id.ReferenceId];
+
                     UInt32? value = null;
-                    if (numericMeter != null && spatialRecord.GetMeterValue(numericMeter) != null)
+                    if (workingData is NumericWorkingData)
                     {
-                        value = _numericValueMapper.Map(numericMeter, spatialRecord);
+                        NumericWorkingData numericMeter = workingData as NumericWorkingData;
+                        if (numericMeter != null && spatialRecord.GetMeterValue(numericMeter) != null)
+                        {
+                            value = _numericValueMapper.Map(numericMeter, spatialRecord);
+                        }
+                    }
+                    else if (workingData is EnumeratedWorkingData)
+                    {
+                        EnumeratedWorkingData enumeratedMeter = workingData as EnumeratedWorkingData;
+                        if (enumeratedMeter != null && spatialRecord.GetMeterValue(enumeratedMeter) != null)
+                        {
+                            value = _enumeratedValueMapper.Map(enumeratedMeter, new List<WorkingData>() { workingData }, spatialRecord);
+                        }
                     }
 
-                    var enumeratedMeter = dlvMeters[0] as EnumeratedWorkingData;
-                    if (enumeratedMeter != null && spatialRecord.GetMeterValue(enumeratedMeter) != null)
-                    {
-                        value = _enumeratedValueMapper.Map(enumeratedMeter, dlvMeters, spatialRecord);
-                    }
-
-                    if (value == null)
-                        continue;
+                    if (value == null) { continue; }
 
                     if (_previousDlvs.ContainsKey(order) && _previousDlvs[order] != value)
                     {
@@ -304,44 +277,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 }
 
                 return dlvsToWrite;
-            }
-
-            private Dictionary<int, uint> GetMeterValuesAndAssignDlvNumbers(SpatialRecord spatialRecord, List<WorkingData> meters)
-            {
-                var dlvValues = new Dictionary<int, uint>();
-
-                for (int meterIndex = 0; meterIndex < meters.Count; meterIndex++)
-                {
-                    var meter = meters[meterIndex];
-                    var numericMeter = meter as NumericWorkingData;
-                    UInt32? value = null;
-                    if (numericMeter != null && spatialRecord.GetMeterValue(numericMeter) != null)
-                    {
-                        value = _numericValueMapper.Map(numericMeter, spatialRecord);
-                    }
-
-                    var enumeratedMeter = meter as EnumeratedWorkingData;
-                    if (enumeratedMeter != null && spatialRecord.GetMeterValue(enumeratedMeter) != null)
-                    {
-                        value = _enumeratedValueMapper.Map(enumeratedMeter, new List<WorkingData> { meter }, spatialRecord);
-                    }
-
-                    if (value == null)
-                        continue;
-
-                    if (_previousDlvs.ContainsKey(meterIndex) && _previousDlvs[meterIndex] != value)
-                    {
-                        _previousDlvs[meterIndex] = value.Value;
-                        dlvValues.Add(meterIndex, value.Value);
-                    }
-                    else if (!_previousDlvs.ContainsKey(meterIndex))
-                    {
-                        _previousDlvs.Add(meterIndex, value.Value);
-                        dlvValues.Add(meterIndex, value.Value);
-                    }
-                }
-
-                return dlvValues;
             }
         }
 

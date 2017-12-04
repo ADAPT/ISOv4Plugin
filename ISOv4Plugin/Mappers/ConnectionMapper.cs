@@ -60,11 +60,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 if (config != null)
                 {
                     string isoDeviceElementID = TaskDataMapper.ISOIdMap.FindByADAPTId(config.DeviceElementId);
-                    if (!string.IsNullOrEmpty(isoDeviceElementID))
+                    DeviceElement deviceElement = DataModel.Catalog.DeviceElements.FirstOrDefault(d => d.Id.ReferenceId == config.DeviceElementId);
+                    if (deviceElement != null)
                     {
-                        isoConnection.DeviceElementIdRef_0 = isoDeviceElementID;
-                        DeviceElementHierarchy deviceElementHierarchy = TaskDataMapper.DeviceElementHierarchies.GetRelevantHierarchy(isoDeviceElementID);
-                        isoConnection.DeviceIdRef_0 = deviceElementHierarchy.DeviceElement.Device.DeviceId;
+                        string isoDeviceID = TaskDataMapper.ISOIdMap.FindByADAPTId(deviceElement.DeviceModelId);
+                        if (!string.IsNullOrEmpty(isoDeviceElementID) && !string.IsNullOrEmpty(isoDeviceElementID))
+                        {
+                            isoConnection.DeviceElementIdRef_0 = isoDeviceElementID;
+                            isoConnection.DeviceIdRef_0 = isoDeviceID;
+                        }
                     }
                 }
             }
@@ -77,11 +81,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 if (config != null)
                 {
                     string isoDeviceElementID = TaskDataMapper.ISOIdMap.FindByADAPTId(config.DeviceElementId);
-                    if (!string.IsNullOrEmpty(isoDeviceElementID))
+                    DeviceElement deviceElement = DataModel.Catalog.DeviceElements.FirstOrDefault(d => d.Id.ReferenceId == config.DeviceElementId);
+                    if (deviceElement != null)
                     {
-                        isoConnection.DeviceElementIdRef_1 = isoDeviceElementID;
-                        DeviceElementHierarchy deviceElementHierarchy = TaskDataMapper.DeviceElementHierarchies.GetRelevantHierarchy(isoDeviceElementID);
-                        isoConnection.DeviceIdRef_1 = deviceElementHierarchy.DeviceElement.Device.DeviceId;
+                        string isoDeviceID = TaskDataMapper.ISOIdMap.FindByADAPTId(deviceElement.DeviceModelId);
+                        if (!string.IsNullOrEmpty(isoDeviceElementID) && !string.IsNullOrEmpty(isoDeviceElementID))
+                        {
+                            isoConnection.DeviceElementIdRef_1 = isoDeviceElementID;
+                            isoConnection.DeviceIdRef_1 = isoDeviceID;
+                        }
                     }
                 }
             }
