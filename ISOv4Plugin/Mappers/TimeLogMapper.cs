@@ -28,7 +28,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
     public interface ITimeLogMapper
     {
         IEnumerable<ISOTimeLog> ExportTimeLogs(IEnumerable<OperationData> operationDatas, string dataPath);
-        IEnumerable<OperationData> ImportTimeLogs(IEnumerable<ISOTimeLog> isoTimeLogs, int? prescriptionID);
+        IEnumerable<OperationData> ImportTimeLogs(ISOTask loggedTask, int? prescriptionID);
     }
 
     public class TimeLogMapper : BaseMapper, ITimeLogMapper
@@ -280,12 +280,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         #region Import
 
-        public IEnumerable<OperationData> ImportTimeLogs(IEnumerable<ISOTimeLog> isoTimeLogs, int? prescriptionID)
+        public IEnumerable<OperationData> ImportTimeLogs(ISOTask loggedTask, int? prescriptionID)
         {
             List<OperationData> operations = new List<OperationData>();
-            foreach (ISOTimeLog isoTimeLog in isoTimeLogs)
+            foreach (ISOTimeLog isoTimeLog in loggedTask.TimeLogs)
             {
-                IEnumerable<OperationData> operationData = ImportTimeLog(isoTimeLog, prescriptionID);
+                IEnumerable<OperationData> operationData = ImportTimeLog(loggedTask, isoTimeLog, prescriptionID);
                 if (operationData != null)
                 {
                     operations.AddRange(operationData);
@@ -295,7 +295,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return operations;
         }
 
-        private IEnumerable<OperationData> ImportTimeLog(ISOTimeLog isoTimeLog, int? prescriptionID)
+        private IEnumerable<OperationData> ImportTimeLog(ISOTask loggedTask, ISOTimeLog isoTimeLog, int? prescriptionID)
         {
             WorkingDataMapper workingDataMapper = new WorkingDataMapper(new EnumeratedMeterFactory(), TaskDataMapper);
             SectionMapper sectionMapper = new SectionMapper(workingDataMapper, TaskDataMapper);
@@ -343,12 +343,44 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     operationData.GetDeviceElementUses = x => x == 0 ? sectionsSimple : new List<DeviceElementUse>();
                     operationData.PrescriptionId = prescriptionID;
                     operationData.OperationType = GetOperationTypeFromLoggingDevices(time);
+                    operationData.ProductId = GetProductIDForOperationData(loggedTask, dvc);
+                    operationData.SpatialRecordCount = isoRecords.Count();
                     operationDatas.Add(operationData);
                 }
 
                 return operationDatas;
             }
             return null;
+        }
+
+        private int? GetProductIDForOperationData(ISOTask loggedTask, ISODevice dvc)
+        {
+            if (loggedTask.ProductAllocations.Count == 1 || loggedTask.ProductAllocations.Select(p => p.ProductIdRef).Distinct().Count() == 1)
+            {
+                //There is only one product in the data
+                return TaskDataMapper.InstanceIDMap.GetADAPTID(loggedTask.ProductAllocations.First().ProductIdRef);
+            }
+            else
+            {
+                HashSet<string> productRefsForThisDevice = new HashSet<string>();
+                foreach (ISODeviceElement det in dvc.DeviceElements)
+                {
+                    foreach (ISOProductAllocation detMappedPan in loggedTask.ProductAllocations.Where(p => !string.IsNullOrEmpty(p.DeviceElementIdRef)))
+                    {
+                        productRefsForThisDevice.Add(detMappedPan.ProductIdRef);
+                    }
+                }
+                if (productRefsForThisDevice.Count == 1)
+                {
+                    //There is only one product represented on this device
+                    return TaskDataMapper.InstanceIDMap.GetADAPTID(productRefsForThisDevice.Single());
+                }
+                else
+                {
+                    //Unable to reconcile a single product
+                    return null;
+                }
+            }
         }
 
         private OperationTypeEnum GetOperationTypeFromLoggingDevices(ISOTime time)

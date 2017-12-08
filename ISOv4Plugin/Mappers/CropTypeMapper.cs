@@ -105,7 +105,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             if (isoCropType.CropVarieties.Any())
             {
                 CropVarietyMapper varietyMapper = new CropVarietyMapper(TaskDataMapper);
-                varietyMapper.ImportCropVarieties(isoCropType.CropVarieties);
+                varietyMapper.ImportCropVarieties(adaptCrop, isoCropType.CropVarieties);
             }
 
             return adaptCrop;

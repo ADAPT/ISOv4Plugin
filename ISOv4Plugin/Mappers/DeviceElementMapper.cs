@@ -304,6 +304,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             if (rootDeviceElement == null)
             {
                 //Short circuit on invalid TaskData
+                TaskDataMapper.Errors.Add(new Error() { Description = "Missing root DeviceElement.  Device will not be imported.", Id = isoDevice.DeviceId, Source = "DeviceElementMapper" });
                 return null;
             }
 

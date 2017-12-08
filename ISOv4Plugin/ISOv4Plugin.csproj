@@ -182,6 +182,7 @@
     <Compile Include="Mappers\WorkerAllocationMapper.cs" />
     <Compile Include="Mappers\WorkerMapper.cs" />
     <Compile Include="ObjectModel\DeviceElementHierarchy.cs" />
+    <Compile Include="ObjectModel\Error.cs" />
     <Compile Include="ObjectModel\GridDescriptor.cs" />
     <Compile Include="ObjectModel\DeviceOperationTypes.cs" />
     <Compile Include="ObjectModel\InstanceIDMap.cs" />

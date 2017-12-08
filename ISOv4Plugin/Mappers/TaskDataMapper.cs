@@ -36,11 +36,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             Properties = properties;
             DeviceOperationTypes = new DeviceOperationTypes();
             InstanceIDMap = new InstanceIDMap();
+            Errors = new List<Error>();
         }
 
         public string BaseFolder { get; private set; }
         public Properties Properties { get; private set; }
         public InstanceIDMap InstanceIDMap { get; private set; }
+        public List<Error> Errors { get; private set; }
 
         public ApplicationDataModel.ADM.ApplicationDataModel AdaptDataModel { get; private set; }
         public ISO11783_TaskData ISOTaskData { get; private set; }
@@ -202,13 +204,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     {
                         Int32.TryParse(Properties.GetProperty(ISOGrid.GridTypeProperty), out gridType);
                     }
-                    if (gridType != 1 && gridType != 2)
+                    if (gridType == 1 || gridType == 2)
                     {
-                        throw new ApplicationException("Invalid Grid Type Set for Export");
+                        IEnumerable<ISOTask> plannedTasks = taskMapper.Export(AdaptDataModel.Documents.WorkItems, gridType);
+                        ISOTaskData.ChildElements.AddRange(plannedTasks);
                     }
-                    
-                    IEnumerable<ISOTask> plannedTasks = taskMapper.Export(AdaptDataModel.Documents.WorkItems, gridType);
-                    ISOTaskData.ChildElements.AddRange(plannedTasks);
+                    else
+                    {
+                        Errors.Add(new Error() { Description = $"Invalid Grid Type {gridType}.  WorkItems will not be exported", Source = "TaskDataMapper" });
+                    }
                 }
 
                 if (AdaptDataModel.Documents.LoggedData != null)
@@ -357,6 +361,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         if (data.SummaryId.HasValue)
                         {
                             record.SummariesIds.Add(data.SummaryId.Value);
+                            Summary summary = AdaptDataModel.Documents.Summaries.FirstOrDefault(s => s.Id.ReferenceId == data.SummaryId);
+                            if (summary != null)
+                            {
+                                summary.WorkRecordId = record.Id.ReferenceId;
+                            }
                         }
                         workRecords.Add(record);
                     }

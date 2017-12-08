@@ -19,11 +19,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
     public interface ICropVarietyMapper
     {
-        IEnumerable<ISOCropVariety> ExportCropVarieties(IEnumerable<CropVarietyProduct> adaptCropVarietys);
+        IEnumerable<ISOCropVariety> ExportCropVarieties(IEnumerable<CropVarietyProduct> adaptCropVarieties);
         ISOCropVariety ExportCropVariety(CropVarietyProduct adaptCropVariety);
 
-        IEnumerable<CropVarietyProduct> ImportCropVarieties(IEnumerable<ISOCropVariety> isoCropVarietys);
-        CropVarietyProduct ImportCropVariety(ISOCropVariety isoCropVariety);
+        IEnumerable<CropVarietyProduct> ImportCropVarieties(Crop adaptCrop, IEnumerable<ISOCropVariety> isoCropVarieties);
+        CropVarietyProduct ImportCropVariety(Crop adaptCrop, ISOCropVariety isoCropVariety);
     }
 
     public class CropVarietyMapper : BaseMapper, ICropVarietyMapper
@@ -55,6 +55,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             //Designator
             isoVariety.CropVarietyDesignator = adaptCropVariety.Description;
+            //isoVariety.ProductIdRef = ;
 
             return isoVariety;
         }
@@ -63,13 +64,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         #region Import
 
-        public IEnumerable<CropVarietyProduct> ImportCropVarieties(IEnumerable<ISOCropVariety> isoCropVarieties)
+        public IEnumerable<CropVarietyProduct> ImportCropVarieties(Crop adaptCrop, IEnumerable<ISOCropVariety> isoCropVarieties)
         {
             //Import crop varieties
             List<CropVarietyProduct> adaptVarieties = new List<CropVarietyProduct>();
             foreach (ISOCropVariety isoCropVariety in isoCropVarieties)
             {
-                CropVarietyProduct adaptVariety = ImportCropVariety(isoCropVariety);
+                CropVarietyProduct adaptVariety = ImportCropVariety(adaptCrop, isoCropVariety);
                 adaptVarieties.Add(adaptVariety);
             }
 
@@ -86,7 +87,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return adaptVarieties;
         }
 
-        public CropVarietyProduct ImportCropVariety(ISOCropVariety isoCropVariety)
+        public CropVarietyProduct ImportCropVariety(Crop adaptCrop, ISOCropVariety isoCropVariety)
         {
             CropVarietyProduct variety = new CropVarietyProduct();
 
@@ -95,6 +96,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             //Description
             variety.Description = isoCropVariety.CropVarietyDesignator;
+            variety.CropId = adaptCrop.Id.ReferenceId;
+            variety.ProductType = ProductTypeEnum.Variety;
 
             return variety;
         }
