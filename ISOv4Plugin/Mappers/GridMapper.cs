@@ -291,7 +291,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 {
                     if (!string.IsNullOrEmpty(pdv.ProductIdRef))
                     {
-                        int? productID = TaskDataMapper.ADAPTIdMap.FindByISOId(pdv.ProductIdRef);
+                        int? productID = TaskDataMapper.InstanceIDMap.GetADAPTID(pdv.ProductIdRef);
                         if (productID.HasValue)
                         {
                             rate.RxRate.Add(PrescriptionMapper.ImportRate(productID.Value, pdv.ProcessDataValue, prescription));

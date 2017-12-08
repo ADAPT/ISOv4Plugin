@@ -51,8 +51,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //ID
             string id = adaptCropType.Id.FindIsoId() ?? GenerateId();
             isoCrop.CropTypeId = id;
-            ExportUniqueIDs(adaptCropType.Id, id);
-            TaskDataMapper.ISOIdMap.Add(adaptCropType.Id.ReferenceId, id);
+            ExportIDs(adaptCropType.Id, id);
 
             //Designator
             isoCrop.CropTypeDesignator = adaptCropType.Name;
@@ -97,8 +96,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             Crop adaptCrop = new Crop();
 
             //ID
-            adaptCrop.Id.UniqueIds.AddRange(ImportUniqueIDs(isoCropType.CropTypeId));
-            TaskDataMapper.ADAPTIdMap.Add(isoCropType.CropTypeId, adaptCrop.Id.ReferenceId);
+            ImportIDs(adaptCrop.Id, isoCropType.CropTypeId);
 
             //Description
             adaptCrop.Name = isoCropType.CropTypeDesignator;

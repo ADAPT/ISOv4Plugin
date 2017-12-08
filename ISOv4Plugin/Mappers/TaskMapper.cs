@@ -135,8 +135,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Task ID
             string taskID = loggedData.Id.FindIsoId() ?? GenerateId();
             task.TaskID = taskID;
-            ExportUniqueIDs(loggedData.Id, taskID);
-            TaskDataMapper.ISOIdMap.Add(loggedData.Id.ReferenceId, taskID);
+            ExportIDs(loggedData.Id, taskID);
 
             //Task Designator
             task.TaskDesignator = loggedData.Description;
@@ -144,23 +143,23 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Customer Ref
             if (loggedData.GrowerId.HasValue)
             {
-                task.CustomerIdRef = TaskDataMapper.ISOIdMap.FindByADAPTId(loggedData.GrowerId.Value);
+                task.CustomerIdRef = TaskDataMapper.InstanceIDMap.GetISOID(loggedData.GrowerId.Value);
             }
 
             //Farm Ref
             if (loggedData.FarmId.HasValue)
             {
-                task.FarmIdRef = TaskDataMapper.ISOIdMap.FindByADAPTId(loggedData.FarmId.Value);
+                task.FarmIdRef = TaskDataMapper.InstanceIDMap.GetISOID(loggedData.FarmId.Value);
             }
 
             //Partfield Ref
             if (loggedData.CropZoneId.HasValue)
             {
-                task.PartFieldIdRef = TaskDataMapper.ISOIdMap.FindByADAPTId(loggedData.CropZoneId.Value);
+                task.PartFieldIdRef = TaskDataMapper.InstanceIDMap.GetISOID(loggedData.CropZoneId.Value);
             }
             else if (loggedData.FieldId.HasValue)
             {
-                task.PartFieldIdRef = TaskDataMapper.ISOIdMap.FindByADAPTId(loggedData.FieldId.Value);
+                task.PartFieldIdRef = TaskDataMapper.InstanceIDMap.GetISOID(loggedData.FieldId.Value);
             }
 
             //Status
@@ -293,7 +292,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     {
                         ISOProductAllocation pan = new ISOProductAllocation();
                         pan.AllocationStamp = AllocationStampMapper.ExportAllocationStamp(values.Stamp);
-                        pan.ProductIdRef = TaskDataMapper.ISOIdMap.FindByADAPTId(operationSummary.ProductId);
+                        pan.ProductIdRef = TaskDataMapper.InstanceIDMap.GetISOID(operationSummary.ProductId);
                         productAllocations.Add(pan);
                     }
                 }
@@ -325,17 +324,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             WorkItem workItem = new WorkItem();
 
             //Task ID
-            workItem.Id.UniqueIds.AddRange(ImportUniqueIDs(isoPrescribedTask.TaskID));
-            TaskDataMapper.ADAPTIdMap.Add(isoPrescribedTask.TaskID, workItem.Id.ReferenceId);
+            ImportIDs(workItem.Id, isoPrescribedTask.TaskID);
 
             //Grower ID
-            workItem.GrowerId = TaskDataMapper.ADAPTIdMap.FindByISOId(isoPrescribedTask.CustomerIdRef);
+            workItem.GrowerId = TaskDataMapper.InstanceIDMap.GetADAPTID(isoPrescribedTask.CustomerIdRef);
 
             //Farm ID
-            workItem.FarmId = TaskDataMapper.ADAPTIdMap.FindByISOId(isoPrescribedTask.FarmIdRef);
+            workItem.FarmId = TaskDataMapper.InstanceIDMap.GetADAPTID(isoPrescribedTask.FarmIdRef);
 
             //Field/CropZone
-            int? pfdID = TaskDataMapper.ADAPTIdMap.FindByISOId(isoPrescribedTask.PartFieldIdRef);
+            int? pfdID = TaskDataMapper.InstanceIDMap.GetADAPTID(isoPrescribedTask.PartFieldIdRef);
             if (pfdID.HasValue)
             {
                 if (DataModel.Catalog.CropZones.Any(c => c.Id.ReferenceId == pfdID.Value))
@@ -360,11 +358,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             if (!string.IsNullOrEmpty(isoPrescribedTask.ResponsibleWorkerIdRef))
             {
                 ISOWorker worker = ISOTaskData.ChildElements.OfType<ISOWorker>().FirstOrDefault(w => w.WorkerId == isoPrescribedTask.ResponsibleWorkerIdRef);
-                if (TaskDataMapper.ADAPTIdMap.ContainsKey(isoPrescribedTask.ResponsibleWorkerIdRef))
+                int? personID = TaskDataMapper.InstanceIDMap.GetADAPTID(isoPrescribedTask.ResponsibleWorkerIdRef);
+                if (personID.HasValue)
                 {
                     //Create a Role
-                    int personID = TaskDataMapper.ADAPTIdMap[isoPrescribedTask.ResponsibleWorkerIdRef].Value;
-                    PersonRole role = new PersonRole() { PersonId = personID };
+                    PersonRole role = new PersonRole() { PersonId = personID.Value };
 
                     //Add to Catalog
                     DataModel.Catalog.PersonRoles.Add(role);
@@ -493,29 +491,24 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             loggedData.OperationData = new List<OperationData>();
 
             //Task ID
-            loggedData.Id.UniqueIds.AddRange(ImportUniqueIDs(isoLoggedTask.TaskID));
-            if (!TaskDataMapper.ADAPTIdMap.ContainsKey(isoLoggedTask.TaskID))
-            {
-                TaskDataMapper.ADAPTIdMap.Add(isoLoggedTask.TaskID, loggedData.Id.ReferenceId);
-            }
-            else
+            if (!ImportIDs(loggedData.Id, isoLoggedTask.TaskID))
             {
                 //In the case where a TSK contains both TZN and TLG data, we'll store the LoggedData as the mapped Task.
                 //The Prescription ID will be assigned to the OperationData objects by means of the dictionary in this class.
-                TaskDataMapper.ADAPTIdMap[isoLoggedTask.TaskID] = loggedData.Id.ReferenceId;
+                TaskDataMapper.InstanceIDMap.Replace(TaskDataMapper.InstanceIDMap.GetADAPTID(isoLoggedTask.TaskID).Value, isoLoggedTask.TaskID, loggedData.Id.ReferenceId, isoLoggedTask.TaskID);
             }
 
             //Task Name
             loggedData.Description = isoLoggedTask.TaskDesignator;
 
             //Grower ID
-            loggedData.GrowerId = TaskDataMapper.ADAPTIdMap.FindByISOId(isoLoggedTask.CustomerIdRef);
+            loggedData.GrowerId = TaskDataMapper.InstanceIDMap.GetADAPTID(isoLoggedTask.CustomerIdRef);
 
             //Farm ID
-            loggedData.FarmId = TaskDataMapper.ADAPTIdMap.FindByISOId(isoLoggedTask.FarmIdRef);
+            loggedData.FarmId = TaskDataMapper.InstanceIDMap.GetADAPTID(isoLoggedTask.FarmIdRef);
 
             //Field ID
-            int? pfdID = TaskDataMapper.ADAPTIdMap.FindByISOId(isoLoggedTask.PartFieldIdRef);
+            int? pfdID = TaskDataMapper.InstanceIDMap.GetADAPTID(isoLoggedTask.PartFieldIdRef);
             if (pfdID.HasValue)
             {
                 if (DataModel.Catalog.CropZones.Any(c => c.Id.ReferenceId == pfdID.Value))
@@ -537,11 +530,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             if (!string.IsNullOrEmpty(isoLoggedTask.ResponsibleWorkerIdRef))
             {
                 ISOWorker worker = ISOTaskData.ChildElements.OfType<ISOWorker>().FirstOrDefault(w => w.WorkerId == isoLoggedTask.ResponsibleWorkerIdRef);
-                if (TaskDataMapper.ADAPTIdMap.ContainsKey(isoLoggedTask.ResponsibleWorkerIdRef))
+                int? personID = TaskDataMapper.InstanceIDMap.GetADAPTID(isoLoggedTask.ResponsibleWorkerIdRef);
+                if (personID.HasValue)
                 {
                     //Create a Role
-                    int personID = TaskDataMapper.ADAPTIdMap[isoLoggedTask.ResponsibleWorkerIdRef].Value;
-                    PersonRole role = new PersonRole() { PersonId = personID };
+                    PersonRole role = new PersonRole() { PersonId = personID.Value };
 
                     //Add to Catalog
                     DataModel.Catalog.PersonRoles.Add(role);
@@ -750,10 +743,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         private OperationSummary GetOperationSummary(IEnumerable<ISOTime> timeElements, string productIDRef, IEnumerable<string> deviceElementIDRefs = null)
         {
             OperationSummary operationSummary = null;
-            if (TaskDataMapper.ADAPTIdMap.FindByISOId(productIDRef).HasValue)
+            int? productID = TaskDataMapper.InstanceIDMap.GetADAPTID(productIDRef);
+            if (productID.HasValue)
             {
                 operationSummary = new OperationSummary();
-                operationSummary.ProductId = TaskDataMapper.ADAPTIdMap.FindByISOId(productIDRef).Value;
+                operationSummary.ProductId = productID.Value;
                 operationSummary.Data = new List<StampedMeteredValues>();
                 operationSummary.Data.Add(GetStampedMeteredValuesForTimes(timeElements, deviceElementIDRefs));
             }

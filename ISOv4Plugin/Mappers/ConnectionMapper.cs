@@ -59,15 +59,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 DeviceElementConfiguration config = DataModel.Catalog.DeviceElementConfigurations.FirstOrDefault(c => c.Id.ReferenceId == connector1.DeviceElementConfigurationId);
                 if (config != null)
                 {
-                    string isoDeviceElementID = TaskDataMapper.ISOIdMap.FindByADAPTId(config.DeviceElementId);
+                    string isoDeviceElementID = TaskDataMapper.InstanceIDMap.GetISOID(config.DeviceElementId);
                     DeviceElement deviceElement = DataModel.Catalog.DeviceElements.FirstOrDefault(d => d.Id.ReferenceId == config.DeviceElementId);
                     if (deviceElement != null)
                     {
-                        string isoDeviceID = TaskDataMapper.ISOIdMap.FindByADAPTId(deviceElement.DeviceModelId);
+                        string isoDeviceID = TaskDataMapper.InstanceIDMap.GetISOID(deviceElement.DeviceModelId);
                         if (!string.IsNullOrEmpty(isoDeviceElementID) && !string.IsNullOrEmpty(isoDeviceElementID))
                         {
-                            isoConnection.DeviceElementIdRef_0 = isoDeviceElementID;
                             isoConnection.DeviceIdRef_0 = isoDeviceID;
+                            isoConnection.DeviceElementIdRef_0 = TaskDataMapper.InstanceIDMap.GetISOID(connector1.Id.ReferenceId); //We want to refer to the Connector DeviceElement, not its parent referred by the config element
                         }
                     }
                 }
@@ -80,15 +80,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 DeviceElementConfiguration config = DataModel.Catalog.DeviceElementConfigurations.FirstOrDefault(c => c.Id.ReferenceId == connector2.DeviceElementConfigurationId);
                 if (config != null)
                 {
-                    string isoDeviceElementID = TaskDataMapper.ISOIdMap.FindByADAPTId(config.DeviceElementId);
+                    string isoDeviceElementID = TaskDataMapper.InstanceIDMap.GetISOID(config.DeviceElementId);
                     DeviceElement deviceElement = DataModel.Catalog.DeviceElements.FirstOrDefault(d => d.Id.ReferenceId == config.DeviceElementId);
                     if (deviceElement != null)
                     {
-                        string isoDeviceID = TaskDataMapper.ISOIdMap.FindByADAPTId(deviceElement.DeviceModelId);
+                        string isoDeviceID = TaskDataMapper.InstanceIDMap.GetISOID(deviceElement.DeviceModelId);
                         if (!string.IsNullOrEmpty(isoDeviceElementID) && !string.IsNullOrEmpty(isoDeviceElementID))
                         {
-                            isoConnection.DeviceElementIdRef_1 = isoDeviceElementID;
                             isoConnection.DeviceIdRef_1 = isoDeviceID;
+                            isoConnection.DeviceElementIdRef_1 = TaskDataMapper.InstanceIDMap.GetISOID(connector2.Id.ReferenceId);
                         }
                     }
                 }
@@ -97,7 +97,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //DataLogTriggers
             if (adaptConnection.DataLogTriggers.Any())
             {
-                string taskID = TaskDataMapper.ISOIdMap.FindByADAPTId(loggedDataOrWorkItemID);
+                string taskID = TaskDataMapper.InstanceIDMap.GetISOID(loggedDataOrWorkItemID);
                 ISOTask task = TaskDataMapper.ISOTaskData.ChildElements.OfType<ISOTask>().First(t => t.TaskID == taskID);
                 DataLogTriggerMapper dltMapper = new DataLogTriggerMapper(TaskDataMapper);
                 task.DataLogTriggers = dltMapper.ExportDataLogTriggers(adaptConnection.DataLogTriggers).ToList();
@@ -127,7 +127,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             StringBuilder descriptionBuilder = new StringBuilder();
 
             //First Device Element
-            int? connectorID = TaskDataMapper.ADAPTIdMap.FindByISOId(isoConnection.DeviceElementIdRef_0);
+            int? connectorID = TaskDataMapper.InstanceIDMap.GetADAPTID(isoConnection.DeviceElementIdRef_0);
             if (connectorID.HasValue)
             {
                 Connector adaptConnector1 = DataModel.Catalog.Connectors.Single(d => d.Id.ReferenceId == connectorID.Value);
@@ -146,7 +146,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             descriptionBuilder.Append("<->");
 
             //Second Device Element
-            connectorID = TaskDataMapper.ADAPTIdMap.FindByISOId(isoConnection.DeviceElementIdRef_1);
+            connectorID = TaskDataMapper.InstanceIDMap.GetADAPTID(isoConnection.DeviceElementIdRef_1);
             if (connectorID.HasValue)
             {
                 Connector adaptConnector2 = DataModel.Catalog.Connectors.Single(d => d.Id.ReferenceId == connectorID.Value);

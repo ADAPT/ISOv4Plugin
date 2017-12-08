@@ -24,7 +24,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         protected ApplicationDataModel.ADM.ApplicationDataModel DataModel { get; set; }
         protected ISO11783_TaskData ISOTaskData { get; set; }
-        private UniqueIdMapper IDMapper { get; set; }
+        private UniqueIdMapper UniqueIDMapper { get; set; }
         protected RepresentationMapper RepresentationMapper { get; private set; }
         internal Dictionary<int, DdiDefinition> DDIs { get; private set; }
         internal DeviceOperationTypes DeviceOperationTypes { get; private set; }
@@ -37,7 +37,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             DataModel = TaskDataMapper.AdaptDataModel;
             ISOTaskData = TaskDataMapper.ISOTaskData;
-            IDMapper = TaskDataMapper.UniqueIDMapper;
+            UniqueIDMapper = TaskDataMapper.UniqueIDMapper;
 
             RepresentationMapper = TaskDataMapper.RepresentationMapper;
             DDIs = taskDataMapper.DDIs;
@@ -46,23 +46,25 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         protected string GenerateId(byte idLength = 0)
         {
-            return GenerateID(idLength, XmlPrefix, _itemId++);
+            return GenerateId(idLength, XmlPrefix, _itemId++);
         }
 
-        public static string GenerateID(byte idLength, string xmlPrefix, int itemID)
+        public static string GenerateId(byte idLength, string xmlPrefix, int itemID)
         {
             var formatString = string.Format(CultureInfo.InvariantCulture, "{{0}}{{1:D{0}}}", idLength == 0 ? 0 : idLength);
             return string.Format(CultureInfo.InvariantCulture, formatString, xmlPrefix, itemID);
         }
 
-        protected void ExportUniqueIDs(CompoundIdentifier id, string isoIDRef)
+        protected bool ExportIDs(CompoundIdentifier id, string isoIDRef)
         {
-            IDMapper.ExportUniqueIDs(id, isoIDRef);
+            UniqueIDMapper.ExportUniqueIDs(id, isoIDRef);
+            return TaskDataMapper.InstanceIDMap.Add(id.ReferenceId, isoIDRef);
         }
 
-        protected IEnumerable<UniqueId> ImportUniqueIDs(string isoObjectIdRef)
+        protected bool ImportIDs(CompoundIdentifier id, string isoIDRef)
         {
-            return IDMapper.ImportUniqueIDs(isoObjectIdRef);
+            id.UniqueIds.AddRange(UniqueIDMapper.ImportUniqueIDs(isoIDRef));
+            return TaskDataMapper.InstanceIDMap.Add(id.ReferenceId, isoIDRef);
         }
     }
 }

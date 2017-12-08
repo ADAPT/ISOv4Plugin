@@ -38,7 +38,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     List<WorkingData> workingDatas = new List<WorkingData>();
 
                     //Get the relevant DeviceElementConfiguration
-                    int adaptDeviceElementId = TaskDataMapper.ADAPTIdMap[isoDeviceElementID].Value;
+                    int adaptDeviceElementId = TaskDataMapper.InstanceIDMap.GetADAPTID(isoDeviceElementID).Value;
                     DeviceElement adaptDeviceElement = DataModel.Catalog.DeviceElements.SingleOrDefault(d => d.Id.ReferenceId == adaptDeviceElementId);
                     if (adaptDeviceElement != null)
                     {

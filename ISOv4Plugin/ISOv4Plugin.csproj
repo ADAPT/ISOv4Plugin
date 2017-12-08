@@ -184,6 +184,7 @@
     <Compile Include="ObjectModel\DeviceElementHierarchy.cs" />
     <Compile Include="ObjectModel\GridDescriptor.cs" />
     <Compile Include="ObjectModel\DeviceOperationTypes.cs" />
+    <Compile Include="ObjectModel\InstanceIDMap.cs" />
     <Compile Include="ObjectModel\ISOSpatialRow.cs" />
     <Compile Include="ObjectModel\ISOUnit.cs" />
     <Compile Include="ObjectModel\SpatialValue.cs" />

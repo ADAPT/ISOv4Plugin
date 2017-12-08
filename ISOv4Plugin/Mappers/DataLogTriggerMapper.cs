@@ -61,7 +61,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 isoDataLogTrigger.DataLogThresholdChange = adaptDataLogTrigger.DataLogThresholdChange.AsLongViaMappedDDI(RepresentationMapper);
                 if (adaptDataLogTrigger.DeviceElementId.HasValue)
                 {
-                    isoDataLogTrigger.DeviceElementIdRef = TaskDataMapper.ISOIdMap.FindByADAPTId(adaptDataLogTrigger.DeviceElementId.Value);
+                    isoDataLogTrigger.DeviceElementIdRef = TaskDataMapper.InstanceIDMap.GetISOID(adaptDataLogTrigger.DeviceElementId.Value);
                 }
 
                 //Not yet implemented
@@ -141,7 +141,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 {
                     adaptTrigger.DataLogThresholdChange = isoDataLogTrigger.DataLogThresholdChange.Value.AsNumericRepresentationValue(ddi, RepresentationMapper);
                 }
-                adaptTrigger.DeviceElementId = TaskDataMapper.ADAPTIdMap.FindByISOId(isoDataLogTrigger.DeviceElementIdRef);
+                adaptTrigger.DeviceElementId = TaskDataMapper.InstanceIDMap.GetADAPTID(isoDataLogTrigger.DeviceElementIdRef);
 
                 //Not yet implemented
                 //adaptTrigger.LoggingLevel = null;

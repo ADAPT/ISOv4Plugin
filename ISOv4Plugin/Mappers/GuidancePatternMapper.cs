@@ -52,8 +52,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //ID
             string gpnID = adaptGuidancePattern.Id.FindIsoId() ?? GenerateId();
             gpn.GuidancePatternId = gpnID;
-            ExportUniqueIDs(adaptGuidancePattern.Id, gpnID);
-            TaskDataMapper.ISOIdMap.Add(adaptGuidancePattern.Id.ReferenceId, gpnID);
+            ExportIDs(adaptGuidancePattern.Id, gpnID);
 
             gpn.GuidancePatternDesignator = adaptGuidancePattern.Description;
             gpn.GuidancePatternType = ExportGuidancePatternType(adaptGuidancePattern.GuidancePatternType);
@@ -286,8 +285,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
             //ID
-            pattern.Id.UniqueIds.AddRange(ImportUniqueIDs(isoGuidancePattern.GuidancePatternId));
-            TaskDataMapper.ADAPTIdMap.Add(isoGuidancePattern.GuidancePatternId, pattern.Id.ReferenceId);
+            ImportIDs(pattern.Id, isoGuidancePattern.GuidancePatternId);
 
             pattern.Description = isoGuidancePattern.GuidancePatternDesignator;
             pattern.GuidancePatternType = ImportGuidancePatternType(isoGuidancePattern.GuidancePatternType);

@@ -62,8 +62,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //ID
             string id = operation.Id.FindIsoId() ?? GenerateId(5);
             isoTimeLog.Filename = id;
-            ExportUniqueIDs(operation.Id, id);
-            TaskDataMapper.ISOIdMap.Add(operation.Id.ReferenceId, id);
+            ExportIDs(operation.Id, id);
 
             List<DeviceElementUse> deviceElementUses = operation.GetAllSections();
             List<WorkingData> workingDatas = deviceElementUses.SelectMany(x => x.GetWorkingDatas()).ToList();
@@ -136,11 +135,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     DeviceElementConfiguration deviceElementConfiguration = DataModel.Catalog.DeviceElementConfigurations.FirstOrDefault(d => d.Id.ReferenceId == use.DeviceConfigurationId);
                     if (deviceElementConfiguration != null)
                     {
-                        if (TaskDataMapper.ISOIdMap.ContainsKey(deviceElementConfiguration.DeviceElementId))
-                        {
-                            //This requires the Devices will have been mapped prior to the LoggedData
-                            dlv.DeviceElementIdRef = TaskDataMapper.ISOIdMap[deviceElementConfiguration.DeviceElementId];
-                        }
+                        //This requires the Devices will have been mapped prior to the LoggedData
+                        dlv.DeviceElementIdRef = TaskDataMapper.InstanceIDMap.GetISOID(deviceElementConfiguration.DeviceElementId);
                     }
                 }
                 dlvs.Add(dlv);
@@ -361,7 +357,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             IEnumerable<string> distinctDeviceElementIDs = time.DataLogValues.Select(d => d.DeviceElementIdRef).Distinct();
             foreach (string isoDeviceElementID in distinctDeviceElementIDs)
             {
-                int? deviceElementID = TaskDataMapper.ADAPTIdMap.FindByISOId(isoDeviceElementID);
+                int? deviceElementID = TaskDataMapper.InstanceIDMap.GetADAPTID(isoDeviceElementID);
                 if (deviceElementID.HasValue)
                 {
                     DeviceElement deviceElement = DataModel.Catalog.DeviceElements.FirstOrDefault(d => d.Id.ReferenceId == deviceElementID.Value);

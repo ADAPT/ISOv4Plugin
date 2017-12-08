@@ -45,8 +45,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Customer ID
             string customerId = adaptGrower.Id.FindIsoId() ?? GenerateId();
             customer.CustomerId = customerId;
-            ExportUniqueIDs(adaptGrower.Id, customerId);
-            TaskDataMapper.ISOIdMap.Add(adaptGrower.Id.ReferenceId, customerId);
+            ExportIDs(adaptGrower.Id, customerId);
 
             //Customer Name
             customer.CustomerLastName = adaptGrower.Name;
@@ -97,8 +96,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             Grower grower = new Grower();
 
             //Customer ID
-            grower.Id.UniqueIds.AddRange(ImportUniqueIDs(isoCustomer.CustomerId));
-            TaskDataMapper.ADAPTIdMap.Add(isoCustomer.CustomerId, grower.Id.ReferenceId);
+            ImportIDs(grower.Id, isoCustomer.CustomerId);
 
             //Customer Name
             grower.Name = !string.IsNullOrEmpty(isoCustomer.CustomerFirstName) ? string.Concat(isoCustomer.CustomerFirstName," ", isoCustomer.CustomerLastName) : isoCustomer.CustomerLastName;

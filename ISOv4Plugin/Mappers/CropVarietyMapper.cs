@@ -51,8 +51,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //ID
             string id = adaptCropVariety.Id.FindIsoId() ?? GenerateId();
             isoVariety.CropVarietyId = id;
-            ExportUniqueIDs(adaptCropVariety.Id, id);
-            TaskDataMapper.ISOIdMap.Add(adaptCropVariety.Id.ReferenceId, id);
+            ExportIDs(adaptCropVariety.Id, id);
 
             //Designator
             isoVariety.CropVarietyDesignator = adaptCropVariety.Description;
@@ -92,8 +91,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             CropVarietyProduct variety = new CropVarietyProduct();
 
             //ID
-            variety.Id.UniqueIds.AddRange(ImportUniqueIDs(isoCropVariety.CropVarietyId));
-            TaskDataMapper.ADAPTIdMap.Add(isoCropVariety.CropVarietyId, variety.Id.ReferenceId);
+            ImportIDs(variety.Id, isoCropVariety.CropVarietyId);
 
             //Description
             variety.Description = isoCropVariety.CropVarietyDesignator;

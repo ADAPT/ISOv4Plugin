@@ -46,10 +46,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             ISOWorkerAllocation wan = new ISOWorkerAllocation();
 
             //Worker ID
-            if (TaskDataMapper.ISOIdMap.ContainsKey(adaptWorkerAllocation.PersonId))
-            {
-                wan.WorkerIdRef = TaskDataMapper.ISOIdMap[adaptWorkerAllocation.PersonId];
-            }
+            wan.WorkerIdRef = TaskDataMapper.InstanceIDMap.GetISOID(adaptWorkerAllocation.PersonId);
 
             //Allocation Stamps
             if (adaptWorkerAllocation.TimeScopes.Any())
@@ -82,12 +79,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         public PersonRole ImportWorkerAllocation(ISOWorkerAllocation isoWorkerAllocation)
         {
-            if (TaskDataMapper.ADAPTIdMap.ContainsKey(isoWorkerAllocation.WorkerIdRef))
+            int? personID = TaskDataMapper.InstanceIDMap.GetADAPTID(isoWorkerAllocation.WorkerIdRef);
+            if (personID.HasValue)
             {
                 PersonRole adaptWorkerAllocation = new PersonRole();
 
                 //Worker ID
-                adaptWorkerAllocation.PersonId = TaskDataMapper.ADAPTIdMap[isoWorkerAllocation.WorkerIdRef].Value;
+                adaptWorkerAllocation.PersonId = personID.Value;
 
                 //Allocation Stamps
                 if (isoWorkerAllocation.AllocationStamp != null)

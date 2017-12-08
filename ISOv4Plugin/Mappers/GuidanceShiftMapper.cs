@@ -49,10 +49,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             ISOGuidanceShift gst = new ISOGuidanceShift();
 
             //Group ID
-            gst.GuidanceGroupIdRef = TaskDataMapper.ISOIdMap.FindByADAPTId(adaptGuidanceShift.GuidanceGroupId);
+            gst.GuidanceGroupIdRef = TaskDataMapper.InstanceIDMap.GetISOID(adaptGuidanceShift.GuidanceGroupId);
 
             //Pattern ID
-            gst.GuidancePatternIdRef = TaskDataMapper.ISOIdMap.FindByADAPTId(adaptGuidanceShift.GuidancePatterId);
+            gst.GuidancePatternIdRef = TaskDataMapper.InstanceIDMap.GetISOID(adaptGuidanceShift.GuidancePatterId);
 
             //Shifts
             gst.GuidanceEastShift = adaptGuidanceShift.EastShift.AsConvertedLong("mm");
@@ -95,15 +95,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             GuidanceShift adaptShift = new GuidanceShift();
 
             //Group ID
-            if (TaskDataMapper.ADAPTIdMap.ContainsKey(isoGuidanceShift.GuidanceGroupIdRef))
+            int? groupID = TaskDataMapper.InstanceIDMap.GetADAPTID(isoGuidanceShift.GuidanceGroupIdRef);
+            if (groupID.HasValue)
             {
-                adaptShift.GuidanceGroupId = TaskDataMapper.ADAPTIdMap[isoGuidanceShift.GuidanceGroupIdRef].Value;
+                adaptShift.GuidanceGroupId = groupID.Value;
             }
 
             //Pattern ID
-            if (TaskDataMapper.ADAPTIdMap.ContainsKey(isoGuidanceShift.GuidancePatternIdRef))
+            int? patternID = TaskDataMapper.InstanceIDMap.GetADAPTID(isoGuidanceShift.GuidancePatternIdRef);
+            if (patternID.HasValue)
             {
-                adaptShift.GuidancePatterId = TaskDataMapper.ADAPTIdMap[isoGuidanceShift.GuidancePatternIdRef].Value;
+                adaptShift.GuidancePatterId = patternID.Value;
             }
 
             //Shifts

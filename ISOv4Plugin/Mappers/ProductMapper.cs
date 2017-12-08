@@ -51,7 +51,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 foreach (MixProduct adaptMixProduct in adaptProducts.OfType<MixProduct>())
                 {
                     //Find the ISO Product
-                    ISOProduct isoMixProduct = isoProducts.Single(p => p.ProductId == TaskDataMapper.ISOIdMap[adaptMixProduct.Id.ReferenceId]);
+                    ISOProduct isoMixProduct = isoProducts.Single(p => p.ProductId == TaskDataMapper.InstanceIDMap.GetISOID(adaptMixProduct.Id.ReferenceId));
 
                     foreach (ProductComponent component in adaptMixProduct.ProductComponents)
                     {
@@ -89,8 +89,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //ID
             string id = adaptProduct.Id.FindIsoId() ?? GenerateId();
             isoProduct.ProductId = id;
-            ExportUniqueIDs(adaptProduct.Id, id);
-            TaskDataMapper.ISOIdMap.Add(adaptProduct.Id.ReferenceId, id);
+            ExportIDs(adaptProduct.Id, id);
 
             //Designator
             isoProduct.ProductDesignator = adaptProduct.Description;
@@ -172,8 +171,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
             //ID
-            product.Id.UniqueIds.AddRange(ImportUniqueIDs(isoProduct.ProductId));
-            TaskDataMapper.ADAPTIdMap.Add(isoProduct.ProductId, product.Id.ReferenceId);
+            ImportIDs(product.Id, isoProduct.ProductId);
 
             //Description
             product.Description = isoProduct.ProductDesignator;
@@ -196,7 +194,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     if (ingredient == null)
                     {
                         ingredient = new ActiveIngredient();
-                        ingredient.Id.UniqueIds.AddRange(ImportUniqueIDs(isoComponent.ProductId));
                         ingredient.Description = isoComponent.ProductDesignator;
                         DataModel.Catalog.Ingredients.Add(ingredient);
                     }

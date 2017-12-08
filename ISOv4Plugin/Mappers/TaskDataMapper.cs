@@ -35,12 +35,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             DDIs = DdiLoader.Ddis;
             Properties = properties;
             DeviceOperationTypes = new DeviceOperationTypes();
+            InstanceIDMap = new InstanceIDMap();
         }
 
         public string BaseFolder { get; private set; }
         public Properties Properties { get; private set; }
-        public Dictionary<int, string> ISOIdMap { get; set; }
-        public Dictionary<string, int?> ADAPTIdMap { get; set; }
+        public InstanceIDMap InstanceIDMap { get; private set; }
 
         public ApplicationDataModel.ADM.ApplicationDataModel AdaptDataModel { get; private set; }
         public ISO11783_TaskData ISOTaskData { get; private set; }
@@ -82,7 +82,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         public ISO11783_TaskData Export(ApplicationDataModel.ADM.ApplicationDataModel adm)
         {
             AdaptDataModel = adm;
-            ISOIdMap = new Dictionary<int, string>();
 
             //TaskData
             ISOTaskData = new ISO11783_TaskData();
@@ -244,7 +243,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             UniqueIDMapper = new UniqueIdMapper(ISOLinkList);
 
             AdaptDataModel = new ApplicationDataModel.ADM.ApplicationDataModel();
-            ADAPTIdMap = new Dictionary<string, int?>();
             AdaptDataModel.Catalog = new Catalog() { Description = "ISO TaskData" };
             AdaptDataModel.Documents = new Documents();
 

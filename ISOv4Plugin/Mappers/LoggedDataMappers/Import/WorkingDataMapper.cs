@@ -151,7 +151,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     condensedDeviceElementUse.OperationDataId = deviceElementUse.OperationDataId;
 
                     ISODeviceElement targetSection = targetSections[i];
-                    int? deviceElementID = TaskDataMapper.ADAPTIdMap[targetSection.DeviceElementId];
+                    int? deviceElementID = TaskDataMapper.InstanceIDMap.GetADAPTID(targetSection.DeviceElementId);
                     if (deviceElementID.HasValue)
                     {
                         DeviceElement deviceElement = DataModel.Catalog.DeviceElements.SingleOrDefault(d => d.Id.ReferenceId == deviceElementID.Value);

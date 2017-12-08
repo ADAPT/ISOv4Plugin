@@ -70,8 +70,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Field ID
             string fieldID = adaptField.Id.FindIsoId() ?? GenerateId();
             isoField.PartfieldID = fieldID;
-            ExportUniqueIDs(adaptField.Id, fieldID);
-            TaskDataMapper.ISOIdMap.Add(adaptField.Id.ReferenceId, fieldID);
+            ExportIDs(adaptField.Id, fieldID);
 
             //Customer & Farm ID
             ExportFarmAndGrower(adaptField, isoField);
@@ -125,11 +124,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Field ID
             string fieldID = cropZone.Id.FindIsoId() ?? GenerateId();
             isoField.PartfieldID = fieldID;
-            ExportUniqueIDs(cropZone.Id, fieldID);
-            TaskDataMapper.ISOIdMap.Add(cropZone.Id.ReferenceId, fieldID);
+            ExportIDs(cropZone.Id, fieldID);
 
             //Parent Field ID
-            isoField.FieldIdRef = TaskDataMapper.ISOIdMap.FindByADAPTId(cropZone.FieldId);
+            isoField.FieldIdRef = TaskDataMapper.InstanceIDMap.GetISOID(cropZone.FieldId);
 
             //Customer & Farm ID
             Field field = DataModel.Catalog.Fields.FirstOrDefault(f => f.Id.ReferenceId == cropZone.FieldId);
@@ -172,9 +170,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 isoField.GuidanceGroups = ggpMapper.ExportGuidanceGroups(groups).ToList();
             }
 
-            if (cropZone.CropId.HasValue && TaskDataMapper.ISOIdMap.ContainsKey(cropZone.CropId.Value))
+            if (cropZone.CropId.HasValue)
             {
-                isoField.CropTypeIdRef = TaskDataMapper.ISOIdMap[cropZone.CropId.Value];
+                string isoCrop = TaskDataMapper.InstanceIDMap.GetISOID(cropZone.CropId.Value);
+                isoField.CropTypeIdRef = isoCrop;
             }
 
             return isoField;
@@ -184,11 +183,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         {
             if (field.FarmId.HasValue)
             {
-                isoField.FarmIdRef = TaskDataMapper.ISOIdMap.FindByADAPTId(field.FarmId.Value);
+                isoField.FarmIdRef = TaskDataMapper.InstanceIDMap.GetISOID(field.FarmId.Value);
                 Farm adaptFarm = DataModel.Catalog.Farms.FirstOrDefault(f => f.Id.ReferenceId == field.FarmId);
                 if (adaptFarm != null)
                 {
-                    isoField.CustomerIdRef = TaskDataMapper.ISOIdMap.FindByADAPTId(adaptFarm.GrowerId.Value);
+                    isoField.CustomerIdRef = TaskDataMapper.InstanceIDMap.GetISOID(adaptFarm.GrowerId.Value);
                 }
             }
         }
@@ -229,11 +228,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             Field field = new Field();
 
             //Field ID
-            field.Id.UniqueIds.AddRange(ImportUniqueIDs(isoPartfield.PartfieldID));
-            TaskDataMapper.ADAPTIdMap.Add(isoPartfield.PartfieldID, field.Id.ReferenceId);
+            ImportIDs(field.Id, isoPartfield.PartfieldID);
 
             //Farm ID
-            field.FarmId = TaskDataMapper.ADAPTIdMap.FindByISOId(isoPartfield.FarmIdRef);
+            field.FarmId = TaskDataMapper.InstanceIDMap.GetADAPTID(isoPartfield.FarmIdRef);
 
             //Area
             if (isoPartfield.PartfieldArea.HasValue)
@@ -286,20 +284,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             CropZone cropZone = new CropZone();
 
             //Cropzone ID
-            cropZone.Id.UniqueIds.AddRange(ImportUniqueIDs(isoPartfield.PartfieldID));
-            if (!TaskDataMapper.ADAPTIdMap.ContainsKey(isoPartfield.PartfieldID)) 
-            {
-                TaskDataMapper.ADAPTIdMap.Add(isoPartfield.PartfieldID, cropZone.Id.ReferenceId);
-            }
+            ImportIDs(cropZone.Id, isoPartfield.PartfieldID);
 
             //Field ID
             if (!string.IsNullOrEmpty(isoPartfield.FieldIdRef))
             {
-                cropZone.FieldId = TaskDataMapper.ADAPTIdMap.FindByISOId(isoPartfield.FieldIdRef).Value;  //Cropzone has a defined parent field in the ISO XML
+                cropZone.FieldId = TaskDataMapper.InstanceIDMap.GetADAPTID(isoPartfield.FieldIdRef).Value;  //Cropzone has a defined parent field in the ISO XML
             }
             else
             {
-                cropZone.FieldId = TaskDataMapper.ADAPTIdMap[isoPartfield.PartfieldID].Value;  //Field had a crop assigned and we created a single cropzone
+                cropZone.FieldId = TaskDataMapper.InstanceIDMap.GetADAPTID(isoPartfield.PartfieldID).Value;  //Field had a crop assigned and we created a single cropzone
             }
 
             //Area
@@ -336,9 +330,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
             //Crop
-            if (!string.IsNullOrEmpty(isoPartfield.CropTypeIdRef) && TaskDataMapper.ADAPTIdMap.ContainsKey(isoPartfield.CropTypeIdRef))
+            int? adaptCropID = TaskDataMapper.InstanceIDMap.GetADAPTID(isoPartfield.CropTypeIdRef);
+            if (adaptCropID.HasValue)
             {
-                cropZone.CropId = TaskDataMapper.ADAPTIdMap[isoPartfield.CropTypeIdRef];
+                cropZone.CropId = adaptCropID.Value;
             }
 
             return cropZone;

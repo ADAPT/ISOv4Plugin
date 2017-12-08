@@ -47,7 +47,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             ISOGuidanceAllocation gan = new ISOGuidanceAllocation();
 
             //Group ID
-            gan.GuidanceGroupIdRef = TaskDataMapper.ISOIdMap.FindByADAPTId(adaptGuidanceAllocation.GuidanceGroupId);
+            gan.GuidanceGroupIdRef = TaskDataMapper.InstanceIDMap.GetISOID(adaptGuidanceAllocation.GuidanceGroupId);
 
             //Allocation Stamps
             if (adaptGuidanceAllocation.TimeScopes.Any())
@@ -87,9 +87,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             GuidanceAllocation adaptGuidanceAllocation = new GuidanceAllocation();
 
             //Group ID
-            if (TaskDataMapper.ADAPTIdMap.ContainsKey(isoGuidanceAllocation.GuidanceGroupIdRef))
+            int? groupID = TaskDataMapper.InstanceIDMap.GetADAPTID(isoGuidanceAllocation.GuidanceGroupIdRef);
+            if (groupID.HasValue)
             {
-                 adaptGuidanceAllocation.GuidanceGroupId = TaskDataMapper.ADAPTIdMap[isoGuidanceAllocation.GuidanceGroupIdRef].Value;
+                 adaptGuidanceAllocation.GuidanceGroupId = groupID.Value;
             }
 
             //Allocation Stamps

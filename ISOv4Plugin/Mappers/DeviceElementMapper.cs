@@ -19,7 +19,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
     public interface IDeviceElementMapper
     {
         IEnumerable<ISODeviceElement> ExportDeviceElements(IEnumerable<DeviceElement> adaptDeviceElements, ISODevice isoDevice);
-        ISODeviceElement ExportDeviceElement(DeviceElement adaptDeviceElement, ISODevice isoDevice, List<ISODeviceElement> pendingDeviceElements, int objectID, int deviceElementNumber);
+        ISODeviceElement ExportDeviceElement(DeviceElement adaptDeviceElement, ISODevice isoDevice, List<ISODeviceElement> pendingDeviceElements, ref int objectID, ref int deviceElementNumber);
         IEnumerable<DeviceElement> ImportDeviceElements(ISODevice isoDevice);
         DeviceElement ImportDeviceElement(ISODeviceElement isoDeviceElement, EnumeratedValue deviceClassification, DeviceElementHierarchy rootDeviceHierarchy);
     }
@@ -31,6 +31,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         }
 
         #region Export
+        private int _devicePropertyObjectID = 0;
         public IEnumerable<ISODeviceElement> ExportDeviceElements(IEnumerable<DeviceElement> adaptRootDeviceElements, ISODevice isoDevice)
         {
             List<ISODeviceElement> isoDeviceElements = new List<ISODeviceElement>();
@@ -63,20 +64,24 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 }
             }
 
-            ExportDeviceElement(rootElement, isoDevice, isoDeviceElements, 1, 1);
+            int objectID = 1;
+            int deviceElementNumber = 1;
+            ExportDeviceElement(rootElement, isoDevice, isoDeviceElements, ref objectID, ref deviceElementNumber);
 
             return isoDeviceElements;
         }
 
-        public ISODeviceElement ExportDeviceElement(DeviceElement adaptDeviceElement, ISODevice isoDevice, List<ISODeviceElement> pendingDeviceElements, int objectID, int elementNumber)
+        public ISODeviceElement ExportDeviceElement(DeviceElement adaptDeviceElement, ISODevice isoDevice, List<ISODeviceElement> pendingDeviceElements, ref int objectID, ref int elementNumber)
         {
             ISODeviceElement det = new ISODeviceElement(isoDevice);
+
+            objectID++;
+            elementNumber++;
 
             //ID
             string id = adaptDeviceElement.Id.FindIsoId() ?? GenerateId();
             det.DeviceElementId = id;
-            ExportUniqueIDs(adaptDeviceElement.Id, id);
-            TaskDataMapper.ISOIdMap.Add(adaptDeviceElement.Id.ReferenceId, id);
+            ExportIDs(adaptDeviceElement.Id, id);
 
             //Object ID
             det.DeviceElementObjectId = objectID;
@@ -112,7 +117,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             DeviceElement parentDeviceElement = DataModel.Catalog.DeviceElements.FirstOrDefault(d => d.Id.ReferenceId == adaptDeviceElement.ParentDeviceId);
             if (parentDeviceElement != null)
             {
-                string deviceElementID = TaskDataMapper.ISOIdMap[parentDeviceElement.Id.ReferenceId];
+                string deviceElementID = TaskDataMapper.InstanceIDMap.GetISOID(parentDeviceElement.Id.ReferenceId);
                 if (pendingDeviceElements.Any(d => d.DeviceElementId == deviceElementID))
                 {
                     det.ParentObjectId = pendingDeviceElements.First(d => d.DeviceElementId == deviceElementID).DeviceElementObjectId;
@@ -135,11 +140,158 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             int deviceElementNumber = 1;
             foreach (DeviceElement childElement in DataModel.Catalog.DeviceElements.Where(d => d.ParentDeviceId == adaptDeviceElement.Id.ReferenceId))
             {
-                ExportDeviceElement(childElement, isoDevice, pendingDeviceElements, ++objectID, deviceElementNumber++);
+                ExportDeviceElement(childElement, isoDevice, pendingDeviceElements, ref objectID, ref deviceElementNumber);
             }
+
+            //Connectors
+            if (det.DeviceElementType == ISODeviceElementType.Device)
+            {
+                //Connectors should only exist as children of the top level DeviceElement
+                foreach (DeviceElementConfiguration config in DataModel.Catalog.DeviceElementConfigurations.Where(c => c.DeviceElementId == adaptDeviceElement.Id.ReferenceId))
+                {
+                    foreach (Connector connector in DataModel.Catalog.Connectors.Where(c => c.DeviceElementConfigurationId == config.Id.ReferenceId))
+                    {
+                        ExportConnectorElement(connector, det, pendingDeviceElements, ref objectID, ref deviceElementNumber);
+                    }
+                }
+            }
+
+            //Device Properties
+            ExportDeviceProperties(det, adaptDeviceElement);
 
             return det;
         }
+
+        private void ExportConnectorElement(Connector adaptConnector, ISODeviceElement parentElement, List<ISODeviceElement> pendingDeviceElements, ref int objectID, ref int deviceElementNumber)
+        {
+            objectID++;
+            deviceElementNumber++;
+
+            ISODeviceElement isoDeviceElement = new ISODeviceElement(parentElement.Device);
+            isoDeviceElement.DeviceElementId = adaptConnector.Id.FindIsoId() ?? GenerateId();
+            isoDeviceElement.DeviceElementDesignator = $"{parentElement.Device.DeviceDesignator}_Connector";
+            isoDeviceElement.DeviceElementType = ISODeviceElementType.Connector;
+            isoDeviceElement.ParentObjectId = parentElement.DeviceElementObjectId;
+            isoDeviceElement.DeviceElementNumber = deviceElementNumber;
+            isoDeviceElement.DeviceElementObjectId = objectID;
+            pendingDeviceElements.Add(isoDeviceElement);
+
+            TaskDataMapper.InstanceIDMap.Add(adaptConnector.Id.ReferenceId, isoDeviceElement.DeviceElementId);
+        }
+
+        private void ExportDeviceProperties(ISODeviceElement isoDeviceElement, DeviceElement adaptDeviceElement)
+        {
+            //Connectors
+            if (isoDeviceElement.ChildDeviceElements != null)
+            {
+                foreach (ISODeviceElement connectorElement in isoDeviceElement.ChildDeviceElements.Where(d => d.DeviceElementType == ISODeviceElementType.Connector))
+                {
+                    int? connectorID = TaskDataMapper.InstanceIDMap.GetADAPTID(connectorElement.DeviceElementId);
+                    if (connectorID.HasValue)
+                    {
+                        Connector connector = DataModel.Catalog.Connectors.First(c => c.Id.ReferenceId == connectorID.Value);
+                        HitchPoint hitch = DataModel.Catalog.HitchPoints.FirstOrDefault(h => h.Id.ReferenceId == connector.HitchPointId);
+                        if (hitch != null && hitch.ReferencePoint != null)
+                        {
+                            ExportDeviceProperty(connectorElement, hitch.ReferencePoint.XOffset, ++_devicePropertyObjectID);
+                            ExportDeviceProperty(connectorElement, hitch.ReferencePoint.YOffset, ++_devicePropertyObjectID);
+                            ExportDeviceProperty(connectorElement, hitch.ReferencePoint.ZOffset, ++_devicePropertyObjectID);
+                        }
+                    }                  
+                }
+            }
+
+            //Device Element Widths & Offsets
+            IEnumerable<DeviceElementConfiguration> configs = DataModel.Catalog.DeviceElementConfigurations.Where(c => c.DeviceElementId == adaptDeviceElement.Id.ReferenceId);
+            foreach (DeviceElementConfiguration config in configs)
+            {
+                if (config is MachineConfiguration)
+                {
+                    MachineConfiguration machineConfig = config as MachineConfiguration;
+                    ISODeviceElement navigationElement = isoDeviceElement.Device.DeviceElements.FirstOrDefault(d => d.DeviceElementType == ISODeviceElementType.Navigation);
+                    if (navigationElement == null)
+                    {
+                        if (machineConfig.GpsReceiverXOffset != null)
+                        {
+                            ExportDeviceProperty(navigationElement, machineConfig.GpsReceiverXOffset, ++_devicePropertyObjectID);
+                        }
+                        if (machineConfig.GpsReceiverYOffset != null)
+                        {
+                            ExportDeviceProperty(navigationElement, machineConfig.GpsReceiverYOffset, ++_devicePropertyObjectID);
+                        }
+                        if (machineConfig.GpsReceiverZOffset != null)
+                        {
+                            ExportDeviceProperty(navigationElement, machineConfig.GpsReceiverZOffset, ++_devicePropertyObjectID);
+                        }
+                    }
+                }
+                else if (config is ImplementConfiguration)
+                {
+                    ImplementConfiguration implementConfig = config as ImplementConfiguration;
+                    if (implementConfig.Width != null)
+                    {
+                        ExportDeviceProperty(isoDeviceElement, implementConfig.Width, ++_devicePropertyObjectID);
+                    }
+                    if (implementConfig.Offsets != null)
+                    {
+                        implementConfig.Offsets.ForEach(o => ExportDeviceProperty(isoDeviceElement, o, ++_devicePropertyObjectID));
+                    }
+                }
+                else if (config is SectionConfiguration)
+                {
+                    SectionConfiguration sectionConfig = config as SectionConfiguration;
+                    if (sectionConfig.InlineOffset != null)
+                    {
+                        ExportDeviceProperty(isoDeviceElement, sectionConfig.InlineOffset, ++_devicePropertyObjectID);
+                    }
+                    if (sectionConfig.LateralOffset != null)
+                    {
+                        ExportDeviceProperty(isoDeviceElement, sectionConfig.LateralOffset, ++_devicePropertyObjectID);
+                    }
+                    if (sectionConfig.SectionWidth != null)
+                    {
+                        ExportDeviceProperty(isoDeviceElement, sectionConfig.SectionWidth, ++_devicePropertyObjectID);
+                    }
+                }
+            }
+        }
+
+        private void ExportDeviceProperty(ISODeviceElement deviceElement, NumericRepresentationValue representationValue, int objectID)
+        {
+            ISODeviceProperty dpt = new ISODeviceProperty();
+            dpt.ObjectID = objectID;
+            switch (representationValue.Representation.Code)
+            {
+                case "0043":
+                case "0046":
+                    dpt.DDI = representationValue.Representation.Code;
+                    dpt.Designator = "Width";
+                    dpt.Value = representationValue.AsLongViaMappedDDI(RepresentationMapper);
+                    break;
+                case "vrOffsetInline":
+                    dpt.DDI = "0086";
+                    dpt.Designator = "XOffset";
+                    dpt.Value = representationValue.AsLongViaMappedDDI(RepresentationMapper);
+                    break;
+                case "vrOffsetLateral":
+                    dpt.DDI = "0087";
+                    dpt.Designator = "YOffset";
+                    dpt.Value = representationValue.AsLongViaMappedDDI(RepresentationMapper);
+                    break;
+                case "vrOffsetVertical":
+                    dpt.DDI = "0088";
+                    dpt.Designator = "ZOffset";
+                    dpt.Value = representationValue.AsLongViaMappedDDI(RepresentationMapper);
+                    break;
+            }
+
+            if (!string.IsNullOrEmpty(dpt.DDI))
+            {
+                deviceElement.Device.DeviceProperties.Add(dpt);
+                deviceElement.DeviceObjectReferences.Add(new ISODeviceObjectReference() { DeviceObjectId = objectID });
+            }
+        }
+
         #endregion Export 
 
         #region Import
@@ -193,11 +345,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             DeviceElement deviceElement = new DeviceElement();
 
             //ID
-            deviceElement.Id.UniqueIds.AddRange(ImportUniqueIDs(isoDeviceElement.DeviceElementId));
-            TaskDataMapper.ADAPTIdMap.Add(isoDeviceElement.DeviceElementId, deviceElement.Id.ReferenceId);
+            ImportIDs(deviceElement.Id, isoDeviceElement.DeviceElementId);
 
             //Device ID
-            deviceElement.DeviceModelId = TaskDataMapper.ADAPTIdMap[isoDeviceElement.Device.DeviceId].Value;
+            deviceElement.DeviceModelId = TaskDataMapper.InstanceIDMap.GetADAPTID(isoDeviceElement.Device.DeviceId).Value;
 
             //Description
             deviceElement.Description = isoDeviceElement.DeviceElementDesignator;
@@ -211,12 +362,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 if (isoDeviceElement.Parent is ISODeviceElement)
                 {
                     ISODeviceElement parentElement = isoDeviceElement.Parent as ISODeviceElement;
-                    deviceElement.ParentDeviceId = TaskDataMapper.ADAPTIdMap[parentElement.DeviceElementId].Value;
+                    deviceElement.ParentDeviceId = TaskDataMapper.InstanceIDMap.GetADAPTID(parentElement.DeviceElementId).Value;
                 }
                 else
                 {
                     ISODevice parentDevice = isoDeviceElement.Parent as ISODevice;
-                    deviceElement.ParentDeviceId = TaskDataMapper.ADAPTIdMap[parentDevice.DeviceId].Value;
+                    deviceElement.ParentDeviceId = TaskDataMapper.InstanceIDMap.GetADAPTID(parentDevice.DeviceId).Value;
                 }
             }
 
@@ -233,7 +384,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         //Device is a machine
                         deviceElement.DeviceElementType = DeviceElementTypeEnum.Machine;
                     }
-                    else if (deviceElementHierarchy.Children != null && deviceElementHierarchy.Children.Any(h => h.DeviceElement.DeviceElementType == ISODeviceElementType.Navigation))
+                    else if (deviceElementHierarchy.Children != null && deviceElementHierarchy.Children.Any(h => h.DeviceElement != null && h.DeviceElement.DeviceElementType == ISODeviceElementType.Navigation))
                     {
                         //Device has a navigation element; classify as a machine
                         deviceElement.DeviceElementType = DeviceElementTypeEnum.Machine;
@@ -469,7 +620,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             DeviceElementHierarchy hierarchy = rootDeviceHierarchy.FromDeviceElementID(connectorDeviceElement.DeviceElementId);
             if (hierarchy.Parent == rootDeviceHierarchy)
             {
-                int? rootDeviceElementID = TaskDataMapper.ADAPTIdMap.FindByISOId(rootDeviceHierarchy.DeviceElement.DeviceElementId);
+                int? rootDeviceElementID = TaskDataMapper.InstanceIDMap.GetADAPTID(rootDeviceHierarchy.DeviceElement.DeviceElementId);
                 if (rootDeviceElementID.HasValue)
                 {
                     HitchPoint hitch = new HitchPoint();
@@ -489,7 +640,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                             connector.HitchPointId = hitch.Id.ReferenceId;
                             DataModel.Catalog.Connectors.Add(connector);
 
-                            TaskDataMapper.ADAPTIdMap.Add(connectorDeviceElement.DeviceElementId, connector.Id.ReferenceId);
+                            //The ID mapping will link the ADAPT Connector to the ISO Device Element
+                            TaskDataMapper.InstanceIDMap.Add(connector.Id.ReferenceId, connectorDeviceElement.DeviceElementId);
                         }
                     }
                 }

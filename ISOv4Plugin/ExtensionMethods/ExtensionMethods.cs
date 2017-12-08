@@ -25,35 +25,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
     {
         private static readonly Regex IsoIdPattern = new Regex("^[A-Z]{3,4}-?[0-9]+$", RegexOptions.Compiled);
 
-        public static TValue FindByADAPTId<TKey, TValue>(this Dictionary<TKey, TValue> items, TKey id) where TValue : class
-        {
-            if (items == null || items.Count == 0 || id == null)
-                return null;
-
-            TValue value;
-            if (items.TryGetValue(id, out value))
-                return value;
-
-            return null;
-        }
-
-        public static Nullable<TValue> FindByISOId<TKey, TValue>(this Dictionary<TKey, Nullable<TValue>> items, TKey id) where TValue : struct
-        {
-            if (items == null || items.Count == 0 || id == null)
-            { 
-                return null;
-            }
-
-            if (items.ContainsKey(id))
-            {
-                return items[id];
-            }
-            else
-            {
-                return null;
-            }
-        }
-
         public static string WithTaskDataPath(this string dataPath)
         {
             return Path.Combine(dataPath, "TASKDATA");
@@ -240,7 +211,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
                 ISOUnit unit = UnitFactory.Instance.GetUnitByDDI(ddi.Value);
                 return (long)unit.ConvertToIsoUnit(value.Value.Value);
             }
-            else if (value.Representation.CodeSource == RepresentationCodeSourceEnum.ISO11783_DDI)
+            else if (value.Representation != null && value.Representation.CodeSource == RepresentationCodeSourceEnum.ISO11783_DDI)
             {
                 //No need to convert if the value is natively a DDI
                 return (long)value.Value.Value;
