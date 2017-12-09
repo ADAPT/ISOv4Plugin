@@ -30,16 +30,18 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
     public class ProductMapper : BaseMapper, IProductMapper
     {
-        public ProductMapper(TaskDataMapper taskDataMapper) : base(taskDataMapper, "PDT")
+        public ProductMapper(TaskDataMapper taskDataMapper, ProductGroupMapper productGroupMapper) : base(taskDataMapper, "PDT")
         {
+            _productGroupMapper = productGroupMapper;
         }
 
         #region Export
+        ProductGroupMapper _productGroupMapper;
         public IEnumerable<ISOProduct> ExportProducts(IEnumerable<Product> adaptProducts)
         {
             List <ISOProduct> isoProducts = new List<ISOProduct>();
             //Add all the products
-            foreach (Product adaptProduct in adaptProducts.Where(p => p.ProductType != ProductTypeEnum.Variety)) //Omit varieties; handled in different mapper
+            foreach (Product adaptProduct in adaptProducts)
             {
                 ISOProduct product = ExportProduct(adaptProduct);
                 isoProducts.Add(product);
@@ -87,20 +89,20 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             ISOProduct isoProduct = new ISOProduct();
 
             //ID
-            string id = adaptProduct.Id.FindIsoId() ?? GenerateId();
+            string id = adaptProduct.Id.FindIsoId(XmlPrefix) ?? GenerateId();
             isoProduct.ProductId = id;
-            ExportIDs(adaptProduct.Id, id);
+            if (!ExportIDs(adaptProduct.Id, id))
+            {
+                //CVT > PDT in the mapping
+                TaskDataMapper.InstanceIDMap.ReplaceISOID(adaptProduct.Id.ReferenceId, id);
+            }
 
             //Designator
             isoProduct.ProductDesignator = adaptProduct.Description;
 
             //Product Group
             string groupName = Enum.GetName(typeof(ProductTypeEnum), adaptProduct.ProductType);
-            ISOProductGroup group = ISOTaskData.ChildElements.OfType<ISOProductGroup>().FirstOrDefault(pg => pg.ProductGroupType == ISOProductGroupType.ProductGroup && pg.ProductGroupDesignator == groupName);
-            if (group == null)
-            {
-                group = new ISOProductGroup();
-            }
+            ISOProductGroup group = _productGroupMapper.ExportProductGroup(groupName, false);
             isoProduct.ProductGroupRef = group.ProductGroupId;
 
             //Type
@@ -155,23 +157,33 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         public Product ImportProduct(ISOProduct isoProduct)
         {
-            Product product = null;
-            
-            //Type
-            switch (isoProduct.ProductType)
+            //First check if we've already created a matching seed product from the crop type
+            Product product = DataModel.Catalog.Products.FirstOrDefault(p => p.ProductType == ProductTypeEnum.Variety && p.Description == isoProduct.ProductDesignator);
+
+            //If not, create a new product
+            if (product == null)
             {
-                case ISOProductType.Mixture:
-                case ISOProductType.TemporaryMixture:
-                    product = new MixProduct();
-                    product.ProductType = ProductTypeEnum.Mix;
-                    break;
-                default:
-                    product = new GenericProduct();
-                    break;
+                //Type
+                switch (isoProduct.ProductType)
+                {
+                    case ISOProductType.Mixture:
+                    case ISOProductType.TemporaryMixture:
+                        product = new MixProduct();
+                        product.ProductType = ProductTypeEnum.Mix;
+                        break;
+                    default:
+                        product = new GenericProduct();
+                        product.ProductType = ProductTypeEnum.Generic;
+                        break;
+                }
             }
 
             //ID
-            ImportIDs(product.Id, isoProduct.ProductId);
+            if (!ImportIDs(product.Id, isoProduct.ProductId))
+            {
+                //Replace the CVT id with the PDT id in the mapping            
+                TaskDataMapper.InstanceIDMap.ReplaceISOID(product.Id.ReferenceId, isoProduct.ProductId);
+            }
 
             //Description
             product.Description = isoProduct.ProductDesignator;

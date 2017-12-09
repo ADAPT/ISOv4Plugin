@@ -495,7 +495,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             {
                 //In the case where a TSK contains both TZN and TLG data, we'll store the LoggedData as the mapped Task.
                 //The Prescription ID will be assigned to the OperationData objects by means of the dictionary in this class.
-                TaskDataMapper.InstanceIDMap.Replace(TaskDataMapper.InstanceIDMap.GetADAPTID(isoLoggedTask.TaskID).Value, isoLoggedTask.TaskID, loggedData.Id.ReferenceId, isoLoggedTask.TaskID);
+                TaskDataMapper.InstanceIDMap.ReplaceADAPTID(isoLoggedTask.TaskID, loggedData.Id.ReferenceId);
             }
 
             //Task Name

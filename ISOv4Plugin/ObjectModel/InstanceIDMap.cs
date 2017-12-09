@@ -28,12 +28,31 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
             return false;
         }
 
-        public void Replace(int oldAdaptID, string oldISOID, int newAdaptID, string newISOID)
+        public void ReplaceADAPTID(string isoID, int newAdaptID)
         {
-            if (_adaptIDs.ContainsKey(oldISOID) && _isoIDs.ContainsKey(oldAdaptID))
+            if (_adaptIDs.ContainsKey(isoID))
             {
-                _adaptIDs[oldISOID] = newAdaptID;
-                _isoIDs[oldAdaptID] = newISOID;
+                _adaptIDs[isoID] = newAdaptID;
+            }
+
+            if (!_isoIDs.ContainsKey(newAdaptID))
+            {
+                _isoIDs.Add(newAdaptID, isoID);
+            }
+        }
+
+            
+
+        public void ReplaceISOID(int adaptID, string newISOID)
+        {
+            if (_isoIDs.ContainsKey(adaptID))
+            {
+                _isoIDs[adaptID] = newISOID;
+            }
+
+            if (!_adaptIDs.ContainsKey(newISOID))
+            {
+                _adaptIDs.Add(newISOID, adaptID);
             }
         }
 

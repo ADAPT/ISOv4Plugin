@@ -47,13 +47,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
             return allSections;
         }
 
-        public static string FindIsoId(this CompoundIdentifier adaptId)
+        public static string FindIsoId(this CompoundIdentifier adaptId, string prefixFilter = null)
         {
             var stringIds = adaptId.UniqueIds.Where(id => id.Id != null &&
                 id.Source == UniqueIdMapper.IsoSource &&
                 id.IdType == IdTypeEnum.String).ToList();
 
-            var isoId = stringIds.FirstOrDefault(s => IsoIdPattern.IsMatch(s.Id));
+            var isoId = stringIds.FirstOrDefault(s => IsoIdPattern.IsMatch(s.Id) && (prefixFilter == null || s.Id.StartsWith(prefixFilter)));
 
             return isoId != null ? isoId.Id : null;
         }

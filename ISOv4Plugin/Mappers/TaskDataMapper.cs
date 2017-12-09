@@ -80,6 +80,19 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
         }
 
+        ProductGroupMapper _productGroupMapper;
+        public ProductGroupMapper ProductGroupMapper
+        {
+            get
+            {
+                if (_productGroupMapper == null)
+                {
+                    _productGroupMapper = new ProductGroupMapper(this);
+                }
+                return _productGroupMapper;
+            }
+        }
+
 
         public ISO11783_TaskData Export(ApplicationDataModel.ADM.ApplicationDataModel adm)
         {
@@ -110,20 +123,20 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Crops
             if (adm.Catalog.Crops != null)
             {
-                CropTypeMapper cropMapper = new CropTypeMapper(this);
+                CropTypeMapper cropMapper = new CropTypeMapper(this, ProductGroupMapper);
                 IEnumerable<ISOCropType> crops = cropMapper.ExportCropTypes(adm.Catalog.Crops);
                 ISOTaskData.ChildElements.AddRange(crops);
             }
 
-            //Non-Variety Products
+            //Products
             if (adm.Catalog.Products != null)
             {
-                IEnumerable<Product> nonSeedProducts = AdaptDataModel.Catalog.Products.Where(p => p.ProductType != ProductTypeEnum.Variety);
-                if (nonSeedProducts.Any())
+                IEnumerable<Product> products = AdaptDataModel.Catalog.Products;
+                if (products.Any())
                 {
-                    ProductMapper productMapper = new ProductMapper(this);
-                    IEnumerable<ISOProduct> products = productMapper.ExportProducts(nonSeedProducts);
-                    ISOTaskData.ChildElements.AddRange(products);
+                    ProductMapper productMapper = new ProductMapper(this, ProductGroupMapper);
+                    IEnumerable<ISOProduct> isoProducts = productMapper.ExportProducts(products);
+                    ISOTaskData.ChildElements.AddRange(isoProducts);
                 }
             }
 
@@ -254,11 +267,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             CodedCommentListMapper commentListMapper = new CodedCommentListMapper(this);
             CodedCommentMapper commentMapper = new CodedCommentMapper(this, commentListMapper);
 
-            //Crops
+            //Crops - several dependencies require import prior to Products
             IEnumerable<ISOCropType> crops = taskData.ChildElements.OfType<ISOCropType>();
             if (crops.Any())
             {
-                CropTypeMapper cropMapper = new CropTypeMapper(this);
+                CropTypeMapper cropMapper = new CropTypeMapper(this, ProductGroupMapper);
                 AdaptDataModel.Catalog.Crops.AddRange(cropMapper.ImportCropTypes(crops));
             }
 
@@ -266,8 +279,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             IEnumerable<ISOProduct> products = taskData.ChildElements.OfType<ISOProduct>();
             if (products.Any())
             {
-                ProductMapper productMapper = new ProductMapper(this);
-                AdaptDataModel.Catalog.Products.AddRange(productMapper.ImportProducts(products));
+                ProductMapper productMapper = new ProductMapper(this, ProductGroupMapper);
+                IEnumerable<Product> adaptProducts = productMapper.ImportProducts(products);
+                AdaptDataModel.Catalog.Products.AddRange(adaptProducts.Where(p => !AdaptDataModel.Catalog.Products.Contains(p)));
             }
 
             //Growers
