@@ -117,7 +117,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
 
         public static NumericRepresentationValue AsNumericRepresentationValue(this ISOProcessDataVariable pdv, RepresentationMapper mapper, ISO11783_TaskData taskData)
         {
-            return pdv.ProcessDataValue.AsNumericRepresentationValue(pdv.ProcessDataDDI, mapper, pdv.ToUserAdaptUnit(mapper, taskData));
+            return pdv.ProcessDataValue.AsNumericRepresentationValue(pdv.ProcessDataDDI, mapper, pdv.ToDisplayUnit(mapper, taskData));
         }
 
         public static NumericRepresentationValue AsNumericRepresentationValue(this long n, string uomCode)
@@ -128,36 +128,25 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
             return returnValue;
         }
 
-        public static UnitOfMeasure ToAdaptUnit(this ISOProcessDataVariable pdv, RepresentationMapper mapper, ISO11783_TaskData taskData)
+        public static UnitOfMeasure ToDisplayUnit(this ISOProcessDataVariable pdv, RepresentationMapper mapper, ISO11783_TaskData taskData)
         {
-            ISOUnit isoUnit = UnitFactory.Instance.GetUnitByDDI(pdv.ProcessDataDDI.AsInt32DDI());
-            if (isoUnit != null)
-            {
-                return isoUnit.ToAdaptUnit();  //Unit based on DDI
-            }
-            else 
-            {
-                return pdv.ToUserAdaptUnit(mapper, taskData); //Presentation Unit
-            }
-        }
-
-        public static ISOUnit ToISOUnit(this ISOProcessDataVariable pdv, RepresentationMapper mapper, ISO11783_TaskData taskData)
-        {
+            ISOUnit userUnit = null;
             if (!string.IsNullOrEmpty(pdv.ValuePresentationIdRef))
             {
                 ISOValuePresentation vpn = taskData.ChildElements.OfType<ISOValuePresentation>().FirstOrDefault(v => v.ValuePresentationID == pdv.ValuePresentationIdRef);
                 if (vpn != null)
                 {
-                    return new ISOUnit(vpn);
+                    userUnit = new ISOUnit(vpn);
                 }
             }
-            return null;
-        }
-
-        public static UnitOfMeasure ToUserAdaptUnit(this ISOProcessDataVariable pdv, RepresentationMapper mapper, ISO11783_TaskData taskData)
-        {
-            ISOUnit userUnit = pdv.ToISOUnit(mapper, taskData);
-            //TODO map to an Adapt Unit based on code; non-matching codes will error.
+            if (userUnit != null)
+            {
+                UnitOfMeasure adaptUnit = userUnit.ToAdaptUnit();
+                if (adaptUnit != null)
+                {
+                    return adaptUnit;
+                }
+            }
             return null;
         }
 

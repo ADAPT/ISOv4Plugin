@@ -93,6 +93,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
         }
 
+        public void AddError(string error, string id = null, string source = null, string stackTrace = null)
+        {
+            Errors.Add(new Error() { Description = error, Id = id, Source = source, StackTrace = stackTrace });
+        }
 
         public ISO11783_TaskData Export(ApplicationDataModel.ADM.ApplicationDataModel adm)
         {
@@ -224,7 +228,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     }
                     else
                     {
-                        Errors.Add(new Error() { Description = $"Invalid Grid Type {gridType}.  WorkItems will not be exported", Source = "TaskDataMapper" });
+                        AddError($"Invalid Grid Type {gridType}.  WorkItems will not be exported", null, "TaskDataMapper");
                     }
                 }
 
@@ -232,7 +236,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 {
                     //LoggedData 
                     IEnumerable<ISOTask> loggedTasks = taskMapper.Export(AdaptDataModel.Documents.LoggedData);
-                    ISOTaskData.ChildElements.AddRange(loggedTasks);
+                    ISOTaskData.ChildElements.AddRange(loggedTasks.Where(t => !ISOTaskData.ChildElements.OfType<ISOTask>().Contains(t)));
                 }
             }
 

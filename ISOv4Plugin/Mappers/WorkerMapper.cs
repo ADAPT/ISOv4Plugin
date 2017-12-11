@@ -74,7 +74,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 }
             }
 
-            //isoWorker.WorkerLicenseNumber = ?
+            //isoWorker.WorkerLicenseNumber = ? //TODO ContextItem
 
             return isoWorker;
         }
@@ -118,7 +118,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             worker.ContactInfoId = contactInfo.Id.ReferenceId;
             
-            //? = isoWorker.WorkerLicenseNumber;
+            //? = isoWorker.WorkerLicenseNumber;  //TODO ContextItem
 
             return worker;
         }

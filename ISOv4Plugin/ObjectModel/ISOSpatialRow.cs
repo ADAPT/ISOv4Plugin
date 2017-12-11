@@ -14,11 +14,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
         public int EastPosition { get; set; }
         public int? Elevation { get; set; }
         public byte? PositionStatus { get; set; }
-        public short? PDOP { get; set; }
-        public short? HDOP { get; set; }
+        public ushort? PDOP { get; set; }
+        public ushort? HDOP { get; set; }
         public byte? NumberOfSatellites { get; set; }
-        public int? GpsUtcTime { get; set;  }
-        public short? GpsUtcDate { get; set; }
+        public uint? GpsUtcTime { get; set;  }
+        public ushort? GpsUtcDate { get; set; }
         public DateTime? GpsUtcDateTime { get; set; }
         public List<SpatialValue> SpatialValues {get; set; }
     }

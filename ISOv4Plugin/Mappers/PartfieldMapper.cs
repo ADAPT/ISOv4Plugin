@@ -75,7 +75,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Customer & Farm ID
             ExportFarmAndGrower(adaptField, isoField);
 
-            //isoField.PartfieldCode = ?  
+            //isoField.PartfieldCode = ? //TODO ContextItem? 
 
             //Area
             if (adaptField.Area != null)
@@ -112,7 +112,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 isoField.GuidanceGroups = ggpMapper.ExportGuidanceGroups(groups).ToList();
             }
 
-            //TODO any obstacle, flag, entry, etc. data
+            //TODO any obstacle, flag, entry, etc. data pending fixes to InteriorBoundaryAttribute class
 
             return isoField;
         }
@@ -275,6 +275,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
             //TODO any obstacle, flag, entry, etc. data
+            //TODO store Partfield Code as ContextItem
 
             return field;
         }

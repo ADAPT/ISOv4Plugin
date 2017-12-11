@@ -250,6 +250,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         {
             if (prescription.ProductIds == null)
             {
+                TaskDataMapper.AddError($"No Products are present for Grid Type 2 Prescription export: {prescription.Description}", prescription.Id.ReferenceId.ToString());
                 return null;
             }
 
@@ -318,7 +319,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             if (lookup != null)
             {
                 processDataVariable.ProductIdRef = TaskDataMapper.InstanceIDMap.GetISOID(lookup.ProductId.Value);
-                processDataVariable.ProcessDataDDI = DetermineVariableDDI(lookup.UnitOfMeasure).AsHexDDI();
+                processDataVariable.ProcessDataDDI = DetermineVariableDDI(lookup.Representation, lookup.UnitOfMeasure).AsHexDDI();
                 processDataVariable.ProcessDataValue = (long)rxRate.Rate;
             }
             return processDataVariable;
@@ -333,7 +334,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 {
                     ProductIdRef = isoProductIdRef,
                     ProcessDataValue = value.AsLongViaMappedDDI(RepresentationMapper),
-                    ProcessDataDDI = DetermineVariableDDI(adaptUnit).AsHexDDI()
+                    ProcessDataDDI = DetermineVariableDDI(value.Representation, adaptUnit).AsHexDDI()
                 };
 
                 return dataVariable;
@@ -341,13 +342,38 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return null;
         }
 
-        private static int DetermineVariableDDI(UnitOfMeasure adaptUnit)
+        /// <summary>
+        /// If an implementer wants to export to a custom DDI or otherwise one that doesn't map,
+        /// the appropriate DDI may be set in the Prescription prior to exporting.
+        /// A ISO11783_DDI representation is as such the first mapping attempted.
+        /// </summary>
+        /// <param name="representation"></param>
+        /// <param name="adaptUnit"></param>
+        /// <returns></returns>
+        private int DetermineVariableDDI(NumericRepresentation representation, UnitOfMeasure adaptUnit)
         {
-            if (adaptUnit != null && UnitFactory.DimensionToDdi.ContainsKey(adaptUnit.Dimension))
-                return UnitFactory.DimensionToDdi[adaptUnit.Dimension];
+            if (representation != null)
+            {
+                if (representation.CodeSource == RepresentationCodeSourceEnum.ISO11783_DDI)
+                {
+                    return Int32.Parse(representation.Code);
+                }
 
-            //TODO this currently defaults to a dry application if nothing else can be determined
-            return 6;
+                int? mappedDDI = RepresentationMapper.Map(representation);
+                if (mappedDDI.HasValue)
+                {
+                    return mappedDDI.Value;
+                }
+            }
+
+            if (adaptUnit != null && UnitFactory.DimensionToDdi.ContainsKey(adaptUnit.Dimension))
+            {
+                return UnitFactory.DimensionToDdi[adaptUnit.Dimension];
+            }
+
+            TaskDataMapper.AddError($"Unable to determine DDI for Prescription export {representation.Code}.", $"Representation ID : {representation.Id.ReferenceId}", "PrescriptionMapper.DetermineVariableDDI()");
+            return 0; //Return an invalid DDI
+
         }
 
         private ISOEnumerations.ISOTaskStatus ExportStatus(WorkStatusEnum adaptStatus)

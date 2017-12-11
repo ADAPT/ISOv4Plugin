@@ -59,13 +59,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             gpn.PropagationDirection = ExportPropagationDirection(adaptGuidancePattern.PropagationDirection);
             gpn.Extension = ExportExtension(adaptGuidancePattern.Extension);
             gpn.Heading = ExportHeading(adaptGuidancePattern);
-
-            //if (adaptGuidancePattern is PivotGuidancePattern)
-            //{
-            //    //gpn.Radius = ?//TODO
-            //    //gpn.GuidancePatternOptions = ?//TODO
-            //}
-
             gpn.GNSSMethod = ExportGNSSMethod(adaptGuidancePattern.GpsSource.SourceType);
             gpn.HorizontalAccuracy = (decimal)adaptGuidancePattern.GpsSource.HorizontalAccuracy.AsConvertedDouble("m");
             gpn.VerticalAccuracy = (decimal)adaptGuidancePattern.GpsSource.VerticalAccuracy.AsConvertedDouble("m"); 
@@ -109,6 +102,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         }
                     }
                     gpn.LineString = lineStringMapper.ExportLineString(pivotLine, ISOLineStringType.GuidancePattern);
+                    //gpn.Radius = ?  //Not implemented
+                    //gpn.GuidancePatternOptions = ? //Not implemented
                     break;
                 case GuidancePatternTypeEnum.Spiral:
                     Spiral spiral = adaptGuidancePattern as Spiral;

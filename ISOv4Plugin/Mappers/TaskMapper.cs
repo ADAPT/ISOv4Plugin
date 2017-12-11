@@ -31,9 +31,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
     public class TaskMapper : BaseMapper, ITaskMapper
     {
         private Dictionary<string, int> _rxIDsByTask;
+        private Dictionary<int, string> _taskIDsByPrescription;
         public TaskMapper(TaskDataMapper taskDataMapper) : base(taskDataMapper, "TSK")
         {
-            _rxIDsByTask = new Dictionary<string, int>();
         }
 
         PrescriptionMapper _prescriptionMapper;
@@ -80,6 +80,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         #region Export Work Items
         public IEnumerable<ISOTask> Export(IEnumerable<WorkItem> adaptWorkItems, int isoGridType)
         {
+            _taskIDsByPrescription = new Dictionary<int, string>();
             List<ISOTask> tasks = new List<ISOTask>();
             foreach (WorkItem workItem in adaptWorkItems)
             {
@@ -105,6 +106,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         {
                             ISOTask task = PrescriptionMapper.ExportPrescription(workItem, isoGridType, prescription);
                             tasks.Add(task);
+                            _taskIDsByPrescription.Add(prescription.Id.ReferenceId, task.TaskID);
                         }
                     }
                 }
@@ -130,12 +132,34 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         private ISOTask Export(LoggedData loggedData)
         {
-            ISOTask task = new ISOTask();
+            ISOTask task = null;
 
-            //Task ID
-            string taskID = loggedData.Id.FindIsoId() ?? GenerateId();
-            task.TaskID = taskID;
-            ExportIDs(loggedData.Id, taskID);
+            //Try to map to a pre-existing Work Item task where appropriate
+            if (loggedData.OperationData.All(o => o.PrescriptionId.HasValue) &&
+                loggedData.OperationData.Select(o => o.PrescriptionId.Value).Distinct().Count() == 1)
+            {
+                int rxID = loggedData.OperationData.First().PrescriptionId.Value;
+                if (_taskIDsByPrescription.ContainsKey(rxID))
+                {
+                    task = ISOTaskData.ChildElements.OfType<ISOTask>().FirstOrDefault(t => t.TaskID == _taskIDsByPrescription[rxID]);
+                }
+            }
+
+            if (task == null)
+            {
+                task = new ISOTask();
+
+                //Task ID
+                string taskID = loggedData.Id.FindIsoId() ?? GenerateId();
+                task.TaskID = taskID;
+            }
+
+
+            if (!ExportIDs(loggedData.Id, task.TaskID))
+            {
+                //Update the mapping to represent the completed task
+                TaskDataMapper.InstanceIDMap.ReplaceADAPTID(task.TaskID, loggedData.Id.ReferenceId);
+            }
 
             //Task Designator
             task.TaskDesignator = loggedData.Description;
@@ -310,6 +334,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         public IEnumerable<WorkItem> ImportWorkItems(IEnumerable<ISOTask> isoPrescribedTasks)
         {
+            _rxIDsByTask = new Dictionary<string, int>();
             List<WorkItem> adaptWorkItems = new List<WorkItem>();
             foreach (ISOTask isoPrescribedTask in isoPrescribedTasks)
             {

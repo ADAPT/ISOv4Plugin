@@ -464,12 +464,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
                             if (templatePosition.HasPDOP)
                             {
-                                record.PDOP = ReadShort((double?)templatePosition.PDOP, templatePosition.HasPDOP, binaryReader);
+                                record.PDOP = ReadUShort((double?)templatePosition.PDOP, templatePosition.HasPDOP, binaryReader);
                             }
 
                             if (templatePosition.HasHDOP)
                             {
-                                record.HDOP = ReadShort((double?)templatePosition.HDOP, templatePosition.HasHDOP, binaryReader);
+                                record.HDOP = ReadUShort((double?)templatePosition.HDOP, templatePosition.HasHDOP, binaryReader);
                             }
 
                             if (templatePosition.HasNumberOfSatellites)
@@ -477,29 +477,29 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                                 record.NumberOfSatellites = ReadByte(templatePosition.NumberOfSatellites, templatePosition.HasNumberOfSatellites, binaryReader);
                             }
 
-                            if (templatePosition.HasGpsUtcDate)
-                            {
-                                if (templatePosition.GpsUtcDate.HasValue)
-                                {
-                                    record.GpsUtcDate = (short)templatePosition.GpsUtcDate.Value;
-                                }
-                                else
-                                {
-                                    record.GpsUtcDate = binaryReader.ReadInt16();
-                                }
-                                
-                            }
-
                             if (templatePosition.HasGpsUtcTime)
                             {
                                 if (templatePosition.GpsUtcTime.HasValue)
                                 {
-                                    record.GpsUtcTime = Convert.ToInt32(templatePosition.GpsUtcTime.Value);
+                                    record.GpsUtcTime = Convert.ToUInt32(templatePosition.GpsUtcTime.Value);
                                 }
                                 else
                                 {
-                                    record.GpsUtcTime = binaryReader.ReadInt32();
+                                    record.GpsUtcTime = binaryReader.ReadUInt32();
                                 }
+                            }
+
+                            if (templatePosition.HasGpsUtcDate)
+                            {
+                                if (templatePosition.GpsUtcDate.HasValue)
+                                {
+                                    record.GpsUtcDate = (ushort)templatePosition.GpsUtcDate.Value;
+                                }
+                                else
+                                {
+                                    record.GpsUtcDate = binaryReader.ReadUInt16();
+                                }
+                                
                             }
 
                             if (record.GpsUtcDate != null && record.GpsUtcTime != null)
@@ -524,18 +524,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 }
             }
 
-            private static short? ReadShort(double? value, bool specified, System.IO.BinaryReader binaryReader)
+            private static ushort? ReadUShort(double? value, bool specified, System.IO.BinaryReader binaryReader)
             {
                 if (specified)
                 {
                     if (value.HasValue)
-                        return (short)value.Value;
-                    return binaryReader.ReadInt16();
+                        return (ushort)value.Value;
+                    return binaryReader.ReadUInt16();
                 }
                 return null;
             }
-
-
 
             private static byte? ReadByte(byte? byteValue, bool specified, System.IO.BinaryReader binaryReader)
             {
