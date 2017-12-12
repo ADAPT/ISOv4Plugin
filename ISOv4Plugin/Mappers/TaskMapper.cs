@@ -34,6 +34,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         private Dictionary<int, string> _taskIDsByPrescription;
         public TaskMapper(TaskDataMapper taskDataMapper) : base(taskDataMapper, "TSK")
         {
+            _rxIDsByTask = new Dictionary<string, int>();
+            _taskIDsByPrescription = new Dictionary<int, string>();
         }
 
         PrescriptionMapper _prescriptionMapper;
@@ -80,7 +82,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         #region Export Work Items
         public IEnumerable<ISOTask> Export(IEnumerable<WorkItem> adaptWorkItems, int isoGridType)
         {
-            _taskIDsByPrescription = new Dictionary<int, string>();
             List<ISOTask> tasks = new List<ISOTask>();
             foreach (WorkItem workItem in adaptWorkItems)
             {
@@ -334,7 +335,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         public IEnumerable<WorkItem> ImportWorkItems(IEnumerable<ISOTask> isoPrescribedTasks)
         {
-            _rxIDsByTask = new Dictionary<string, int>();
             List<WorkItem> adaptWorkItems = new List<WorkItem>();
             foreach (ISOTask isoPrescribedTask in isoPrescribedTasks)
             {

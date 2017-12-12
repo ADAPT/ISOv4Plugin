@@ -89,12 +89,22 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             ISOProduct isoProduct = new ISOProduct();
 
             //ID
-            string id = adaptProduct.Id.FindIsoId(XmlPrefix) ?? GenerateId();
-            isoProduct.ProductId = id;
-            if (!ExportIDs(adaptProduct.Id, id))
+            string productID = adaptProduct.Id.FindIsoId(XmlPrefix) ?? GenerateId();
+            isoProduct.ProductId = productID;
+            if (!ExportIDs(adaptProduct.Id, productID))
             {
-                //CVT > PDT in the mapping
-                TaskDataMapper.InstanceIDMap.ReplaceISOID(adaptProduct.Id.ReferenceId, id);
+                string preExistingID = TaskDataMapper.InstanceIDMap.GetISOID(adaptProduct.Id.ReferenceId);
+                if (preExistingID.StartsWith("CVT"))
+                {
+                    ISOCropVariety cvt = ISOTaskData.ChildElements.OfType<ISOCropType>().SelectMany(c => c.CropVarieties).FirstOrDefault(v => v.CropVarietyId == preExistingID);
+                    if (cvt != null)
+                    {
+                        //Fill the product ID on the variety now that we have one
+                        cvt.ProductIdRef = productID;
+                    }
+                }
+                //CVT becomes PDT in the mapping
+                TaskDataMapper.InstanceIDMap.ReplaceISOID(adaptProduct.Id.ReferenceId, productID);
             }
 
             //Designator
