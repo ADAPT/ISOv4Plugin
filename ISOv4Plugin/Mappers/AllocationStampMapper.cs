@@ -90,7 +90,20 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         {
             TimeScope adaptTimeScope = new TimeScope();
             adaptTimeScope.TimeStamp1 = isoAllocationStamp.Start;
-            adaptTimeScope.TimeStamp2 = isoAllocationStamp.Stop;
+
+            //[Check] AllocationStamp XML element: a recording with only the Start attribute defined is allowed
+            if (isoAllocationStamp.Stop != null)
+                adaptTimeScope.TimeStamp2 = isoAllocationStamp.Stop;
+            //[Check] AllocationStamp XML element: a recording with only the Start attribute defined is allowed
+            if (isoAllocationStamp.Duration != null)
+            {
+                if (isoAllocationStamp.Duration > int.MaxValue)
+                    adaptTimeScope.Duration = TimeSpan.FromSeconds((double)isoAllocationStamp.Duration);
+                else
+                    adaptTimeScope.Duration = new TimeSpan(0, 0, (int) isoAllocationStamp.Duration);
+            }
+                
+
             if (isoAllocationStamp.Positions.Count == 1)
             {
                 adaptTimeScope.Location1 = ImportPosition(isoAllocationStamp.Positions[0]);
@@ -107,9 +120,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         private static Location ImportPosition(ISOPosition position)
         {
             Location location = new Location();
+            location.Position = new Point();
             location.Position.X = (double)position.PositionEast;
             location.Position.Y = (double)position.PositionNorth;
-            location.Position.Z = (double)position.PositionUp;
+            //[Check] if there is a PositionUp
+            if(position.PositionUp != null)
+                location.Position.Z = (double)position.PositionUp;
 
             if (position.HasNumberOfSatellites)
             {

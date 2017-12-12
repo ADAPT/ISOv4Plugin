@@ -20,7 +20,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         //Attributes
         public DateTime? Start { get; set; }  
         public DateTime? Stop { get; set; }
-        public long? Duration { get; set; }
+        public uint? Duration { get; set; } //Duration in XML is of unsignedLong type (Max 2^32-1 = 4,294,967,295). Found a possible typo in ISO 11783-10 Table D.2: "2^32-2" or is this correct so maximum value is 2 * int.MaxValue?
         public ISOAllocationStampType Type { get; set; }
 
         //Child Elements
@@ -32,7 +32,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteStartElement("ASP");
             xmlBuilder.WriteXmlAttribute("A", Start.HasValue ? Start.Value.ToString("yyyy-MM-ddThh:mm:ss") : "");
             xmlBuilder.WriteXmlAttribute("B", Stop.HasValue ? Stop.Value.ToString("yyyy-MM-ddThh:mm:ss") : "");
-            xmlBuilder.WriteXmlAttribute<long>("C", Duration);
+            xmlBuilder.WriteXmlAttribute<uint>("C", Duration);
             xmlBuilder.WriteXmlAttribute("D", ((int)Type).ToString());
             foreach (ISOPosition item in Positions) { item.WriteXML(xmlBuilder); }
             xmlBuilder.WriteEndElement();
@@ -47,8 +47,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 
             ISOAllocationStamp item = new ISOAllocationStamp();
             item.Start = node.GetXmlNodeValueAsNullableDateTime("@A");
+            if (item.Start == null) //AllocationStamp XML element has to have a Start Attribute value defined
+                return null;
             item.Stop = node.GetXmlNodeValueAsNullableDateTime("@B");
-            item.Duration = node.GetXmlNodeValueAsNullableLong("@C");
+            item.Duration = node.GetXmlNodeValueAsNullableUInt("@C");
             item.Type = (ISOAllocationStampType)(node.GetXmlNodeValueAsInt("@D"));
 
             XmlNodeList ptnNodes = node.SelectNodes("PTN");

@@ -104,6 +104,33 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
             }
         }
 
+        public static uint? GetXmlNodeValueAsNullableUInt(this XmlNode xmlNode, string xPath)
+        {
+            string value = GetXmlNodeValue(xmlNode, xPath);
+            uint outValue;
+            if (UInt32.TryParse(value, out outValue))
+            {
+                return outValue;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public static uint GetXmlNodeValueAsUInt(this XmlNode xmlNode, string xPath)
+        {
+            string value = GetXmlNodeValue(xmlNode, xPath);
+            uint outValue;
+            if (UInt32.TryParse(value, out outValue))
+            {
+                return outValue;
+            }
+            else
+            {
+                return 0;
+            }
+        }
 
         public static DateTime? GetXmlNodeValueAsNullableDateTime(this XmlNode xmlNode, string xPath)
         {
