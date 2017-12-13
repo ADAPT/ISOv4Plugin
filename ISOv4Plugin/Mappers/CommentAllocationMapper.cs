@@ -100,7 +100,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             Note adaptNote = new Note();
 
             //Allocation Stamps
-            if (isoCommentAllocation.AllocationStamp != null)
+            if (isoCommentAllocation.AllocationStamp != null && isoCommentAllocation.AllocationStamp.Start != null)
             {
                 adaptNote.TimeStamps = AllocationStampMapper.ImportAllocationStamps(new List<ISOAllocationStamp>() {isoCommentAllocation.AllocationStamp }).ToList();
             }
