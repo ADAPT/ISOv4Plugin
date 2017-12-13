@@ -44,8 +44,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Worker ID
             string workerID = adaptWorker.Id.FindIsoId() ?? GenerateId();
             isoWorker.WorkerId = workerID;
-            ExportUniqueIDs(adaptWorker.Id, workerID);
-            TaskDataMapper.ISOIdMap.Add(adaptWorker.Id.ReferenceId, workerID);
+            ExportIDs(adaptWorker.Id, workerID);
 
             //Worker name
             isoWorker.WorkerFirstName = adaptWorker.FirstName;
@@ -75,7 +74,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 }
             }
 
-            //isoWorker.WorkerLicenseNumber = ?
+            //isoWorker.WorkerLicenseNumber = ? //TODO ContextItem
 
             return isoWorker;
         }
@@ -99,8 +98,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             Person worker = new Person();
 
             //Worker ID
-            worker.Id.UniqueIds.AddRange(ImportUniqueIDs(isoWorker.WorkerId));
-            TaskDataMapper.ADAPTIdMap.Add(isoWorker.WorkerId, worker.Id.ReferenceId);
+            ImportIDs(worker.Id, isoWorker.WorkerId);
 
             //Worker name
             worker.LastName = isoWorker.WorkerLastName;
@@ -120,7 +118,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             worker.ContactInfoId = contactInfo.Id.ReferenceId;
             
-            //? = isoWorker.WorkerLicenseNumber;
+            //? = isoWorker.WorkerLicenseNumber;  //TODO ContextItem
 
             return worker;
         }

@@ -66,8 +66,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
             // Sensor Systems
             this.Add(new DeviceOperationType(17, DefinedTypeEnumerationInstanceList.dtiSensorSystems, OperationTypeEnum.Unknown, false));
 
+            //Utility Vehicles
+            this.Add(new DeviceOperationType(24, DefinedTypeEnumerationInstanceList.dtiUtilityVehicle, OperationTypeEnum.Unknown, true));
+
             // Slurry Applicators
             this.Add(new DeviceOperationType(25, DefinedTypeEnumerationInstanceList.dtiSlurryApplicators, OperationTypeEnum.Fertilizing, false));
+
+            //Feeders/Mixers 26
+            //TODO
         }
 
     }

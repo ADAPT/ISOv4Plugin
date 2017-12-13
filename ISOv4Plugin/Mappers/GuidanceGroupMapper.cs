@@ -49,8 +49,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //ID
             string id = adaptGuidanceGroup.Id.FindIsoId() ?? GenerateId();
             isoGroup.GuidanceGroupId = id;
-            ExportUniqueIDs(adaptGuidanceGroup.Id, id);
-            TaskDataMapper.ISOIdMap.Add(adaptGuidanceGroup.Id.ReferenceId, id);
+            ExportIDs(adaptGuidanceGroup.Id, id);
 
             //Designator
             isoGroup.GuidanceGroupDesignator = adaptGuidanceGroup.Description;
@@ -91,7 +90,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             List<GuidanceGroup> adaptGuidanceGroups = new List<GuidanceGroup>();
             foreach (ISOGuidanceGroup isoGuidanceGroup in isoGuidanceGroups)
             {
-                if (!TaskDataMapper.ADAPTIdMap.ContainsKey(isoGuidanceGroup.GuidanceGroupId))
+                if (!TaskDataMapper.InstanceIDMap.GetADAPTID(isoGuidanceGroup.GuidanceGroupId).HasValue)
                 {
                     GuidanceGroup adaptGuidanceGroup = ImportGuidanceGroup(isoGuidanceGroup);
                     adaptGuidanceGroups.Add(adaptGuidanceGroup);
@@ -116,8 +115,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             GuidanceGroup adaptGroup = new GuidanceGroup();
 
             //ID
-            adaptGroup.Id.UniqueIds.AddRange(ImportUniqueIDs(isoGuidanceGroup.GuidanceGroupId));
-            TaskDataMapper.ADAPTIdMap.Add(isoGuidanceGroup.GuidanceGroupId, adaptGroup.Id.ReferenceId);
+            ImportIDs(adaptGroup.Id, isoGuidanceGroup.GuidanceGroupId);
 
             //Description
             adaptGroup.Description = isoGuidanceGroup.GuidanceGroupDesignator;

@@ -20,7 +20,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
     public interface ICropTypeMapper
     {
         IEnumerable<ISOCropType> ExportCropTypes(IEnumerable<Crop> adaptCropTypes);
-        ISOCropType ExportCropType(Crop adaptCropType);
+        ISOCropType ExportCropType(Crop adaptCropType, ISOProductGroup cropTypeProductGroup);
 
         IEnumerable<Crop> ImportCropTypes(IEnumerable<ISOCropType> isoCropTypes);
         Crop ImportCropType(ISOCropType isoCropType);
@@ -28,34 +28,39 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
     public class CropTypeMapper : BaseMapper, ICropTypeMapper
     {
-        public CropTypeMapper(TaskDataMapper taskDataMapper) : base(taskDataMapper, "CTP")
+        public CropTypeMapper(TaskDataMapper taskDataMapper, ProductGroupMapper productGroupMapper) : base(taskDataMapper, "CTP")
         {
+            _productGroupMapper = productGroupMapper;
         }
 
         #region Export
+        ProductGroupMapper _productGroupMapper;
         public IEnumerable<ISOCropType> ExportCropTypes(IEnumerable<Crop> adaptCropTypes)
         {
+            ISOProductGroup productGroup = _productGroupMapper.ExportProductGroup("CropType", true);
             List <ISOCropType> cropTypes = new List<ISOCropType>();
-            foreach (Crop group in adaptCropTypes)
+            foreach (Crop crop in adaptCropTypes)
             {
-                ISOCropType isoGroup = ExportCropType(group);
+                ISOCropType isoGroup = ExportCropType(crop, productGroup);
                 cropTypes.Add(isoGroup);
             }
             return cropTypes;
         }
 
-        public ISOCropType ExportCropType(Crop adaptCropType)
+        public ISOCropType ExportCropType(Crop adaptCropType, ISOProductGroup cropTypeProductGroup)
         {
             ISOCropType isoCrop = new ISOCropType();
 
             //ID
             string id = adaptCropType.Id.FindIsoId() ?? GenerateId();
             isoCrop.CropTypeId = id;
-            ExportUniqueIDs(adaptCropType.Id, id);
-            TaskDataMapper.ISOIdMap.Add(adaptCropType.Id.ReferenceId, id);
+            ExportIDs(adaptCropType.Id, id);
 
             //Designator
             isoCrop.CropTypeDesignator = adaptCropType.Name;
+
+            //Product Group
+            isoCrop.ProductGroupIdRef = cropTypeProductGroup.ProductGroupId;
 
             //Varieties
             if (DataModel.Catalog.Products != null)
@@ -97,8 +102,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             Crop adaptCrop = new Crop();
 
             //ID
-            adaptCrop.Id.UniqueIds.AddRange(ImportUniqueIDs(isoCropType.CropTypeId));
-            TaskDataMapper.ADAPTIdMap.Add(isoCropType.CropTypeId, adaptCrop.Id.ReferenceId);
+            ImportIDs(adaptCrop.Id, isoCropType.CropTypeId);
 
             //Description
             adaptCrop.Name = isoCropType.CropTypeDesignator;
@@ -107,7 +111,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             if (isoCropType.CropVarieties.Any())
             {
                 CropVarietyMapper varietyMapper = new CropVarietyMapper(TaskDataMapper);
-                varietyMapper.ImportCropVarieties(isoCropType.CropVarieties);
+                varietyMapper.ImportCropVarieties(adaptCrop, isoCropType.CropVarieties);
             }
 
             return adaptCrop;

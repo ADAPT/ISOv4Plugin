@@ -54,8 +54,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Task ID
             string taskID = workItem.Id.FindIsoId() ?? GenerateId();
             task.TaskID = taskID;
-            ExportUniqueIDs(workItem.Id, taskID);
-            TaskDataMapper.ISOIdMap.Add(workItem.Id.ReferenceId, taskID);
+            ExportIDs(workItem.Id, taskID);
 
             //Designator
             task.TaskDesignator = prescription.Description;
@@ -63,23 +62,23 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Customer Ref
             if (workItem.GrowerId.HasValue)
             {
-                task.CustomerIdRef = TaskDataMapper.ISOIdMap.FindByADAPTId(workItem.GrowerId.Value);
+                task.CustomerIdRef = TaskDataMapper.InstanceIDMap.GetISOID(workItem.GrowerId.Value);
             }
 
             //Farm Ref
             if (workItem.FarmId.HasValue)
             {
-                task.FarmIdRef = TaskDataMapper.ISOIdMap.FindByADAPTId(workItem.FarmId.Value);
+                task.FarmIdRef = TaskDataMapper.InstanceIDMap.GetISOID(workItem.FarmId.Value);
             }
 
             //Partfield Ref
             if (workItem.CropZoneId.HasValue)
             {
-                task.PartFieldIdRef = TaskDataMapper.ISOIdMap.FindByADAPTId(workItem.CropZoneId.Value);
+                task.PartFieldIdRef = TaskDataMapper.InstanceIDMap.GetISOID(workItem.CropZoneId.Value);
             }
             else if (workItem.FieldId.HasValue)
             {
-                task.PartFieldIdRef = TaskDataMapper.ISOIdMap.FindByADAPTId(workItem.FieldId.Value);
+                task.PartFieldIdRef = TaskDataMapper.InstanceIDMap.GetISOID(workItem.FieldId.Value);
             }
 
             //Comments
@@ -124,7 +123,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Connections
             if (workItem.EquipmentConfigurationGroup != null)
             {
-                _connectionMapper.ExportConnections(workItem.Id.ReferenceId, workItem.EquipmentConfigurationGroup.EquipmentConfigurations);
+                task.Connections = _connectionMapper.ExportConnections(workItem.Id.ReferenceId, workItem.EquipmentConfigurationGroup.EquipmentConfigurations).ToList();
             }
 
             //Status
@@ -197,7 +196,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             foreach (ProductUse productUse in rx.ProductUses)
             {
                 var isoUnit = DetermineIsoUnit(rx.RxProductLookups.First(p => p.ProductId == productUse.ProductId).UnitOfMeasure);
-                string productIDRef = TaskDataMapper.ISOIdMap.FindByADAPTId(productUse.ProductId);
+                string productIDRef = TaskDataMapper.InstanceIDMap.GetISOID(productUse.ProductId);
                 ISOProcessDataVariable pdv = ExportProcessDataVariable(productUse.Rate, productIDRef, isoUnit);
                 tzn.ProcessDataVariables.Add(pdv);
             }
@@ -251,6 +250,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         {
             if (prescription.ProductIds == null)
             {
+                TaskDataMapper.AddError($"No Products are present for Grid Type 2 Prescription export: {prescription.Description}", prescription.Id.ReferenceId.ToString());
                 return null;
             }
 
@@ -260,14 +260,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             foreach (var productId in prescription.ProductIds)
             {
-                var isoUnit = DetermineIsoUnit(prescription.RxProductLookups.First(p => p.ProductId == productId).UnitOfMeasure);  
+                var isoUnit = DetermineIsoUnit(prescription.RxProductLookups.First(p => p.ProductId == productId).UnitOfMeasure);
 
-                string isoProductId = string.Empty;
-                if (TaskDataMapper.ISOIdMap.ContainsKey(productId))
-                {
-                    isoProductId = TaskDataMapper.ISOIdMap[productId];
-                }
-
+                string isoProductId = TaskDataMapper.InstanceIDMap.GetISOID(productId) ?? string.Empty;
                 ISOProcessDataVariable lossPDV = ExportProcessDataVariable(prescription.LossOfGpsRate, isoProductId, isoUnit);
                 if (lossPDV != null)
                 {
@@ -323,8 +318,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             RxProductLookup lookup = rx.RxProductLookups.FirstOrDefault(l => l.Id.ReferenceId == rxRate.RxProductLookupId);
             if (lookup != null)
             {
-                processDataVariable.ProductIdRef = TaskDataMapper.ISOIdMap.FindByADAPTId(lookup.ProductId.Value);
-                processDataVariable.ProcessDataDDI = DetermineVariableDDI(lookup.UnitOfMeasure).AsHexDDI();
+                processDataVariable.ProductIdRef = TaskDataMapper.InstanceIDMap.GetISOID(lookup.ProductId.Value);
+                processDataVariable.ProcessDataDDI = DetermineVariableDDI(lookup.Representation, lookup.UnitOfMeasure).AsHexDDI();
                 processDataVariable.ProcessDataValue = (long)rxRate.Rate;
             }
             return processDataVariable;
@@ -339,7 +334,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 {
                     ProductIdRef = isoProductIdRef,
                     ProcessDataValue = value.AsLongViaMappedDDI(RepresentationMapper),
-                    ProcessDataDDI = DetermineVariableDDI(adaptUnit).AsHexDDI()
+                    ProcessDataDDI = DetermineVariableDDI(value.Representation, adaptUnit).AsHexDDI()
                 };
 
                 return dataVariable;
@@ -347,13 +342,38 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return null;
         }
 
-        private static int DetermineVariableDDI(UnitOfMeasure adaptUnit)
+        /// <summary>
+        /// If an implementer wants to export to a custom DDI or otherwise one that doesn't map,
+        /// the appropriate DDI may be set in the Prescription prior to exporting.
+        /// A ISO11783_DDI representation is as such the first mapping attempted.
+        /// </summary>
+        /// <param name="representation"></param>
+        /// <param name="adaptUnit"></param>
+        /// <returns></returns>
+        private int DetermineVariableDDI(NumericRepresentation representation, UnitOfMeasure adaptUnit)
         {
-            if (adaptUnit != null && UnitFactory.DimensionToDdi.ContainsKey(adaptUnit.Dimension))
-                return UnitFactory.DimensionToDdi[adaptUnit.Dimension];
+            if (representation != null)
+            {
+                if (representation.CodeSource == RepresentationCodeSourceEnum.ISO11783_DDI)
+                {
+                    return Int32.Parse(representation.Code);
+                }
 
-            //TODO this currently defaults to a dry application if nothing else can be determined
-            return 6;
+                int? mappedDDI = RepresentationMapper.Map(representation);
+                if (mappedDDI.HasValue)
+                {
+                    return mappedDDI.Value;
+                }
+            }
+
+            if (adaptUnit != null && UnitFactory.DimensionToDdi.ContainsKey(adaptUnit.Dimension))
+            {
+                return UnitFactory.DimensionToDdi[adaptUnit.Dimension];
+            }
+
+            TaskDataMapper.AddError($"Unable to determine DDI for Prescription export {representation.Code}.", $"Representation ID : {representation.Id.ReferenceId}", "PrescriptionMapper.DetermineVariableDDI()");
+            return 0; //Return an invalid DDI
+
         }
 
         private ISOEnumerations.ISOTaskStatus ExportStatus(WorkStatusEnum adaptStatus)
@@ -411,7 +431,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 shapeLookup.Rates = new List<RxRate>();
                 foreach (ISOProcessDataVariable pdv in treatmentZone.ProcessDataVariables)
                 {
-                    int? productID = TaskDataMapper.ADAPTIdMap.FindByISOId(pdv.ProductIdRef);
+                    int? productID = TaskDataMapper.InstanceIDMap.GetADAPTID(pdv.ProductIdRef);
                     if (productID.HasValue)
                     {
                         shapeLookup.Rates.Add(PrescriptionMapper.ImportRate(productID.Value, pdv.ProcessDataValue, vectorRx));
@@ -448,7 +468,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     if (pdv.ProductIdRef != null) //Products on ISO Rxs are optional, but without a place to store a product-agnostic prescription, those will not be imported here.
                     {
                         ProductUse productUse = new ProductUse();
-                        int? productID = TaskDataMapper.ADAPTIdMap.FindByISOId(pdv.ProductIdRef);
+                        int? productID = TaskDataMapper.InstanceIDMap.GetADAPTID(pdv.ProductIdRef);
                         if (productID.HasValue)
                         {
                             productUse.ProductId = productID.Value;
@@ -485,7 +505,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 {
                     if (!string.IsNullOrEmpty(dataVariable.ProductIdRef))
                     {
-                        int? productID = TaskDataMapper.ADAPTIdMap[dataVariable.ProductIdRef];
+                        int? productID = TaskDataMapper.InstanceIDMap.GetADAPTID(dataVariable.ProductIdRef);
                         if (productID.HasValue)
                         {
                             //ProductIDs

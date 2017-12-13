@@ -35,12 +35,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             DDIs = DdiLoader.Ddis;
             Properties = properties;
             DeviceOperationTypes = new DeviceOperationTypes();
+            InstanceIDMap = new InstanceIDMap();
+            Errors = new List<Error>();
         }
 
         public string BaseFolder { get; private set; }
         public Properties Properties { get; private set; }
-        public Dictionary<int, string> ISOIdMap { get; set; }
-        public Dictionary<string, int?> ADAPTIdMap { get; set; }
+        public InstanceIDMap InstanceIDMap { get; private set; }
+        public List<Error> Errors { get; private set; }
 
         public ApplicationDataModel.ADM.ApplicationDataModel AdaptDataModel { get; private set; }
         public ISO11783_TaskData ISOTaskData { get; private set; }
@@ -78,11 +80,27 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
         }
 
+        ProductGroupMapper _productGroupMapper;
+        public ProductGroupMapper ProductGroupMapper
+        {
+            get
+            {
+                if (_productGroupMapper == null)
+                {
+                    _productGroupMapper = new ProductGroupMapper(this);
+                }
+                return _productGroupMapper;
+            }
+        }
+
+        public void AddError(string error, string id = null, string source = null, string stackTrace = null)
+        {
+            Errors.Add(new Error() { Description = error, Id = id, Source = source, StackTrace = stackTrace });
+        }
 
         public ISO11783_TaskData Export(ApplicationDataModel.ADM.ApplicationDataModel adm)
         {
             AdaptDataModel = adm;
-            ISOIdMap = new Dictionary<int, string>();
 
             //TaskData
             ISOTaskData = new ISO11783_TaskData();
@@ -109,20 +127,20 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Crops
             if (adm.Catalog.Crops != null)
             {
-                CropTypeMapper cropMapper = new CropTypeMapper(this);
+                CropTypeMapper cropMapper = new CropTypeMapper(this, ProductGroupMapper);
                 IEnumerable<ISOCropType> crops = cropMapper.ExportCropTypes(adm.Catalog.Crops);
                 ISOTaskData.ChildElements.AddRange(crops);
             }
 
-            //Non-Variety Products
+            //Products
             if (adm.Catalog.Products != null)
             {
-                IEnumerable<Product> nonSeedProducts = AdaptDataModel.Catalog.Products.Where(p => p.ProductType != ProductTypeEnum.Variety);
-                if (nonSeedProducts.Any())
+                IEnumerable<Product> products = AdaptDataModel.Catalog.Products;
+                if (products.Any())
                 {
-                    ProductMapper productMapper = new ProductMapper(this);
-                    IEnumerable<ISOProduct> products = productMapper.ExportProducts(nonSeedProducts);
-                    ISOTaskData.ChildElements.AddRange(products);
+                    ProductMapper productMapper = new ProductMapper(this, ProductGroupMapper);
+                    IEnumerable<ISOProduct> isoProducts = productMapper.ExportProducts(products);
+                    ISOTaskData.ChildElements.AddRange(isoProducts);
                 }
             }
 
@@ -203,20 +221,22 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     {
                         Int32.TryParse(Properties.GetProperty(ISOGrid.GridTypeProperty), out gridType);
                     }
-                    if (gridType != 1 && gridType != 2)
+                    if (gridType == 1 || gridType == 2)
                     {
-                        throw new ApplicationException("Invalid Grid Type Set for Export");
+                        IEnumerable<ISOTask> plannedTasks = taskMapper.Export(AdaptDataModel.Documents.WorkItems, gridType);
+                        ISOTaskData.ChildElements.AddRange(plannedTasks);
                     }
-                    
-                    IEnumerable<ISOTask> plannedTasks = taskMapper.Export(AdaptDataModel.Documents.WorkItems, gridType);
-                    ISOTaskData.ChildElements.AddRange(plannedTasks);
+                    else
+                    {
+                        AddError($"Invalid Grid Type {gridType}.  WorkItems will not be exported", null, "TaskDataMapper");
+                    }
                 }
 
                 if (AdaptDataModel.Documents.LoggedData != null)
                 {
                     //LoggedData 
                     IEnumerable<ISOTask> loggedTasks = taskMapper.Export(AdaptDataModel.Documents.LoggedData);
-                    ISOTaskData.ChildElements.AddRange(loggedTasks);
+                    ISOTaskData.ChildElements.AddRange(loggedTasks.Where(t => !ISOTaskData.ChildElements.OfType<ISOTask>().Contains(t)));
                 }
             }
 
@@ -244,7 +264,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             UniqueIDMapper = new UniqueIdMapper(ISOLinkList);
 
             AdaptDataModel = new ApplicationDataModel.ADM.ApplicationDataModel();
-            ADAPTIdMap = new Dictionary<string, int?>();
             AdaptDataModel.Catalog = new Catalog() { Description = "ISO TaskData" };
             AdaptDataModel.Documents = new Documents();
 
@@ -252,11 +271,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             CodedCommentListMapper commentListMapper = new CodedCommentListMapper(this);
             CodedCommentMapper commentMapper = new CodedCommentMapper(this, commentListMapper);
 
-            //Crops
+            //Crops - several dependencies require import prior to Products
             IEnumerable<ISOCropType> crops = taskData.ChildElements.OfType<ISOCropType>();
             if (crops.Any())
             {
-                CropTypeMapper cropMapper = new CropTypeMapper(this);
+                CropTypeMapper cropMapper = new CropTypeMapper(this, ProductGroupMapper);
                 AdaptDataModel.Catalog.Crops.AddRange(cropMapper.ImportCropTypes(crops));
             }
 
@@ -264,8 +283,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             IEnumerable<ISOProduct> products = taskData.ChildElements.OfType<ISOProduct>();
             if (products.Any())
             {
-                ProductMapper productMapper = new ProductMapper(this);
-                AdaptDataModel.Catalog.Products.AddRange(productMapper.ImportProducts(products));
+                ProductMapper productMapper = new ProductMapper(this, ProductGroupMapper);
+                IEnumerable<Product> adaptProducts = productMapper.ImportProducts(products);
+                AdaptDataModel.Catalog.Products.AddRange(adaptProducts.Where(p => !AdaptDataModel.Catalog.Products.Contains(p)));
             }
 
             //Growers
@@ -359,6 +379,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         if (data.SummaryId.HasValue)
                         {
                             record.SummariesIds.Add(data.SummaryId.Value);
+                            Summary summary = AdaptDataModel.Documents.Summaries.FirstOrDefault(s => s.Id.ReferenceId == data.SummaryId);
+                            if (summary != null)
+                            {
+                                summary.WorkRecordId = record.Id.ReferenceId;
+                            }
                         }
                         workRecords.Add(record);
                     }

@@ -198,7 +198,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             var externalNodes = node.SelectNodes($"XFR[starts-with(@A, '{xmlPrefix}')]");
             for (int i = 0; i < externalNodes.Count; i++)
             {
-                var inputNodes = externalNodes[i].LoadActualNodes("XFR", Path.Combine(baseFolder,"taskdata"));
+                var inputNodes = externalNodes[i].LoadActualNodes("XFR", baseFolder);
                 if (inputNodes != null)
                 {
                     taskData.ChildElements.AddRange(readDelegate(inputNodes));

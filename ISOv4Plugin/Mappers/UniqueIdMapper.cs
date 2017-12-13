@@ -46,7 +46,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     if (linkGroup == null)
                     {
                         linkGroup = new ISOLinkGroup() { LinkGroupType = ISOEnumerations.ISOLinkGroupType.UUID, LinkGroupDesignator = "UUIDs", Links = new List<ISOLink>() };
-                        linkGroup.LinkGroupId = BaseMapper.GenerateID(0, "LGP", _lgpID++); //Special ID invocation here due to class relationships
+                        linkGroup.LinkGroupId = BaseMapper.GenerateId(0, "LGP", _lgpID++); //Special ID invocation here due to class relationships
                         LinkList.LinkGroups.Add(linkGroup);
                     }
                 }
@@ -105,6 +105,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
             //2. Add a link for the current ISOXML import
+            //This temporary reference serves as a mapping back to the imported file
+            //The values are omitted from the LinkList.xml during any export.
             uniqueIDs.Add(ImportCurrentISOLink(isoObjectIdRef));
 
             return uniqueIDs;

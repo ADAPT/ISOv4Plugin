@@ -52,21 +52,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //ID
             string gpnID = adaptGuidancePattern.Id.FindIsoId() ?? GenerateId();
             gpn.GuidancePatternId = gpnID;
-            ExportUniqueIDs(adaptGuidancePattern.Id, gpnID);
-            TaskDataMapper.ISOIdMap.Add(adaptGuidancePattern.Id.ReferenceId, gpnID);
+            ExportIDs(adaptGuidancePattern.Id, gpnID);
 
             gpn.GuidancePatternDesignator = adaptGuidancePattern.Description;
             gpn.GuidancePatternType = ExportGuidancePatternType(adaptGuidancePattern.GuidancePatternType);
             gpn.PropagationDirection = ExportPropagationDirection(adaptGuidancePattern.PropagationDirection);
             gpn.Extension = ExportExtension(adaptGuidancePattern.Extension);
             gpn.Heading = ExportHeading(adaptGuidancePattern);
-
-            //if (adaptGuidancePattern is PivotGuidancePattern)
-            //{
-            //    //gpn.Radius = ?//TODO
-            //    //gpn.GuidancePatternOptions = ?//TODO
-            //}
-
             gpn.GNSSMethod = ExportGNSSMethod(adaptGuidancePattern.GpsSource.SourceType);
             gpn.HorizontalAccuracy = (decimal)adaptGuidancePattern.GpsSource.HorizontalAccuracy.AsConvertedDouble("m");
             gpn.VerticalAccuracy = (decimal)adaptGuidancePattern.GpsSource.VerticalAccuracy.AsConvertedDouble("m"); 
@@ -110,6 +102,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         }
                     }
                     gpn.LineString = lineStringMapper.ExportLineString(pivotLine, ISOLineStringType.GuidancePattern);
+                    //gpn.Radius = ?  //Not implemented
+                    //gpn.GuidancePatternOptions = ? //Not implemented
                     break;
                 case GuidancePatternTypeEnum.Spiral:
                     Spiral spiral = adaptGuidancePattern as Spiral;
@@ -286,8 +280,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
             //ID
-            pattern.Id.UniqueIds.AddRange(ImportUniqueIDs(isoGuidancePattern.GuidancePatternId));
-            TaskDataMapper.ADAPTIdMap.Add(isoGuidancePattern.GuidancePatternId, pattern.Id.ReferenceId);
+            ImportIDs(pattern.Id, isoGuidancePattern.GuidancePatternId);
 
             pattern.Description = isoGuidancePattern.GuidancePatternDesignator;
             pattern.GuidancePatternType = ImportGuidancePatternType(isoGuidancePattern.GuidancePatternType);

@@ -44,13 +44,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Farm ID
             string farmID = adaptFarm.Id.FindIsoId() ?? GenerateId();
             isoFarm.FarmId = farmID;
-            ExportUniqueIDs(adaptFarm.Id, farmID);
-            TaskDataMapper.ISOIdMap.Add(adaptFarm.Id.ReferenceId, farmID);
+            ExportIDs(adaptFarm.Id, farmID);
 
             //Customer ID
             if (adaptFarm.GrowerId.HasValue)
             { 
-                isoFarm.CustomerIdRef = TaskDataMapper.ISOIdMap.FindByADAPTId(adaptFarm.GrowerId.Value);
+                isoFarm.CustomerIdRef = TaskDataMapper.InstanceIDMap.GetISOID(adaptFarm.GrowerId.Value);
             }
 
             //Farm name
@@ -89,11 +88,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             Farm farm = new Farm();
 
             //Farm ID
-            farm.Id.UniqueIds.AddRange(ImportUniqueIDs(isoFarm.FarmId));
-            TaskDataMapper.ADAPTIdMap.Add(isoFarm.FarmId, farm.Id.ReferenceId);
+            ImportIDs(farm.Id, isoFarm.FarmId);
 
             //Grower ID
-            farm.GrowerId = TaskDataMapper.ADAPTIdMap.FindByISOId(isoFarm.CustomerIdRef);
+            farm.GrowerId = TaskDataMapper.InstanceIDMap.GetADAPTID(isoFarm.CustomerIdRef);
 
             //Farm name
             farm.Description = isoFarm.FarmDesignator;
