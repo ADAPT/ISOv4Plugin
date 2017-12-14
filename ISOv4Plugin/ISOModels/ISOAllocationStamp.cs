@@ -47,8 +47,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 
             ISOAllocationStamp item = new ISOAllocationStamp();
             item.Start = node.GetXmlNodeValueAsNullableDateTime("@A");
-            if (item.Start == null) //AllocationStamp XML element has to have a Start Attribute value defined
-                return null;
             item.Stop = node.GetXmlNodeValueAsNullableDateTime("@B");
             item.Duration = node.GetXmlNodeValueAsNullableUInt("@C");
             item.Type = (ISOAllocationStampType)(node.GetXmlNodeValueAsInt("@D"));
