@@ -18,7 +18,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
     {
         //Attributes
         public string Filename { get; set; }
-        public long? Filelength { get; set; }
+        public uint? Filelength { get; set; }
         public byte TimeLogType { get; set; }
 
         public override XmlWriter WriteXML(XmlWriter xmlBuilder)
@@ -35,7 +35,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         {
             ISOTimeLog item = new ISOTimeLog();
             item.Filename = node.GetXmlNodeValue("@A");
-            item.Filelength = node.GetXmlNodeValueAsNullableLong("@B");
+            item.Filelength = node.GetXmlNodeValueAsNullableUInt("@B");
             item.TimeLogType = node.GetXmlNodeValueAsByte("@C");
             return item;
         }
@@ -65,6 +65,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             {
                 return null;
             }
+        }
+
+        public override List<Error> Validate(List<Error> errors)
+        {
+            RequireString(this, x => x.Filename, 8, errors, "A");
+            if (Filelength.HasValue) ValidateRange<ISOTimeLog, uint>(this, x => x.Filelength.Value, 0, uint.MaxValue - 2, errors, "B");
+            Require(this, x => x.TimeLogType, errors, "C");
+            return errors;
         }
     }
 }

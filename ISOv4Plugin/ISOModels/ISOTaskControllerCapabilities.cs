@@ -5,6 +5,7 @@
 using System.Xml;
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using System.Collections.Generic;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
@@ -55,6 +56,18 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
                 items.Add(ISOTaskControllerCapabilities.ReadXML(node));
             }
             return items;
+        }
+
+        public override List<Error> Validate(List<Error> errors)
+        {
+            RequireString(this, x => x.TaskControllerControlFunctionNAME, 16, errors, "A"); //Hex validation could be improved upon
+            RequireString(this, x => x.TaskControllerDesignator, 153, errors, "B");
+            RequireRange<ISOTaskControllerCapabilities, byte>(this, x => x.VersionNumber, 0, 4, errors, "C");
+            RequireRange<ISOTaskControllerCapabilities, byte>(this, x => x.ProvidedCapabilities, 0, 63, errors, "D");
+            RequireRange<ISOTaskControllerCapabilities, byte>(this, x => x.NumberOfBoomsSectionControl, 0, 254, errors, "E");
+            RequireRange<ISOTaskControllerCapabilities, byte>(this, x => x.NumberOfSectionsSectionControl, 0, 254, errors, "F");
+            RequireRange<ISOTaskControllerCapabilities, byte>(this, x => x.NumberOfControlChannels, 0, 254, errors, "G");
+            return errors;
         }
     }
 }

@@ -7,6 +7,7 @@ using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using System.Collections.Generic;
 using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
 using System;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
@@ -66,6 +67,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
                 items.Add(ISOGuidanceGroup.ReadXML(node));
             }
             return items;
+        }
+
+        public override List<Error> Validate(List<Error> errors)
+        {
+            RequireString(this, x => x.GuidanceGroupId, 14, errors, "A");
+            ValidateString(this, x => x.GuidanceGroupDesignator, 32, errors, "B");
+            if (RequireNonZeroCount(GuidancePatterns, "GPN", errors)) GuidancePatterns.ForEach(i => i.Validate(errors));
+            if (BoundaryPolygons.Count > 0) BoundaryPolygons.ForEach(i => i.Validate(errors));
+            return errors;
         }
     }
 }

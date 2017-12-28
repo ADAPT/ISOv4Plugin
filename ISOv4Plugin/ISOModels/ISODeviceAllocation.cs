@@ -5,6 +5,7 @@
 using System.Xml;
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using System.Collections.Generic;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
@@ -51,6 +52,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
                 items.Add(ISODeviceAllocation.ReadXML(node));
             }
             return items;
+        }
+
+        public override List<Error> Validate(List<Error> errors)
+        {
+            RequireString(this, x => x.ClientNAMEValue, 16, errors, "A");//Hex validation could be improved upon
+            ValidateString(this, x => x.ClientNAMEMask, 16, errors, "B");//Hex validation could be improved upon
+            ValidateString(this, x => x.DeviceIdRef, 14, errors, "C");
+            if (AllocationStamp != null) AllocationStamp.Validate(errors);
+            return errors;
         }
     }
 }

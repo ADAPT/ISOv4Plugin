@@ -7,6 +7,7 @@ using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using System.Collections.Generic;
 using System;
 using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
@@ -20,7 +21,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         //Attributes
         public string CodedCommentID { get; set; }
         public string CodedCommentDesignator { get; set; }
-        public ISOCodedCommentScope? CodedCommentScope { get; set; }
+        public ISOCodedCommentScope CodedCommentScope { get { return (ISOCodedCommentScope)CodedCommentScopeInt; } set { CodedCommentScopeInt = (int)value; } }
+        private int CodedCommentScopeInt { get; set; }
         public string CodedCommentGroupIdRef { get; set; }
 
         //Child Elements
@@ -46,7 +48,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             ISOCodedComment comment = new ISOCodedComment();
             comment.CodedCommentID = commentNode.GetXmlNodeValue("@A");
             comment.CodedCommentDesignator = commentNode.GetXmlNodeValue("@B");
-            comment.CodedCommentScope = (ISOCodedCommentScope?)(commentNode.GetXmlNodeValueAsNullableInt("@C"));
+            comment.CodedCommentScopeInt = commentNode.GetXmlNodeValueAsInt("@C");
             comment.CodedCommentGroupIdRef = commentNode.GetXmlNodeValue("@D");
 
             XmlNodeList cclNodes = commentNode.SelectNodes("CCL");
@@ -66,6 +68,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
                 comments.Add(ISOCodedComment.ReadXML(commentNode));
             }
             return comments;
+        }
+
+        public override List<Error> Validate(List<Error> errors)
+        {
+            RequireString(this, x => x.CodedCommentID, 14, errors, "A"); 
+            RequireString(this, x => x.CodedCommentDesignator, 32, errors, "B");
+            ValidateEnumerationValue(typeof(ISOCodedCommentScope), CodedCommentScopeInt, errors);
+            ValidateString(this, x => x.CodedCommentGroupIdRef, 14, errors, "D");
+            CodedCommentListValues.ForEach(g => g.Validate(errors));
+            return errors;
         }
     }
 }

@@ -6,6 +6,7 @@ using System.Xml;
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using System.Collections.Generic;
 using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
@@ -14,7 +15,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         //Attributes
         public string ProductGroupId { get; set; }
         public string ProductGroupDesignator { get; set; }
-        public ISOProductGroupType? ProductGroupType { get; set; }
+        public ISOProductGroupType? ProductGroupType { get { return (ISOProductGroupType?)ProductGroupTypeInt; } set { ProductGroupTypeInt = (int?)value; } }
+        private int? ProductGroupTypeInt { get; set; }
 
         public override XmlWriter WriteXML(XmlWriter xmlBuilder)
         {
@@ -32,7 +34,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             ISOProductGroup group = new ISOProductGroup();
             group.ProductGroupId = pgpNode.GetXmlNodeValue("@A");
             group.ProductGroupDesignator = pgpNode.GetXmlNodeValue("@B");
-            group.ProductGroupType = (ISOProductGroupType?)pgpNode.GetXmlNodeValueAsNullableInt("@C");
+            group.ProductGroupTypeInt = pgpNode.GetXmlNodeValueAsNullableInt("@C");
             return group;
         }
 
@@ -44,6 +46,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
                 items.Add(ISOProductGroup.ReadXML(node));
             }
             return items;
+        }
+
+        public override List<Error> Validate(List<Error> errors)
+        {
+            RequireString(this, x => x.ProductGroupId, 14, errors, "A");
+            RequireString(this, x => x.ProductGroupDesignator, 32, errors, "B");
+            
+            return errors;
         }
     }
 }

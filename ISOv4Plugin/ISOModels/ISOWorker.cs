@@ -5,6 +5,7 @@
 using System.Xml;
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using System.Collections.Generic;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
@@ -73,6 +74,24 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
                 workers.Add(ISOWorker.ReadXML(node));
             }
             return workers;
+        }
+
+        public override List<Error> Validate(List<Error> errors)
+        {
+            RequireString(this, x => x.WorkerId, 14, errors, "A");
+            RequireString(this, x => x.WorkerLastName, 32, errors, "B");
+            ValidateString(this, x => x.WorkerFirstName, 32, errors, "C");
+            ValidateString(this, x => x.WorkerStreet, 32, errors, "D");
+            ValidateString(this, x => x.WorkerPOBox, 32, errors, "E");
+            ValidateString(this, x => x.WorkerPostalCode, 10, errors, "F");
+            ValidateString(this, x => x.WorkerCity, 32, errors, "G");
+            ValidateString(this, x => x.WorkerState, 32, errors, "H");
+            ValidateString(this, x => x.WorkerCountry, 32, errors, "I");
+            ValidateString(this, x => x.WorkerPhone, 20, errors, "J");
+            ValidateString(this, x => x.WorkerMobile, 20, errors, "K");
+            ValidateString(this, x => x.WorkerLicenseNumber, 32, errors, "L");
+            ValidateString(this, x => x.WorkerEmail, 64, errors, "M");
+            return errors;
         }
     }
 }

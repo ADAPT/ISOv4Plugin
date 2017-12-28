@@ -5,6 +5,7 @@
 using System.Xml;
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using System.Collections.Generic;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
@@ -61,6 +62,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
                 items.Add(ISOCulturalPractice.ReadXML(node));
             }
             return items;
+        }
+
+        public override List<Error> Validate(List<Error> errors)
+        {
+            RequireString(this, x => x.CulturalPracticeID, 14, errors, "A");
+            RequireString(this, x => x.CulturalPracticeDesignator, 32, errors, "B");
+            OperationTechniqueReferences.ForEach(i => i.Validate(errors));
+            return errors;
         }
     }
 }

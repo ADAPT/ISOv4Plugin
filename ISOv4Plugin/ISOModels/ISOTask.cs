@@ -4,6 +4,7 @@
 
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,7 +35,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         public string FarmIdRef { get; set; }
         public string PartFieldIdRef { get; set; }
         public string ResponsibleWorkerIdRef { get; set; }
-        public ISOTaskStatus TaskStatus { get; set; }
+        public ISOTaskStatus TaskStatus { get { return (ISOTaskStatus)TaskStatusInt; } set { TaskStatusInt = (int)value; } }
+        private int TaskStatusInt { get; set; }
         public int? DefaultTreatmentZoneCode { get; set; }
         public int? PositionLostTreatmentZoneCode { get; set; }
         public int? OutOfFieldTreatmentZoneCode { get; set; }
@@ -85,9 +87,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteXmlAttribute("E", PartFieldIdRef);
             xmlBuilder.WriteXmlAttribute("F", ResponsibleWorkerIdRef);
             xmlBuilder.WriteXmlAttribute("G", ((int)TaskStatus).ToString());
-            xmlBuilder.WriteXmlAttribute<long>("H", DefaultTreatmentZoneCode);
-            xmlBuilder.WriteXmlAttribute<long>("I", PositionLostTreatmentZoneCode);
-            xmlBuilder.WriteXmlAttribute<long>("J", OutOfFieldTreatmentZoneCode);
+            xmlBuilder.WriteXmlAttribute<int>("H", DefaultTreatmentZoneCode);
+            xmlBuilder.WriteXmlAttribute<int>("I", PositionLostTreatmentZoneCode);
+            xmlBuilder.WriteXmlAttribute<int>("J", OutOfFieldTreatmentZoneCode);
 
             if (Grid != null)
             {
@@ -124,7 +126,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             task.FarmIdRef = taskNode.GetXmlNodeValue("@D");
             task.PartFieldIdRef = taskNode.GetXmlNodeValue("@E");
             task.ResponsibleWorkerIdRef = taskNode.GetXmlNodeValue("@F");
-            task.TaskStatus = (ISOTaskStatus)(taskNode.GetXmlNodeValueAsInt("@G")); 
+            task.TaskStatusInt = taskNode.GetXmlNodeValueAsInt("@G"); 
             task.DefaultTreatmentZoneCode = taskNode.GetXmlNodeValueAsNullableInt("@H");
             task.PositionLostTreatmentZoneCode = taskNode.GetXmlNodeValueAsNullableInt("@I");
             task.OutOfFieldTreatmentZoneCode = taskNode.GetXmlNodeValueAsNullableInt("@J");
@@ -224,6 +226,34 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
                 tasks.Add(ISOTask.ReadXML(taskNode));
             }
             return tasks;
+        }
+
+        public override List<Error> Validate(List<Error> errors)
+        {
+            RequireString(this, x => x.TaskID, 14, errors, "A");
+            ValidateString(this, x => x.TaskDesignator, 32, errors, "B");
+            ValidateString(this, x => x.CustomerIdRef, 14, errors, "C");
+            ValidateString(this, x => x.FarmIdRef, 14, errors, "D");
+            ValidateString(this, x => x.PartFieldIdRef, 14, errors, "E");
+            ValidateString(this, x => x.ResponsibleWorkerIdRef, 14, errors, "F");
+            ValidateEnumerationValue(typeof(ISOTaskStatus), TaskStatusInt, errors);
+            if (DefaultTreatmentZoneCode.HasValue) ValidateRange(this, x => x.DefaultTreatmentZoneCode.Value, 0, 254, errors, "H");
+            if (PositionLostTreatmentZoneCode.HasValue) ValidateRange(this, x => x.PositionLostTreatmentZoneCode.Value, 0, 254, errors, "I");
+            if (OutOfFieldTreatmentZoneCode.HasValue) ValidateRange(this, x => x.OutOfFieldTreatmentZoneCode.Value, 0, 254, errors, "J");
+            TreatmentZones.ForEach(i => i.Validate(errors));
+            Times.ForEach(i => i.Validate(errors));
+            if (OperationTechPractice != null) OperationTechPractice.Validate(errors);
+            WorkerAllocations.ForEach(i => i.Validate(errors));
+            DeviceAllocations.ForEach(i => i.Validate(errors));
+            Connections.ForEach(i => i.Validate(errors));
+            ProductAllocations.ForEach(i => i.Validate(errors));
+            DataLogTriggers.ForEach(i => i.Validate(errors));
+            CommentAllocations.ForEach(i => i.Validate(errors));
+            TimeLogs.ForEach(i => i.Validate(errors));
+            if (Grid != null) Grid.Validate(errors);
+            GuidanceAllocations.ForEach(i => i.Validate(errors));
+
+            return errors;
         }
     }
 }

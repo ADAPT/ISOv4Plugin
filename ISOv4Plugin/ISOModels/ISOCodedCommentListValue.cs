@@ -5,6 +5,7 @@
 using System.Xml;
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using System.Collections.Generic;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
@@ -39,6 +40,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
                 values.Add(ISOCodedCommentListValue.ReadXML(valueNode));
             }
             return values;
+        }
+
+        public override List<Error> Validate(List<Error> errors)
+        {
+            RequireString(this, x => x.CodedCommentListValueId, 14, errors, "A");
+            RequireString(this, x => x.CodedCommentListValueDesignator, 32, errors, "B");
+            return errors;
         }
     }
 }

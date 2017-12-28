@@ -80,7 +80,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Area
             if (adaptField.Area != null)
             { 
-                isoField.PartfieldArea = (long)(adaptField.Area.Value.ConvertToUnit(new CompositeUnitOfMeasure("m2")));
+                isoField.PartfieldArea = (uint)(adaptField.Area.Value.ConvertToUnit(new CompositeUnitOfMeasure("m2")));
             }
 
             //Name
@@ -140,7 +140,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Area
             if (cropZone.Area != null)
             { 
-                isoField.PartfieldArea = (long)(cropZone.Area.Value.ConvertToUnit(new CompositeUnitOfMeasure("m2")));
+                isoField.PartfieldArea = (uint)(cropZone.Area.Value.ConvertToUnit(new CompositeUnitOfMeasure("m2")));
             }
 
             //Name
@@ -234,11 +234,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             field.FarmId = TaskDataMapper.InstanceIDMap.GetADAPTID(isoPartfield.FarmIdRef);
 
             //Area
-            if (isoPartfield.PartfieldArea.HasValue)
-            { 
-                var numericValue = new NumericValue(new CompositeUnitOfMeasure("m2").ToModelUom(), (double)(isoPartfield.PartfieldArea.Value));
-                field.Area = new NumericRepresentationValue(RepresentationInstanceList.vrReportedFieldArea.ToModelRepresentation(), numericValue.UnitOfMeasure, numericValue);
-            }
+            var numericValue = new NumericValue(new CompositeUnitOfMeasure("m2").ToModelUom(), (double)(isoPartfield.PartfieldArea));
+            field.Area = new NumericRepresentationValue(RepresentationInstanceList.vrReportedFieldArea.ToModelRepresentation(), numericValue.UnitOfMeasure, numericValue);
 
             //Name
             field.Description = isoPartfield.PartfieldDesignator;
@@ -298,11 +295,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
             //Area
-            if (isoPartfield.PartfieldArea.HasValue)
-            {
-                var numericValue = new NumericValue(new CompositeUnitOfMeasure("m2").ToModelUom(), (double)(isoPartfield.PartfieldArea.Value));
-                cropZone.Area = new NumericRepresentationValue(RepresentationInstanceList.vrReportedFieldArea.ToModelRepresentation(), numericValue.UnitOfMeasure, numericValue);
-            }
+            var numericValue = new NumericValue(new CompositeUnitOfMeasure("m2").ToModelUom(), (double)(isoPartfield.PartfieldArea));
+            cropZone.Area = new NumericRepresentationValue(RepresentationInstanceList.vrReportedFieldArea.ToModelRepresentation(), numericValue.UnitOfMeasure, numericValue);
 
             //Name
             cropZone.Description = isoPartfield.PartfieldDesignator;

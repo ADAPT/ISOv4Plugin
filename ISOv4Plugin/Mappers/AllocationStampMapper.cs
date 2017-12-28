@@ -61,7 +61,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             ISOPosition position = new ISOPosition();
             position.PositionEast = (decimal)location.Position.X;
             position.PositionNorth = (decimal)location.Position.Y;
-            position.PositionUp = (long)location.Position.Z;
+            position.PositionUp = (int)location.Position.Z;
             if (location.GpsSource != null)
             {
                 position.NumberOfSatellites = (byte?)location.GpsSource.NumberOfSatellites;

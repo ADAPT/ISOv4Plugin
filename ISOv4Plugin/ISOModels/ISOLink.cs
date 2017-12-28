@@ -4,6 +4,7 @@
 
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using System;
 using System.Collections.Generic;
 using System.Xml;
@@ -48,6 +49,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
                 items.Add(ISOLink.ReadXML(node));
             }
             return items;
+        }
+
+        public override List<Error> Validate(List<Error> errors)
+        {
+            RequireString(this, x => x.ObjectIdRef, 14, errors, "A");
+            RequireString(this, x => x.LinkValue, 255, errors, "B");
+            ValidateString(this, x => x.LinkDesignator, 32, errors, "C");
+            return errors;
         }
     }
 }

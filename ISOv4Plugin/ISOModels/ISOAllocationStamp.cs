@@ -4,6 +4,7 @@
 
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using System;
 using System.Collections.Generic;
 using System.Xml;
@@ -21,7 +22,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         public DateTime? Start { get; set; }  
         public DateTime? Stop { get; set; }
         public uint? Duration { get; set; } //Duration in XML is of unsignedLong type (Max 2^32-1 = 4,294,967,295). Found a possible typo in ISO 11783-10 Table D.2: "2^32-2" or is this correct so maximum value is 2 * int.MaxValue?
-        public ISOAllocationStampType Type { get; set; }
+        public ISOAllocationStampType Type { get { return (ISOAllocationStampType)TypeInt; } set { TypeInt = (int)value; } }
+        private int TypeInt { get; set; }
 
         //Child Elements
         public List<ISOPosition> Positions { get; set; }
@@ -49,7 +51,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             item.Start = node.GetXmlNodeValueAsNullableDateTime("@A");
             item.Stop = node.GetXmlNodeValueAsNullableDateTime("@B");
             item.Duration = node.GetXmlNodeValueAsNullableUInt("@C");
-            item.Type = (ISOAllocationStampType)(node.GetXmlNodeValueAsInt("@D"));
+            item.TypeInt = node.GetXmlNodeValueAsInt("@D");
 
             XmlNodeList ptnNodes = node.SelectNodes("PTN");
             if (ptnNodes != null)
@@ -68,6 +70,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
                 items.Add(ISOAllocationStamp.ReadXML(node));
             }
             return items;
+        }
+
+        public override List<Error> Validate(List<Error> errors)
+        {
+            Require(this, x => x.Start, errors, "A");
+
+            if (Duration.HasValue) ValidateRange<ISOAllocationStamp, uint>(this, x => x.Duration.Value, 0, UInt32.MaxValue - 2, errors, "C");
+            ValidateEnumerationValue(typeof(ISOAllocationStampType), TypeInt, errors);
+            Positions.ForEach(i => i.Validate(errors));
+            return errors;
         }
     }
 }

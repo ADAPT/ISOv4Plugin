@@ -76,12 +76,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                 _crawledElements = new HashSet<int>();
             }
 
-            if (_crawledElements.Add(deviceElement.DeviceElementObjectId))
+            if (_crawledElements.Add((int)deviceElement.DeviceElementObjectId))
             {
                 Type = deviceElement.DeviceElementType;
                 DeviceElement = deviceElement;
                 Depth = depth;
-                Order = deviceElement.DeviceElementNumber; //Using this number as analagous to this purpose.  The ISO spec requires these numbers increment from left to right as in ADAPT.  (See ISO11783-10:2015(E) B.3.2 Element number)
+                Order = (int)deviceElement.DeviceElementNumber; //Using this number as analagous to this purpose.  The ISO spec requires these numbers increment from left to right as in ADAPT.  (See ISO11783-10:2015(E) B.3.2 Element number)
 
                 //DeviceProperty assigned Widths & Offsets
                 //DeviceProcessData assigned values will be assigned as the SectionMapper reads timelog data.
@@ -147,10 +147,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
         private HashSet<int> _crawledElements;
 
         public string WidthDDI { get; set; }
-        public long? Width { get; set; }
-        public long? XOffset { get; set; }
-        public long? YOffset { get; set; }
-        public long? ZOffset { get; set; }
+        public int? Width { get; set; }
+        public int? XOffset { get; set; }
+        public int? YOffset { get; set; }
+        public int? ZOffset { get; set; }
 
         public NumericRepresentationValue WidthRepresentation { get { return Width.HasValue ? Width.Value.AsNumericRepresentationValue(WidthDDI, _representationMapper) : null; } }
         public NumericRepresentationValue XOffsetRepresentation { get { return XOffset.HasValue ? XOffset.Value.AsNumericRepresentationValue("0086", _representationMapper) : null; } } //TODO temporary
@@ -339,7 +339,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
             }
         }
 
-        private long? GetWidthFromSpatialData(IEnumerable<ISOSpatialRow> isoRecords, string isoDeviceElementID, RepresentationMapper representationMapper)
+        private int? GetWidthFromSpatialData(IEnumerable<ISOSpatialRow> isoRecords, string isoDeviceElementID, RepresentationMapper representationMapper)
         {
             double maxWidth = 0d;
             string updatedWidthDDI = null;
@@ -372,7 +372,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
             if (updatedWidthDDI != null)
             {
                 WidthDDI = updatedWidthDDI;
-                return (long)maxWidth;
+                return (int)maxWidth;
             }
             else
             {
@@ -380,7 +380,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
             }
         }
 
-        private long? GetYOffsetFromSpatialData(IEnumerable<ISOSpatialRow> isoRecords, string isoDeviceElementID, RepresentationMapper representationMapper)
+        private int? GetYOffsetFromSpatialData(IEnumerable<ISOSpatialRow> isoRecords, string isoDeviceElementID, RepresentationMapper representationMapper)
         {
             double offset = 0d;
             ISOSpatialRow firstYOffset = isoRecords.FirstOrDefault(r => r.SpatialValues.Any(s => s.DataLogValue.DeviceElementIdRef == isoDeviceElementID &&
@@ -389,7 +389,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
             {
                 offset = firstYOffset.SpatialValues.Single(s => s.DataLogValue.DeviceElementIdRef == isoDeviceElementID &&
                                                                                                     s.DataLogValue.ProcessDataDDI == "0087").Value;
-                return (long)offset;
+                return (int)offset;
             }
             else
             {
@@ -397,7 +397,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
             }
         }
 
-        private long? GetXOffsetFromSpatialData(IEnumerable<ISOSpatialRow> isoRecords, string isoDeviceElementID, RepresentationMapper representationMapper)
+        private int? GetXOffsetFromSpatialData(IEnumerable<ISOSpatialRow> isoRecords, string isoDeviceElementID, RepresentationMapper representationMapper)
         {
             double offset = 0d;
             ISOSpatialRow firstXOffset = isoRecords.FirstOrDefault(r => r.SpatialValues.Any(s => s.DataLogValue.DeviceElementIdRef == isoDeviceElementID &&
@@ -406,7 +406,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
             {
                 offset = firstXOffset.SpatialValues.Single(s => s.DataLogValue.DeviceElementIdRef == isoDeviceElementID &&
                                                                                                     s.DataLogValue.ProcessDataDDI == "0086").Value;
-                return (long)offset;
+                return (int)offset;
             }
             else
             {
@@ -414,7 +414,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
             }
         }
 
-        private long? GetZOffsetFromSpatialData(IEnumerable<ISOSpatialRow> isoRecords, string isoDeviceElementID, RepresentationMapper representationMapper)
+        private int? GetZOffsetFromSpatialData(IEnumerable<ISOSpatialRow> isoRecords, string isoDeviceElementID, RepresentationMapper representationMapper)
         {
             double offset = 0d;
             ISOSpatialRow firstZOffset = isoRecords.FirstOrDefault(r => r.SpatialValues.Any(s => s.DataLogValue.DeviceElementIdRef == isoDeviceElementID &&
@@ -422,7 +422,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
             if (firstZOffset != null)
             {
                 offset = firstZOffset.SpatialValues.Single(s => s.DataLogValue.DeviceElementIdRef == isoDeviceElementID && s.DataLogValue.ProcessDataDDI == "0088").Value;
-                return (long)offset;
+                return (int)offset;
             }
             else
             {

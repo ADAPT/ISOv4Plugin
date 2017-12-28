@@ -5,6 +5,7 @@
 using System.Xml;
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using System.Collections.Generic;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
@@ -61,6 +62,20 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
                 farms.Add(ISOFarm.ReadXML(farmNode));
             }
             return farms;
+        }
+
+        public override List<Error> Validate(List<Error> errors)
+        {
+            RequireString(this, x => x.FarmId, 14, errors, "A");
+            RequireString(this, x => x.FarmDesignator, 32, errors, "B");
+            ValidateString(this, x => x.FarmStreet, 32, errors, "C");
+            ValidateString(this, x => x.FarmPOBox, 32, errors, "D");
+            ValidateString(this, x => x.FarmPostalCode, 32, errors, "E");
+            ValidateString(this, x => x.FarmCity, 32, errors, "F");
+            ValidateString(this, x => x.FarmState, 32, errors, "G");
+            ValidateString(this, x => x.FarmCountry, 32, errors, "H");
+            ValidateString(this, x => x.CustomerIdRef, 14, errors, "I");
+            return errors;
         }
     }
 }

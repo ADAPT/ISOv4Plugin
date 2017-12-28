@@ -13,6 +13,7 @@ using System.IO;
 using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 using AgGateway.ADAPT.ISOv4Plugin.Mappers;
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 
 namespace AgGateway.ADAPT.ISOv4Plugin
 {
@@ -25,12 +26,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin
 
         string IPlugin.Version => "";
 
-        string IPlugin.Owner => "";
+        string IPlugin.Owner => "AgGateway";
 
         void IPlugin.Export(ApplicationDataModel.ADM.ApplicationDataModel dataModel, string exportPath, Properties properties)
         {
             //Convert the ADAPT model into the ISO model
-            TaskDataMapper taskDataMapper = new TaskDataMapper(exportPath.WithTaskDataPath(), properties);
+            string outputPath = exportPath.WithTaskDataPath();
+            TaskDataMapper taskDataMapper = new TaskDataMapper(outputPath, properties);
             ISO11783_TaskData taskData = taskDataMapper.Export(dataModel);
 
             //Serialize the ISO model to XML
@@ -38,46 +40,21 @@ namespace AgGateway.ADAPT.ISOv4Plugin
             writer.WriteTaskData(exportPath, taskData);
 
             //Serialize the Link List
-            ISO11783_LinkList linkList = taskDataMapper.ISOLinkList;
-            writer.WriteLinkList(exportPath, linkList);
+            writer.WriteLinkList(exportPath, taskData.LinkList);
         }
 
         public IList<ApplicationDataModel.ADM.ApplicationDataModel> Import(string dataPath, Properties properties = null)
         {
-            var taskDataFiles = GetListOfTaskDataFiles(dataPath);
-            if (!taskDataFiles.Any())
+            var taskDataObjects = ReadDataCard(dataPath);
+            if (taskDataObjects == null)
                 return null;
-
+            
             var adms = new List<ApplicationDataModel.ADM.ApplicationDataModel>();
-
-            foreach (var taskDataFile in taskDataFiles)
+            foreach (var taskData in taskDataObjects)
             {
-                //Per ISO11783-10:2015(E) 8.5, all related files are in the same directory as the TASKDATA.xml file.
-                //The TASKDATA directory is only required when exporting to removable media.
-                //As such, the plugin will import data in any directory structure, and always export to a TASKDATA directory.
-                string filePath = Path.GetDirectoryName(taskDataFile);
-
-                //Deserialize the ISOXML into the ISO models
-                XmlDocument document = new XmlDocument();
-                document.Load(taskDataFile);
-                XmlNode rootNode = document.SelectSingleNode("ISO11783_TaskData");
-                ISO11783_TaskData taskData = ISO11783_TaskData.ReadXML(rootNode, filePath);
-
-                //Load any LinkList
-                ISO11783_LinkList linkList = null;
-                ISOAttachedFile linkListFile = taskData.ChildElements.OfType<ISOAttachedFile>().SingleOrDefault(afe => afe.FileType == 1);
-                if (linkListFile != null)
-                {
-                    XmlDocument linkDocument = new XmlDocument();
-                    string linkPath = Path.Combine(filePath, linkListFile.FilenamewithExtension);
-                    linkDocument.Load(linkPath);
-                    XmlNode linkRoot = linkDocument.SelectSingleNode("ISO11783LinkList");
-                    linkList = ISO11783_LinkList.ReadXML(linkRoot, filePath);
-                }
-
                 //Convert the ISO model to ADAPT
-                TaskDataMapper taskDataMapper = new TaskDataMapper(filePath, properties);
-                ApplicationDataModel.ADM.ApplicationDataModel dataModel = taskDataMapper.Import(taskData, linkList);
+                TaskDataMapper taskDataMapper = new TaskDataMapper(taskData.FilePath, properties);
+                ApplicationDataModel.ADM.ApplicationDataModel dataModel = taskDataMapper.Import(taskData);
 
                 adms.Add(dataModel);
             }
@@ -108,7 +85,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin
 
         IList<IError> IPlugin.ValidateDataOnCard(string dataPath, Properties properties)
         {
-            throw new NotImplementedException();
+            List<Error> errors = new List<Error>();
+            var data = ReadDataCard(dataPath);
+            foreach (ISO11783_TaskData datum in data)
+            {
+                datum.Validate(errors);
+            }
+
+            return errors.ToArray();
         }
         #endregion IPlugin Members
 
@@ -120,6 +104,32 @@ namespace AgGateway.ADAPT.ISOv4Plugin
                 taskDataFiles.AddRange(Directory.GetFiles(dataPath, FileName, SearchOption.AllDirectories));
             }
             return taskDataFiles;
+        }
+
+        private List<ISO11783_TaskData> ReadDataCard(string dataPath)
+        {
+            var taskDataFiles = GetListOfTaskDataFiles(dataPath);
+            if (!taskDataFiles.Any())
+                return null;
+
+            List<ISO11783_TaskData> taskDataObjects = new List<ISO11783_TaskData>();
+            foreach (var taskDataFile in taskDataFiles)
+            {
+                //Per ISO11783-10:2015(E) 8.5, all related files are in the same directory as the TASKDATA.xml file.
+                //The TASKDATA directory is only required when exporting to removable media.
+                //As such, the plugin will import data in any directory structure, and always export to a TASKDATA directory.
+                string filePath = Path.GetDirectoryName(taskDataFile);
+
+                //Deserialize the ISOXML into the ISO models
+                XmlDocument document = new XmlDocument();
+                document.Load(taskDataFile);
+                XmlNode rootNode = document.SelectSingleNode("ISO11783_TaskData");
+                ISO11783_TaskData taskData = ISO11783_TaskData.ReadXML(rootNode, filePath);
+                taskData.FilePath = filePath;
+
+                taskDataObjects.Add(taskData);
+            }
+            return taskDataObjects;
         }
     }
 }

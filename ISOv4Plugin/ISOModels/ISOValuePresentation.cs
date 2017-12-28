@@ -5,6 +5,8 @@
 using System.Xml;
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using System.Collections.Generic;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
+using System;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
@@ -12,7 +14,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
     {
         //Attributes
         public string ValuePresentationID { get; set; }
-        public long Offset { get; set; }
+        public int Offset { get; set; }
         public double Scale { get; set; }
         public byte NumberOfDecimals { get; set; }
         public string UnitDesignator { get; set; }
@@ -22,7 +24,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         {
             xmlBuilder.WriteStartElement("VPN");
             xmlBuilder.WriteXmlAttribute("A", ValuePresentationID);
-            xmlBuilder.WriteXmlAttribute<long>("B", Offset);
+            xmlBuilder.WriteXmlAttribute<int>("B", Offset);
             xmlBuilder.WriteXmlAttribute<double>("C", Scale);
             xmlBuilder.WriteXmlAttribute<byte>("D", NumberOfDecimals);
             xmlBuilder.WriteXmlAttribute("E", UnitDesignator);
@@ -36,7 +38,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         {
             ISOValuePresentation presentation = new ISOValuePresentation();
             presentation.ValuePresentationID = node.GetXmlNodeValue("@A");
-            presentation.Offset = node.GetXmlNodeValueAsLong("@B");
+            presentation.Offset = node.GetXmlNodeValueAsInt("@B");
             presentation.Scale = node.GetXmlNodeValueAsDouble("@C");
             presentation.NumberOfDecimals = byte.Parse(node.GetXmlNodeValue("@D"));
             presentation.UnitDesignator = node.GetXmlNodeValue("@E");
@@ -52,6 +54,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
                 items.Add(ISOValuePresentation.ReadXML(node));
             }
             return items;
+        }
+
+        public override List<Error> Validate(List<Error> errors)
+        {
+            RequireString(this, x => x.ValuePresentationID, 14, errors, "A");
+            RequireRange(this, x => x.Offset, Int32.MinValue, Int32.MaxValue - 1, errors, "B");
+            RequireRange(this, x => x.Scale, .000000001d, 100000000d, errors, "C");
+            RequireRange<ISOValuePresentation, byte>(this, x => x.NumberOfDecimals, 0, 7, errors, "D");
+            ValidateString(this, x => x.UnitDesignator, 32, errors, "E");
+            ValidateString(this, x => x.ColourLegendIdRef, 14, errors, "F");
+            return errors;
         }
     }
 }

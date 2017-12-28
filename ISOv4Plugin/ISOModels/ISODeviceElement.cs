@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
 using System;
 using System.Linq;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
@@ -21,11 +22,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 
         //Attributes
         public string DeviceElementId  { get; set; }
-        public int DeviceElementObjectId  { get; set; }
-        public ISODeviceElementType DeviceElementType  { get; set; }
+        public uint DeviceElementObjectId  { get; set; }
+        private int DeviceElementTypeInt { get; set; }
+        public ISODeviceElementType DeviceElementType  { get { return (ISODeviceElementType)DeviceElementTypeInt; }  set { DeviceElementTypeInt = (int)value; } }
         public string DeviceElementDesignator { get; set; }
-        public int DeviceElementNumber { get; set; }
-        public int ParentObjectId { get; set; }
+        public uint DeviceElementNumber { get; set; }
+        public uint ParentObjectId { get; set; }
 
         //Child Elements
         public List<ISODeviceObjectReference> DeviceObjectReferences {get; set;}
@@ -40,11 +42,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         {
             xmlBuilder.WriteStartElement("DET");
             xmlBuilder.WriteXmlAttribute("A", DeviceElementId );
-            xmlBuilder.WriteXmlAttribute<int>("B", DeviceElementObjectId );
+            xmlBuilder.WriteXmlAttribute<uint>("B", DeviceElementObjectId );
             xmlBuilder.WriteXmlAttribute("C", ((int)DeviceElementType).ToString());
             xmlBuilder.WriteXmlAttribute("D", DeviceElementDesignator);
-            xmlBuilder.WriteXmlAttribute<int>("E", DeviceElementNumber);
-            xmlBuilder.WriteXmlAttribute<int>("F", ParentObjectId);
+            xmlBuilder.WriteXmlAttribute<uint>("E", DeviceElementNumber);
+            xmlBuilder.WriteXmlAttribute<uint>("F", ParentObjectId);
             foreach (ISODeviceObjectReference item in DeviceObjectReferences) { item.WriteXML(xmlBuilder); }
 
             xmlBuilder.WriteEndElement();
@@ -55,11 +57,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         {
             ISODeviceElement item = new ISODeviceElement(device);
             item.DeviceElementId  = node.GetXmlNodeValue("@A");
-            item.DeviceElementObjectId  = node.GetXmlNodeValueAsInt("@B");
-            item.DeviceElementType  = (ISODeviceElementType)(node.GetXmlNodeValueAsInt("@C"));
+            item.DeviceElementObjectId  = node.GetXmlNodeValueAsUInt("@B");
+            item.DeviceElementTypeInt  = node.GetXmlNodeValueAsInt("@C");
             item.DeviceElementDesignator = node.GetXmlNodeValue("@D");
-            item.DeviceElementNumber = node.GetXmlNodeValueAsInt("@E");
-            item.ParentObjectId = node.GetXmlNodeValueAsInt("@F");
+            item.DeviceElementNumber = node.GetXmlNodeValueAsUInt("@E");
+            item.ParentObjectId = node.GetXmlNodeValueAsUInt("@F");
             XmlNodeList dorNodes = node.SelectNodes("DOR");
             if (dorNodes != null)
             {
@@ -77,6 +79,19 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
                 items.Add(ISODeviceElement.ReadXML(node, device));
             }
             return items;
+        }
+
+        public override List<Error> Validate(List<Error> errors)
+        {
+            RequireString(this, x => x.DeviceElementId, 14, errors, "A");
+            RequireRange<ISODeviceElement, uint>(this, x => x.DeviceElementObjectId, 1, 65534, errors, "B");
+            ValidateEnumerationValue(typeof(ISODeviceElementType), DeviceElementTypeInt, errors);
+            ValidateString(this, x => x.DeviceElementDesignator, 32, errors, "D");
+            RequireRange<ISODeviceElement, uint>(this, x => x.DeviceElementNumber, 0, 4095, errors, "E");
+            RequireRange<ISODeviceElement, uint>(this, x => x.ParentObjectId, 0, 65534, errors, "F");
+            DeviceObjectReferences.ForEach(i => i.Validate(errors));
+
+            return errors;
         }
     }
 }

@@ -272,7 +272,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 time.Stop = values.Stamp.TimeStamp2;
                 if (values.Stamp.Duration.HasValue)
                 {
-                    time.Duration = (long)values.Stamp.Duration.Value.TotalSeconds;
+                    time.Duration = (uint)values.Stamp.Duration.Value.TotalSeconds;
                 }
                 time.Type = values.Stamp.DateContext == DateContextEnum.ProposedStart ? ISOEnumerations.ISOTimeType.Planned : ISOEnumerations.ISOTimeType.Effective;
 
@@ -287,14 +287,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         {
                             dlv.ProcessDataDDI = ddi.Value.AsHexDDI();
                             DdiDefinition DdiDefinition = DDIs[ddi.Value];
-                            dlv.ProcessDataValue = (long)(numericValue.Value.Value / (DdiDefinition.Resolution != 0 ? DdiDefinition.Resolution : 1d));
+                            dlv.ProcessDataValue = (int)(numericValue.Value.Value / (DdiDefinition.Resolution != 0 ? DdiDefinition.Resolution : 1d));
                         }
                         else
                         {
                             if (numericValue.Representation.CodeSource == RepresentationCodeSourceEnum.ISO11783_DDI)
                             {
                                 dlv.ProcessDataDDI = numericValue.Representation.Code;
-                                dlv.ProcessDataValue = (long)numericValue.Value.Value;
+                                dlv.ProcessDataValue = (int)numericValue.Value.Value;
                             }
                         }
                         time.DataLogValues.Add(dlv);
@@ -836,7 +836,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
             int ddi = dlv.ProcessDataDDI.AsInt32DDI();
 
-            long dataValue = 0;
+            int dataValue = 0;
             if (dlv.ProcessDataValue.HasValue)
             {
                 dataValue = dlv.ProcessDataValue.Value;

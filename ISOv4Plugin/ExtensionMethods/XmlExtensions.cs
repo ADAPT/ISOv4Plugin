@@ -77,33 +77,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
             return true;
         }
 
-        public static long? GetXmlNodeValueAsNullableLong(this XmlNode xmlNode, string xPath)
-        {
-            string value = GetXmlNodeValue(xmlNode, xPath);
-            long outValue;
-            if (long.TryParse(value, out outValue))
-            {
-                return outValue;
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        public static long GetXmlNodeValueAsLong(this XmlNode xmlNode, string xPath)
-        {
-            long? value = xmlNode.GetXmlNodeValueAsNullableLong(xPath);
-            if (value.HasValue)
-            {
-                return value.Value;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-
         public static uint? GetXmlNodeValueAsNullableUInt(this XmlNode xmlNode, string xPath)
         {
             string value = GetXmlNodeValue(xmlNode, xPath);

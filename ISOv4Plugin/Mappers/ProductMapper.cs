@@ -64,13 +64,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                             //Create PRNs if we can match to pre-existing products
                             ISOProductRelation relation = new ISOProductRelation();
                             relation.ProductIdRef = componentProduct.ProductId;
-                            relation.QuantityValue = component.Quantity.AsLongViaMappedDDI(RepresentationMapper); 
+                            relation.QuantityValue = component.Quantity.AsIntViaMappedDDI(RepresentationMapper); 
                             isoMixProduct.ProductRelations.Add(relation);
                         }
                     }
 
                     //Total Quantity
-                    isoMixProduct.MixtureRecipeQuantity = adaptMixProduct.TotalQuantity.AsLongViaMappedDDI(RepresentationMapper);
+                    isoMixProduct.MixtureRecipeQuantity = adaptMixProduct.TotalQuantity.AsIntViaMappedDDI(RepresentationMapper);
 
                     //Quantity DDI
                     int? ddi = RepresentationMapper.Map(adaptMixProduct.TotalQuantity.Representation);
@@ -130,7 +130,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             if (adaptProduct.Density != null)
             {
                 UnitOfMeasure uom = adaptProduct.Density.Value.UnitOfMeasure;
-                long value = (long)adaptProduct.Density.Value.Value; //Assumes values are in appropriate units already
+                int value = (int)adaptProduct.Density.Value.Value; //Assumes values are in appropriate units already
                 if (uom.Code == "mg1l-1")
                 {
                     isoProduct.DensityMassPerVolume = value;

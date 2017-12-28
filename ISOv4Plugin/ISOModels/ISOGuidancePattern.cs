@@ -4,6 +4,7 @@
 
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using System;
 using System.Collections.Generic;
 using System.Xml;
@@ -20,19 +21,24 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         //Attributes
         public string GuidancePatternId { get; set; }
         public string GuidancePatternDesignator { get; set; }
-        public ISOGuidancePatternType GuidancePatternType { get; set; }
-        public ISOGuidancePatternOption? GuidancePatternOptions { get; set; }
-        public ISOGuidancePatternPropagationDirection? PropagationDirection { get; set; }
-        public ISOGuidancePatternExtension? Extension { get; set; }
+        public ISOGuidancePatternType GuidancePatternType { get { return (ISOGuidancePatternType)GuidancePatternTypeInt; } set { GuidancePatternTypeInt = (int)value; } }
+        private int GuidancePatternTypeInt { get; set; }
+        public ISOGuidancePatternOption? GuidancePatternOptions { get { return (ISOGuidancePatternOption?)GuidancePatternOptionsInt; } set { GuidancePatternOptionsInt = (int?)value; } }
+        private int? GuidancePatternOptionsInt { get; set; }
+        public ISOGuidancePatternPropagationDirection? PropagationDirection { get { return (ISOGuidancePatternPropagationDirection?)PropagationDirectionInt; } set { PropagationDirectionInt = (int?)value; } }
+        private int? PropagationDirectionInt { get; set; }
+        public ISOGuidancePatternExtension? Extension { get { return (ISOGuidancePatternExtension?)ExtensionInt; } set { ExtensionInt = (int?)value; } }
+        private int? ExtensionInt { get; set; }
         public decimal? Heading { get; set; }
-        public long? Radius { get; set; }
-        public ISOGuidancePatternGNSSMethod? GNSSMethod { get; set; }
+        public uint? Radius { get; set; }
+        public ISOGuidancePatternGNSSMethod? GNSSMethod { get { return (ISOGuidancePatternGNSSMethod?)GNSSMethodInt; } set { GNSSMethodInt = (int?)value; } }
+        private int? GNSSMethodInt { get; set; }
         public decimal? HorizontalAccuracy { get; set; }
         public decimal? VerticalAccuracy { get; set; }
         public string BaseStationRef { get; set; }
         public string OriginalSRID { get; set; }
-        public long? NumberOfSwathsLeft { get; set; }
-        public long? NumberOfSwathsRight { get; set; }
+        public uint? NumberOfSwathsLeft { get; set; }
+        public uint? NumberOfSwathsRight { get; set; }
 
         //Child Elements
         public ISOLineString LineString { get; set; }
@@ -74,19 +80,19 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             ISOGuidancePattern item = new ISOGuidancePattern();
             item.GuidancePatternId = node.GetXmlNodeValue("@A");
             item.GuidancePatternDesignator = node.GetXmlNodeValue("@B");
-            item.GuidancePatternType = (ISOGuidancePatternType)(node.GetXmlNodeValueAsInt("@C"));
-            item.GuidancePatternOptions = (ISOGuidancePatternOption?)(node.GetXmlNodeValueAsNullableInt("@D"));
-            item.PropagationDirection = (ISOGuidancePatternPropagationDirection?)(node.GetXmlNodeValueAsNullableInt("@E"));
-            item.Extension = (ISOGuidancePatternExtension?)(node.GetXmlNodeValueAsNullableInt("@F"));
+            item.GuidancePatternTypeInt = node.GetXmlNodeValueAsInt("@C");
+            item.GuidancePatternOptionsInt = node.GetXmlNodeValueAsNullableInt("@D");
+            item.PropagationDirectionInt = node.GetXmlNodeValueAsNullableInt("@E");
+            item.ExtensionInt = node.GetXmlNodeValueAsNullableInt("@F");
             item.Heading = node.GetXmlNodeValueAsNullableDecimal("@G");
-            item.Radius = node.GetXmlNodeValueAsNullableLong("@H");
-            item.GNSSMethod = (ISOGuidancePatternGNSSMethod?)(node.GetXmlNodeValueAsNullableInt("@I"));
+            item.Radius = node.GetXmlNodeValueAsNullableUInt("@H");
+            item.GNSSMethodInt = node.GetXmlNodeValueAsNullableInt("@I");
             item.HorizontalAccuracy = node.GetXmlNodeValueAsNullableDecimal("@J");
             item.VerticalAccuracy = node.GetXmlNodeValueAsNullableDecimal("@K");
             item.BaseStationRef = node.GetXmlNodeValue("@L");
             item.OriginalSRID = node.GetXmlNodeValue("@M");
-            item.NumberOfSwathsLeft = node.GetXmlNodeValueAsNullableLong("@N");
-            item.NumberOfSwathsRight = node.GetXmlNodeValueAsNullableLong("@O");
+            item.NumberOfSwathsLeft = node.GetXmlNodeValueAsNullableUInt("@N");
+            item.NumberOfSwathsRight = node.GetXmlNodeValueAsNullableUInt("@O");
 
             XmlNode lsgNode = node.SelectSingleNode("LSG");
             if (lsgNode != null)
@@ -111,6 +117,26 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
                 items.Add(ISOGuidancePattern.ReadXML(node));
             }
             return items;
+        }
+
+        public override List<Error> Validate(List<Error> errors)
+        {
+            RequireString(this, x => x.GuidancePatternId, 14, errors, "A");
+            ValidateString(this, x => x.GuidancePatternDesignator, 32, errors, "B");
+            ValidateEnumerationValue(typeof(ISOGuidancePatternType), GuidancePatternTypeInt, errors);
+            if (GuidancePatternOptionsInt.HasValue) ValidateEnumerationValue(typeof(ISOGuidancePatternOption), GuidancePatternOptionsInt.Value, errors);
+            if (PropagationDirectionInt.HasValue) ValidateEnumerationValue(typeof(ISOGuidancePatternPropagationDirection), PropagationDirectionInt.Value, errors);
+            if (ExtensionInt.HasValue) ValidateEnumerationValue(typeof(ISOGuidancePatternExtension), ExtensionInt.Value, errors);
+            if (GNSSMethodInt.HasValue) ValidateEnumerationValue(typeof(ISOGuidancePatternGNSSMethod), GNSSMethodInt.Value, errors);
+            if (HorizontalAccuracy.HasValue) ValidateRange(this, x => x.HorizontalAccuracy.Value, 0m, 65m, errors, "J");
+            if (VerticalAccuracy.HasValue) ValidateRange(this, x => x.VerticalAccuracy.Value, 0m, 65m, errors, "K");
+            ValidateString(this, x => x.BaseStationRef, 14, errors, "L");
+            ValidateString(this, x => x.OriginalSRID, 32, errors, "M");
+            if (NumberOfSwathsLeft.HasValue) ValidateRange<ISOGuidancePattern, uint>(this, x => x.NumberOfSwathsLeft.Value, 0, uint.MaxValue - 2, errors, "N");
+            if (NumberOfSwathsRight.HasValue) ValidateRange<ISOGuidancePattern, uint>(this, x => x.NumberOfSwathsRight.Value, 0, uint.MaxValue - 2, errors, "O");
+            if (RequireChildElement(LineString, "LSG", errors)) LineString.Validate(errors);
+            if (BoundaryPolygons.Count > 0) BoundaryPolygons.ForEach(i => i.Validate(errors));
+            return errors;
         }
     }
 }

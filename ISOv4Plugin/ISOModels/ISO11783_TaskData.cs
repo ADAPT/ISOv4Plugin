@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
@@ -20,6 +21,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         }
 
         public List<ISOElement> ChildElements { get; set; }
+        public ISO11783_LinkList LinkList { get; set; }
+        public string FilePath { get; set; }
 
         public int VersionMajor { get; set;}
         public int VersionMinor { get; set;}
@@ -27,7 +30,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         public string ManagementSoftwareVersion { get; set; }
         public string TaskControllerManufacturer { get; set; }
         public string TaskControllerVersion { get; set; }
-        public ISOTaskDataTransferOrigin DataTransferOrigin  { get; set;}
+        public ISOTaskDataTransferOrigin DataTransferOrigin { get { return (ISOTaskDataTransferOrigin)DataTransferOriginInt; } set { DataTransferOriginInt = (int)value; } }
+        private int DataTransferOriginInt { get; set; }
+        public string DataTransferLanguage { get; set; }
 
         public override XmlWriter WriteXML(XmlWriter xmlBuilder)
         {
@@ -39,6 +44,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteAttributeString("TaskControllerManufacturer", TaskControllerManufacturer ?? string.Empty);
             xmlBuilder.WriteAttributeString("TaskControllerVersion", TaskControllerVersion ?? string.Empty);
             xmlBuilder.WriteXmlAttribute("DataTransferOrigin", ((int)DataTransferOrigin).ToString());
+            if (DataTransferLanguage != null)
+            {
+                xmlBuilder.WriteAttributeString("DataTransferLanguage", DataTransferLanguage);
+            }
 
             if (ChildElements != null)
             {
@@ -60,11 +69,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             //Attributes
             taskData.VersionMajor = taskDataNode.GetXmlNodeValueAsInt("@VersionMajor");
             taskData.VersionMinor = taskDataNode.GetXmlNodeValueAsInt("@VersionMinor");
-            taskData.ManagementSoftwareManufacturer = taskDataNode.GetXmlNodeValue("@ManagementSoftwareManufacturer") ?? string.Empty;
-            taskData.ManagementSoftwareVersion = taskDataNode.GetXmlNodeValue("@ManagementSoftwareVersion") ?? string.Empty;
-            taskData.TaskControllerManufacturer = taskDataNode.GetXmlNodeValue("@TaskControllerManufacturer") ?? string.Empty;
-            taskData.TaskControllerVersion = taskDataNode.GetXmlNodeValue("@TaskControllerVersion") ?? string.Empty;
-            taskData.DataTransferOrigin = (ISOTaskDataTransferOrigin)(Int32.Parse(taskDataNode.GetXmlNodeValue("@DataTransferOrigin")));
+            taskData.ManagementSoftwareManufacturer = taskDataNode.GetXmlNodeValue("@ManagementSoftwareManufacturer");
+            taskData.ManagementSoftwareVersion = taskDataNode.GetXmlNodeValue("@ManagementSoftwareVersion");
+            taskData.TaskControllerManufacturer = taskDataNode.GetXmlNodeValue("@TaskControllerManufacturer");
+            taskData.TaskControllerVersion = taskDataNode.GetXmlNodeValue("@TaskControllerVersion");
+            taskData.DataTransferOriginInt = taskDataNode.GetXmlNodeValueAsInt("@DataTransferOrigin");
+            taskData.DataTransferLanguage = taskDataNode.GetXmlNodeValue("@DataTransferLanguage");
 
             //--------------
             //Child Elements
@@ -189,8 +199,34 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             }
             ProcessExternalNodes(taskDataNode, "WKR", baseFolder, taskData, ISOWorker.ReadXML);
 
+            //LinkList
+            ISOAttachedFile linkListFile = taskData.ChildElements.OfType<ISOAttachedFile>().SingleOrDefault(afe => afe.FileType == 1);
+            if (linkListFile != null)
+            {
+                XmlDocument linkDocument = new XmlDocument();
+                string linkPath = Path.Combine(baseFolder, linkListFile.FilenamewithExtension);
+                linkDocument.Load(linkPath);
+                XmlNode linkRoot = linkDocument.SelectSingleNode("ISO11783LinkList");
+                taskData.LinkList = ISO11783_LinkList.ReadXML(linkRoot, baseFolder);
+            }
+
             return taskData;
 
+        }
+
+        public override List<Error> Validate(List<Error> errors)
+        {
+            RequireRange(this, x => x.VersionMajor, 0, 4, errors);
+            RequireRange(this, x => x.VersionMinor, 0, 99, errors);
+            ValidateString(this, x => x.ManagementSoftwareManufacturer, 32, errors);
+            ValidateString(this, x => x.ManagementSoftwareVersion, 32, errors);
+            ValidateString(this, x => x.TaskControllerManufacturer, 32, errors);
+            ValidateString(this, x => x.TaskControllerVersion, 32, errors);
+            ValidateEnumerationValue(typeof(ISOTaskDataTransferOrigin), DataTransferOriginInt, errors);
+            ChildElements.ForEach(i => i.Validate(errors));
+            if (LinkList != null)  LinkList.Validate(errors);
+
+            return errors;
         }
 
         private static void ProcessExternalNodes(XmlNode node, string xmlPrefix, string baseFolder, ISO11783_TaskData taskData, Func<XmlNodeList, IEnumerable<ISOElement>> readDelegate)

@@ -84,10 +84,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             ExportIDs(adaptDeviceElement.Id, id);
 
             //Object ID
-            det.DeviceElementObjectId = objectID;
+            det.DeviceElementObjectId = (uint)objectID;
 
             //Device Element Number
-            det.DeviceElementNumber = elementNumber;
+            det.DeviceElementNumber = (uint)elementNumber;
 
             //Designator
             det.DeviceElementDesignator = adaptDeviceElement.Description;
@@ -172,8 +172,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             isoDeviceElement.DeviceElementDesignator = $"{parentElement.Device.DeviceDesignator}_Connector";
             isoDeviceElement.DeviceElementType = ISODeviceElementType.Connector;
             isoDeviceElement.ParentObjectId = parentElement.DeviceElementObjectId;
-            isoDeviceElement.DeviceElementNumber = deviceElementNumber;
-            isoDeviceElement.DeviceElementObjectId = objectID;
+            isoDeviceElement.DeviceElementNumber = (uint)deviceElementNumber;
+            isoDeviceElement.DeviceElementObjectId = (uint)objectID;
             pendingDeviceElements.Add(isoDeviceElement);
 
             TaskDataMapper.InstanceIDMap.Add(adaptConnector.Id.ReferenceId, isoDeviceElement.DeviceElementId);
@@ -259,36 +259,36 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         private void ExportDeviceProperty(ISODeviceElement deviceElement, NumericRepresentationValue representationValue, int objectID)
         {
             ISODeviceProperty dpt = new ISODeviceProperty();
-            dpt.ObjectID = objectID;
+            dpt.ObjectID = (uint)objectID;
             switch (representationValue.Representation.Code)
             {
                 case "0043":
                 case "0046":
                     dpt.DDI = representationValue.Representation.Code;
                     dpt.Designator = "Width";
-                    dpt.Value = representationValue.AsLongViaMappedDDI(RepresentationMapper);
+                    dpt.Value = representationValue.AsIntViaMappedDDI(RepresentationMapper);
                     break;
                 case "vrOffsetInline":
                     dpt.DDI = "0086";
                     dpt.Designator = "XOffset";
-                    dpt.Value = representationValue.AsLongViaMappedDDI(RepresentationMapper);
+                    dpt.Value = representationValue.AsIntViaMappedDDI(RepresentationMapper);
                     break;
                 case "vrOffsetLateral":
                     dpt.DDI = "0087";
                     dpt.Designator = "YOffset";
-                    dpt.Value = representationValue.AsLongViaMappedDDI(RepresentationMapper);
+                    dpt.Value = representationValue.AsIntViaMappedDDI(RepresentationMapper);
                     break;
                 case "vrOffsetVertical":
                     dpt.DDI = "0088";
                     dpt.Designator = "ZOffset";
-                    dpt.Value = representationValue.AsLongViaMappedDDI(RepresentationMapper);
+                    dpt.Value = representationValue.AsIntViaMappedDDI(RepresentationMapper);
                     break;
             }
 
             if (!string.IsNullOrEmpty(dpt.DDI))
             {
                 deviceElement.Device.DeviceProperties.Add(dpt);
-                deviceElement.DeviceObjectReferences.Add(new ISODeviceObjectReference() { DeviceObjectId = objectID });
+                deviceElement.DeviceObjectReferences.Add(new ISODeviceObjectReference() { DeviceObjectId = (uint)objectID });
             }
         }
 

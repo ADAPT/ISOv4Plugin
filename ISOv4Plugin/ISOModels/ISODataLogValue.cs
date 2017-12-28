@@ -4,6 +4,7 @@
 
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using System;
 using System.Collections.Generic;
 using System.Xml;
@@ -14,9 +15,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
     {
         //Attributes
         public string ProcessDataDDI { get; set; }
-        public long? ProcessDataValue { get; set; }
+        public int? ProcessDataValue { get; set; }
         public string DeviceElementIdRef { get; set; }
-        public long? DataLogPGN { get; set; }
+        public uint? DataLogPGN { get; set; }
         public byte? DataLogPGNStartBit { get; set; }
         public byte? DataLogPGNStopBit { get; set; }
 
@@ -47,9 +48,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 
             ISODataLogValue dlv = new ISODataLogValue();
             dlv.ProcessDataDDI = node.GetXmlNodeValue("@A");
-            dlv.ProcessDataValue = node.GetXmlNodeValueAsNullableLong("@B");
+            dlv.ProcessDataValue = node.GetXmlNodeValueAsNullableInt("@B");
             dlv.DeviceElementIdRef = node.GetXmlNodeValue("@C");
-            dlv.DataLogPGN = node.GetXmlNodeValueAsNullableLong("@D");
+            dlv.DataLogPGN = node.GetXmlNodeValueAsNullableUInt("@D");
             dlv.DataLogPGNStartBit = node.GetXmlNodeValueAsNullableByte("@E");
             dlv.DataLogPGNStopBit = node.GetXmlNodeValueAsNullableByte("@F");
 
@@ -64,6 +65,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
                 items.Add(ISODataLogValue.ReadXML(node));
             }
             return items;
+        }
+
+        public override List<Error> Validate(List<Error> errors)
+        {
+            RequireString(this, x => x.ProcessDataDDI, 4, errors, "A"); //DDI validation could be improved upon
+            if (ProcessDataValue.HasValue) ValidateRange(this, x => x.ProcessDataValue.Value, Int32.MinValue, Int32.MaxValue-1, errors, "B");//Value may be empty in the timelog header
+            RequireString(this, x => x.DeviceElementIdRef, 14, errors, "C");
+            if (DataLogPGN.HasValue) ValidateRange<ISODataLogValue, uint>(this, x => x.DataLogPGN.Value, 0, (uint)(Math.Pow(2,18) - 1), errors, "D");
+            if (DataLogPGNStartBit.HasValue) ValidateRange<ISODataLogValue, byte>(this, x => x.DataLogPGNStartBit.Value, 0, 63, errors, "E");
+            if (DataLogPGNStopBit.HasValue) ValidateRange<ISODataLogValue, byte>(this, x => x.DataLogPGNStopBit.Value, 0, 63, errors, "F");
+            return errors;
         }
     }
 }

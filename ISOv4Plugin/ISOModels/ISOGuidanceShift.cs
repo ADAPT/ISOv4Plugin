@@ -7,6 +7,7 @@ using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using System.Collections.Generic;
 using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
 using System;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
@@ -15,9 +16,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         //Attributes
         public string GuidanceGroupIdRef  { get; set; }
         public string GuidancePatternIdRef  { get; set; }
-        public long? GuidanceEastShift  { get; set; }
-        public long? GuidanceNorthShift { get; set; }
-        public long? PropagationOffset { get; set; }
+        public int? GuidanceEastShift  { get; set; }
+        public int? GuidanceNorthShift { get; set; }
+        public int? PropagationOffset { get; set; }
 
         //Child Element
         public ISOAllocationStamp AllocationStamp {get; set;}
@@ -44,9 +45,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             ISOGuidanceShift item = new ISOGuidanceShift();
             item.GuidanceGroupIdRef  = node.GetXmlNodeValue("@A");
             item.GuidancePatternIdRef  = node.GetXmlNodeValue("@B");
-            item.GuidanceEastShift  = node.GetXmlNodeValueAsNullableLong("@C");
-            item.GuidanceNorthShift = node.GetXmlNodeValueAsNullableLong("@D");
-            item.PropagationOffset = node.GetXmlNodeValueAsNullableLong("@E");
+            item.GuidanceEastShift  = node.GetXmlNodeValueAsNullableInt("@C");
+            item.GuidanceNorthShift = node.GetXmlNodeValueAsNullableInt("@D");
+            item.PropagationOffset = node.GetXmlNodeValueAsNullableInt("@E");
             item.AllocationStamp = ISOAllocationStamp.ReadXML(node.SelectSingleNode("ASP"));
             return item;
         }
@@ -59,6 +60,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
                 items.Add(ISOGuidanceShift.ReadXML(node));
             }
             return items;
+        }
+
+        public override List<Error> Validate(List<Error> errors)
+        {
+            RequireString(this, x => x.GuidanceGroupIdRef, 14, errors, "A");
+            RequireString(this, x => x.GuidancePatternIdRef, 14, errors, "B");
+            if (GuidanceEastShift.HasValue) ValidateRange(this, x => x.GuidanceEastShift.Value, Int32.MinValue, Int32.MaxValue - 1, errors, "C");
+            if (GuidanceNorthShift.HasValue) ValidateRange(this, x => x.GuidanceNorthShift.Value, Int32.MinValue, Int32.MaxValue - 1, errors, "D");
+            if (PropagationOffset.HasValue) ValidateRange(this, x => x.PropagationOffset.Value, Int32.MinValue, Int32.MaxValue - 1, errors, "E");
+            if (AllocationStamp != null) AllocationStamp.Validate(errors);
+            return errors;
         }
     }
 }
