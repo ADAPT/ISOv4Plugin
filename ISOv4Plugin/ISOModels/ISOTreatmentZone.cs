@@ -4,6 +4,7 @@
 
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using System;
 using System.Collections.Generic;
 using System.Xml;
@@ -78,6 +79,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
                 items.Add(ISOTreatmentZone.ReadXML(node));
             }
             return items;
+        }
+
+        public override List<Error> Validate(List<Error> errors)
+        {
+            RequireRange<ISOTreatmentZone, byte>(this, x => x.TreatmentZoneCode, 0, 254, errors, "A");
+            ValidateString(this, x => TreatmentZoneDesignator, 32, errors, "B");
+            if (TreatmentZoneColour.HasValue) ValidateRange<ISOTreatmentZone, byte>(this, x => x.TreatmentZoneColour.Value, 0, 254, errors, "C");
+            Polygons.ForEach(i => i.Validate(errors));
+            ProcessDataVariables.ForEach(i => i.Validate(errors));
+            return errors;
         }
     }
 }

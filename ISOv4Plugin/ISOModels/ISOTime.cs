@@ -4,6 +4,7 @@
 
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using System;
 using System.Collections.Generic;
 using System.Xml;
@@ -21,8 +22,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         //Attributes
         public DateTime? Start { get; set; }
         public DateTime? Stop { get; set; }
-        public long? Duration { get; set; }
-        public ISOTimeType Type { get; set; }
+        public uint? Duration { get; set; }
+        public ISOTimeType Type { get { return (ISOTimeType)TypeInt; } set { TypeInt = (int)value; } }
+        private int TypeInt { get; set; }
 
         //Child Elements
         public List<ISOPosition> Positions { get; set; }
@@ -45,7 +47,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             }
 
             xmlBuilder.WriteXmlAttribute("B", Stop.HasValue ? Stop.Value.ToString("yyyy-MM-ddThh:mm:ss") : "");
-            xmlBuilder.WriteXmlAttribute<long>("C", Duration);
+            xmlBuilder.WriteXmlAttribute<uint>("C", Duration);
             xmlBuilder.WriteXmlAttribute("D", ((int)Type).ToString());
 
             foreach (ISOPosition item in Positions) { item.WriteXML(xmlBuilder); }
@@ -61,8 +63,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             ISOTime time = new ISOTime();
             time.Start = node.GetXmlNodeValueAsNullableDateTime("@A");
             time.Stop = node.GetXmlNodeValueAsNullableDateTime("@B");
-            time.Duration = node.GetXmlNodeValueAsNullableLong("@C");
-            time.Type = (ISOTimeType)(node.GetXmlNodeValueAsInt("@D"));
+            time.Duration = node.GetXmlNodeValueAsNullableUInt("@C");
+            time.TypeInt = node.GetXmlNodeValueAsInt("@D");
 
             time.HasStart = node.IsAttributePresent("A");
             time.HasStop = node.IsAttributePresent("B");
@@ -92,6 +94,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
                 items.Add(ISOTime.ReadXML(node));
             }
             return items;
+        }
+
+        public override List<Error> Validate(List<Error> errors)
+        {
+            if (Duration.HasValue) ValidateRange<ISOTime, uint>(this, x => x.Duration.Value, 0, uint.MaxValue - 2, errors, "C");
+            ValidateEnumerationValue(typeof(ISOTimeType), TypeInt, errors);
+            Positions.ForEach(i => i.Validate(errors));
+            DataLogValues.ForEach(i => i.Validate(errors));
+            return errors;
         }
     }
 }

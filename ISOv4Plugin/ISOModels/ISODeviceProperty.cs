@@ -7,26 +7,27 @@ using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using System.Collections.Generic;
 using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
 using System;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
     public class ISODeviceProperty : ISOElement
     {
         //Attributes
-        public int ObjectID { get; set; }
+        public uint ObjectID { get; set; }
         public string DDI  { get; set; }
-        public long Value  { get; set; }
+        public int Value  { get; set; }
         public string Designator { get; set; }
-        public int? DeviceValuePresentationObjectId { get; set; }
+        public uint? DeviceValuePresentationObjectId { get; set; }
 
         public override XmlWriter WriteXML(XmlWriter xmlBuilder)
         {
             xmlBuilder.WriteStartElement("DPT");
-            xmlBuilder.WriteXmlAttribute<int>("A", ObjectID);
+            xmlBuilder.WriteXmlAttribute<uint>("A", ObjectID);
             xmlBuilder.WriteXmlAttribute("B", DDI );
-            xmlBuilder.WriteXmlAttribute<long>("C", Value);
+            xmlBuilder.WriteXmlAttribute<int>("C", Value);
             xmlBuilder.WriteXmlAttribute("D", Designator);
-            xmlBuilder.WriteXmlAttribute<int>("E", DeviceValuePresentationObjectId);
+            xmlBuilder.WriteXmlAttribute<uint>("E", DeviceValuePresentationObjectId);
             xmlBuilder.WriteEndElement();
             return xmlBuilder;
         }
@@ -34,11 +35,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         public static ISODeviceProperty ReadXML(XmlNode node)
         {
             ISODeviceProperty item = new ISODeviceProperty();
-            item.ObjectID = node.GetXmlNodeValueAsInt("@A");
+            item.ObjectID = node.GetXmlNodeValueAsUInt("@A");
             item.DDI  = node.GetXmlNodeValue("@B");
-            item.Value = node.GetXmlNodeValueAsLong("@C");
+            item.Value = node.GetXmlNodeValueAsInt("@C");
             item.Designator = node.GetXmlNodeValue("@D");
-            item.DeviceValuePresentationObjectId = node.GetXmlNodeValueAsNullableInt("@E");
+            item.DeviceValuePresentationObjectId = node.GetXmlNodeValueAsNullableUInt("@E");
 
             return item;
         }
@@ -51,6 +52,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
                 items.Add(ISODeviceProperty.ReadXML(node));
             }
             return items;
+        }
+
+        public override List<Error> Validate(List<Error> errors)
+        {
+            RequireRange<ISODeviceProperty, uint>(this, x => x.ObjectID, 1, 65534, errors, "A");
+            RequireString(this, x => x.DDI, 4, errors, "B"); //DDI validation could be improved upon
+            RequireRange(this, x => x.Value, Int32.MinValue, Int32.MaxValue -1, errors, "C");
+            ValidateString(this, x => x.Designator, 32, errors, "D");
+            if (DeviceValuePresentationObjectId.HasValue) ValidateRange<ISODeviceProperty, uint>(this, x => x.DeviceValuePresentationObjectId.Value, 1, 65534, errors, "E");
+            return errors;
         }
     }
 }

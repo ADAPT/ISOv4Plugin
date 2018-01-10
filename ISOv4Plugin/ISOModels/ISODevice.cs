@@ -5,6 +5,8 @@
 using System.Xml;
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using System.Collections.Generic;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
+using System;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
@@ -98,6 +100,23 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
                 items.Add(ISODevice.ReadXML(dvcNode));
             }
             return items;
+        }
+
+        public override List<Error> Validate(List<Error> errors)
+        {
+            RequireString(this, x => x.DeviceId, 14, errors, "A");
+            ValidateString(this, x => x.DeviceDesignator, 32, errors, "B");
+            ValidateString(this, x => x.DeviceSoftwareVersion, 32, errors, "C");
+            RequireString(this, x => x.ClientNAME, 16, errors, "D");//Hex validation could be improved upon
+            ValidateString(this, x => x.DeviceSerialNumber, 32, errors, "E");
+            RequireString(this, x => x.DeviceStructureLabel, 32, errors, "F");//Hex validation could be improved upon
+            RequireString(this, x => x.DeviceLocalizationLabel, 32, errors, "G");//Hex validation could be improved upon
+            DeviceElements.ForEach(i => i.Validate(errors));
+            DeviceProcessDatas.ForEach(i => i.Validate(errors));
+            DeviceProperties.ForEach(i => i.Validate(errors));
+            DeviceValuePresentations.ForEach(i => i.Validate(errors));
+
+            return errors;
         }
     }
 }

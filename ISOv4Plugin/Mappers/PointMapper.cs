@@ -49,7 +49,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             point.PointNorth = Convert.ToDecimal(adaptPoint.Y);
             if (adaptPoint.Z.HasValue)
             {
-                point.PointUp = (long)(adaptPoint.Z);
+                point.PointUp = (int)(adaptPoint.Z);
             }
             point.PointType = pointType;
             return point;

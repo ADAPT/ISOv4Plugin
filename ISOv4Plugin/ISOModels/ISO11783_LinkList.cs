@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
@@ -19,14 +20,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             LinkGroups = new List<ISOLinkGroup>();
         }
 
-        public int VersionMajor { get; set;}
-        public int VersionMinor { get; set;}
+        public int VersionMajor { get; set; }
+        public int VersionMinor { get; set; }
         public string ManagementSoftwareManufacturer { get; set; }
         public string ManagementSoftwareVersion { get; set; }
         public string TaskControllerManufacturer { get; set; }
         public string TaskControllerVersion { get; set; }
         public string FileVersion { get; set; }
-        public ISOTaskDataTransferOrigin DataTransferOrigin  { get; set;}
+        public ISOTaskDataTransferOrigin DataTransferOrigin { get { return (ISOTaskDataTransferOrigin)DataTransferOriginInt; } set { DataTransferOriginInt = (int)value; } }
+        private int DataTransferOriginInt {get; set;}
         public List<ISOLinkGroup> LinkGroups { get; set; }
 
 
@@ -58,16 +60,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             linkList.ManagementSoftwareVersion = linkListNode.GetXmlNodeValue("@ManagementSoftwareVersion") ?? string.Empty;
             linkList.TaskControllerManufacturer = linkListNode.GetXmlNodeValue("@TaskControllerManufacturer") ?? string.Empty;
             linkList.TaskControllerVersion = linkListNode.GetXmlNodeValue("@TaskControllerVersion") ?? string.Empty;
-            string origin = linkListNode.GetXmlNodeValue("@DataTransferOrigin");
-            if (!string.IsNullOrEmpty(origin))
-            {
-                linkList.DataTransferOrigin = (ISOTaskDataTransferOrigin)(Int32.Parse(origin));
-            }
-            else
-            {
-                linkList.DataTransferOrigin = ISOTaskDataTransferOrigin.FMIS; //No Unknown in ISO
-            }
-           
+            linkList.DataTransferOriginInt = linkListNode.GetXmlNodeValueAsInt("@DataTransferOrigin");
             linkList.FileVersion = linkListNode.GetXmlNodeValue("@FileVersion") ?? string.Empty;
 
             XmlNodeList lgpNodes = linkListNode.SelectNodes("LGP");
@@ -77,7 +70,21 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             }
             
             return linkList;
+        }
 
+        public override List<Error> Validate(List<Error> errors)
+        {
+            RequireRange(this, x => x.VersionMajor, 4, 99, errors);
+            RequireRange(this, x => x.VersionMinor, 0, 99, errors);
+            RequireString(this, x => x.ManagementSoftwareManufacturer, 32, errors);
+            RequireString(this, x => x.ManagementSoftwareVersion, 32, errors);
+            ValidateString(this, x => x.TaskControllerManufacturer, 32, errors);
+            ValidateString(this, x => x.TaskControllerVersion, 32, errors);
+            ValidateEnumerationValue(typeof(ISOTaskDataTransferOrigin), DataTransferOriginInt, errors);
+            RequireNonZeroCount(LinkGroups, "LGP", errors);
+            LinkGroups.ForEach(g => g.Validate(errors));
+
+            return errors;
         }
     }
 }

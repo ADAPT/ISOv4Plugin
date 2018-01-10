@@ -4,6 +4,7 @@
 
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using System;
 using System.Collections.Generic;
 using System.Xml;
@@ -19,7 +20,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 
         //Attributes
         public string LinkGroupId  { get; set; }
-        public ISOLinkGroupType LinkGroupType { get; set; }
+        public ISOLinkGroupType LinkGroupType { get { return (ISOLinkGroupType)LinkGroupTypeInt; } set { LinkGroupTypeInt = (int)value; } }
+        private int LinkGroupTypeInt { get; set; }
         public string ManufacturerGLN  { get; set; }
         public string LinkGroupNamespace  { get; set; }
         public string LinkGroupDesignator  { get; set; }
@@ -48,7 +50,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 
             ISOLinkGroup item = new ISOLinkGroup();
             item.LinkGroupId  = node.GetXmlNodeValue("@A");
-            item.LinkGroupType = (ISOLinkGroupType)(node.GetXmlNodeValueAsInt("@B"));
+            item.LinkGroupTypeInt = node.GetXmlNodeValueAsInt("@B");
             item.ManufacturerGLN  = node.GetXmlNodeValue("@C");
             item.LinkGroupNamespace  = node.GetXmlNodeValue("@D");
             item.LinkGroupDesignator  = node.GetXmlNodeValue("@E");
@@ -70,6 +72,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
                 items.Add(ISOLinkGroup.ReadXML(node));
             }
             return items;
+        }
+
+        public override List<Error> Validate(List<Error> errors)
+        {
+            RequireString(this, x => x.LinkGroupId, 14, errors, "A");
+            ValidateEnumerationValue(typeof(ISOLinkGroupType), LinkGroupTypeInt, errors);
+            ValidateString(this, x => x.ManufacturerGLN, 64, errors, "C");
+            ValidateString(this, x => x.LinkGroupNamespace, 255, errors, "D");
+            ValidateString(this, x => x.LinkGroupDesignator, 32, errors, "E");
+            Links.ForEach(i => i.Validate(errors));
+            return errors;
         }
     }
 }

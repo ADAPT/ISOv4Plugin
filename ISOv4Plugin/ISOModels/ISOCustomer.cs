@@ -5,6 +5,7 @@
 using System.Xml;
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using System.Collections.Generic;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
@@ -73,6 +74,24 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
                 customers.Add(ISOCustomer.ReadXML(customerNode));
             }
             return customers;
+        }
+
+        public override List<Error> Validate(List<Error> errors)
+        {
+            RequireString(this, x => x.CustomerId, 14, errors, "A");
+            RequireString(this, x => x.CustomerLastName, 32, errors, "B");
+            ValidateString(this, x => x.CustomerFirstName, 32, errors, "C");
+            ValidateString(this, x => x.CustomerStreet, 32, errors, "D");
+            ValidateString(this, x => x.CustomerPOBox, 32, errors, "E");
+            ValidateString(this, x => x.CustomerPostalCode, 10, errors, "F");
+            ValidateString(this, x => x.CustomerCity, 32, errors, "G");
+            ValidateString(this, x => x.CustomerState, 32, errors, "H");
+            ValidateString(this, x => x.CustomerCountry, 32, errors, "I");
+            ValidateString(this, x => x.CustomerPhone, 20, errors, "J");
+            ValidateString(this, x => x.CustomerMobile, 20, errors, "K");
+            ValidateString(this, x => x.CustomerFax, 20, errors, "L");
+            ValidateString(this, x => x.CustomerEmail, 64, errors, "M");
+            return errors;
         }
     }
 }

@@ -4,6 +4,7 @@
 
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using System;
 using System.Collections.Generic;
 using System.Xml;
@@ -15,12 +16,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         //Attributes
         public decimal? PositionNorth { get; set; }
         public decimal? PositionEast { get; set; }
-        public long? PositionUp { get; set; }
-        public ISOPositionStatus? PositionStatus { get; set; }
+        public int? PositionUp { get; set; }
+        public ISOPositionStatus? PositionStatus { get { return (ISOPositionStatus?)PositionStatusInt; } set { PositionStatusInt = (int?)value; } }
+        private int? PositionStatusInt { get; set; }
         public decimal? PDOP { get; set; }
         public decimal? HDOP { get; set; }
         public byte? NumberOfSatellites { get; set; }
-        public long? GpsUtcTime { get; set; }
+        public int? GpsUtcTime { get; set; }
         public int? GpsUtcDate { get; set; }
 
         public bool HasPositionNorth { get; set; }
@@ -103,22 +105,22 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             ISOPosition position = new ISOPosition();
             position.PositionNorth = node.GetXmlNodeValueAsNullableDecimal("@A");
             position.PositionEast = node.GetXmlNodeValueAsNullableDecimal("@B");
-            position.PositionUp = node.GetXmlNodeValueAsNullableLong("@C");
+            position.PositionUp = node.GetXmlNodeValueAsNullableInt("@C");
 
             string status = node.GetXmlNodeValue("@D");
             if (status != string.Empty)
             {
-                position.PositionStatus = (ISOPositionStatus)(Int32.Parse(node.GetXmlNodeValue("@D")));
+                position.PositionStatusInt = node.GetXmlNodeValueAsNullableInt("@D");
             }
             else
             {
-                position.PositionStatus = null; 
+                position.PositionStatusInt = null; 
             }
 
             position.PDOP = node.GetXmlNodeValueAsNullableDecimal("@E");
             position.HDOP = node.GetXmlNodeValueAsNullableDecimal("@F");
             position.NumberOfSatellites = node.GetXmlNodeValueAsNullableByte("@G");
-            position.GpsUtcTime = node.GetXmlNodeValueAsNullableLong("@H");
+            position.GpsUtcTime = node.GetXmlNodeValueAsNullableInt("@H");
             position.GpsUtcDate = node.GetXmlNodeValueAsNullableInt("@I");
 
             position.HasPositionNorth = node.IsAttributePresent("A");
@@ -142,6 +144,20 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
                 items.Add(ISOPosition.ReadXML(node));
             }
             return items;
+        }
+
+        public override List<Error> Validate(List<Error> errors)
+        {
+            if (PositionNorth.HasValue) ValidateRange(this, x => x.PositionNorth.Value, -90m, 90m, errors, "A");
+            if (PositionEast.HasValue) ValidateRange(this, x => x.PositionEast.Value, -180m, 180m, errors, "B");
+            if (PositionUp.HasValue) ValidateRange(this, x => x.PositionUp.Value, Int32.MinValue, Int32.MaxValue - 1, errors, "C");
+            if (PositionStatusInt.HasValue) ValidateEnumerationValue(typeof(ISOPositionStatus), PositionStatusInt.Value, errors);
+            if (PDOP.HasValue) ValidateRange(this, x => x.PDOP.Value, 0m, 99.9m, errors, "E");
+            if (HDOP.HasValue) ValidateRange(this, x => x.HDOP.Value, 0m, 99.9m, errors, "F");
+            if (NumberOfSatellites.HasValue) ValidateRange<ISOPosition, byte>(this, x => x.NumberOfSatellites.Value, 0, 254, errors, "G");
+            if (GpsUtcTime.HasValue) ValidateRange(this, x => x.GpsUtcTime.Value, 0, Int32.MaxValue -2, errors, "H");
+            if (GpsUtcDate.HasValue) ValidateRange(this, x => x.GpsUtcDate.Value, 0, Int32.MaxValue -2, errors, "I");
+            return errors;
         }
     }
 }

@@ -320,7 +320,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             {
                 processDataVariable.ProductIdRef = TaskDataMapper.InstanceIDMap.GetISOID(lookup.ProductId.Value);
                 processDataVariable.ProcessDataDDI = DetermineVariableDDI(lookup.Representation, lookup.UnitOfMeasure).AsHexDDI();
-                processDataVariable.ProcessDataValue = (long)rxRate.Rate;
+                processDataVariable.ProcessDataValue = (int)rxRate.Rate;
             }
             return processDataVariable;
         }
@@ -333,7 +333,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 var dataVariable = new ISOProcessDataVariable
                 {
                     ProductIdRef = isoProductIdRef,
-                    ProcessDataValue = value.AsLongViaMappedDDI(RepresentationMapper),
+                    ProcessDataValue = value.AsIntViaMappedDDI(RepresentationMapper),
                     ProcessDataDDI = DetermineVariableDDI(value.Representation, adaptUnit).AsHexDDI()
                 };
 

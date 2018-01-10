@@ -9,10 +9,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
     public class ISOUnit
     {
         public string Code { get; private set; }
-        public long Offset { get; private set; }
+        public int Offset { get; private set; }
         public double Scale { get; private set; }
 
-        public ISOUnit(string code, double scale, long offset)
+        public ISOUnit(string code, double scale, int offset)
         {
             Code = code;
             Offset = offset;

@@ -4,6 +4,7 @@
 
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using System;
 using System.Collections.Generic;
 using System.Xml;
@@ -14,11 +15,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
     {
         //Attributes
         public string FilenamewithExtension { get; set; }
-        public ISOAttachedFilePreserve Preserve { get; set; }
+        public ISOAttachedFilePreserve Preserve { get { return (ISOAttachedFilePreserve)PreserveInt; } set { PreserveInt = (int)value; } }
+        private int PreserveInt { get; set; }
         public string ManufacturerGLN  { get; set; }
         public byte FileType { get; set; }
         public string FileVersion { get; set; }
-        public long? FileLength { get; set; }
+        public uint? FileLength { get; set; }
 
 
         public override XmlWriter WriteXML(XmlWriter xmlBuilder)
@@ -29,7 +31,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteAttributeString("C", ManufacturerGLN); //Override suppression of empty strings
             xmlBuilder.WriteXmlAttribute<byte>("D", FileType);
             xmlBuilder.WriteXmlAttribute("E", FileVersion);
-            xmlBuilder.WriteXmlAttribute<long>("F", FileLength);
+            xmlBuilder.WriteXmlAttribute<uint>("F", FileLength);
             xmlBuilder.WriteEndElement();
 
             return xmlBuilder;
@@ -42,11 +44,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 
             ISOAttachedFile item = new ISOAttachedFile();
             item.FilenamewithExtension = node.GetXmlNodeValue("@A");
-            item.Preserve = (ISOAttachedFilePreserve)(node.GetXmlNodeValueAsInt("@B"));
+            item.PreserveInt = node.GetXmlNodeValueAsInt("@B");
             item.ManufacturerGLN  = node.GetXmlNodeValue("@C");
             item.FileType = node.GetXmlNodeValueAsByte("@D");
             item.FileVersion = node.GetXmlNodeValue("@E");
-            item.FileLength = node.GetXmlNodeValueAsNullableLong("@F");
+            item.FileLength = node.GetXmlNodeValueAsNullableUInt("@F");
             return item;
         }
 
@@ -58,6 +60,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
                 items.Add(ISOAttachedFile.ReadXML(node));
             }
             return items;
+        }
+
+        public override List<Error> Validate(List<Error> errors)
+        {
+            RequireString(this, x => x.FilenamewithExtension, 12, errors, "A");
+            ValidateEnumerationValue(typeof(ISOAttachedFilePreserve), PreserveInt, errors);
+            RequireString(this, x => x.ManufacturerGLN, 32, errors, "C");
+            RequireRange<ISOAttachedFile, byte>(this, x => x.FileType, 1, 254, errors, "D");
+            ValidateString(this, x => x.FileVersion, 32, errors, "E");
+            if (FileLength.HasValue) ValidateRange<ISOAttachedFile, uint>(this, x => x.FileLength.Value, 0, UInt32.MaxValue - 2, errors, "F");
+            return errors;
         }
     }
 }

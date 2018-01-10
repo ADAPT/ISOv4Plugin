@@ -63,8 +63,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             gpn.HorizontalAccuracy = (decimal)adaptGuidancePattern.GpsSource.HorizontalAccuracy.AsConvertedDouble("m");
             gpn.VerticalAccuracy = (decimal)adaptGuidancePattern.GpsSource.VerticalAccuracy.AsConvertedDouble("m"); 
             gpn.OriginalSRID = adaptGuidancePattern.OriginalEpsgCode;
-            gpn.NumberOfSwathsLeft = adaptGuidancePattern.NumbersOfSwathsLeft;
-            gpn.NumberOfSwathsRight = adaptGuidancePattern.NumbersOfSwathsRight;
+            gpn.NumberOfSwathsLeft = (uint?)adaptGuidancePattern.NumbersOfSwathsLeft;
+            gpn.NumberOfSwathsRight = (uint?)adaptGuidancePattern.NumbersOfSwathsRight;
 
             //Pattern
             LineStringMapper lineStringMapper = new LineStringMapper(TaskDataMapper);

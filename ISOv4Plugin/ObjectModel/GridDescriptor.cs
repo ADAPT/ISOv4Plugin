@@ -76,13 +76,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                 return false;
             }
 
-            long columnCount = grid.GridMaximumColumn;
+            uint columnCount = grid.GridMaximumColumn;
             if (columnCount < 0)
             {
                 return false;
             }
 
-            long rowCount = grid.GridMaximumRow;
+            uint rowCount = grid.GridMaximumRow;
             if (rowCount < 0)
             {
                 return false;

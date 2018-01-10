@@ -5,6 +5,7 @@
 using System.Xml;
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using System.Collections.Generic;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
@@ -51,6 +52,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
                 items.Add(ISOCommentAllocation.ReadXML(node));
             }
             return items;
+        }
+
+
+        public override List<Error> Validate(List<Error> errors)
+        {
+            ValidateString(this, x => x.CodedCommentIdRef, 14, errors, "A");
+            ValidateString(this, x => x.CodedCommentListValueIdRef, 14, errors, "B");
+            ValidateString(this, x => x.FreeCommentText, 32, errors, "C");
+            if (AllocationStamp != null) AllocationStamp.Validate(errors);
+            return errors;
         }
     }
 }

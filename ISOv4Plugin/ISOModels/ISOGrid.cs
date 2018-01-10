@@ -23,10 +23,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         public decimal GridMinimumEastPosition { get; set; }
         public double GridCellNorthSize { get; set; }
         public double GridCellEastSize { get; set; }
-        public long GridMaximumColumn { get; set; }
-        public long GridMaximumRow { get; set; }
+        public uint GridMaximumColumn { get; set; }
+        public uint GridMaximumRow { get; set; }
         public string Filename { get; set; }
-        public long? Filelength { get; set; }
+        public uint? Filelength { get; set; }
         public byte GridType { get; set; }
         public byte? TreatmentZoneCode { get; set; }
 
@@ -37,8 +37,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteXmlAttribute<decimal>("B", GridMinimumEastPosition);
             xmlBuilder.WriteXmlAttribute("C", GridCellNorthSize.ToString("F14"));
             xmlBuilder.WriteXmlAttribute("D", GridCellEastSize.ToString("F14"));
-            xmlBuilder.WriteXmlAttribute<long>("E", GridMaximumColumn);
-            xmlBuilder.WriteXmlAttribute<long>("F", GridMaximumRow);
+            xmlBuilder.WriteXmlAttribute<uint>("E", GridMaximumColumn);
+            xmlBuilder.WriteXmlAttribute<uint>("F", GridMaximumRow);
             xmlBuilder.WriteXmlAttribute("G", Filename);
             xmlBuilder.WriteXmlAttribute("H", Filelength);
             xmlBuilder.WriteXmlAttribute<byte>("I", GridType);
@@ -54,10 +54,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             grid.GridMinimumEastPosition = node.GetXmlNodeValueAsDecimal("@B");
             grid.GridCellNorthSize = node.GetXmlNodeValueAsDouble("@C");
             grid.GridCellEastSize = node.GetXmlNodeValueAsDouble("@D");
-            grid.GridMaximumColumn = node.GetXmlNodeValueAsLong("@E");
-            grid.GridMaximumRow = node.GetXmlNodeValueAsLong("@F");
+            grid.GridMaximumColumn = node.GetXmlNodeValueAsUInt("@E");
+            grid.GridMaximumRow = node.GetXmlNodeValueAsUInt("@F");
             grid.Filename = node.GetXmlNodeValue("@G");
-            grid.Filelength = node.GetXmlNodeValueAsNullableLong("@H");
+            grid.Filelength = node.GetXmlNodeValueAsNullableUInt("@H");
             grid.GridType = node.GetXmlNodeValueAsByte("@I");
             grid.TreatmentZoneCode = node.GetXmlNodeValueAsNullableByte("@J");
             return grid;
@@ -146,6 +146,21 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             }
 
             return productRates;
+        }
+
+        public override List<Error> Validate(List<Error> errors)
+        {
+            RequireRange(this, x => x.GridMinimumNorthPosition, -90m, 90m, errors, "A");
+            RequireRange(this, x => x.GridMinimumEastPosition, -180m, 180m, errors, "B");
+            RequireRange(this, x => x.GridCellNorthSize, 0d, 1d, errors, "C");
+            RequireRange(this, x => x.GridCellEastSize, 0d, 1d, errors, "D");
+            RequireRange<ISOGrid, uint>(this, x => x.GridMaximumColumn, 0, uint.MaxValue - 1, errors, "E");
+            RequireRange<ISOGrid, uint>(this, x => x.GridMaximumRow, 0, uint.MaxValue - 1, errors, "F");
+            RequireString(this, x => x.Filename, 8, errors, "G");
+            if (Filelength.HasValue) ValidateRange<ISOGrid, uint>(this, x => x.Filelength.Value, 0, uint.MaxValue - 2, errors, "H");
+            RequireRange<ISOGrid, byte>(this, x => x.GridType, 1, 2, errors, "I");
+            if (TreatmentZoneCode.HasValue) ValidateRange<ISOGrid, byte>(this, x => x.TreatmentZoneCode.Value, 0, 254, errors, "J");
+            return errors;
         }
     }
 }

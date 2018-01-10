@@ -23,7 +23,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
     public interface ITaskDataMapper
     {
         ISO11783_TaskData Export(ApplicationDataModel.ADM.ApplicationDataModel adm);
-        ApplicationDataModel.ADM.ApplicationDataModel Import(ISO11783_TaskData taskData, ISO11783_LinkList linkList);
+        ApplicationDataModel.ADM.ApplicationDataModel Import(ISO11783_TaskData taskData);
     }
 
     public class TaskDataMapper : ITaskDataMapper
@@ -46,7 +46,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         public ApplicationDataModel.ADM.ApplicationDataModel AdaptDataModel { get; private set; }
         public ISO11783_TaskData ISOTaskData { get; private set; }
-        public ISO11783_LinkList ISOLinkList { get; private set; }
         public UniqueIdMapper UniqueIDMapper { get; set; }
         public DeviceElementHierarchies DeviceElementHierarchies { get; set; }
 
@@ -113,16 +112,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             ISOTaskData.TaskControllerVersion = "";
 
             //LinkList
-            ISOLinkList = new ISO11783_LinkList();
-            ISOLinkList.VersionMajor = 4;
-            ISOLinkList.VersionMinor = 0;
-            ISOLinkList.ManagementSoftwareManufacturer = "AgGateway";
-            ISOLinkList.ManagementSoftwareVersion = "1.0";
-            ISOLinkList.DataTransferOrigin = ISOEnumerations.ISOTaskDataTransferOrigin.FMIS;
-            ISOLinkList.TaskControllerManufacturer = "";
-            ISOLinkList.TaskControllerVersion = "";
-            ISOLinkList.FileVersion = "";
-            UniqueIDMapper = new UniqueIdMapper(ISOLinkList);
+            ISOTaskData.LinkList = new ISO11783_LinkList();
+            ISOTaskData.LinkList.VersionMajor = 4;
+            ISOTaskData.LinkList.VersionMinor = 0;
+            ISOTaskData.LinkList.ManagementSoftwareManufacturer = "AgGateway";
+            ISOTaskData.LinkList.ManagementSoftwareVersion = "1.0";
+            ISOTaskData.LinkList.DataTransferOrigin = ISOEnumerations.ISOTaskDataTransferOrigin.FMIS;
+            ISOTaskData.LinkList.TaskControllerManufacturer = "";
+            ISOTaskData.LinkList.TaskControllerVersion = "";
+            ISOTaskData.LinkList.FileVersion = "";
+            UniqueIDMapper = new UniqueIdMapper(ISOTaskData.LinkList);
 
             //Crops
             if (adm.Catalog.Crops != null)
@@ -244,7 +243,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             ISOTaskData.ChildElements.AddRange(CommentMapper.ExportedComments);
 
             //Add LinkList Attached File Reference
-            if (ISOLinkList.LinkGroups.Any())
+            if (ISOTaskData.LinkList.LinkGroups.Any())
             {
                 ISOAttachedFile afe = new ISOAttachedFile();
                 afe.FilenamewithExtension = "LINKLIST.XML";
@@ -257,11 +256,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return ISOTaskData;
         }
 
-        public ApplicationDataModel.ADM.ApplicationDataModel Import(ISO11783_TaskData taskData, ISO11783_LinkList linkList)
+        public ApplicationDataModel.ADM.ApplicationDataModel Import(ISO11783_TaskData taskData)
         {
             ISOTaskData = taskData;
-            ISOLinkList = linkList ?? new ISO11783_LinkList() { VersionMajor = 4, VersionMinor = 0, DataTransferOrigin = ISOEnumerations.ISOTaskDataTransferOrigin.FMIS, FileVersion = "", ManagementSoftwareManufacturer = "AgGateway", ManagementSoftwareVersion = "1.0", TaskControllerManufacturer = "", TaskControllerVersion = "" };
-            UniqueIDMapper = new UniqueIdMapper(ISOLinkList);
+            UniqueIDMapper = new UniqueIdMapper(ISOTaskData.LinkList);
 
             AdaptDataModel = new ApplicationDataModel.ADM.ApplicationDataModel();
             AdaptDataModel.Catalog = new Catalog() { Description = "ISO TaskData" };

@@ -7,6 +7,7 @@ using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using System.Collections.Generic;
 using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
 using System;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
@@ -15,8 +16,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         //Attributes
         public string ProductIdRef { get; set; }
         public string QuantityDDI { get; set; }
-        public long? QuantityValue { get; set; }
-        public ISOTransferMode? TransferMode { get; set; }
+        public int? QuantityValue { get; set; }
+        public ISOTransferMode? TransferMode { get { return (ISOTransferMode?)TransferModeInt; } set { TransferModeInt = (int?)value; } }
+        private int? TransferModeInt { get; set; }
         public string DeviceElementIdRef { get; set; }
         public string ValuePresentationIdRef { get; set; }
 
@@ -46,8 +48,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             ISOProductAllocation item = new ISOProductAllocation();
             item.ProductIdRef = node.GetXmlNodeValue("@A");
             item.QuantityDDI = node.GetXmlNodeValue("@B");
-            item.QuantityValue = node.GetXmlNodeValueAsNullableLong("@C");
-            item.TransferMode = (ISOTransferMode?)(node.GetXmlNodeValueAsNullableInt("@D"));
+            item.QuantityValue = node.GetXmlNodeValueAsNullableInt("@C");
+            item.TransferModeInt = node.GetXmlNodeValueAsNullableInt("@D");
             item.DeviceElementIdRef = node.GetXmlNodeValue("@E");
             item.ValuePresentationIdRef = node.GetXmlNodeValue("@F");
             item.AllocationStamp = ISOAllocationStamp.ReadXML(node.SelectSingleNode("ASP"));
@@ -62,6 +64,18 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
                 items.Add(ISOProductAllocation.ReadXML(node));
             }
             return items;
+        }
+
+        public override List<Error> Validate(List<Error> errors)
+        {
+            RequireString(this, x => x.ProductIdRef, 14, errors, "A");
+            ValidateString(this, x => x.QuantityDDI, 4, errors, "B"); //DDI validation could be improved upon
+            if (QuantityValue.HasValue) ValidateRange(this, x => x.QuantityValue.Value, 0, Int32.MaxValue - 1, errors, "C");
+            if (TransferModeInt.HasValue) ValidateEnumerationValue(typeof(ISOTransferMode), TransferModeInt.Value, errors);
+            ValidateString(this, x => x.DeviceElementIdRef, 14, errors, "E");
+            ValidateString(this, x => x.ValuePresentationIdRef, 14, errors, "F");
+            if (AllocationStamp != null) AllocationStamp.Validate(errors);
+            return errors;
         }
     }
 }

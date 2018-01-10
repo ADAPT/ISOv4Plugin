@@ -5,6 +5,7 @@
 using System.Xml;
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using System.Collections.Generic;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
@@ -43,6 +44,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
                 items.Add(ISOCropVariety.ReadXML(node));
             }
             return items;
+        }
+
+        public override List<Error> Validate(List<Error> errors)
+        {
+            RequireString(this, x => x.CropVarietyId, 14, errors, "A");
+            RequireString(this, x => x.CropVarietyDesignator, 32, errors, "B");
+            ValidateString(this, x => x.ProductIdRef, 14, errors, "C");
+            return errors;
         }
     }
 }

@@ -5,18 +5,19 @@
 using System.Xml;
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using System.Collections.Generic;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
     public class ISODeviceObjectReference : ISOElement
     {
         //Attributes
-        public int DeviceObjectId  { get; set; }
+        public uint DeviceObjectId  { get; set; }
         
         public override XmlWriter WriteXML(XmlWriter xmlBuilder)
         {
             xmlBuilder.WriteStartElement("DOR");
-            xmlBuilder.WriteXmlAttribute<int>("A", DeviceObjectId );
+            xmlBuilder.WriteXmlAttribute<uint>("A", DeviceObjectId );
             xmlBuilder.WriteEndElement();
             return xmlBuilder;
         }
@@ -24,7 +25,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         public static ISODeviceObjectReference ReadXML(XmlNode node)
         {
             ISODeviceObjectReference item = new ISODeviceObjectReference();
-            item.DeviceObjectId = node.GetXmlNodeValueAsInt("@A");
+            item.DeviceObjectId = node.GetXmlNodeValueAsUInt("@A");
             return item;
         }
 
@@ -36,6 +37,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
                 items.Add(ISODeviceObjectReference.ReadXML(node));
             }
             return items;
+        }
+
+        public override List<Error> Validate(List<Error> errors)
+        {
+            RequireRange<ISODeviceObjectReference, uint>(this, x => x.DeviceObjectId, 1, 65534, errors, "A");
+            return errors;
         }
     }
 }

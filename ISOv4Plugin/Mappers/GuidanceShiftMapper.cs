@@ -55,9 +55,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             gst.GuidancePatternIdRef = TaskDataMapper.InstanceIDMap.GetISOID(adaptGuidanceShift.GuidancePatterId);
 
             //Shifts
-            gst.GuidanceEastShift = adaptGuidanceShift.EastShift.AsConvertedLong("mm");
-            gst.GuidanceNorthShift = adaptGuidanceShift.NorthShift.AsConvertedLong("mm");
-            gst.PropagationOffset = adaptGuidanceShift.PropagationOffset.AsConvertedLong("mm");
+            gst.GuidanceEastShift = adaptGuidanceShift.EastShift.AsConvertedInt("mm");
+            gst.GuidanceNorthShift = adaptGuidanceShift.NorthShift.AsConvertedInt("mm");
+            gst.PropagationOffset = adaptGuidanceShift.PropagationOffset.AsConvertedInt("mm");
 
             //Allocation Stamp
             if (adaptGuidanceShift.TimeScopeIds.Any())
