@@ -14,6 +14,7 @@ using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 using AgGateway.ADAPT.ISOv4Plugin.Mappers;
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
+using System.Reflection;
 
 namespace AgGateway.ADAPT.ISOv4Plugin
 {
@@ -24,7 +25,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin
         #region IPlugin Members
         string IPlugin.Name => "ISO v4 Plugin";
 
-        string IPlugin.Version => "";
+        string IPlugin.Version => Assembly.GetExecutingAssembly().GetName().Version.ToString();
 
         string IPlugin.Owner => "AgGateway";
 
