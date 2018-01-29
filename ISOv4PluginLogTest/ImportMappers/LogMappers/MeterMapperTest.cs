@@ -121,7 +121,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             var dlv = new DLV { A = ddiValue.ToString("x4") };
             _tim.Items = new List<DLV> { dlv }.ToArray();
 
-            var expected = new ISOEnumeratedMeter { TriggerId = 8675309 };
+            var expected = new ISOEnumeratedMeter { DeviceElementUseId = 8675309 };
             var meterCreator = new Mock<IEnumeratedMeterCreator>();
             meterCreator.Setup(m => m.CreateMeters(It.IsAny<IEnumerable<ISOSpatialRow>>())).Returns(new List<ISOEnumeratedMeter> {expected});
 
@@ -139,7 +139,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers
             var dlv = new DLV { A = ddiValue.ToString("x4") };
             _tim.Items = new List<DLV> { dlv }.ToArray();
 
-            var expected = new ISOEnumeratedMeter { TriggerId = 8675309 };
+            var expected = new ISOEnumeratedMeter { DeviceElementUseId = 8675309 };
             var meterCreator = new Mock<IEnumeratedMeterCreator>();
             meterCreator.Setup(m => m.CreateMeters(It.IsAny<IEnumerable<ISOSpatialRow>>())).Returns(new List<ISOEnumeratedMeter> {expected});
 

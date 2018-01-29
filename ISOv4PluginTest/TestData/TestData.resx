@@ -406,4 +406,19 @@
   <data name="SingleProduct" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>prescription\singleproduct.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="Summary1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Summary\Summary1.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Summary2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Summary\Summary2.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Summary3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Summary\Summary3.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Summary4" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Summary\Summary4.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Summary5" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Summary\Summary5.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
 </root>

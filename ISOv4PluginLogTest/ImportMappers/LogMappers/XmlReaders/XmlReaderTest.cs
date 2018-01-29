@@ -40,7 +40,7 @@ namespace ISOv4PluginLogTest.ImportMappers.LogMappers.XmlReaders
         public void GivenDataPathAndFileNameWhenReadTlgXmlDataThenTimReturned()
         {
             _xml = "<TIM></TIM>";
-            File.AppendAllText(Path.Combine(_dataPath, "TASKDATA", _fileName), _xml);
+            File.AppendAllText(Path.Combine(_dataPath, _fileName), _xml);
 
             var tim = new TIM();
             _timReaderMock.Setup(x => x.Read(It.IsAny<XPathDocument>())).Returns(new List<TIM>{tim});

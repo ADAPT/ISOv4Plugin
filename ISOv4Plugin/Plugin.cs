@@ -1,59 +1,81 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿/*
+ * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
+*/
+
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
-using AgGateway.ADAPT.ApplicationDataModel.Common;
-using AgGateway.ADAPT.ApplicationDataModel.Prescriptions;
-using AgGateway.ADAPT.ApplicationDataModel.Products;
-using AgGateway.ADAPT.ISOv4Plugin.ImportMappers.LogMappers.XmlReaders;
-using AgGateway.ADAPT.ISOv4Plugin.Models;
-using AgGateway.ADAPT.ISOv4Plugin.Writers;
+using System.Xml;
+using System.IO;
+using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
+using AgGateway.ADAPT.ISOv4Plugin.Mappers;
+using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
+using System.Reflection;
 
 namespace AgGateway.ADAPT.ISOv4Plugin
 {
-    public class Plugin : IPlugin
+    public class Plugin : AgGateway.ADAPT.ApplicationDataModel.ADM.IPlugin
     {
-        private readonly IXmlReader _xmlReader;
-        private readonly IImporter _importer;
-        private readonly IExporter _exporter;
         private const string FileName = "TASKDATA.XML";
 
-        public Plugin() : this(new XmlReader(), new Importer(), new Exporter())
+        #region IPlugin Members
+        string IPlugin.Name => "ISO v4 Plugin";
+
+        string IPlugin.Version => Assembly.GetExecutingAssembly().GetName().Version.ToString();
+
+        string IPlugin.Owner => "AgGateway";
+
+        void IPlugin.Export(ApplicationDataModel.ADM.ApplicationDataModel dataModel, string exportPath, Properties properties)
         {
+            //Convert the ADAPT model into the ISO model
+            string outputPath = exportPath.WithTaskDataPath();
+            TaskDataMapper taskDataMapper = new TaskDataMapper(outputPath, properties);
+            ISO11783_TaskData taskData = taskDataMapper.Export(dataModel);
+
+            //Serialize the ISO model to XML
+            TaskDocumentWriter writer = new TaskDocumentWriter();
+            writer.WriteTaskData(exportPath, taskData);
+
+            //Serialize the Link List
+            writer.WriteLinkList(exportPath, taskData.LinkList);
+        }
+
+        public IList<ApplicationDataModel.ADM.ApplicationDataModel> Import(string dataPath, Properties properties = null)
+        {
+            var taskDataObjects = ReadDataCard(dataPath);
+            if (taskDataObjects == null)
+                return null;
             
-        }
-        public Plugin(IXmlReader xmlReader, IImporter importer, IExporter exporter)
-        {
-            _xmlReader = xmlReader;
-            _importer = importer;
-            _exporter = exporter;
-            Name = "ISO Plugin";
-            Version = "0.1.1";
-            Owner = "AgGateway & Contributors";
-        }
-
-        public void Initialize(string args = null)
-        {
-        }
-
-        public IList<IError> ValidateDataOnCard(string dataPath, Properties properties = null)
-        {
-            var errors = new List<IError>();
-            var taskDataFiles = GetListOfTaskDataFiles(dataPath);
-            if (!taskDataFiles.Any())
-                return errors;
-
-            foreach (var taskDataFile in taskDataFiles)
+            var adms = new List<ApplicationDataModel.ADM.ApplicationDataModel>();
+            foreach (var taskData in taskDataObjects)
             {
-                var taskDocument = new TaskDataDocument();
-                if (taskDocument.LoadFromFile(taskDataFile) == false)
-                {
-                    errors.AddRange(taskDocument.Errors);
-                }
+                //Convert the ISO model to ADAPT
+                TaskDataMapper taskDataMapper = new TaskDataMapper(taskData.FilePath, properties);
+                ApplicationDataModel.ADM.ApplicationDataModel dataModel = taskDataMapper.Import(taskData);
+
+                adms.Add(dataModel);
             }
 
-            return errors;
+            return adms;
+        }
+
+        Properties _properties = null;
+        Properties IPlugin.GetProperties(string dataPath)
+        {
+            if (_properties == null)
+            {
+                _properties = new Properties();
+                _properties.SetProperty(ISOGrid.GridTypeProperty, "2");
+            }
+            return _properties;
+        }
+
+        void IPlugin.Initialize(string args)
+        {
         }
 
         public bool IsDataCardSupported(string dataPath, Properties properties = null)
@@ -62,108 +84,53 @@ namespace AgGateway.ADAPT.ISOv4Plugin
             return taskDataFiles.Any();
         }
 
-        public IList<ApplicationDataModel.ADM.ApplicationDataModel> Import(string dataPath, Properties properties = null)
+        IList<IError> IPlugin.ValidateDataOnCard(string dataPath, Properties properties)
+        {
+            List<Error> errors = new List<Error>();
+            var data = ReadDataCard(dataPath);
+            foreach (ISO11783_TaskData datum in data)
+            {
+                datum.Validate(errors);
+            }
+
+            return errors.ToArray();
+        }
+        #endregion IPlugin Members
+
+        private static List<string> GetListOfTaskDataFiles(string dataPath)
+        {
+            var taskDataFiles = new List<string>();
+            if (Directory.Exists(dataPath))
+            {
+                taskDataFiles.AddRange(Directory.GetFiles(dataPath, FileName, SearchOption.AllDirectories));
+            }
+            return taskDataFiles;
+        }
+
+        private List<ISO11783_TaskData> ReadDataCard(string dataPath)
         {
             var taskDataFiles = GetListOfTaskDataFiles(dataPath);
             if (!taskDataFiles.Any())
                 return null;
 
-            var adms = new List<ApplicationDataModel.ADM.ApplicationDataModel>();
-
+            List<ISO11783_TaskData> taskDataObjects = new List<ISO11783_TaskData>();
             foreach (var taskDataFile in taskDataFiles)
             {
-                var dataModel = new ApplicationDataModel.ADM.ApplicationDataModel();
+                //Per ISO11783-10:2015(E) 8.5, all related files are in the same directory as the TASKDATA.xml file.
+                //The TASKDATA directory is only required when exporting to removable media.
+                //As such, the plugin will import data in any directory structure, and always export to a TASKDATA directory.
+                string filePath = Path.GetDirectoryName(taskDataFile);
 
-                var taskDataDocument = ConvertTaskDataFileToModel(taskDataFile, dataModel);
+                //Deserialize the ISOXML into the ISO models
+                XmlDocument document = new XmlDocument();
+                document.Load(taskDataFile);
+                XmlNode rootNode = document.SelectSingleNode("ISO11783_TaskData");
+                ISO11783_TaskData taskData = ISO11783_TaskData.ReadXML(rootNode, filePath);
+                taskData.FilePath = filePath;
 
-                var iso11783TaskData = _xmlReader.Read(taskDataFile);
-                _importer.Import(iso11783TaskData, dataPath, dataModel, taskDataDocument.LinkedIds);
-                adms.Add(dataModel);
+                taskDataObjects.Add(taskData);
             }
-
-            return adms;
-        }
-
-        public void Export(ApplicationDataModel.ADM.ApplicationDataModel dataModel, string exportPath, Properties properties = null)
-        {
-            using (var taskWriter = new TaskDocumentWriter())
-            {
-                var taskDataPath = Path.Combine(exportPath, "TASKDATA");
-                var iso11783TaskData = _exporter.Export(dataModel, taskDataPath, taskWriter);
-
-                var filePath = Path.Combine(taskDataPath, FileName);
-                if (iso11783TaskData != null)
-                {
-                    var xml = Encoding.UTF8.GetString(taskWriter.XmlStream.ToArray());
-                    File.WriteAllText(filePath, xml);
-                    LinkListWriter.Write(taskDataPath, taskWriter.Ids);
-                }
-            }
-        }
-        
-        public Properties GetProperties(string dataPath)
-        {
-            return new Properties();
-        }
-
-        public string Name { get; private set; }
-        public string Version { get; private set; }
-        public string Owner { get; private set; }
-
-        private static List<string> GetListOfTaskDataFiles(string dataPath)
-        {
-            var taskDataFiles = new List<string>();
-
-            var inputPath = Path.Combine(dataPath, "Taskdata");
-            if (Directory.Exists(inputPath))
-                taskDataFiles.AddRange(Directory.GetFiles(inputPath, FileName));
-
-            if (!taskDataFiles.Any() && Directory.Exists(dataPath))
-                taskDataFiles.AddRange(Directory.GetFiles(dataPath, FileName));
-
-            return taskDataFiles;
-        }
-
-        private static TaskDataDocument ConvertTaskDataFileToModel(string taskDataFile, ApplicationDataModel.ADM.ApplicationDataModel dataModel)
-        {
-            var taskDocument = new TaskDataDocument();
-            if (taskDocument.LoadFromFile(taskDataFile) == false)
-                return taskDocument;
-
-            var catalog = new Catalog();
-            catalog.Growers = taskDocument.Customers.Values.ToList();
-            catalog.Farms = taskDocument.Farms.Values.ToList();
-            catalog.Fields = taskDocument.Fields.Values.ToList();
-            catalog.GuidanceGroups = taskDocument.GuidanceGroups.Values.Select(x => x.Group).ToList();
-            catalog.GuidancePatterns = taskDocument.GuidanceGroups.Values.SelectMany(x => x.Patterns.Values).ToList();
-            catalog.Crops = taskDocument.Crops.Values.ToList();
-            catalog.CropZones = taskDocument.CropZones.Values.ToList();
-            catalog.DeviceElements = taskDocument.Machines.Values.ToList();
-            catalog.FieldBoundaries = taskDocument.FieldBoundaries;
-            catalog.Ingredients = taskDocument.Ingredients;
-            catalog.Prescriptions = taskDocument.RasterPrescriptions.Cast<Prescription>().ToList();
-            catalog.ContactInfo = taskDocument.Contacts;
-            catalog.Products = AddAllProducts(taskDocument);
-
-            dataModel.Catalog = catalog;
-
-            var documents = new Documents();
-            documents.GuidanceAllocations = taskDocument.GuidanceAllocations;
-            documents.LoggedData = taskDocument.Tasks;
-
-            dataModel.Documents = documents;
-
-            return taskDocument;
-        }
-
-        private static List<Product> AddAllProducts(TaskDataDocument taskDocument)
-        {
-            var products = new List<Product>();
-            products.AddRange(taskDocument.CropVarieties.Values);
-            products.AddRange(taskDocument.ProductMixes.Values);
-            products.AddRange(taskDocument.Products.Values.OfType<FertilizerProduct>());
-
-            return products;
+            return taskDataObjects;
         }
     }
 }
