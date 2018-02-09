@@ -320,7 +320,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             {
                 processDataVariable.ProductIdRef = TaskDataMapper.InstanceIDMap.GetISOID(lookup.ProductId.Value);
                 processDataVariable.ProcessDataDDI = DetermineVariableDDI(lookup.Representation, lookup.UnitOfMeasure).AsHexDDI();
-                processDataVariable.ProcessDataValue = (int)rxRate.Rate;
+                ISOUnit unit = UnitFactory.Instance.GetUnitByDDI(processDataVariable.ProcessDataDDI.AsInt32DDI());
+                if (unit != null)
+                {
+                    processDataVariable.ProcessDataValue = (int)unit.ConvertToIsoUnit(rxRate.Rate);
+                }
+                else
+                {
+                    throw new ApplicationException("Missing unit on rate calculation from PDV.");
+                }
             }
             return processDataVariable;
         }
@@ -434,7 +442,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     int? productID = TaskDataMapper.InstanceIDMap.GetADAPTID(pdv.ProductIdRef);
                     if (productID.HasValue)
                     {
-                        shapeLookup.Rates.Add(PrescriptionMapper.ImportRate(productID.Value, pdv.ProcessDataValue, vectorRx));
+                        shapeLookup.Rates.Add(PrescriptionMapper.ImportAndConvertRate(productID.Value, pdv, vectorRx));
                     }
                 }
 
@@ -543,7 +551,21 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 DataModel.Catalog.EquipmentConfigurations.AddRange(equipConfigs);
             }
         }
-        
+
+        internal static RxRate ImportAndConvertRate(int productId, ISOProcessDataVariable pdv, Prescription prescription)
+        {
+            ISOUnit isoUnit = UnitFactory.Instance.GetUnitByDDI(pdv.ProcessDataDDI.AsInt32DDI());
+            if (isoUnit != null)
+            {
+                double rate = isoUnit.ConvertFromIsoUnit(pdv.ProcessDataValue);
+                return ImportRate(productId, rate, prescription);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         internal static RxRate ImportRate(int productId, double productRate, Prescription prescription)
         {
             RxProductLookup rxProductLookup = prescription.RxProductLookups.SingleOrDefault(x => x.ProductId == productId);
