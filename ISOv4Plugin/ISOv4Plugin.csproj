@@ -1,249 +1,28 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{1B525A08-00AF-4C21-BDEA-6B2C198FD5E8}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>AgGateway.ADAPT.ISOv4Plugin</RootNamespace>
+    <TargetFrameworks>netstandard2.0;net451</TargetFrameworks>
     <AssemblyName>AgGateway.ADAPT.ISOv4Plugin</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
-    <TargetFrameworkProfile />
+    <RootNamespace>AgGateway.ADAPT.ISOv4Plugin</RootNamespace>
+    <Version>0.0.0</Version>
+    <NeutralLanguage>English (United States)</NeutralLanguage>
+    <Copyright>Copyright (C) 2015-18 AgGateway and ADAPT Contributors</Copyright>
+    <Product>ISOv4Plugin</Product>
+    <Company>AgGateway</Company>
+    <Authors>AgGateway and ADAPT Contributors</Authors>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="AgGateway.ADAPT.ApplicationDataModel, Version=1.0.0.1, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\AgGatewayADAPTFramework.1.1.0.10\lib\AgGateway.ADAPT.ApplicationDataModel.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="AgGateway.ADAPT.PluginManager, Version=1.0.0.1, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\AgGatewayADAPTFramework.1.1.0.10\lib\AgGateway.ADAPT.PluginManager.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="AgGateway.ADAPT.Representation, Version=1.0.0.1, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\AgGatewayADAPTFramework.1.1.0.10\lib\AgGateway.ADAPT.Representation.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Castle.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
-      <HintPath>..\packages\Castle.Core.4.0.0\lib\net45\Castle.Core.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Moq, Version=4.7.0.0, Culture=neutral, PublicKeyToken=69f491c39445e920, processorArchitecture=MSIL">
-      <HintPath>..\packages\Moq.4.7.0\lib\net45\Moq.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
+    <PackageReference Include="AgGatewayADAPTFramework" Version="1.2.0-alpha1" />
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="ExtensionMethods\ExtensionMethods.cs" />
-    <Compile Include="ExtensionMethods\XmlExtensions.cs" />
-    <Compile Include="ISOEnumerations\ISOAllocationStampType.cs" />
-    <Compile Include="ISOEnumerations\ISOAttachedFilePreserve.cs" />
-    <Compile Include="ISOEnumerations\ISOCodedCommentScope.cs" />
-    <Compile Include="ISOEnumerations\ISODeviceElementType.cs" />
-    <Compile Include="ISOEnumerations\ISOGuidancePatternExtension.cs" />
-    <Compile Include="ISOEnumerations\ISOGuidancePatternGNSSMethod.cs" />
-    <Compile Include="ISOEnumerations\ISOGuidancePatternOption.cs" />
-    <Compile Include="ISOEnumerations\ISOGuidancePatternPropagationDirection.cs" />
-    <Compile Include="ISOEnumerations\ISOGuidancePatternType.cs" />
-    <Compile Include="ISOEnumerations\ISOLineStringType.cs" />
-    <Compile Include="ISOEnumerations\ISOLinkGroupType.cs" />
-    <Compile Include="ISOEnumerations\ISOPointType.cs" />
-    <Compile Include="ISOEnumerations\ISOPolygonType.cs" />
-    <Compile Include="ISOEnumerations\ISOPositionStatus.cs" />
-    <Compile Include="ISOEnumerations\ISOProductGroupType.cs" />
-    <Compile Include="ISOEnumerations\ISOProductType.cs" />
-    <Compile Include="ISOEnumerations\ISOTaskDataTransferOrigin.cs" />
-    <Compile Include="ISOEnumerations\ISOTaskStatus.cs" />
-    <Compile Include="ISOEnumerations\ISOTimeType.cs" />
-    <Compile Include="ISOEnumerations\ISOTransferMode.cs" />
-    <Compile Include="ISOModels\ISO11783_LinkList.cs" />
-    <Compile Include="ISOModels\ISO11783_TaskData.cs" />
-    <Compile Include="ISOModels\ISOAllocationStamp.cs" />
-    <Compile Include="ISOModels\ISOAttachedFile.cs" />
-    <Compile Include="ISOModels\ISOCodedComment.cs" />
-    <Compile Include="ISOModels\ISOCodedCommentListValue.cs" />
-    <Compile Include="ISOModels\ISOCommentAllocation.cs" />
-    <Compile Include="ISOModels\ISOConnection.cs" />
-    <Compile Include="ISOModels\ISOCropType.cs" />
-    <Compile Include="ISOModels\ISOCropVariety.cs" />
-    <Compile Include="ISOModels\ISOCulturalPractice.cs" />
-    <Compile Include="ISOModels\ISOCustomer.cs" />
-    <Compile Include="ISOModels\ISODataLogTrigger.cs" />
-    <Compile Include="ISOModels\ISODataLogValue.cs" />
-    <Compile Include="ISOModels\ISODevice.cs" />
-    <Compile Include="ISOModels\ISODeviceAllocation.cs" />
-    <Compile Include="ISOModels\ISODeviceElement.cs" />
-    <Compile Include="ISOModels\ISODeviceObjectReference.cs" />
-    <Compile Include="ISOModels\ISODeviceProcessData.cs" />
-    <Compile Include="ISOModels\ISODeviceProperty.cs" />
-    <Compile Include="ISOModels\ISODeviceValuePresentation.cs" />
-    <Compile Include="ISOModels\ISOElement.cs" />
-    <Compile Include="ISOModels\ISOFarm.cs" />
-    <Compile Include="ISOModels\ISOGrid.cs" />
-    <Compile Include="ISOModels\ISOGuidanceAllocation.cs" />
-    <Compile Include="ISOModels\ISOGuidanceGroup.cs" />
-    <Compile Include="ISOModels\ISOGuidancePattern.cs" />
-    <Compile Include="ISOModels\ISOGuidanceShift.cs" />
-    <Compile Include="ISOModels\ISOLineString.cs" />
-    <Compile Include="ISOModels\ISOLink.cs" />
-    <Compile Include="ISOModels\ISOLinkGroup.cs" />
-    <Compile Include="ISOModels\ISOOperationTechnique.cs" />
-    <Compile Include="ISOModels\ISOOperTechPractice.cs" />
-    <Compile Include="ISOModels\ISOOperationTechniqueReference.cs" />
-    <Compile Include="ISOModels\ISOPartfield.cs" />
-    <Compile Include="ISOModels\ISOPoint.cs" />
-    <Compile Include="ISOModels\ISOPolygon.cs" />
-    <Compile Include="ISOModels\ISOPosition.cs" />
-    <Compile Include="ISOModels\ISOProcessDataVariable.cs" />
-    <Compile Include="ISOModels\ISOProduct.cs" />
-    <Compile Include="ISOModels\ISOProductAllocation.cs" />
-    <Compile Include="ISOModels\ISOProductGroup.cs" />
-    <Compile Include="ISOModels\ISOProductRelation.cs" />
-    <Compile Include="ISOModels\ISOTask.cs" />
-    <Compile Include="ISOModels\ISOTaskControllerCapabilities.cs" />
-    <Compile Include="ISOModels\ISOTime.cs" />
-    <Compile Include="ISOModels\ISOTimeLog.cs" />
-    <Compile Include="ISOModels\ISOTreatmentZone.cs" />
-    <Compile Include="ISOModels\ISOValuePresentation.cs" />
-    <Compile Include="ISOModels\ISOWorker.cs" />
-    <Compile Include="ISOModels\ISOWorkerAllocation.cs" />
-    <Compile Include="Mappers\AllocationStampMapper.cs" />
-    <Compile Include="Mappers\BaseMapper.cs" />
-    <Compile Include="Mappers\CodedCommentListMapper.cs" />
-    <Compile Include="Mappers\CodedCommentMapper.cs" />
-    <Compile Include="Mappers\CommentAllocationMapper.cs" />
-    <Compile Include="Mappers\ConnectionMapper.cs" />
-    <Compile Include="Mappers\DataLogTriggerMapper.cs" />
-    <Compile Include="Mappers\CropTypeMapper.cs" />
-    <Compile Include="Mappers\CropVarietyMapper.cs" />
-    <Compile Include="Mappers\CustomerMapper.cs" />
-    <Compile Include="Mappers\DeviceElementMapper.cs" />
-    <Compile Include="Mappers\DeviceMapper.cs" />
-    <Compile Include="Mappers\FarmMapper.cs" />
-    <Compile Include="Mappers\GridMapper.cs" />
-    <Compile Include="Mappers\GuidanceAllocationMapper.cs" />
-    <Compile Include="Mappers\GuidanceGroupMapper.cs" />
-    <Compile Include="Mappers\GuidancePatternMapper.cs" />
-    <Compile Include="Mappers\GuidanceShiftMapper.cs" />
-    <Compile Include="Mappers\LineStringMapper.cs" />
-    <Compile Include="Mappers\LoggedDataMappers\Export\EnumeratedValueMapper.cs" />
-    <Compile Include="Mappers\LoggedDataMappers\Export\NumericValueMapper.cs" />
-    <Compile Include="Mappers\LoggedDataMappers\Import\ActualLoadingSystemStatusMeterCreator.cs" />
-    <Compile Include="Mappers\LoggedDataMappers\Import\CondensedWorkStateMeterCreator.cs" />
-    <Compile Include="Mappers\LoggedDataMappers\Import\ConnectorTypeMeterCreator.cs" />
-    <Compile Include="Mappers\LoggedDataMappers\Import\EnumeratedMeterFactory.cs" />
-    <Compile Include="Mappers\LoggedDataMappers\Import\IEnumeratedMeterCreator.cs" />
-    <Compile Include="Mappers\LoggedDataMappers\Import\NetWeightStateMeterCreator.cs" />
-    <Compile Include="Mappers\LoggedDataMappers\Import\PrescriptionControlMeterCreator.cs" />
-    <Compile Include="Mappers\LoggedDataMappers\Import\RepresentationValueInterpolator.cs" />
-    <Compile Include="Mappers\LoggedDataMappers\Import\SectionControlStateMeterCreator.cs" />
-    <Compile Include="Mappers\LoggedDataMappers\Import\SectionMapper.cs" />
-    <Compile Include="Mappers\LoggedDataMappers\Import\SkyConditionsMeterCreator.cs" />
-    <Compile Include="Mappers\LoggedDataMappers\Import\SpatialRecordMapper.cs" />
-    <Compile Include="Mappers\LoggedDataMappers\Import\WorkingDataMapper.cs" />
-    <Compile Include="Mappers\LoggedDataMappers\Import\WorkStateMeterCreator.cs" />
-    <Compile Include="Mappers\PartfieldMapper.cs" />
-    <Compile Include="Mappers\PointMapper.cs" />
-    <Compile Include="Mappers\PolygonMapper.cs" />
-    <Compile Include="Mappers\PrescriptionMapper.cs" />
-    <Compile Include="Mappers\ProductGroupMapper.cs" />
-    <Compile Include="Mappers\ProductMapper.cs" />
-    <Compile Include="Mappers\TaskDataMapper.cs" />
-    <Compile Include="Mappers\TaskMapper.cs" />
-    <Compile Include="Mappers\TimeLogMapper.cs" />
-    <Compile Include="Mappers\UniqueIdMapper.cs" />
-    <Compile Include="Mappers\WorkerAllocationMapper.cs" />
-    <Compile Include="Mappers\WorkerMapper.cs" />
-    <Compile Include="ObjectModel\DeviceElementHierarchy.cs" />
-    <Compile Include="ObjectModel\Error.cs" />
-    <Compile Include="ObjectModel\GridDescriptor.cs" />
-    <Compile Include="ObjectModel\DeviceOperationTypes.cs" />
-    <Compile Include="ObjectModel\InstanceIDMap.cs" />
-    <Compile Include="ObjectModel\ISOSpatialRow.cs" />
-    <Compile Include="ObjectModel\ISOUnit.cs" />
-    <Compile Include="ObjectModel\SpatialValue.cs" />
-    <Compile Include="Plugin.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Representation\DdiDefinition.cs" />
-    <Compile Include="Representation\DdiLoader.cs" />
-    <Compile Include="Representation\DdiToUnitOfMeasureMapping.cs" />
-    <Compile Include="Representation\IsoUnitOfMeasureList.cs" />
-    <Compile Include="Representation\RepresentationMapper.cs" />
-    <Compile Include="Representation\UnitFactory.cs" />
-    <Compile Include="Resources\Resource.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resource.resx</DependentUpon>
+    <None Update="Resources\ddiExport.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Compile>
-    <Compile Include="TaskDocumentWriter.cs" />
+    </None>
+    <None Update="Resources\IsoUnitOfMeasure.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Resources\ddiExport.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Resources\IsoUnitOfMeasure.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Resources\RepresentationSystem.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Resources\UnitSystem.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\Resource.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resource.Designer.cs</LastGenOutput>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
-  </Target>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+
 </Project>

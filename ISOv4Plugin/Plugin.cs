@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
@@ -18,7 +18,7 @@ using System.Reflection;
 
 namespace AgGateway.ADAPT.ISOv4Plugin
 {
-    public class Plugin : AgGateway.ADAPT.ApplicationDataModel.ADM.IPlugin
+    public class Plugin : IPlugin
     {
         private const string FileName = "TASKDATA.XML";
 
