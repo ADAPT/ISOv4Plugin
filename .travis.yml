@@ -9,7 +9,7 @@ jobs:
     - stage: test
       mono: none
       script:
-        - dotnet build ./ISOv4Plugin.sln -c Release -f netstandard2.0
+        - dotnet build ./ISOv4Plugin/ISOv4Plugin.csproj -c Release -f netstandard2.0
     - stage: deploy
       if: tag =~ ^v\d+\.\d+\.\d+
       mono: 5.8.0
