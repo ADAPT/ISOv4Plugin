@@ -6,12 +6,23 @@ Param(
 
 $ErrorActionPreference = "Stop";
 
-$version = $tag -match '(?<=^v)\d+\.\d+\.\d+(?:.+)?$'
-$versionNumber = $version -match '^\d+\.\d+\.\d+'
-if ([string]::IsNullOrEmpty($version))
-{
-    throw "Incorrect tag format"
+if ($tag -match '(?<=^v)\d+\.\d+\.\d+(?:.+)?$') {
+  $version = $Matches[0]
 }
+else {
+  throw "Incorrect tag format"
+}
+
+if ($version -match '^\d+\.\d+\.\d+') {
+  $versionNumber = $Matches[0]
+}
+else {
+  throw "Incorrect tag format"
+}
+
+echo $version
+echo $versionNumber
+exit 0
 
 git fetch -a
 git checkout $tag
