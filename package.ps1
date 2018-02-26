@@ -20,6 +20,8 @@ else {
   throw "Incorrect tag format"
 }
 
+$branch = git symbolic-ref --short HEAD
+
 git fetch -a
 git checkout $tag
 if ($LastExitCode -ne 0) {
@@ -48,4 +50,4 @@ if (-not ([string]::IsNullOrEmpty($apiKey))) {
   }
 }
 
-# git checkout master
+git checkout $branch
