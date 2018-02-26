@@ -20,10 +20,6 @@ else {
   throw "Incorrect tag format"
 }
 
-echo $version
-echo $versionNumber
-exit 0
-
 git fetch -a
 git checkout $tag
 if ($LastExitCode -ne 0) {
