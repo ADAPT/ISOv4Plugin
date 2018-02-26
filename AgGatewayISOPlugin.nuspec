@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
 	<id>AgGatewayISOPlugin</id>
-	<version>$Version$</version>
+	<version>0.0.0</version>
 	<authors>AgGateway and contributors</authors>
 	<owners>AgGateway and contributors</owners>
 	<licenseUrl>https://www.eclipse.org/legal/epl-v10.html</licenseUrl>

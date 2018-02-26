@@ -20,7 +20,11 @@ if ($LastExitCode -ne 0) {
 }
 
 nuget restore
-msbuild isoPlugin.sln /m /p:Configuration=Release /p:Version=$version /p:FileVersion=$versionNumber.0 /t:rebuild /v:minimal
+if ($LastExitCode -ne 0) {
+  throw "NuGet packages could not be restored"
+}
+
+msbuild IsoPlugin.sln /m /p:Configuration=Release /p:Version=$version /p:FileVersion=$versionNumber.0 /t:rebuild /v:minimal
 if ($LastExitCode -ne 0) {
   throw "Solution could no be built"
 }
