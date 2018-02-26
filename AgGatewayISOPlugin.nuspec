@@ -16,6 +16,6 @@
 	</references>
   </metadata>
   <files>
-	<file src="ISOv4Plugin\bin\Release\AgGateway.ADAPT.ISOv4Plugin.dll" target="lib\AgGateway.ADAPT.ISOv4Plugin.dll"/>
+	<file src="ISOv4Plugin\bin\Release\AgGateway.ADAPT.ISOv4Plugin.dll" target="lib\net451\AgGateway.ADAPT.ISOv4Plugin.dll"/>
   </files>
 </package>
