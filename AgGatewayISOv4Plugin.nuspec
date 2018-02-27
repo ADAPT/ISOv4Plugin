@@ -2,7 +2,7 @@
 <package
   xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
-    <id>AgGatewayISOv4Plugin</id>
+    <id>AgGatewayISOPlugin</id>
     <version>0.0.0</version>
     <authors>AgGateway and ADAPT Contributors</authors>
     <owners>AgGateway and ADAPT Contributors</owners>
