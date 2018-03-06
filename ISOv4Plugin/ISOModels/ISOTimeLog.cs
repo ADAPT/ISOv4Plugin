@@ -11,6 +11,7 @@ using System;
 using System.Linq;
 using AgGateway.ADAPT.ISOv4Plugin.Representation;
 using System.Xml.Linq;
+using AgGateway.ADAPT.ApplicationDataModel.ADM;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
@@ -67,7 +68,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             }
         }
 
-        public override List<Error> Validate(List<Error> errors)
+        public override List<IError> Validate(List<IError> errors)
         {
             RequireString(this, x => x.Filename, 8, errors, "A");
             if (Filelength.HasValue) ValidateRange<ISOTimeLog, uint>(this, x => x.Filelength.Value, 0, uint.MaxValue - 2, errors, "B");

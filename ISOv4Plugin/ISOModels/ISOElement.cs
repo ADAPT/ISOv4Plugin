@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Linq.Expressions;
 using System.Linq;
 using System.Globalization;
+using AgGateway.ADAPT.ApplicationDataModel.ADM;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
@@ -20,7 +21,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             throw new NotImplementedException();
         }
 
-        public virtual List<Error> Validate(List<Error> errors)
+        public virtual List<IError> Validate(List<IError> errors)
         {
             throw new NotImplementedException();
         }
@@ -31,7 +32,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         //This Linq expression syntax allows for simplified method calls not requiring
         //the property name and its value to be separate parameters.
 
-        protected bool Require<T, P>(T obj, Expression<Func<T, P>> expression, List<Error> errors, string attributeName = null)
+        protected bool Require<T, P>(T obj, Expression<Func<T, P>> expression, List<IError> errors, string attributeName = null)
         {
             string propertyName = (expression.Body as MemberExpression).Member.Name;
             Func<T, P> expressionDelegate = expression.Compile();
@@ -39,7 +40,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             return Require(propertyValue, typeof(T).Name, propertyName, errors, attributeName);
         }
 
-        protected bool RequireString<T, P>(T obj, Expression<Func<T, P>> expression, int maxLength, List<Error> errors, string attributeName = null)
+        protected bool RequireString<T, P>(T obj, Expression<Func<T, P>> expression, int maxLength, List<IError> errors, string attributeName = null)
         {
             string propertyName = (expression.Body as MemberExpression).Member.Name;
             Func<T, P> expressionDelegate = expression.Compile();
@@ -51,7 +52,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             return false;
         }
 
-        protected bool ValidateString<T, P>(T obj, Expression<Func<T, P>> expression, int maxLength, List<Error> errors, string attributeName = null)
+        protected bool ValidateString<T, P>(T obj, Expression<Func<T, P>> expression, int maxLength, List<IError> errors, string attributeName = null)
         {
             string propertyName = (expression.Body as MemberExpression).Member.Name;
             Func<T, P> expressionDelegate = expression.Compile();
@@ -59,7 +60,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             return ValidateString(propertyValue, maxLength, typeof(T).Name, propertyName, errors, attributeName);
         }
 
-        protected bool RequireRange<T, P>(T obj, Expression<Func<T, P>> expression, P min, P max, List<Error> errors, string attributeName = null) where P : struct
+        protected bool RequireRange<T, P>(T obj, Expression<Func<T, P>> expression, P min, P max, List<IError> errors, string attributeName = null) where P : struct
         {
             string propertyName = (expression.Body as MemberExpression).Member.Name;
             Func<T, P> expressionDelegate = expression.Compile();
@@ -74,7 +75,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             }
         }
 
-        protected bool ValidateRange<T, P>(T obj, Expression<Func<T, P>> expression, P min, P max, List<Error> errors, string attributeName = null) where P : struct
+        protected bool ValidateRange<T, P>(T obj, Expression<Func<T, P>> expression, P min, P max, List<IError> errors, string attributeName = null) where P : struct
         {
             string propertyName = (expression.Body as MemberExpression).Member.Name;
             Func<T, P> expressionDelegate = expression.Compile();
@@ -82,7 +83,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             return ValidateRange(propertyValue, typeof(T).Name, propertyName, min, max, errors, attributeName);
         }
 
-        protected bool ValidateEnumerationValue(Type enumType, int value, List<Error> errors)
+        protected bool ValidateEnumerationValue(Type enumType, int value, List<IError> errors)
         {
             if (!Enum.IsDefined(enumType, value))
             {
@@ -92,7 +93,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             return true;
         }
 
-        protected bool RequireNonZeroCount<T>(List<T> list, string requiredChildElementName, List<Error> errors)
+        protected bool RequireNonZeroCount<T>(List<T> list, string requiredChildElementName, List<IError> errors)
         {
             if (list == null || list.Count == 0)
             {
@@ -102,7 +103,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             return true;
         }
 
-        protected bool RequireChildElement<T>(T obj, string requiredChildElementName, List<Error> errors)
+        protected bool RequireChildElement<T>(T obj, string requiredChildElementName, List<IError> errors)
         {
             if (obj == null)
             {
@@ -112,7 +113,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             return true;
         }
 
-        private bool Require<P>(P propertyValue, string className, string propertyName, List<Error> errors, string attributeName = null)
+        private bool Require<P>(P propertyValue, string className, string propertyName, List<IError> errors, string attributeName = null)
         {
             if (propertyValue == null)
             {
@@ -123,7 +124,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             return true;
         }
 
-        private bool ValidateString<P>(P propertyValue, int maxLength, string className, string propertyName, List<Error> errors, string attributeName = null)
+        private bool ValidateString<P>(P propertyValue, int maxLength, string className, string propertyName, List<IError> errors, string attributeName = null)
         {
             if (propertyValue != null)
             {
@@ -139,7 +140,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             return true;
         }
 
-        private bool ValidateRange<P>(P propertyValue, string className, string propertyName, P min, P max, List<Error> errors, string attributeName = null)
+        private bool ValidateRange<P>(P propertyValue, string className, string propertyName, P min, P max, List<IError> errors, string attributeName = null)
         {
             if (typeof(P) == typeof(Int32))
             {
@@ -199,7 +200,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             return true;
         }
 
-        private void FailRangeValidation(List<Error> errors, string value, string typeName, string propertyName, string attributeName, string minVal, string maxVal)
+        private void FailRangeValidation(List<IError> errors, string value, string typeName, string propertyName, string attributeName, string minVal, string maxVal)
         {
             string parenthesis = attributeName != null ? $" ({attributeName})" : string.Empty;
             errors.Add(new Error() { Description = $"Value {value} is out of range for {typeName}.{propertyName}{parenthesis}. Required Range: {minVal}-{maxVal}" });
