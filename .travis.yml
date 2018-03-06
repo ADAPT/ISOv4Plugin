@@ -17,11 +17,11 @@ jobs:
         - VERSION=$(echo $TRAVIS_TAG | grep -i -P -o '(?<=^v)\d+\.\d+\.\d+(?:.+)?$'); VERSION_NUMBER=$(echo $VERSION | grep -i -P -o '^\d+\.\d+\.\d+')
         - dotnet build ./ISOv4Plugin.sln -c Release /p:Version=$VERSION /p:FileVersion=$VERSION_NUMBER.$TRAVIS_BUILD_NUMBER
         - mkdir -p ./dist; nuget pack ./AgGatewayISOv4Plugin.nuspec -outputdirectory ./dist -version $VERSION
-        - if [ -n "${NUGET_API_KEY}" ]; then dotnet nuget push ./dist/AgGatewayISOv4Plugin.${VERSION}.nupkg --api-key $NUGET_API_KEY --source https://api.nuget.org/v3/index.json; fi
+        - if [ -n "${NUGET_API_KEY}" ]; then dotnet nuget push ./dist/AgGatewayISOPlugin.${VERSION}.nupkg --api-key $NUGET_API_KEY --source https://api.nuget.org/v3/index.json; fi
       deploy:
         provider: releases
         api_key: $GITHUB_OAUTH_TOKEN
-        file: "./dist/AgGatewayISOv4Plugin.${VERSION}.nupkg"
+        file: "./dist/AgGatewayISOPlugin.${VERSION}.nupkg"
         skip_cleanup: true
         on:
           tags: true
