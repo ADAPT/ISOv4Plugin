@@ -1,11 +1,11 @@
-﻿/*
+/*
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using AgGateway.ADAPT.ISOv4Plugin.Resources;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Representation
 {
@@ -15,8 +15,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Representation
 
         static IsoUnitOfMeasureList()
         {
+            var isoUnitOfMeasureFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "IsoUnitOfMeasure.xml");
+
             var serializer = new System.Xml.Serialization.XmlSerializer(typeof(DdiToUnitOfMeasureMapping));
-            using (var stringReader = new StringReader(Resource.IsoUnitOfMeasure))
+            using (var stringReader = new StringReader(File.ReadAllText(isoUnitOfMeasureFile)))
                 IsoMappings = ((DdiToUnitOfMeasureMapping)serializer.Deserialize(stringReader)).Mappings.ToList();
         }
 

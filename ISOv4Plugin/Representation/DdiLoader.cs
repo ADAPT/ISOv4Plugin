@@ -1,12 +1,12 @@
-﻿/*
+/*
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using AgGateway.ADAPT.ISOv4Plugin.Resources;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Representation
 {
@@ -21,7 +21,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Representation
         public static Dictionary<int, DdiDefinition> Load(string ddiExportFileContents = null)
         {
             if (ddiExportFileContents == null)
-                ddiExportFileContents = Resource.ddiExport;
+            {
+                var ddiExportFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "ddiExport.txt");
+                ddiExportFileContents = File.ReadAllText(ddiExportFile);
+            }
 
             _ddis = ParseFile(ddiExportFileContents)
                     .Where(d => d.Unit != "n.a." && d.Unit != "not defined" && d.Unit != "")

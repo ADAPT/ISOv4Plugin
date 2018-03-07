@@ -6,6 +6,7 @@ using System.Xml;
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using System.Collections.Generic;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
+using AgGateway.ADAPT.ApplicationDataModel.ADM;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
@@ -76,7 +77,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             return workers;
         }
 
-        public override List<Error> Validate(List<Error> errors)
+        public override List<IError> Validate(List<IError> errors)
         {
             RequireString(this, x => x.WorkerId, 14, errors, "A");
             RequireString(this, x => x.WorkerLastName, 32, errors, "B");
