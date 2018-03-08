@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AgGatewayADAPTFramework" Version="2.0.0-alpha4" />
+    <PackageReference Include="AgGatewayADAPTFramework" Version="1.2.0-beta1" />
   </ItemGroup>
 
   <ItemGroup>
