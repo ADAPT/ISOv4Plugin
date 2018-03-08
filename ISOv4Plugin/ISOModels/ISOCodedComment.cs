@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System;
 using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
+using AgGateway.ADAPT.ApplicationDataModel.ADM;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
@@ -70,7 +71,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             return comments;
         }
 
-        public override List<Error> Validate(List<Error> errors)
+        public override List<IError> Validate(List<IError> errors)
         {
             RequireString(this, x => x.CodedCommentID, 14, errors, "A"); 
             RequireString(this, x => x.CodedCommentDesignator, 32, errors, "B");

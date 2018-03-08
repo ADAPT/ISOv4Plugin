@@ -1,21 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+<package
+  xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
-	<id>AgGatewayISOPlugin</id>
-	<version>0.0.0</version>
-	<authors>AgGateway and contributors</authors>
-	<owners>AgGateway and contributors</owners>
-	<licenseUrl>https://www.eclipse.org/legal/epl-v10.html</licenseUrl>
-	<requireLicenseAcceptance>true</requireLicenseAcceptance>
-	<description>AgGateway ADAPT framework</description>
-	<dependencies>
-	  <dependency id="AgGatewayADAPTFramework" version="1.0.0" />
+    <id>AgGatewayISOPlugin</id>
+    <version>0.0.0</version>
+    <authors>AgGateway and ADAPT Contributors</authors>
+    <owners>AgGateway and ADAPT Contributors</owners>
+    <licenseUrl>https://www.eclipse.org/legal/epl-v10.html</licenseUrl>
+    <projectUrl>https://github.com/ADAPT/ISOv4Plugin</projectUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <description>AgGateway ISO v4 Plugin for the ADAPT framework</description>
+    <copyright>Copyright (C) 2015-18 AgGateway and ADAPT Contributors</copyright>
+    <tags>aggateway adapt isoxml 11783 agriculture</tags>
+    <dependencies>
+      <dependency id="AgGatewayADAPTFramework" version="[1.2.0-beta1, 2.0.0)" />
     </dependencies>
-	<references>
-		<reference file="AgGateway.ADAPT.ISOv4Plugin.dll"/>
-	</references>
+    <references>
+      <reference file="AgGateway.ADAPT.ISOv4Plugin.dll"/>
+    </references>
   </metadata>
   <files>
-	<file src="ISOv4Plugin\bin\Release\AgGateway.ADAPT.ISOv4Plugin.dll" target="lib\net451\AgGateway.ADAPT.ISOv4Plugin.dll"/>
+    <file src="ISOv4Plugin/bin/Release/netstandard2.0/Resources/ddiExport.txt" target="build/Resources/ddiExport.txt" />
+    <file src="ISOv4Plugin/bin/Release/netstandard2.0/Resources/IsoUnitOfMeasure.xml" target="build/Resources/IsoUnitOfMeasure.xml" />
+    <file src="AgGatewayISOPlugin.targets" target="build/AgGatewayISOPlugin.targets" />
+    <file src="ISOv4Plugin/bin/Release/netstandard2.0/AgGateway.ADAPT.ISOv4Plugin.dll" target="lib/netstandard2.0/AgGateway.ADAPT.ISOv4Plugin.dll"/>
+    <file src="ISOv4Plugin/bin/Release/net451/AgGateway.ADAPT.ISOv4Plugin.dll" target="lib/net451/AgGateway.ADAPT.ISOv4Plugin.dll"/>
   </files>
 </package>

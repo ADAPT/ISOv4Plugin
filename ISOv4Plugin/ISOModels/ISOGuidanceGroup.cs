@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
 using System;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
+using AgGateway.ADAPT.ApplicationDataModel.ADM;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
@@ -69,7 +70,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             return items;
         }
 
-        public override List<Error> Validate(List<Error> errors)
+        public override List<IError> Validate(List<IError> errors)
         {
             RequireString(this, x => x.GuidanceGroupId, 14, errors, "A");
             ValidateString(this, x => x.GuidanceGroupDesignator, 32, errors, "B");

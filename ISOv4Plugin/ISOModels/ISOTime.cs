@@ -2,6 +2,7 @@
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
+using AgGateway.ADAPT.ApplicationDataModel.ADM;
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
@@ -96,7 +97,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             return items;
         }
 
-        public override List<Error> Validate(List<Error> errors)
+        public override List<IError> Validate(List<IError> errors)
         {
             if (Duration.HasValue) ValidateRange<ISOTime, uint>(this, x => x.Duration.Value, 0, uint.MaxValue - 2, errors, "C");
             ValidateEnumerationValue(typeof(ISOTimeType), TypeInt, errors);

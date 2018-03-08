@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
@@ -18,7 +18,7 @@ using System.Reflection;
 
 namespace AgGateway.ADAPT.ISOv4Plugin
 {
-    public class Plugin : AgGateway.ADAPT.ApplicationDataModel.ADM.IPlugin
+    public class Plugin : IPlugin
     {
         private const string FileName = "TASKDATA.XML";
 
@@ -86,14 +86,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin
 
         IList<IError> IPlugin.ValidateDataOnCard(string dataPath, Properties properties)
         {
-            List<Error> errors = new List<Error>();
+            List<IError> errors = new List<IError>();
             var data = ReadDataCard(dataPath);
             foreach (ISO11783_TaskData datum in data)
             {
                 datum.Validate(errors);
             }
 
-            return errors.ToArray();
+            return errors;
         }
         #endregion IPlugin Members
 

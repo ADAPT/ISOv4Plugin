@@ -2,6 +2,7 @@
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
+using AgGateway.ADAPT.ApplicationDataModel.ADM;
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
@@ -51,7 +52,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             return items;
         }
 
-        public override List<Error> Validate(List<Error> errors)
+        public override List<IError> Validate(List<IError> errors)
         {
             RequireString(this, x => x.ObjectIdRef, 14, errors, "A");
             RequireString(this, x => x.LinkValue, 255, errors, "B");

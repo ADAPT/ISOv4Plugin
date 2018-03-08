@@ -7,6 +7,7 @@ using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using System.Collections.Generic;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using System;
+using AgGateway.ADAPT.ApplicationDataModel.ADM;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
@@ -73,7 +74,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             return items;
         }
 
-        public override List<Error> Validate(List<Error> errors)
+        public override List<IError> Validate(List<IError> errors)
         {
             RequireString(this, x => x.DataLogDDI, 4, errors, "A"); //DDI validation could be improved upon
             RequireRange<ISODataLogTrigger, byte>(this, x => x.DataLogMethod, 1, 31, errors, "B");

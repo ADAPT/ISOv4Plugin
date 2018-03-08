@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
+using AgGateway.ADAPT.ApplicationDataModel.ADM;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
@@ -214,7 +215,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 
         }
 
-        public override List<Error> Validate(List<Error> errors)
+        public override List<IError> Validate(List<IError> errors)
         {
             RequireRange(this, x => x.VersionMajor, 0, 4, errors);
             RequireRange(this, x => x.VersionMinor, 0, 99, errors);

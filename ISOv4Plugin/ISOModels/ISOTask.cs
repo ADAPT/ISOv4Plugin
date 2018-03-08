@@ -2,6 +2,7 @@
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
+using AgGateway.ADAPT.ApplicationDataModel.ADM;
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
@@ -228,7 +229,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             return tasks;
         }
 
-        public override List<Error> Validate(List<Error> errors)
+        public override List<IError> Validate(List<IError> errors)
         {
             RequireString(this, x => x.TaskID, 14, errors, "A");
             ValidateString(this, x => x.TaskDesignator, 32, errors, "B");

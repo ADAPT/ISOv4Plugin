@@ -11,6 +11,7 @@ using System.Linq;
 using System;
 using AgGateway.ADAPT.ISOv4Plugin.Representation;
 using AgGateway.ADAPT.ApplicationDataModel.Prescriptions;
+using AgGateway.ADAPT.ApplicationDataModel.ADM;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
@@ -148,7 +149,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             return productRates;
         }
 
-        public override List<Error> Validate(List<Error> errors)
+        public override List<IError> Validate(List<IError> errors)
         {
             RequireRange(this, x => x.GridMinimumNorthPosition, -90m, 90m, errors, "A");
             RequireRange(this, x => x.GridMinimumEastPosition, -180m, 180m, errors, "B");
