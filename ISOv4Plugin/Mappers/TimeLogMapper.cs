@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
@@ -340,7 +340,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
                     operationData.GetSpatialRecords = () => spatialMapper.Map(isoRecords, workingDatas);
                     operationData.MaxDepth = sections.Count() > 0 ? sections.Select(s => s.Depth).Max() : 0;
-                    operationData.GetDeviceElementUses = x => x == 0 ? sectionsSimple : new List<DeviceElementUse>();
+                    operationData.GetDeviceElementUses = x => sections.Where(s => s.Depth == x);
                     operationData.PrescriptionId = prescriptionID;
                     operationData.OperationType = GetOperationTypeFromLoggingDevices(time);
                     operationData.ProductId = GetProductIDForOperationData(loggedTask, dvc);
