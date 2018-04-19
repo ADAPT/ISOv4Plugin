@@ -286,8 +286,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     pivot.Center = pointMapper.ImportPoint(isoGuidancePattern.LineString.Points.First());
                     if (isoGuidancePattern.LineString.Points.Count == 3)
                     {
-                        pivot.StartPoint = pointMapper.ImportPoint(isoGuidancePattern.LineString.Points[2]);
-                        pivot.EndPoint = pointMapper.ImportPoint(isoGuidancePattern.LineString.Points[3]);
+                        pivot.StartPoint = pointMapper.ImportPoint(isoGuidancePattern.LineString.Points[1]);
+                        pivot.EndPoint = pointMapper.ImportPoint(isoGuidancePattern.LineString.Points[2]);
                     }
                     //Radius & GuidancePatternOptions not implemented in ADAPT
                     break;
