@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
@@ -119,7 +119,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             {
                 meters.Add(new ISOEnumeratedMeter
                 {
-                    //DeviceElementUseId = i,  //Set elsewhere
+                    SectionIndex = i,  
                     Representation = Representation,
                     GetEnumeratedValue = GetValueForMeter
                 });
@@ -128,9 +128,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return meters;
         }
 
-        public EnumeratedValue GetValueForMeter(SpatialValue value, EnumeratedWorkingData meter)
+        public EnumeratedValue GetValueForMeter(SpatialValue value, ISOEnumeratedMeter meter)// EnumeratedWorkingData meter)
         {
-            var sectionValue = GetSectionValue((uint)value.Value, meter.DeviceElementUseId);
+            var sectionValue = GetSectionValue((uint)value.Value, meter.SectionIndex);
             var enumerationMember = SectionValueToEnumerationMember[(int)sectionValue];
 
             return new EnumeratedValue
