@@ -206,9 +206,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             {
                 XmlDocument linkDocument = new XmlDocument();
                 string linkPath = Path.Combine(baseFolder, linkListFile.FilenamewithExtension);
-                linkDocument.Load(linkPath);
-                XmlNode linkRoot = linkDocument.SelectSingleNode("ISO11783LinkList");
-                taskData.LinkList = ISO11783_LinkList.ReadXML(linkRoot, baseFolder);
+                if (File.Exists(linkPath))
+                {
+                    linkDocument.Load(linkPath);
+                    XmlNode linkRoot = linkDocument.SelectSingleNode("ISO11783LinkList");
+                    taskData.LinkList = ISO11783_LinkList.ReadXML(linkRoot, baseFolder);
+                }
             }
 
             return taskData;
