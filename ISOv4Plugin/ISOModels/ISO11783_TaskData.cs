@@ -23,6 +23,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 
         public List<ISOElement> ChildElements { get; set; }
         public ISO11783_LinkList LinkList { get; set; }
+        public string DataFolder { get; set; }
         public string FilePath { get; set; }
 
         public int VersionMajor { get; set;}

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
@@ -262,7 +262,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             UniqueIDMapper = new UniqueIdMapper(ISOTaskData.LinkList);
 
             AdaptDataModel = new ApplicationDataModel.ADM.ApplicationDataModel();
-            AdaptDataModel.Catalog = new Catalog() { Description = "ISO TaskData" };
+            AdaptDataModel.Catalog = new Catalog() { Description = taskData.FilePath };
             AdaptDataModel.Documents = new Documents();
 
             //Comments 
