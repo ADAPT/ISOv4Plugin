@@ -54,9 +54,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin
             foreach (var taskData in taskDataObjects)
             {
                 //Convert the ISO model to ADAPT
-                TaskDataMapper taskDataMapper = new TaskDataMapper(taskData.FilePath, properties);
+                TaskDataMapper taskDataMapper = new TaskDataMapper(taskData.DataFolder, properties);
                 ApplicationDataModel.ADM.ApplicationDataModel dataModel = taskDataMapper.Import(taskData);
-
                 adms.Add(dataModel);
             }
 
@@ -119,14 +118,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin
                 //Per ISO11783-10:2015(E) 8.5, all related files are in the same directory as the TASKDATA.xml file.
                 //The TASKDATA directory is only required when exporting to removable media.
                 //As such, the plugin will import data in any directory structure, and always export to a TASKDATA directory.
-                string filePath = Path.GetDirectoryName(taskDataFile);
+                string dataFolder = Path.GetDirectoryName(taskDataFile);
 
                 //Deserialize the ISOXML into the ISO models
                 XmlDocument document = new XmlDocument();
                 document.Load(taskDataFile);
                 XmlNode rootNode = document.SelectSingleNode("ISO11783_TaskData");
-                ISO11783_TaskData taskData = ISO11783_TaskData.ReadXML(rootNode, filePath);
-                taskData.FilePath = filePath;
+                ISO11783_TaskData taskData = ISO11783_TaskData.ReadXML(rootNode, dataFolder);
+                taskData.DataFolder = dataFolder;
+                taskData.FilePath = taskDataFile;
 
                 taskDataObjects.Add(taskData);
             }
