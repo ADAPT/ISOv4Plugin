@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
@@ -41,7 +41,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return meters;
         }
 
-        public EnumeratedValue GetValueForMeter(SpatialValue value, EnumeratedWorkingData meter)
+        public EnumeratedValue GetValueForMeter(SpatialValue value, ISOEnumeratedMeter meter)
         {
             if (Convert.ToInt32(value.DataLogValue.ProcessDataDDI, 16) != DDI)
                 return null;

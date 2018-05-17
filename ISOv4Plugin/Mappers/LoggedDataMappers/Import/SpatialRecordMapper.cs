@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -85,6 +85,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         private void SetNumericMeterValue(ISOSpatialRow isoSpatialRow, NumericWorkingData meter, SpatialRecord spatialRecord)
         {
             var isoValue = isoSpatialRow.SpatialValues.SingleOrDefault(v =>
+                                v.DataLogValue.ProcessDataDDI != "DFFE" &&
                                 v.DataLogValue.DeviceElementIdRef == _workingDataMapper.DataLogValuesByWorkingDataID[meter.Id.ReferenceId].DeviceElementIdRef && 
                                 v.DataLogValue.ProcessDataDDI == _workingDataMapper.DataLogValuesByWorkingDataID[meter.Id.ReferenceId].ProcessDataDDI);
 

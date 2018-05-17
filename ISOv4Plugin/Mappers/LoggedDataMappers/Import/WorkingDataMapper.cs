@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
@@ -7,6 +7,7 @@ using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using AgGateway.ADAPT.ISOv4Plugin.Representation;
 using AgGateway.ADAPT.ApplicationDataModel.Equipment;
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
+using AgGateway.ADAPT.ApplicationDataModel.Representations;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
@@ -96,14 +97,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             var workingDatas = new List<WorkingData>();
             if (_ddis.ContainsKey(dlv.ProcessDataDDI.AsInt32DDI()))
             {
-                NumericWorkingData numericMeter = MapNumericMeter(dlv, deviceElementUse.Id.ReferenceId, order);
+                //Numeric Representations
+                NumericWorkingData numericMeter = MapNumericMeter(dlv, deviceElementUse.Id.ReferenceId);
                 DataLogValuesByWorkingDataID.Add(numericMeter.Id.ReferenceId, dlv);
                 workingDatas.Add(numericMeter);
                 return workingDatas;
             }
             var meterCreator = _enumeratedMeterCreatorFactory.GetMeterCreator(dlv.ProcessDataDDI.AsInt32DDI());
-            if(meterCreator != null)
+            if (meterCreator != null)
             {
+                //Enumerated Representations
                 var isoEnumeratedMeters = meterCreator.CreateMeters(isoSpatialRows);
                 foreach (ISOEnumeratedMeter enumeratedMeter in isoEnumeratedMeters)
                 {
@@ -117,10 +120,21 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     UpdateCondensedWorkingDatas(workingDatas, dlv, deviceElementUse, pendingDeviceElementUses, isoDeviceElementHierarchy);
                 }
             }
+            else
+            {
+                //Proprietary DDIs - report out as numeric value
+                NumericWorkingData proprietaryWorkingData = new NumericWorkingData();
+                proprietaryWorkingData.Representation = new ApplicationDataModel.Representations.NumericRepresentation { Code = dlv.ProcessDataDDI, CodeSource = RepresentationCodeSourceEnum.ISO11783_DDI };
+                proprietaryWorkingData.DeviceElementUseId = deviceElementUse.Id.ReferenceId;
+                proprietaryWorkingData.UnitOfMeasure = AgGateway.ADAPT.Representation.UnitSystem.UnitSystemManager.GetUnitOfMeasure("count"); //Best we can do
+
+                DataLogValuesByWorkingDataID.Add(proprietaryWorkingData.Id.ReferenceId, dlv);
+                workingDatas.Add(proprietaryWorkingData);
+            }
             return workingDatas;
         }
 
-        private NumericWorkingData MapNumericMeter(ISODataLogValue dlv, int deviceElementUseId, int order)
+        private NumericWorkingData MapNumericMeter(ISODataLogValue dlv, int deviceElementUseId)
         {
             var meter = new NumericWorkingData
             {
