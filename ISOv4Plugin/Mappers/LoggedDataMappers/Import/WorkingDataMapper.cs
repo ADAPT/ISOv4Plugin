@@ -149,13 +149,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         {
             ISODeviceElement isoDeviceElement = TaskDataMapper.DeviceElementHierarchies.GetISODeviceElementFromID(dlv.DeviceElementIdRef);
             IEnumerable<ISODeviceElement> isoSectionElements = isoDeviceElement.ChildDeviceElements.Where(d => d.DeviceElementType == ISOEnumerations.ISODeviceElementType.Section);
-            if (isoSectionElements.Count() > 0 && isoSectionElements.Count() == condensedWorkingDatas.Count)
+            if (isoSectionElements.Count() > 0 && isoSectionElements.Count() <= condensedWorkingDatas.Count)
             {
                 //We have found the expected number of sections in the DDOP
                 List<ISODeviceElement> targetSections = isoSectionElements.ToList();
 
                 //Update the DeviceElementReference on the Condensed WorkingDatas
-                for (int i = 0; i < condensedWorkingDatas.Count; i++)
+                for (int i = 0; i < isoSectionElements.Count(); i++)
                 {
                     WorkingData workingData = condensedWorkingDatas[i];
 
