@@ -107,7 +107,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //We need to find a row of data with the value in order to create the correct number of meters.
             var spatialRowWithDdi = spatialRows.FirstOrDefault(x => x.SpatialValues.Any(y => y.DataLogValue.ProcessDataDDI.AsInt32DDI() == DDI));
 
-            int numberOfSections = 16;
+            int numberOfSections = 0;
             if (spatialRowWithDdi != null)
             {
                 var spatialValue = spatialRowWithDdi.SpatialValues.First(x => x.DataLogValue.ProcessDataDDI.AsInt32DDI() == DDI);
