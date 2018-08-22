@@ -510,12 +510,20 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         var numberOfDLVs = binaryReader.ReadByte();
                         record.SpatialValues = new List<SpatialValue>();
 
+                        //Read DLVs out of the TLG.bin
                         for (int i = 0; i < numberOfDLVs; i++)
                         {
                             var order = binaryReader.ReadByte();
                             var value = binaryReader.ReadInt32();
 
                             record.SpatialValues.Add(CreateSpatialValue(templateTime, order, value));
+                        }
+
+                        //Add any fixed values from the TLG.xml
+                        foreach (ISODataLogValue fixedValue in templateTime.DataLogValues.Where(dlv => dlv.ProcessDataValue.HasValue && !EnumeratedMeterFactory.IsCondensedMeter(dlv.ProcessDataDDI.AsInt32DDI())))
+                        {
+                            byte order = (byte)templateTime.DataLogValues.IndexOf(fixedValue);
+                            record.SpatialValues.Add(CreateSpatialValue(templateTime, order, fixedValue.ProcessDataValue.Value));
                         }
 
                         yield return record;

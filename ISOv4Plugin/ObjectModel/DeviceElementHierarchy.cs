@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
@@ -64,10 +64,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
     /// </summary>
     public class DeviceElementHierarchy
     {
-        private RepresentationMapper _representationMapper;
         public DeviceElementHierarchy(ISODeviceElement deviceElement, int depth, RepresentationMapper representationMapper, HashSet<int> crawledElements = null, DeviceElementHierarchy parent = null)
         {
-            _representationMapper = representationMapper;
+            RepresentationMapper = representationMapper;
             //This Hashset will track that we don't build infinite hierarchies.   
             //The plugin does not support peer control at this time.
             _crawledElements = crawledElements;
@@ -139,6 +138,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                 Parent = parent;
             }
         }
+        internal RepresentationMapper RepresentationMapper { get; set; }
+
         public ISODeviceElement DeviceElement { get; private set; }
 
         public int Depth { get; set; }
@@ -152,10 +153,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
         public int? YOffset { get; set; }
         public int? ZOffset { get; set; }
 
-        public NumericRepresentationValue WidthRepresentation { get { return Width.HasValue ? Width.Value.AsNumericRepresentationValue(WidthDDI, _representationMapper) : null; } }
-        public NumericRepresentationValue XOffsetRepresentation { get { return XOffset.HasValue ? XOffset.Value.AsNumericRepresentationValue("0086", _representationMapper) : null; } } //TODO temporary
-        public NumericRepresentationValue YOffsetRepresentation { get { return YOffset.HasValue ? YOffset.Value.AsNumericRepresentationValue("0087", _representationMapper) : null; } }
-        public NumericRepresentationValue ZOffsetRepresentation { get { return ZOffset.HasValue ? ZOffset.Value.AsNumericRepresentationValue("0088", _representationMapper) : null; } }
+        public NumericRepresentationValue WidthRepresentation { get { return Width.HasValue ? Width.Value.AsNumericRepresentationValue(WidthDDI, RepresentationMapper) : null; } }
+        public NumericRepresentationValue XOffsetRepresentation { get { return XOffset.HasValue ? XOffset.Value.AsNumericRepresentationValue("0086", RepresentationMapper) : null; } } 
+        public NumericRepresentationValue YOffsetRepresentation { get { return YOffset.HasValue ? YOffset.Value.AsNumericRepresentationValue("0087", RepresentationMapper) : null; } }
+        public NumericRepresentationValue ZOffsetRepresentation { get { return ZOffset.HasValue ? ZOffset.Value.AsNumericRepresentationValue("0088", RepresentationMapper) : null; } }
 
         public List<DeviceElementHierarchy> Children { get; set; }
         public DeviceElementHierarchy Parent { get; set; }
