@@ -523,7 +523,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         foreach (ISODataLogValue fixedValue in templateTime.DataLogValues.Where(dlv => dlv.ProcessDataValue.HasValue && !EnumeratedMeterFactory.IsCondensedMeter(dlv.ProcessDataDDI.AsInt32DDI())))
                         {
                             byte order = (byte)templateTime.DataLogValues.IndexOf(fixedValue);
-                            record.SpatialValues.Add(CreateSpatialValue(templateTime, order, fixedValue.ProcessDataValue.Value));
+                            if (record.SpatialValues.Any(s => s.Id == order)) //Check to ensure the binary data didn't already write this value
+                            {
+                                //Per the spec, any fixed value in the XML applies to all rows; as such, replace what was read from the binary
+                                SpatialValue matchingValue = record.SpatialValues.Single(s => s.Id == order);
+                                matchingValue.DataLogValue = fixedValue;
+                            }
                         }
 
                         yield return record;
