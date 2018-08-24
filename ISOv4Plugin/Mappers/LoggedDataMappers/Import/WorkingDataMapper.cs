@@ -160,8 +160,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     WorkingData workingData = condensedWorkingDatas[i];
 
                     DeviceElementUse condensedDeviceElementUse = new DeviceElementUse();
-                    condensedDeviceElementUse.Depth = deviceElementUse.Depth + 1;
-                    condensedDeviceElementUse.Order = i + 1;
                     condensedDeviceElementUse.OperationDataId = deviceElementUse.OperationDataId;
 
                     ISODeviceElement targetSection = targetSections[i];
@@ -171,10 +169,19 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         DeviceElement deviceElement = DataModel.Catalog.DeviceElements.SingleOrDefault(d => d.Id.ReferenceId == deviceElementID.Value);
                         if (deviceElement != null)
                         {
-                            DeviceElementConfiguration deviceElementConfig = DeviceElementMapper.GetDeviceElementConfiguration(deviceElement, isoDeviceElementHierarchy.FromDeviceElementID(targetSection.DeviceElementId), DataModel.Catalog);
+                            //Reference the device element in its hierarchy so that we can get the depth & order
+                            DeviceElementHierarchy deviceElementInHierarchy = isoDeviceElementHierarchy.FromDeviceElementID(targetSection.DeviceElementId);
+
+                            //Get the config id
+                            DeviceElementConfiguration deviceElementConfig = DeviceElementMapper.GetDeviceElementConfiguration(deviceElement, deviceElementInHierarchy, DataModel.Catalog);
                             condensedDeviceElementUse.DeviceConfigurationId = deviceElementConfig.Id.ReferenceId;
+
+                            //Set the depth & order
+                            condensedDeviceElementUse.Depth = deviceElementInHierarchy.Depth;
+                            condensedDeviceElementUse.Order = deviceElementInHierarchy.Order;
                         }
                     }
+
                     condensedDeviceElementUse.GetWorkingDatas = () => new List<WorkingData> { workingData };
 
                     workingData.DeviceElementUseId = condensedDeviceElementUse.Id.ReferenceId;
