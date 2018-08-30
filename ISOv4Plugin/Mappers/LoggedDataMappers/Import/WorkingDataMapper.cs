@@ -8,6 +8,8 @@ using AgGateway.ADAPT.ISOv4Plugin.Representation;
 using AgGateway.ADAPT.ApplicationDataModel.Equipment;
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
+using AgGateway.ADAPT.Representation.RepresentationSystem;
+using AgGateway.ADAPT.Representation.UnitSystem;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
@@ -15,9 +17,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
     public interface IWorkingDataMapper
     {
-        List<WorkingData> Map(ISOTime time, IEnumerable<ISOSpatialRow> isoRecords, DeviceElementUse deviceElementUse, DeviceElementHierarchy isoDeviceElementHierarchy, List<DeviceElementUse> pendingDeviceElementUses);
+        List<WorkingData> Map(ISOTime time, IEnumerable<ISOSpatialRow> isoRecords, DeviceElementUse deviceElementUse, DeviceElementHierarchy isoDeviceElementHierarchy, List<DeviceElementUse> pendingDeviceElementUses, Dictionary<string, List<ISOProductAllocation>> isoProductAllocations);
         WorkingData ConvertToBaseType(WorkingData meter);
         Dictionary<int, ISODataLogValue> DataLogValuesByWorkingDataID { get; set; }
+        Dictionary<int, string> ISODeviceElementIDsByWorkingDataID { get; set; }
     }
 
     public class WorkingDataMapper : BaseMapper, IWorkingDataMapper
@@ -25,6 +28,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         private readonly IEnumeratedMeterFactory _enumeratedMeterCreatorFactory;
         private readonly Dictionary<int, DdiDefinition> _ddis;
         public Dictionary<int, ISODataLogValue> DataLogValuesByWorkingDataID { get; set;}
+        public Dictionary<int, string> ISODeviceElementIDsByWorkingDataID { get; set; }
+
 
 
         public WorkingDataMapper(IEnumeratedMeterFactory enumeratedMeterCreatorFactory, TaskDataMapper taskDataMapper)
@@ -33,9 +38,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             _enumeratedMeterCreatorFactory = enumeratedMeterCreatorFactory;
             _ddis = DdiLoader.Ddis;
             DataLogValuesByWorkingDataID = new Dictionary<int, ISODataLogValue>();
+            ISODeviceElementIDsByWorkingDataID = new Dictionary<int, string>();
         }
 
-        public List<WorkingData> Map(ISOTime time, IEnumerable<ISOSpatialRow> isoSpatialRows, DeviceElementUse deviceElementUse, DeviceElementHierarchy isoDeviceElementHierarchy, List<DeviceElementUse> pendingDeviceElementUses)
+        public List<WorkingData> Map(ISOTime time,
+                                     IEnumerable<ISOSpatialRow> isoSpatialRows,
+                                     DeviceElementUse deviceElementUse,
+                                     DeviceElementHierarchy isoDeviceElementHierarchy,
+                                     List<DeviceElementUse> pendingDeviceElementUses,
+                                     Dictionary<string, List<ISOProductAllocation>> isoProductAllocations)
         {
             var workingDatas = new List<WorkingData>();
 
@@ -47,11 +58,26 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 dlv.Order = order;
             }
 
+
+            //Create vrProductIndex on relevant device elements if more than one product on this OperationData
+            if (TimeLogMapper.GetDistinctProductIDs(TaskDataMapper, isoProductAllocations).Count > 1 &&
+                isoProductAllocations.Keys.Contains(isoDeviceElementHierarchy.DeviceElement.DeviceElementId))
+            {
+                WorkingData workingData = CreateProductIndexWorkingData(deviceElementUse.Id.ReferenceId);
+                ISODeviceElementIDsByWorkingDataID.Add(workingData.Id.ReferenceId, isoDeviceElementHierarchy.DeviceElement.DeviceElementId);
+                workingDatas.Add(workingData);
+            }
+
             //Add the Working Datas for this DeviceElement
             IEnumerable<ISODataLogValue> deviceElementDLVs = allDLVs.Where(dlv => dlv.DeviceElementIdRef == isoDeviceElementHierarchy.DeviceElement.DeviceElementId);
             foreach (ISODataLogValue dlv in deviceElementDLVs)
             {
-                IEnumerable<WorkingData> newWorkingDatas = Map(dlv, isoSpatialRows, deviceElementUse, dlv.Order, pendingDeviceElementUses, isoDeviceElementHierarchy);
+                IEnumerable<WorkingData> newWorkingDatas = Map(dlv, 
+                                                               isoSpatialRows,
+                                                               deviceElementUse,
+                                                               dlv.Order,
+                                                               pendingDeviceElementUses,
+                                                               isoDeviceElementHierarchy);
                 if (newWorkingDatas.Count() > 0)
                 {
                     int ddi = dlv.ProcessDataDDI.AsInt32DDI();
@@ -100,6 +126,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 //Numeric Representations
                 NumericWorkingData numericMeter = MapNumericMeter(dlv, deviceElementUse.Id.ReferenceId);
                 DataLogValuesByWorkingDataID.Add(numericMeter.Id.ReferenceId, dlv);
+                ISODeviceElementIDsByWorkingDataID.Add(numericMeter.Id.ReferenceId, dlv.DeviceElementIdRef);
                 workingDatas.Add(numericMeter);
                 return workingDatas;
             }
@@ -111,6 +138,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 foreach (ISOEnumeratedMeter enumeratedMeter in isoEnumeratedMeters)
                 {
                     DataLogValuesByWorkingDataID.Add(enumeratedMeter.Id.ReferenceId, dlv);
+                    ISODeviceElementIDsByWorkingDataID.Add(enumeratedMeter.Id.ReferenceId, dlv.DeviceElementIdRef);
                     enumeratedMeter.DeviceElementUseId = deviceElementUse.Id.ReferenceId;
                 }
                 workingDatas.AddRange(isoEnumeratedMeters);
@@ -129,6 +157,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 proprietaryWorkingData.UnitOfMeasure = AgGateway.ADAPT.Representation.UnitSystem.UnitSystemManager.GetUnitOfMeasure("count"); //Best we can do
 
                 DataLogValuesByWorkingDataID.Add(proprietaryWorkingData.Id.ReferenceId, dlv);
+                ISODeviceElementIDsByWorkingDataID.Add(proprietaryWorkingData.Id.ReferenceId, dlv.DeviceElementIdRef);
                 workingDatas.Add(proprietaryWorkingData);
             }
             return workingDatas;
@@ -141,6 +170,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 UnitOfMeasure = RepresentationMapper.GetUnitForDdi(dlv.ProcessDataDDI.AsInt32DDI()),
                 DeviceElementUseId = deviceElementUseId,
                 Representation = RepresentationMapper.Map(dlv.ProcessDataDDI.AsInt32DDI())
+            };
+            return meter;
+        }
+
+        private NumericWorkingData CreateProductIndexWorkingData(int deviceElementUseId)
+        {
+            var meter = new NumericWorkingData
+            {
+                UnitOfMeasure = UnitSystemManager.GetUnitOfMeasure("count"),
+                DeviceElementUseId = deviceElementUseId,
+                Representation = RepresentationMapper.GetRepresentation("vrProductIndex")
             };
             return meter;
         }
