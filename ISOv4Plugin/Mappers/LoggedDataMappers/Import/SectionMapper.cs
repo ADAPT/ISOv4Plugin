@@ -12,7 +12,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
     public interface ISectionMapper
     {
-        List<DeviceElementUse> Map(ISOTime time, IEnumerable<ISOSpatialRow> isoRecords, int operationDataId, IEnumerable<string> isoDeviceElementIDs);
+        List<DeviceElementUse> Map(ISOTime time, IEnumerable<ISOSpatialRow> isoRecords, int operationDataId, IEnumerable<string> isoDeviceElementIDs, Dictionary<string, List<ISOProductAllocation>> isoProductAllocations);
         List<DeviceElementUse> ConvertToBaseTypes(List<DeviceElementUse> meters);
     }
 
@@ -26,7 +26,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             _workingDataMapper = meterMapper;
         }
 
-        public List<DeviceElementUse> Map(ISOTime time, IEnumerable<ISOSpatialRow> isoRecords, int operationDataId, IEnumerable<string> isoDeviceElementIDs)
+        public List<DeviceElementUse> Map(ISOTime time,
+                                          IEnumerable<ISOSpatialRow> isoRecords,
+                                          int operationDataId,
+                                          IEnumerable<string> isoDeviceElementIDs,
+                                          Dictionary<string, List<ISOProductAllocation>> isoProductAllocations)
         {
             var sections = new List<DeviceElementUse>();
             foreach (string isoDeviceElementID in isoDeviceElementIDs)
@@ -67,7 +71,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                             deviceElementUse.DeviceConfigurationId = config.Id.ReferenceId;
 
                             //Add Working Data for any data on this device element
-                            List<WorkingData> data = _workingDataMapper.Map(time, isoRecords, deviceElementUse, hierarchy, sections);
+                            List<WorkingData> data = _workingDataMapper.Map(time, isoRecords, deviceElementUse, hierarchy, sections, isoProductAllocations);
                             if (data.Any())
                             {
                                 workingDatas.AddRange(data);
@@ -78,7 +82,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                             workingDatas = deviceElementUse.GetWorkingDatas().ToList();
 
                             //Add Additional Working Data
-                            List<WorkingData> data = _workingDataMapper.Map(time, isoRecords, deviceElementUse, hierarchy, sections);
+                            List<WorkingData> data = _workingDataMapper.Map(time, isoRecords, deviceElementUse, hierarchy, sections, isoProductAllocations);
                             if (data.Any())
                             {
                                 workingDatas.AddRange(data);
