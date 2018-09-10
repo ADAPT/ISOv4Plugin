@@ -299,7 +299,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         {
             WorkingDataMapper workingDataMapper = new WorkingDataMapper(new EnumeratedMeterFactory(), TaskDataMapper);
             SectionMapper sectionMapper = new SectionMapper(workingDataMapper, TaskDataMapper);
-            SpatialRecordMapper spatialMapper = new SpatialRecordMapper(new RepresentationValueInterpolator(), sectionMapper, workingDataMapper);
+            SpatialRecordMapper spatialMapper = new SpatialRecordMapper(new RepresentationValueInterpolator(), sectionMapper, workingDataMapper, TaskDataMapper);
             IEnumerable<ISOSpatialRow> isoRecords = ReadTimeLog(isoTimeLog, this.TaskDataPath);
             if (isoRecords != null)
             {
@@ -330,19 +330,32 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 {
                     OperationData operationData = new OperationData();
 
+                    //Determine products
+                    Dictionary<string, List<ISOProductAllocation>> productAllocations = GetProductAllocationsByDeviceElement(loggedTask, dvc);
+                    List<int> productIDs = GetDistinctProductIDs(TaskDataMapper, productAllocations);
+                    int? operationProductID = null;  //In future versions this will be a list
+                    if (productIDs.Count == 1)
+                    {
+                        operationProductID = productIDs.Single();
+                    }
+
                     //This line will necessarily invoke a spatial read in order to find 
                     //1)The correct number of CondensedWorkState working datas to create 
                     //2)Any Widths and Offsets stored in the spatial data
-                    IEnumerable<DeviceElementUse> sections = sectionMapper.Map(time, isoRecords, operationData.Id.ReferenceId, loggedDeviceElementsByDevice[dvc]);
+                    IEnumerable<DeviceElementUse> sections = sectionMapper.Map(time,
+                                                                               isoRecords,
+                                                                               operationData.Id.ReferenceId,
+                                                                               loggedDeviceElementsByDevice[dvc],
+                                                                               productAllocations);
 
                     var workingDatas = sections != null ? sections.SelectMany(x => x.GetWorkingDatas()).ToList() : new List<WorkingData>();
 
-                    operationData.GetSpatialRecords = () => spatialMapper.Map(isoRecords, workingDatas);
+                    operationData.GetSpatialRecords = () => spatialMapper.Map(isoRecords, workingDatas, productAllocations);
                     operationData.MaxDepth = sections.Count() > 0 ? sections.Select(s => s.Depth).Max() : 0;
                     operationData.GetDeviceElementUses = x => sectionMapper.ConvertToBaseTypes(sections.Where(s => s.Depth == x).ToList());
                     operationData.PrescriptionId = prescriptionID;
                     operationData.OperationType = GetOperationTypeFromLoggingDevices(time);
-                    operationData.ProductId = GetProductIDForOperationData(loggedTask, dvc);
+                    operationData.ProductId = operationProductID; 
                     operationData.SpatialRecordCount = isoRecords.Count();
                     operationDatas.Add(operationData);
                 }
@@ -352,34 +365,38 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return null;
         }
 
-        private int? GetProductIDForOperationData(ISOTask loggedTask, ISODevice dvc)
+        internal static List<int> GetDistinctProductIDs(TaskDataMapper taskDataMapper, Dictionary<string, List<ISOProductAllocation>> productAllocations)
         {
-            if (loggedTask.ProductAllocations.Count == 1 || loggedTask.ProductAllocations.Select(p => p.ProductIdRef).Distinct().Count() == 1)
+            HashSet<int> productIDs = new HashSet<int>();
+            foreach (string detID in productAllocations.Keys)
             {
-                //There is only one product in the data
-                return TaskDataMapper.InstanceIDMap.GetADAPTID(loggedTask.ProductAllocations.First().ProductIdRef);
-            }
-            else
-            {
-                HashSet<string> productRefsForThisDevice = new HashSet<string>();
-                foreach (ISODeviceElement det in dvc.DeviceElements)
+                foreach (ISOProductAllocation pan in productAllocations[detID])
                 {
-                    foreach (ISOProductAllocation detMappedPan in loggedTask.ProductAllocations.Where(p => !string.IsNullOrEmpty(p.DeviceElementIdRef)))
+                    int? id = taskDataMapper.InstanceIDMap.GetADAPTID(pan.ProductIdRef);
+                    if (id.HasValue)
                     {
-                        productRefsForThisDevice.Add(detMappedPan.ProductIdRef);
+                        productIDs.Add(id.Value);
                     }
                 }
-                if (productRefsForThisDevice.Count == 1)
+            }
+            return productIDs.ToList();
+        }
+
+        private Dictionary<string, List<ISOProductAllocation>> GetProductAllocationsByDeviceElement(ISOTask loggedTask, ISODevice dvc)
+        {
+            Dictionary<string, List<ISOProductAllocation>> output = new Dictionary<string, List<ISOProductAllocation>>();
+            foreach (ISOProductAllocation pan in loggedTask.ProductAllocations.Where(p => !string.IsNullOrEmpty(p.DeviceElementIdRef)))
+            {
+                if (dvc.DeviceElements.Select(d => d.DeviceElementId).Contains(pan.DeviceElementIdRef)) //Filter PANs by this DVC
                 {
-                    //There is only one product represented on this device
-                    return TaskDataMapper.InstanceIDMap.GetADAPTID(productRefsForThisDevice.Single());
-                }
-                else
-                {
-                    //Unable to reconcile a single product
-                    return null;
+                    if (!output.ContainsKey(pan.DeviceElementIdRef))
+                    {
+                        output.Add(pan.DeviceElementIdRef, new List<ISOProductAllocation>());
+                    }
+                    output[pan.DeviceElementIdRef].Add(pan);
                 }
             }
+            return output;
         }
 
         private OperationTypeEnum GetOperationTypeFromLoggingDevices(ISOTime time)
@@ -523,7 +540,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         foreach (ISODataLogValue fixedValue in templateTime.DataLogValues.Where(dlv => dlv.ProcessDataValue.HasValue && !EnumeratedMeterFactory.IsCondensedMeter(dlv.ProcessDataDDI.AsInt32DDI())))
                         {
                             byte order = (byte)templateTime.DataLogValues.IndexOf(fixedValue);
-                            record.SpatialValues.Add(CreateSpatialValue(templateTime, order, fixedValue.ProcessDataValue.Value));
+                            if (record.SpatialValues.Any(s => s.Id == order)) //Check to ensure the binary data didn't already write this value
+                            {
+                                //Per the spec, any fixed value in the XML applies to all rows; as such, replace what was read from the binary
+                                SpatialValue matchingValue = record.SpatialValues.Single(s => s.Id == order);
+                                matchingValue.DataLogValue = fixedValue;
+                            }
                         }
 
                         yield return record;

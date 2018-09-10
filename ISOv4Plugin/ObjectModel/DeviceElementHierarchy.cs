@@ -27,7 +27,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                 ISODeviceElement rootDeviceElement = device.DeviceElements.SingleOrDefault(det => det.DeviceElementType == ISODeviceElementType.Device);
                 if (rootDeviceElement != null)
                 {
-                    Items.Add(device.DeviceId, new DeviceElementHierarchy(rootDeviceElement, 0, representationMapper));
+                    DeviceElementHierarchy hierarchy = new DeviceElementHierarchy(rootDeviceElement, 0, representationMapper);
+                    DeviceElementHierarchy.HandleBinDeviceElements(hierarchy);
+                    Items.Add(device.DeviceId, hierarchy);
                 }
             }
         }
@@ -428,6 +430,39 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
             else
             {
                 return null;
+            }
+        }
+
+        /// <summary>
+        /// Seeder/Drill data will often report rates on bin device elements.   These device elements are the geometrical equivalent of the parent boom for mapping purposes.
+        /// They are modeled as sections in ADAPT so that we can detect individual products/rates from these different device elements (tanks).
+        /// Since they fall at the same level in the hierarchy as true implement sections, we need to reorder the section depths so that anything below the boom
+        /// that is not a bin is moved down one level.   As such, the bin will not effect the geometric modeling of individual sections from left to right.
+        /// </summary>
+        /// <param name="h"></param>
+        public static void HandleBinDeviceElements(DeviceElementHierarchy h)
+        {
+            for (int i = 0; i <= h.GetMaxDepth(); i++)
+            {
+                if (h.GetElementsAtDepth(i).Any(d => d.DeviceElement.DeviceElementType == ISODeviceElementType.Bin) &&
+                    h.GetElementsAtDepth(i).Any(d => d.DeviceElement.DeviceElementType != ISODeviceElementType.Bin))
+                {
+                    //There are both bin and non-bin elements at this depth
+
+                    //Move everything deeper than this level down
+                    for (int d = h.GetMaxDepth(); d > i; d--)
+                    {
+                        h.GetElementsAtDepth(d)
+                            .ToList()
+                            .ForEach(e => e.Depth++);
+                    }
+
+                    //Drop the non-bin elements at this level down to the new gap just created
+                    h.GetElementsAtDepth(i)
+                        .Where(e => e.DeviceElement.DeviceElementType != ISODeviceElementType.Bin)
+                        .ToList()
+                        .ForEach(x => x.Depth++);
+                }
             }
         }
     }  
