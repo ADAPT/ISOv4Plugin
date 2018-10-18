@@ -2,25 +2,21 @@
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
-using System.Xml;
-using System.IO;
+using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 using AgGateway.ADAPT.ISOv4Plugin.Mappers;
-using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
-using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Xml;
 
 namespace AgGateway.ADAPT.ISOv4Plugin
 {
     public class Plugin : IPlugin
     {
-        private const string FileName = "TASKDATA.XML";
+        private const string FileName = "taskdata.xml";
 
         #region IPlugin Members
         string IPlugin.Name => "ISO v4 Plugin";
@@ -98,12 +94,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin
 
         private static List<string> GetListOfTaskDataFiles(string dataPath)
         {
-            var taskDataFiles = new List<string>();
+            //The directory check here is case sensitive for unix-based OSes (see comment below)
             if (Directory.Exists(dataPath))
             {
-                taskDataFiles.AddRange(Directory.GetFiles(dataPath, FileName, SearchOption.AllDirectories));
+                //Note! We need to iterate through all files and do a ToLower for this to work in .Net Core in Linux since that filesystem
+                //is case sensitive and the NetStandard interface for Directory.GetFiles doesn't account for that yet.
+                var fileNameToFind = FileName.ToLower();
+                var allFiles = Directory.GetFiles(dataPath, "*.*", SearchOption.AllDirectories);
+                var matchedFiles = allFiles.Where(file => file.ToLower().EndsWith(fileNameToFind));
+                return matchedFiles.ToList();
             }
-            return taskDataFiles;
+            return new List<string>();
         }
 
         private List<ISO11783_TaskData> ReadDataCard(string dataPath)
