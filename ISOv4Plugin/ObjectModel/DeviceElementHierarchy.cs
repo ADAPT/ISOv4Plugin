@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
@@ -27,7 +27,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                 ISODeviceElement rootDeviceElement = device.DeviceElements.SingleOrDefault(det => det.DeviceElementType == ISODeviceElementType.Device);
                 if (rootDeviceElement != null)
                 {
-                    Items.Add(device.DeviceId, new DeviceElementHierarchy(rootDeviceElement, 0, representationMapper));
+                    DeviceElementHierarchy hierarchy = new DeviceElementHierarchy(rootDeviceElement, 0, representationMapper);
+                    DeviceElementHierarchy.HandleBinDeviceElements(hierarchy);
+                    Items.Add(device.DeviceId, hierarchy);
                 }
             }
         }
@@ -64,10 +66,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
     /// </summary>
     public class DeviceElementHierarchy
     {
-        private RepresentationMapper _representationMapper;
         public DeviceElementHierarchy(ISODeviceElement deviceElement, int depth, RepresentationMapper representationMapper, HashSet<int> crawledElements = null, DeviceElementHierarchy parent = null)
         {
-            _representationMapper = representationMapper;
+            RepresentationMapper = representationMapper;
             //This Hashset will track that we don't build infinite hierarchies.   
             //The plugin does not support peer control at this time.
             _crawledElements = crawledElements;
@@ -139,6 +140,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                 Parent = parent;
             }
         }
+        internal RepresentationMapper RepresentationMapper { get; set; }
+
         public ISODeviceElement DeviceElement { get; private set; }
 
         public int Depth { get; set; }
@@ -152,10 +155,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
         public int? YOffset { get; set; }
         public int? ZOffset { get; set; }
 
-        public NumericRepresentationValue WidthRepresentation { get { return Width.HasValue ? Width.Value.AsNumericRepresentationValue(WidthDDI, _representationMapper) : null; } }
-        public NumericRepresentationValue XOffsetRepresentation { get { return XOffset.HasValue ? XOffset.Value.AsNumericRepresentationValue("0086", _representationMapper) : null; } } //TODO temporary
-        public NumericRepresentationValue YOffsetRepresentation { get { return YOffset.HasValue ? YOffset.Value.AsNumericRepresentationValue("0087", _representationMapper) : null; } }
-        public NumericRepresentationValue ZOffsetRepresentation { get { return ZOffset.HasValue ? ZOffset.Value.AsNumericRepresentationValue("0088", _representationMapper) : null; } }
+        public NumericRepresentationValue WidthRepresentation { get { return Width.HasValue ? Width.Value.AsNumericRepresentationValue(WidthDDI, RepresentationMapper) : null; } }
+        public NumericRepresentationValue XOffsetRepresentation { get { return XOffset.HasValue ? XOffset.Value.AsNumericRepresentationValue("0086", RepresentationMapper) : null; } } 
+        public NumericRepresentationValue YOffsetRepresentation { get { return YOffset.HasValue ? YOffset.Value.AsNumericRepresentationValue("0087", RepresentationMapper) : null; } }
+        public NumericRepresentationValue ZOffsetRepresentation { get { return ZOffset.HasValue ? ZOffset.Value.AsNumericRepresentationValue("0088", RepresentationMapper) : null; } }
 
         public List<DeviceElementHierarchy> Children { get; set; }
         public DeviceElementHierarchy Parent { get; set; }
@@ -427,6 +430,39 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
             else
             {
                 return null;
+            }
+        }
+
+        /// <summary>
+        /// Seeder/Drill data will often report rates on bin device elements.   These device elements are the geometrical equivalent of the parent boom for mapping purposes.
+        /// They are modeled as sections in ADAPT so that we can detect individual products/rates from these different device elements (tanks).
+        /// Since they fall at the same level in the hierarchy as true implement sections, we need to reorder the section depths so that anything below the boom
+        /// that is not a bin is moved down one level.   As such, the bin will not effect the geometric modeling of individual sections from left to right.
+        /// </summary>
+        /// <param name="h"></param>
+        public static void HandleBinDeviceElements(DeviceElementHierarchy h)
+        {
+            for (int i = 0; i <= h.GetMaxDepth(); i++)
+            {
+                if (h.GetElementsAtDepth(i).Any(d => d.DeviceElement.DeviceElementType == ISODeviceElementType.Bin) &&
+                    h.GetElementsAtDepth(i).Any(d => d.DeviceElement.DeviceElementType != ISODeviceElementType.Bin))
+                {
+                    //There are both bin and non-bin elements at this depth
+
+                    //Move everything deeper than this level down
+                    for (int d = h.GetMaxDepth(); d > i; d--)
+                    {
+                        h.GetElementsAtDepth(d)
+                            .ToList()
+                            .ForEach(e => e.Depth++);
+                    }
+
+                    //Drop the non-bin elements at this level down to the new gap just created
+                    h.GetElementsAtDepth(i)
+                        .Where(e => e.DeviceElement.DeviceElementType != ISODeviceElementType.Bin)
+                        .ToList()
+                        .ForEach(x => x.Depth++);
+                }
             }
         }
     }  
