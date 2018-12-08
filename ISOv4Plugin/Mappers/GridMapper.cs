@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
@@ -115,19 +115,19 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             using (var binaryWriter = CreateWriter(Path.ChangeExtension(gridFileName, ".BIN")))
             {
                 byte[] previousBytes = BitConverter.GetBytes(0);
-                foreach (var rxRate in prescription.Rates)
+                foreach (var rxCellLookup in prescription.Rates)
                 {
-                    if (rxRate.RxRate == null || !rxRate.RxRate.Any())
+                    if (rxCellLookup.RxRates == null || !rxCellLookup.RxRates.Any())
                     {
                         //If there is null or no rate, write the previous rate (or 0 if we have not yet entered a valid rate)
                         binaryWriter.Write(previousBytes, 0, previousBytes.Length);
                     }
                     else
                     {
-                        for (int index = 0; index < rxRate.RxRate.Count; index++)
+                        for (int index = 0; index < rxCellLookup.RxRates.Count; index++)
                         {
                             ISOProcessDataVariable pdv = treatmentZone.ProcessDataVariables[index];
-                            var rate = rxRate.RxRate[index].Rate;
+                            var rate = rxCellLookup.RxRates[index].Rate;
  
                             ISOUnit unit = null;
                             if (!unitsByDDI.ContainsKey(pdv.ProcessDataDDI))
@@ -258,26 +258,26 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
         }
 
-        private List<RxRates> ImportRatesFromProducts(GridDescriptor gridDescriptor, List<int> productIds, RasterGridPrescription prescription)
+        private List<RxCellLookup> ImportRatesFromProducts(GridDescriptor gridDescriptor, List<int> productIds, RasterGridPrescription prescription)
         {
-            var rates = new List<RxRates>();
+            var rates = new List<RxCellLookup>();
             foreach (var productRates in gridDescriptor.ProductRates)
             {
-                var rate = new RxRates { RxRate = new List<RxRate>() };
+                var lookup = new RxCellLookup { RxRates = new List<RxRate>() };
                 for (int productIndex = 0; productIndex < productRates.Count; productIndex++)
                 {
                     int adaptProductId = productIds[productIndex];
-                    rate.RxRate.Add(PrescriptionMapper.ImportRate(adaptProductId, productRates[productIndex], prescription));
+                    lookup.RxRates.Add(PrescriptionMapper.ImportRate(adaptProductId, productRates[productIndex], prescription));
                 }
-                rates.Add(rate);
+                rates.Add(lookup);
             }
 
             return rates;
         }
 
-        private List<RxRates> ImportRatesFromTreatmentZones(GridDescriptor gridDescriptor, IEnumerable<ISOTreatmentZone> treatmentZones, List<int> productIds, RasterGridPrescription prescription)
+        private List<RxCellLookup> ImportRatesFromTreatmentZones(GridDescriptor gridDescriptor, IEnumerable<ISOTreatmentZone> treatmentZones, List<int> productIds, RasterGridPrescription prescription)
         {
-            var rates = new List<RxRates>();
+            var rates = new List<RxCellLookup>();
             foreach (var treatmentZoneCode in gridDescriptor.TreatmentZoneCodes)
             {
                 ISOTreatmentZone treatmentZone = treatmentZones.FirstOrDefault(t => t.TreatmentZoneCode == treatmentZoneCode);
@@ -286,7 +286,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     return null;
                 }
 
-                var rate = new RxRates { RxRate = new List<RxRate>() };
+                var lookup = new RxCellLookup { RxRates = new List<RxRate>() };
                 foreach (ISOProcessDataVariable pdv in treatmentZone.ProcessDataVariables)
                 {
                     if (!string.IsNullOrEmpty(pdv.ProductIdRef))
@@ -294,12 +294,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         int? productID = TaskDataMapper.InstanceIDMap.GetADAPTID(pdv.ProductIdRef);
                         if (productID.HasValue)
                         {
-                            rate.RxRate.Add(PrescriptionMapper.ImportAndConvertRate(productID.Value, pdv, prescription));
+                            lookup.RxRates.Add(PrescriptionMapper.ImportAndConvertRate(productID.Value, pdv, prescription));
                         }
                     }
                 }
 
-                rates.Add(rate);
+                rates.Add(lookup);
             }
 
             return rates;

@@ -45,7 +45,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin
             var taskDataObjects = ReadDataCard(dataPath);
             if (taskDataObjects == null)
                 return null;
-            
+
             var adms = new List<ApplicationDataModel.ADM.ApplicationDataModel>();
             foreach (var taskData in taskDataObjects)
             {
@@ -90,6 +90,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin
 
             return errors;
         }
+
+        public IList<IError> Errors { get; set; }
         #endregion IPlugin Members
 
         private static List<string> GetListOfTaskDataFiles(string dataPath)
