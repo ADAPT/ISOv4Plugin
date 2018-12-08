@@ -30,6 +30,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin
             //Convert the ADAPT model into the ISO model
             string outputPath = exportPath.WithTaskDataPath();
             TaskDataMapper taskDataMapper = new TaskDataMapper(outputPath, properties);
+            Errors = taskDataMapper.Errors;
             ISO11783_TaskData taskData = taskDataMapper.Export(dataModel);
 
             //Serialize the ISO model to XML
@@ -47,13 +48,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin
                 return null;
 
             var adms = new List<ApplicationDataModel.ADM.ApplicationDataModel>();
+            List<IError> errors = new List<IError>();
+
             foreach (var taskData in taskDataObjects)
             {
                 //Convert the ISO model to ADAPT
                 TaskDataMapper taskDataMapper = new TaskDataMapper(taskData.DataFolder, properties);
                 ApplicationDataModel.ADM.ApplicationDataModel dataModel = taskDataMapper.Import(taskData);
+                errors.AddRange(taskDataMapper.Errors);
                 adms.Add(dataModel);
             }
+            Errors = errors;
 
             return adms;
         }
