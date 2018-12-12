@@ -60,7 +60,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         public UInt32 GetMetersValue(List<WorkingData> meters, SpatialRecord spatialRecord)
         {
-            var meter = (ISOEnumeratedMeter) meters.FirstOrDefault();
+            var meter = meters.FirstOrDefault();
             var value = (EnumeratedValue)spatialRecord.GetMeterValue(meter);
 
             if (value.Value.Code == DefinedTypeEnumerationInstanceList.dtiPrscMasterManualOff.ToModelEnumMember().Code)

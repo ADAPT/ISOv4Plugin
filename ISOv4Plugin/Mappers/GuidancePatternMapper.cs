@@ -92,18 +92,20 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     PivotGuidancePattern pivot = adaptGuidancePattern as PivotGuidancePattern;
                     LineString pivotLine = new LineString { Points = new List<Point>() };
                     pivotLine.Points.Add(pivot.Center);
-
-                    if (pivot.StartPoint != null)
+                    if (pivot.DefinitionMethod == PivotGuidanceDefinitionEnum.PivotGuidancePatternStartEndCenter &&
+                        pivot.StartPoint != null &&
+                        pivot.EndPoint != null)
                     {
                         pivotLine.Points.Add(pivot.StartPoint);
-                        if (pivot.EndPoint != null)
-                        {
-                            pivotLine.Points.Add(pivot.EndPoint);
-                        }
+                        pivotLine.Points.Add(pivot.EndPoint);
+                    }
+                    else if (pivot.DefinitionMethod == PivotGuidanceDefinitionEnum.PivotGuidancePatternCenterRadius &&
+                             pivot.Radius != null)
+                    {
+                        gpn.Radius = (uint)pivot.Radius.AsConvertedInt("mm");
+                        gpn.GuidancePatternOptions = ISOGuidancePatternOption.FullCircle;
                     }
                     gpn.LineString = lineStringMapper.ExportLineString(pivotLine, ISOLineStringType.GuidancePattern);
-                    //gpn.Radius = ?  //Not implemented
-                    //gpn.GuidancePatternOptions = ? //Not implemented
                     break;
                 case GuidancePatternTypeEnum.Spiral:
                     Spiral spiral = adaptGuidancePattern as Spiral;
@@ -284,12 +286,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     pattern = new PivotGuidancePattern();
                     PivotGuidancePattern pivot = pattern as PivotGuidancePattern;
                     pivot.Center = pointMapper.ImportPoint(isoGuidancePattern.LineString.Points.First());
-                    if (isoGuidancePattern.LineString.Points.Count == 3)
+                    pivot.Radius = isoGuidancePattern.Radius.HasValue ? ((int)isoGuidancePattern.Radius).AsNumericRepresentationValue("mm") : null;
+                    if (isoGuidancePattern.LineString.Points.Count == 1)
                     {
+                        pivot.DefinitionMethod = PivotGuidanceDefinitionEnum.PivotGuidancePatternCenterRadius;
+                    }
+                    else if (isoGuidancePattern.LineString.Points.Count == 3)
+                    {
+                        pivot.DefinitionMethod = PivotGuidanceDefinitionEnum.PivotGuidancePatternStartEndCenter;
                         pivot.StartPoint = pointMapper.ImportPoint(isoGuidancePattern.LineString.Points[1]);
                         pivot.EndPoint = pointMapper.ImportPoint(isoGuidancePattern.LineString.Points[2]);
                     }
-                    //Radius & GuidancePatternOptions not implemented in ADAPT
                     break;
                 case ISOGuidancePatternType.Spiral:
                     pattern = new Spiral();
