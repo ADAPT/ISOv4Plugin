@@ -230,7 +230,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 }
             }
 
-            private readonly Dictionary<int, uint> _previousDlvs = new Dictionary<int, uint>();
             private Dictionary<int, uint> GetMeterValues(SpatialRecord spatialRecord, List<WorkingData> workingDatas)
             {
                 var dlvsToWrite = new Dictionary<int, uint>();
@@ -258,16 +257,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         }
                     }
 
-                    if (value == null) { continue; }
-
-                    if (_previousDlvs.ContainsKey(order) && _previousDlvs[order] != value)
+                    if (value == null)
                     {
-                        _previousDlvs[order] = value.Value;
-                        dlvsToWrite.Add(order, value.Value);
+                        continue;
                     }
-                    else if (!_previousDlvs.ContainsKey(order))
+                    else
                     {
-                        _previousDlvs.Add(order, value.Value);
                         dlvsToWrite.Add(order, value.Value);
                     }
                 }
