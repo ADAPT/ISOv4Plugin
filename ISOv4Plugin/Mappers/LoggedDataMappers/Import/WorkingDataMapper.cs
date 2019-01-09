@@ -154,7 +154,30 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 NumericWorkingData proprietaryWorkingData = new NumericWorkingData();
                 proprietaryWorkingData.Representation = new ApplicationDataModel.Representations.NumericRepresentation { Code = dlv.ProcessDataDDI, CodeSource = RepresentationCodeSourceEnum.ISO11783_DDI };
                 proprietaryWorkingData.DeviceElementUseId = deviceElementUse.Id.ReferenceId;
-                proprietaryWorkingData.UnitOfMeasure = AgGateway.ADAPT.Representation.UnitSystem.UnitSystemManager.GetUnitOfMeasure("count"); //Best we can do
+
+                //Take any information from DPDs/DVPs
+                ApplicationDataModel.Common.UnitOfMeasure uom = null;
+                ISODeviceElement det = isoDeviceElementHierarchy.DeviceElement;
+                if (det != null)
+                {
+                    ISODeviceProcessData dpd = det.DeviceProcessDatas.FirstOrDefault(d => d.DDI == dlv.ProcessDataDDI);
+                    if (dpd != null)
+                    {
+                        proprietaryWorkingData.Representation.Description = dpd.Designator; //Update the representation with a name since we have one here.
+                        ISODeviceValuePresentation dvp = det.Device.DeviceValuePresentations.FirstOrDefault(d => d.ObjectID == dpd.DeviceValuePresentationObjectId);
+                        if (dvp != null && dvp.UnitDesignator != null)
+                        {
+                            if (AgGateway.ADAPT.Representation.UnitSystem.InternalUnitSystemManager.Instance.UnitOfMeasures.Contains(dvp.UnitDesignator))
+                            {
+                                //The unit designator used by the OEM will need to match ADAPT for this to work, otherwise we'll need to default to 'count' below
+                                //It will likely work for many simple units and will not for work compound units
+                                uom = UnitSystemManager.GetUnitOfMeasure(dvp.UnitDesignator);
+                            }
+                        }   
+                    }
+                }
+
+                proprietaryWorkingData.UnitOfMeasure = uom ?? UnitSystemManager.GetUnitOfMeasure("count"); //Best we can do
 
                 DataLogValuesByWorkingDataID.Add(proprietaryWorkingData.Id.ReferenceId, dlv);
                 ISODeviceElementIDsByWorkingDataID.Add(proprietaryWorkingData.Id.ReferenceId, dlv.DeviceElementIdRef);

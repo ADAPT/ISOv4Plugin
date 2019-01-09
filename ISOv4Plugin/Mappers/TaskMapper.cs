@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
@@ -295,6 +295,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                             {
                                 dlv.ProcessDataDDI = numericValue.Representation.Code;
                                 dlv.ProcessDataValue = (int)numericValue.Value.Value;
+                            }
+                        }
+                        if (value.DeviceConfigurationId.HasValue)
+                        {
+                            DeviceElementConfiguration config = DataModel.Catalog.DeviceElementConfigurations.FirstOrDefault(c => c.Id.ReferenceId == value.DeviceConfigurationId.Value);
+                            if (config != null)
+                            {
+                                dlv.DeviceElementIdRef = TaskDataMapper.InstanceIDMap.GetISOID(config.DeviceElementId);
                             }
                         }
                         time.DataLogValues.Add(dlv);
@@ -850,10 +858,23 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             DdiDefinition ddiDefintion = DDIs[ddi];
 
+            int? deviceConfigurationID = null;
+            int? deviceElementID = TaskDataMapper.InstanceIDMap.GetADAPTID(dlv.DeviceElementIdRef);
+            if (deviceElementID.HasValue)
+            {
+                DeviceElementConfiguration config = DataModel.Catalog.DeviceElementConfigurations.FirstOrDefault(c => c.DeviceElementId == deviceElementID.Value);
+                if (config != null)
+                {
+                    deviceConfigurationID = config.Id.ReferenceId;
+                }
+            }
+
             return new MeteredValue
             {
                 Value = new NumericRepresentationValue(RepresentationMapper.Map(ddi) as NumericRepresentation,
-                    unitOfMeasure, new NumericValue(unitOfMeasure, dataValue * ddiDefintion.Resolution))
+                                                       unitOfMeasure,
+                                                       new NumericValue(unitOfMeasure, dataValue * ddiDefintion.Resolution)),
+                DeviceConfigurationId = deviceConfigurationID
             };
         }
         #endregion Import Summary Data
