@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<package
-  xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
-    <id>AgGatewayISOPlugin</id>
+    <id>AgGatewayISOv4Plugin</id>
     <version>0.0.0</version>
     <authors>AgGateway and ADAPT Contributors</authors>
     <owners>AgGateway and ADAPT Contributors</owners>
@@ -11,7 +10,7 @@
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <description>AgGateway ISO v4 Plugin for the ADAPT framework</description>
     <copyright>Copyright (C) 2015-18 AgGateway and ADAPT Contributors</copyright>
-    <tags>aggateway adapt isoxml 11783 agriculture</tags>
+    <tags>aggateway adapt isoxml isoxmlv4 11783 agriculture</tags>
     <dependencies>
       <dependency id="AgGatewayADAPTFramework" version="[1.2.0, 2.0.0)" />
     </dependencies>
@@ -22,7 +21,7 @@
   <files>
     <file src="ISOv4Plugin/bin/Release/netstandard2.0/Resources/ddiExport.txt" target="build/Resources/ddiExport.txt" />
     <file src="ISOv4Plugin/bin/Release/netstandard2.0/Resources/IsoUnitOfMeasure.xml" target="build/Resources/IsoUnitOfMeasure.xml" />
-    <file src="AgGatewayISOPlugin.targets" target="build/AgGatewayISOPlugin.targets" />
+    <file src="AgGatewayISOv4Plugin.targets" target="build/AgGatewayISOv4Plugin.targets" />
     <file src="ISOv4Plugin/bin/Release/netstandard2.0/AgGateway.ADAPT.ISOv4Plugin.dll" target="lib/netstandard2.0/AgGateway.ADAPT.ISOv4Plugin.dll"/>
     <file src="ISOv4Plugin/bin/Release/net451/AgGateway.ADAPT.ISOv4Plugin.dll" target="lib/net451/AgGateway.ADAPT.ISOv4Plugin.dll"/>
   </files>
