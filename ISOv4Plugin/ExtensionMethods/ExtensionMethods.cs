@@ -211,11 +211,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
         /// <param name="value"></param>
         /// <param name="mapper"></param>
         /// <returns></returns>
-        public static double AsConvertedDouble(this NumericRepresentationValue value, string targetUnitCode)
+        public static double? AsConvertedDouble(this NumericRepresentationValue value, string targetUnitCode)
         {
             if (value == null)
             {
-                return 0d;
+                return null;
             }
             else if (value.Value.UnitOfMeasure == null)
             {
@@ -237,15 +237,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
             }
         }
 
-        public static int AsConvertedInt(this NumericRepresentationValue value, string targetUnitCode)
+        public static int? AsConvertedInt(this NumericRepresentationValue value, string targetUnitCode)
         {
             if (value == null)
             {
-                return 0;
+                return null;
             }
             else
             {
-                return (int)value.AsConvertedDouble(targetUnitCode);
+                return (int)value.AsConvertedDouble(targetUnitCode).Value;
             }
         }
     }

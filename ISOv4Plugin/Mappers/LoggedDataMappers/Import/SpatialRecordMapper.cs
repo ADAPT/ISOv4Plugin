@@ -67,7 +67,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         private void SetEnumeratedMeterValue(ISOSpatialRow isoSpatialRow, EnumeratedWorkingData meter, SpatialRecord spatialRecord)
         {
-            var isoValue = isoSpatialRow.SpatialValues.SingleOrDefault(v =>
+            var isoValue = isoSpatialRow.SpatialValues.FirstOrDefault(v =>
                     v.DataLogValue.DeviceElementIdRef == _workingDataMapper.DataLogValuesByWorkingDataID[meter.Id.ReferenceId].DeviceElementIdRef &&
                     v.DataLogValue.ProcessDataDDI == _workingDataMapper.DataLogValuesByWorkingDataID[meter.Id.ReferenceId].ProcessDataDDI);
             if (isoValue != null)
@@ -86,7 +86,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         private void SetNumericMeterValue(ISOSpatialRow isoSpatialRow, NumericWorkingData meter, SpatialRecord spatialRecord, Dictionary<string, List<ISOProductAllocation>> productAllocations)
         {
-            var isoValue = isoSpatialRow.SpatialValues.SingleOrDefault(v =>
+            var isoValue = isoSpatialRow.SpatialValues.FirstOrDefault(v =>
                                 v.DataLogValue.ProcessDataDDI != "DFFE" &&
                                 _workingDataMapper.DataLogValuesByWorkingDataID.ContainsKey(meter.Id.ReferenceId) &&
                                 v.DataLogValue.DeviceElementIdRef == _workingDataMapper.DataLogValuesByWorkingDataID[meter.Id.ReferenceId].DeviceElementIdRef && 

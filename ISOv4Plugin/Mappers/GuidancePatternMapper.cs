@@ -60,8 +60,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             gpn.Extension = ExportExtension(adaptGuidancePattern.Extension);
             gpn.Heading = ExportHeading(adaptGuidancePattern);
             gpn.GNSSMethod = ExportGNSSMethod(adaptGuidancePattern.GpsSource.SourceType);
-            gpn.HorizontalAccuracy = (decimal)adaptGuidancePattern.GpsSource.HorizontalAccuracy.AsConvertedDouble("m");
-            gpn.VerticalAccuracy = (decimal)adaptGuidancePattern.GpsSource.VerticalAccuracy.AsConvertedDouble("m"); 
+            if (adaptGuidancePattern.GpsSource.HorizontalAccuracy != null)
+            {
+                gpn.HorizontalAccuracy = (decimal)adaptGuidancePattern.GpsSource.HorizontalAccuracy.AsConvertedDouble("m").Value;
+            }
+            if (adaptGuidancePattern.GpsSource.VerticalAccuracy != null)
+            {
+                gpn.VerticalAccuracy = (decimal)adaptGuidancePattern.GpsSource.VerticalAccuracy.AsConvertedDouble("m").Value;
+            }
             gpn.OriginalSRID = adaptGuidancePattern.OriginalEpsgCode;
             gpn.NumberOfSwathsLeft = (uint?)adaptGuidancePattern.NumbersOfSwathsLeft;
             gpn.NumberOfSwathsRight = (uint?)adaptGuidancePattern.NumbersOfSwathsRight;
@@ -102,7 +108,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     else if (pivot.DefinitionMethod == PivotGuidanceDefinitionEnum.PivotGuidancePatternCenterRadius &&
                              pivot.Radius != null)
                     {
-                        gpn.Radius = (uint)pivot.Radius.AsConvertedInt("mm");
+                        gpn.Radius = (uint)pivot.Radius.AsConvertedInt("mm").Value;
                         gpn.GuidancePatternOptions = ISOGuidancePatternOption.FullCircle;
                     }
                     gpn.LineString = lineStringMapper.ExportLineString(pivotLine, ISOLineStringType.GuidancePattern);
