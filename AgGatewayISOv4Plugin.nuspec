@@ -9,10 +9,11 @@
     <projectUrl>https://github.com/ADAPT/ISOv4Plugin</projectUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <description>AgGateway ISO v4 Plugin for the ADAPT framework</description>
-    <copyright>Copyright (C) 2015-18 AgGateway and ADAPT Contributors</copyright>
+    <copyright>Copyright (C) 2015-19 AgGateway and ADAPT Contributors</copyright>
     <tags>aggateway adapt isoxml isoxmlv4 11783 agriculture</tags>
     <dependencies>
-      <dependency id="AgGatewayADAPTFramework" version="[1.2.0, 2.0.0)" />
+      <!-- Any 2.x.x version -->
+      <dependency id="AgGatewayADAPTFramework" version="[2,3)" />
     </dependencies>
     <references>
       <reference file="AgGateway.ADAPT.ISOv4Plugin.dll"/>
