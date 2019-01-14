@@ -230,7 +230,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 }
             }
 
-            private readonly Dictionary<int, uint> _previousDlvs = new Dictionary<int, uint>();
             private Dictionary<int, uint> GetMeterValues(SpatialRecord spatialRecord, List<WorkingData> workingDatas)
             {
                 var dlvsToWrite = new Dictionary<int, uint>();
@@ -258,16 +257,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         }
                     }
 
-                    if (value == null) { continue; }
-
-                    if (_previousDlvs.ContainsKey(order) && _previousDlvs[order] != value)
+                    if (value == null)
                     {
-                        _previousDlvs[order] = value.Value;
-                        dlvsToWrite.Add(order, value.Value);
+                        continue;
                     }
-                    else if (!_previousDlvs.ContainsKey(order))
+                    else
                     {
-                        _previousDlvs.Add(order, value.Value);
                         dlvsToWrite.Add(order, value.Value);
                     }
                 }
@@ -333,11 +328,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     //Determine products
                     Dictionary<string, List<ISOProductAllocation>> productAllocations = GetProductAllocationsByDeviceElement(loggedTask, dvc);
                     List<int> productIDs = GetDistinctProductIDs(TaskDataMapper, productAllocations);
-                    int? operationProductID = null;  //In future versions this will be a list
-                    if (productIDs.Count == 1)
-                    {
-                        operationProductID = productIDs.Single();
-                    }
 
                     //This line will necessarily invoke a spatial read in order to find 
                     //1)The correct number of CondensedWorkState working datas to create 
@@ -355,10 +345,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     operationData.GetDeviceElementUses = x => sectionMapper.ConvertToBaseTypes(sections.Where(s => s.Depth == x).ToList());
                     operationData.PrescriptionId = prescriptionID;
                     operationData.OperationType = GetOperationTypeFromLoggingDevices(time);
-                    operationData.ProductId = operationProductID; 
+                    operationData.ProductIds = productIDs; 
                     operationData.SpatialRecordCount = isoRecords.Count();
                     operationDatas.Add(operationData);
                 }
+
+                //Set the CoincidentOperationDataIds property identifying Operation Datas from the same TimeLog.
+                operationDatas.ForEach(o => o.CoincidentOperationDataIds = operationDatas.Where(o2 => o2.Id.ReferenceId != o.Id.ReferenceId).Select(o3 => o3.Id.ReferenceId).ToList());
 
                 return operationDatas;
             }

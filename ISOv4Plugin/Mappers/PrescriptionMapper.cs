@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
@@ -210,7 +210,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             List<byte> rateCodePerCell = new List<byte>();
 
             byte tznCounter = 1;
-            foreach (RxRates cellRates in prescription.Rates)
+            foreach (RxCellLookup cellRates in prescription.Rates)
             {
                 string key = GetRxRatesKey(cellRates);
                 if (!treatmentZones.ContainsKey(key))
@@ -227,19 +227,19 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         }
 
         //Determines a unique key that describes the products and rates assigned to each cell.
-        private string GetRxRatesKey(RxRates rates)
+        private string GetRxRatesKey(RxCellLookup cellLookup)
         {
             string key = string.Empty;
-            rates.RxRate.ForEach(r => key += $"{r.RxProductLookupId}:{r.Rate}|");
+            cellLookup.RxRates.ForEach(r => key += $"{r.RxProductLookupId}:{r.Rate}|");
             return key;
         }
 
         //Adds a treatment zone for a new rate combination
-        private ISOTreatmentZone GetNewType1TreatmentZone(RxRates rates, byte counter, Prescription rx)
+        private ISOTreatmentZone GetNewType1TreatmentZone(RxCellLookup cellLookup, byte counter, Prescription rx)
         {
             ISOTreatmentZone treatmentZone = new ISOTreatmentZone() { TreatmentZoneCode = counter, TreatmentZoneDesignator = $"TreatmentZone {counter.ToString()}" };
 
-            foreach (RxRate rate in rates.RxRate)
+            foreach (RxRate rate in cellLookup.RxRates)
             {
                 treatmentZone.ProcessDataVariables.Add(ExportProcessDataVariable(rate, rx));
             }

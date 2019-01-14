@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
@@ -55,9 +55,18 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             gst.GuidancePatternIdRef = TaskDataMapper.InstanceIDMap.GetISOID(adaptGuidanceShift.GuidancePatterId);
 
             //Shifts
-            gst.GuidanceEastShift = adaptGuidanceShift.EastShift.AsConvertedInt("mm");
-            gst.GuidanceNorthShift = adaptGuidanceShift.NorthShift.AsConvertedInt("mm");
-            gst.PropagationOffset = adaptGuidanceShift.PropagationOffset.AsConvertedInt("mm");
+            if (adaptGuidanceShift.EastShift != null)
+            {
+                gst.GuidanceEastShift = adaptGuidanceShift.EastShift.AsConvertedInt("mm").Value;
+            }
+            if (adaptGuidanceShift.NorthShift != null)
+            {
+                gst.GuidanceNorthShift = adaptGuidanceShift.NorthShift.AsConvertedInt("mm").Value;
+            }
+            if (adaptGuidanceShift.PropagationOffset != null)
+            {
+                gst.PropagationOffset = adaptGuidanceShift.PropagationOffset.AsConvertedInt("mm").Value;
+            }
 
             //Allocation Stamp
             if (adaptGuidanceShift.TimeScopeIds.Any())
