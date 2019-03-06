@@ -526,7 +526,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                             var order = binaryReader.ReadByte();
                             var value = binaryReader.ReadInt32();
 
-                            record.SpatialValues.Add(CreateSpatialValue(templateTime, order, value));
+                            SpatialValue spatialValue = CreateSpatialValue(templateTime, order, value);
+                            if(spatialValue != null)
+                                record.SpatialValues.Add(spatialValue);
                         }
 
                         //Add any fixed values from the TLG.xml
