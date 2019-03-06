@@ -6,7 +6,7 @@
     <RootNamespace>AgGateway.ADAPT.ISOv4Plugin</RootNamespace>
     <Version>2.0.0</Version>
     <NeutralLanguage>English (United States)</NeutralLanguage>
-    <Copyright>Copyright (C) 2015-18 AgGateway and ADAPT Contributors</Copyright>
+    <Copyright>Copyright (C) 2015-19 AgGateway and ADAPT Contributors</Copyright>
     <Product>ISOv4Plugin</Product>
     <Company>AgGateway</Company>
     <Authors>AgGateway and ADAPT Contributors</Authors>
