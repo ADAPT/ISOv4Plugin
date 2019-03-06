@@ -13,7 +13,7 @@
     <tags>agriculture aggateway adapt isoxml isoxmlv4 11783 11783-10</tags>
     <dependencies>
       <!-- Any 2.x.x version -->
-      <dependency id="AgGatewayADAPTFramework" version="[2,3)" />
+      <dependency id="AgGatewayADAPTFramework" version="[2.0.2,3)" />
     </dependencies>
     <references>
       <reference file="AgGateway.ADAPT.ISOv4Plugin.dll"/>
