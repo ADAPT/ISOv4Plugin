@@ -458,23 +458,20 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             {
                 Prescription rx = PrescriptionMapper.ImportPrescription(isoPrescribedTask, workItem);
 
+                if (rx == null) return workItem;
                 //Add to the Prescription the Catalog
                 List<Prescription> prescriptions = DataModel.Catalog.Prescriptions as List<Prescription>;
-                if (prescriptions != null)
-                {
-                    prescriptions.Add(rx);
-                }
+                prescriptions?.Add(rx);
 
                 //Add A WorkItemOperation
                 WorkItemOperation operation = new WorkItemOperation();
                 operation.PrescriptionId = rx.Id.ReferenceId;
 
                 //Add the operation to the Documents and reference on the WorkItem
-                List<WorkItemOperation> operations = DataModel.Documents.WorkItemOperations as List<WorkItemOperation>;
-                if (operations != null)
-                {
-                    operations.Add(operation);
-                }
+                List<WorkItemOperation> operations =
+                    DataModel.Documents.WorkItemOperations as List<WorkItemOperation>;
+                operations?.Add(operation);
+
                 workItem.WorkItemOperationIds.Add(operation.Id.ReferenceId);
 
                 //Track any prescription IDs to map to any completed TimeLog data 

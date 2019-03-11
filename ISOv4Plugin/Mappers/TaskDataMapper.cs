@@ -351,7 +351,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
             IEnumerable<ISOTask> prescribedTasks = taskData.ChildElements.OfType<ISOTask>().Where(t => t.IsWorkItemTask);
-            IEnumerable<ISOTask> loggedTasks = taskData.ChildElements.OfType<ISOTask>().Where(t => t.IsLoggedDataTask);
+            IEnumerable<ISOTask> loggedTasks = taskData.ChildElements.OfType<ISOTask>().Where(t => t.IsLoggedDataTask || t.TimeLogs.Any());
             if (prescribedTasks.Any() || loggedTasks.Any())
             {
                 TaskMapper taskMapper = new TaskMapper(this);

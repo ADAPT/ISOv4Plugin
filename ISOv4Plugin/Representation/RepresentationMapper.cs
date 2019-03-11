@@ -38,12 +38,19 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Representation
             if (_ddis.ContainsKey(ddi))
             {
                 var matchingDdi = _ddis[ddi];
-                var representation = RepresentationManager.Instance.Representations.FirstOrDefault(x => x.Ddi.GetValueOrDefault() == matchingDdi.Id);
-
-                AdaptRepresentation adaptRep = GetADAPTRepresentation(representation);
-                if (adaptRep != null)
+                var representations = RepresentationManager.Instance.Representations.Where(x => x.Ddi.GetValueOrDefault() == matchingDdi.Id);
+                if (representations.Any())
                 {
-                    return adaptRep;
+                    //Default the representation mapping approprately on import
+                    var representation = representations.FirstOrDefault(r => r.IsDefaultRepresentationForDDI)
+                                            ??
+                                         representations.First();
+
+                    AdaptRepresentation adaptRep = GetADAPTRepresentation(representation);
+                    if (adaptRep != null)
+                    {
+                        return adaptRep;
+                    }
                 }
 
                 return new ApplicationDataModel.Representations.NumericRepresentation { Code = ddi.ToString("X4"), CodeSource = RepresentationCodeSourceEnum.ISO11783_DDI };
