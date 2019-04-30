@@ -223,7 +223,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
             if (!attributeValue.HasValue)
                 return;
 
-            writer.WriteAttributeString(attributeName, attributeValue.Value.ToString());
+            if (typeof(T) == typeof(decimal))
+            {
+                decimal helper = (decimal)(object)attributeValue;
+                writer.WriteAttributeString(attributeName, helper.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            }
+            else {
+                writer.WriteAttributeString(attributeName, attributeValue.Value.ToString());
+            }
         }
     }
 }
