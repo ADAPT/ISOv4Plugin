@@ -62,6 +62,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //ID
             string id = operation.Id.FindIsoId() ?? GenerateId(5);
             isoTimeLog.Filename = id;
+            isoTimeLog.TimeLogType = 1; // TimeLogType TLG.C is a required attribute. Currently only the value "1" is defined.
             ExportIDs(operation.Id, id);
 
             List<DeviceElementUse> deviceElementUses = operation.GetAllSections();
