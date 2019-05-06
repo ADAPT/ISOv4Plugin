@@ -103,6 +103,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Worker name
             worker.LastName = isoWorker.WorkerLastName;
             worker.FirstName = isoWorker.WorkerFirstName;
+            //<190503 MSp> WorkerLastName is required so I try to find a name information elsewhere...
+            if (string.IsNullOrEmpty(isoWorker.WorkerLastName))
+            {   // The JD 2630 PlugIn in some situations only fills the CombinedName property.
+                isoWorker.WorkerLastName = adaptWorker.CombinedName;
+            }
+            if (string.IsNullOrEmpty(isoWorker.WorkerLastName))
+            {   // Kind of stupid - but then at least the schema requirements are fullfilled.
+                isoWorker.WorkerLastName = isoWorker.WorkerId;  // "WKR22"
+            }
+            //</190503 MSp>
 
             //Worker address
             ContactInfo contactInfo = new ContactInfo();
