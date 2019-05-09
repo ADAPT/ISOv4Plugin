@@ -859,10 +859,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             int? deviceElementID = TaskDataMapper.InstanceIDMap.GetADAPTID(dlv.DeviceElementIdRef);
             if (deviceElementID.HasValue)
             {
-                DeviceElementConfiguration config = DataModel.Catalog.DeviceElementConfigurations.FirstOrDefault(c => c.DeviceElementId == deviceElementID.Value);
-                if (config != null)
+                //Since Device creation is on-demand, we need to call GetDeviceElementConfiguration here to ensure the relevant device is created if it hasn't been yet.
+                var hierarchy = TaskDataMapper?.DeviceElementHierarchies?.GetRelevantHierarchy(dlv.DeviceElementIdRef);
+                var adaptDeviceElement = DataModel?.Catalog?.DeviceElements?.FirstOrDefault(d => d?.Id?.ReferenceId == deviceElementID.Value);
+                if (hierarchy != null && adaptDeviceElement != null)
                 {
-                    deviceConfigurationID = config.Id.ReferenceId;
+                    DeviceElementConfiguration config = DeviceElementMapper.GetDeviceElementConfiguration(adaptDeviceElement, hierarchy, DataModel.Catalog);
+                    if (config != null)
+                    {
+                        deviceConfigurationID = config.Id.ReferenceId;
+                    }
                 }
             }
 
