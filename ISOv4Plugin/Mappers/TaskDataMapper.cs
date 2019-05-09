@@ -36,13 +36,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             Properties = properties;
             DeviceOperationTypes = new DeviceOperationTypes();
             InstanceIDMap = new InstanceIDMap();
-            Errors = new List<Error>();
+            Errors = new List<IError>();
         }
 
         public string BaseFolder { get; private set; }
         public Properties Properties { get; private set; }
         public InstanceIDMap InstanceIDMap { get; private set; }
-        public List<Error> Errors { get; private set; }
+        public List<IError> Errors { get; private set; }
 
         public ApplicationDataModel.ADM.ApplicationDataModel AdaptDataModel { get; private set; }
         public ISO11783_TaskData ISOTaskData { get; private set; }
@@ -351,7 +351,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
             IEnumerable<ISOTask> prescribedTasks = taskData.ChildElements.OfType<ISOTask>().Where(t => t.IsWorkItemTask);
-            IEnumerable<ISOTask> loggedTasks = taskData.ChildElements.OfType<ISOTask>().Where(t => t.IsLoggedDataTask);
+            IEnumerable<ISOTask> loggedTasks = taskData.ChildElements.OfType<ISOTask>().Where(t => t.IsLoggedDataTask || t.TimeLogs.Any());
             if (prescribedTasks.Any() || loggedTasks.Any())
             {
                 TaskMapper taskMapper = new TaskMapper(this);

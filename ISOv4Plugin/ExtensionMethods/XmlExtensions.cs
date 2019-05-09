@@ -1,10 +1,11 @@
-﻿/*
+/*
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
 using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Xml;
 using System.Xml.XPath;
@@ -150,7 +151,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
         {
             string value = GetXmlNodeValue(xmlNode, xPath);
             double outValue;
-            if (double.TryParse(value, out outValue))
+            if (double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out outValue))
             {
                 return outValue;
             }
@@ -177,7 +178,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
         {
             string value = GetXmlNodeValue(xmlNode, xPath);
             decimal outValue;
-            if (decimal.TryParse(value, out outValue))
+            if (decimal.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out outValue))
             {
                 return outValue;
             }

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
@@ -211,9 +211,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
         /// <param name="value"></param>
         /// <param name="mapper"></param>
         /// <returns></returns>
-        public static double AsConvertedDouble(this NumericRepresentationValue value, string targetUnitCode)
+        public static double? AsConvertedDouble(this NumericRepresentationValue value, string targetUnitCode)
         {
-            if (value.Value.UnitOfMeasure == null)
+            if (value == null)
+            {
+                return null;
+            }
+            else if (value.Value.UnitOfMeasure == null)
             {
                 return value.Value.Value; //Return the unconverted value
             }
@@ -233,9 +237,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
             }
         }
 
-        public static int AsConvertedInt(this NumericRepresentationValue value, string targetUnitCode)
+        public static int? AsConvertedInt(this NumericRepresentationValue value, string targetUnitCode)
         {
-            return (int)value.AsConvertedDouble(targetUnitCode);
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                return (int)value.AsConvertedDouble(targetUnitCode).Value;
+            }
         }
     }
 }

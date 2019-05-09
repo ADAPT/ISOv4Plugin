@@ -360,7 +360,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Parent ID
             if (isoDeviceElement.Parent != null)
             {
-                if (isoDeviceElement.Parent is ISODeviceElement)
+                if (isoDeviceElement.ParentObjectId == isoDeviceElement.DeviceElementObjectId)
+                {
+                    //Element has listed itself as its own parent.   Do not include a parent on the adapt element as it will invalidate logic in the hierarchy creation.
+                }
+                else if (isoDeviceElement.Parent is ISODeviceElement)
                 {
                     ISODeviceElement parentElement = isoDeviceElement.Parent as ISODeviceElement;
                     deviceElement.ParentDeviceId = TaskDataMapper.InstanceIDMap.GetADAPTID(parentElement.DeviceElementId).Value;

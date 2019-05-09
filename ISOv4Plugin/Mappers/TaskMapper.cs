@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
@@ -297,6 +297,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                                 dlv.ProcessDataValue = (int)numericValue.Value.Value;
                             }
                         }
+                        if (value.DeviceConfigurationId.HasValue)
+                        {
+                            DeviceElementConfiguration config = DataModel.Catalog.DeviceElementConfigurations.FirstOrDefault(c => c.Id.ReferenceId == value.DeviceConfigurationId.Value);
+                            if (config != null)
+                            {
+                                dlv.DeviceElementIdRef = TaskDataMapper.InstanceIDMap.GetISOID(config.DeviceElementId);
+                            }
+                        }
                         time.DataLogValues.Add(dlv);
                     }
                 }
@@ -450,23 +458,20 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             {
                 Prescription rx = PrescriptionMapper.ImportPrescription(isoPrescribedTask, workItem);
 
+                if (rx == null) return workItem;
                 //Add to the Prescription the Catalog
                 List<Prescription> prescriptions = DataModel.Catalog.Prescriptions as List<Prescription>;
-                if (prescriptions != null)
-                {
-                    prescriptions.Add(rx);
-                }
+                prescriptions?.Add(rx);
 
                 //Add A WorkItemOperation
                 WorkItemOperation operation = new WorkItemOperation();
                 operation.PrescriptionId = rx.Id.ReferenceId;
 
                 //Add the operation to the Documents and reference on the WorkItem
-                List<WorkItemOperation> operations = DataModel.Documents.WorkItemOperations as List<WorkItemOperation>;
-                if (operations != null)
-                {
-                    operations.Add(operation);
-                }
+                List<WorkItemOperation> operations =
+                    DataModel.Documents.WorkItemOperations as List<WorkItemOperation>;
+                operations?.Add(operation);
+
                 workItem.WorkItemOperationIds.Add(operation.Id.ReferenceId);
 
                 //Track any prescription IDs to map to any completed TimeLog data 
@@ -850,10 +855,23 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             DdiDefinition ddiDefintion = DDIs[ddi];
 
+            int? deviceConfigurationID = null;
+            int? deviceElementID = TaskDataMapper.InstanceIDMap.GetADAPTID(dlv.DeviceElementIdRef);
+            if (deviceElementID.HasValue)
+            {
+                DeviceElementConfiguration config = DataModel.Catalog.DeviceElementConfigurations.FirstOrDefault(c => c.DeviceElementId == deviceElementID.Value);
+                if (config != null)
+                {
+                    deviceConfigurationID = config.Id.ReferenceId;
+                }
+            }
+
             return new MeteredValue
             {
                 Value = new NumericRepresentationValue(RepresentationMapper.Map(ddi) as NumericRepresentation,
-                    unitOfMeasure, new NumericValue(unitOfMeasure, dataValue * ddiDefintion.Resolution))
+                                                       unitOfMeasure,
+                                                       new NumericValue(unitOfMeasure, dataValue * ddiDefintion.Resolution)),
+                DeviceConfigurationId = deviceConfigurationID
             };
         }
         #endregion Import Summary Data
