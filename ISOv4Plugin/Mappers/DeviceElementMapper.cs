@@ -10,6 +10,7 @@ using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using AgGateway.ADAPT.Representation.RepresentationSystem;
 using AgGateway.ADAPT.Representation.RepresentationSystem.ExtensionMethods;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -389,9 +390,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         //Device is a machine
                         deviceElement.DeviceElementType = DeviceElementTypeEnum.Machine;
                     }
-                    else if (deviceElementHierarchy.Children != null && deviceElementHierarchy.Children.Any(h => h.DeviceElement != null && h.DeviceElement.DeviceElementType == ISODeviceElementType.Navigation))
+                    else if (deviceElementHierarchy.Children != null &&
+                        (deviceElementHierarchy.AllDescendants.Any(d => d.DeviceElementType == ISODeviceElementType.Navigation) ||
+                        deviceElementHierarchy.AllDescendants.Any(d => d.DeviceElementType == ISODeviceElementType.Connector)))
                     {
-                        //Device has a navigation element; classify as a machine
+                        //Device has a navigation/connector element; classify as a machine
                         deviceElement.DeviceElementType = DeviceElementTypeEnum.Machine;
                     }
                     else
@@ -438,8 +441,20 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                  isoHierarchy.DeviceElement.DeviceElementType == ISOEnumerations.ISODeviceElementType.Navigation)
             {
                 //Data belongs to the parent device element from the ISO element referenced
-                //Connector and Navigation data may be stored in Timelog data, but Connectors are not DeviceElements in ADAPT.  The data refers to the parent implement.
-                DeviceElementConfiguration parentConfig = catalog.DeviceElementConfigurations.FirstOrDefault(c => c.DeviceElementId == adaptDeviceElement.ParentDeviceId);
+                //Connector and Navigation data may be stored in Timelog data, but Connectors are not DeviceElements in ADAPT.
+                //The data refers to the parent implement, which must always be a Device DET per the ISO spec.  We map this to a Machine Config
+                DeviceElement parent = catalog.DeviceElements.FirstOrDefault(d => d.Id.ReferenceId == adaptDeviceElement.ParentDeviceId);
+                while (parent != null && parent.DeviceElementType != DeviceElementTypeEnum.Machine)
+                {
+                    parent = catalog.DeviceElements.FirstOrDefault(d => d.Id.ReferenceId == parent.ParentDeviceId);
+                }
+
+                if (parent == null)
+                {
+                    throw new ApplicationException($"Cannot identify Device for Navigation/Connector DeviceElement: {adaptDeviceElement.Description}.");
+                }
+
+                DeviceElementConfiguration parentConfig = catalog.DeviceElementConfigurations.FirstOrDefault(c => c.DeviceElementId == parent.Id.ReferenceId);
                 if (parentConfig == null)
                 {
                     DeviceElement parentElement = catalog.DeviceElements.Single(d => d.Id.ReferenceId == adaptDeviceElement.ParentDeviceId);

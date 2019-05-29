@@ -156,12 +156,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
         public int? ZOffset { get; set; }
 
         public NumericRepresentationValue WidthRepresentation { get { return Width.HasValue ? Width.Value.AsNumericRepresentationValue(WidthDDI, RepresentationMapper) : null; } }
-        public NumericRepresentationValue XOffsetRepresentation { get { return XOffset.HasValue ? XOffset.Value.AsNumericRepresentationValue("0086", RepresentationMapper) : null; } } 
+        public NumericRepresentationValue XOffsetRepresentation { get { return XOffset.HasValue ? XOffset.Value.AsNumericRepresentationValue("0086", RepresentationMapper) : null; } }
         public NumericRepresentationValue YOffsetRepresentation { get { return YOffset.HasValue ? YOffset.Value.AsNumericRepresentationValue("0087", RepresentationMapper) : null; } }
         public NumericRepresentationValue ZOffsetRepresentation { get { return ZOffset.HasValue ? ZOffset.Value.AsNumericRepresentationValue("0088", RepresentationMapper) : null; } }
 
         public List<DeviceElementHierarchy> Children { get; set; }
         public DeviceElementHierarchy Parent { get; set; }
+
 
         public DeviceElementHierarchy FromDeviceElementID(string deviceElementID)
         {
@@ -181,6 +182,20 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                 }
             }
             return null;
+        }
+
+        public IEnumerable<ISODeviceElement> AllDescendants
+        {
+            get
+            {
+                List<ISODeviceElement> output = new List<ISODeviceElement>();
+                output.Add(DeviceElement);
+                if (Children != null && Children.Any())
+                {
+                    Children.ForEach(i => output.AddRange(i.AllDescendants));
+                }
+                return output;
+            }
         }
 
         public NumericRepresentationValue GetLowestLevelSectionWidth()
