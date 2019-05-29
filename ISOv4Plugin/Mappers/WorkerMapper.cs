@@ -109,8 +109,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 isoWorker.WorkerLastName = adaptWorker.CombinedName;
             }
             if (string.IsNullOrEmpty(isoWorker.WorkerLastName))
-            {   // Kind of stupid - but then at least the schema requirements are fullfilled.
-                isoWorker.WorkerLastName = isoWorker.WorkerId;  // "WKR22"
+            {   // The ISO11783-10 schema requires the WorkerLastName to be != ""...
+                isoWorker.WorkerLastName = "Unknown";
             }
             //</190503 MSp>
 
