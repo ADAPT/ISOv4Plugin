@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
@@ -128,17 +128,21 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             //First Device Element
             int? connectorID = TaskDataMapper.InstanceIDMap.GetADAPTID(isoConnection.DeviceElementIdRef_0);
+            Connector adaptConnector1 = null;
             if (connectorID.HasValue)
             {
-                Connector adaptConnector1 = DataModel.Catalog.Connectors.Single(d => d.Id.ReferenceId == connectorID.Value);
-                equipConfig.Connector1Id = adaptConnector1.Id.ReferenceId;
+                adaptConnector1 = DataModel.Catalog.Connectors.SingleOrDefault(d => d.Id.ReferenceId == connectorID.Value);
+                if (adaptConnector1 != null)
+                {
+                    equipConfig.Connector1Id = adaptConnector1.Id.ReferenceId;
 
-                ISODeviceElement isoDeviceElement = TaskDataMapper.DeviceElementHierarchies.GetISODeviceElementFromID(isoConnection.DeviceElementIdRef_0);
-                descriptionBuilder.Append(isoDeviceElement.Device.DeviceDesignator);
-                descriptionBuilder.Append(":");
-                descriptionBuilder.Append(isoDeviceElement.DeviceElementDesignator);
+                    ISODeviceElement isoDeviceElement = TaskDataMapper.DeviceElementHierarchies.GetISODeviceElementFromID(isoConnection.DeviceElementIdRef_0);
+                    descriptionBuilder.Append(isoDeviceElement.Device.DeviceDesignator);
+                    descriptionBuilder.Append(":");
+                    descriptionBuilder.Append(isoDeviceElement.DeviceElementDesignator);
+                }
             }
-            else
+            if (adaptConnector1 == null)
             {
                 descriptionBuilder.Append("Unknown");
             }
@@ -146,18 +150,22 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             descriptionBuilder.Append("<->");
 
             //Second Device Element
+            Connector adaptConnector2 = null;
             connectorID = TaskDataMapper.InstanceIDMap.GetADAPTID(isoConnection.DeviceElementIdRef_1);
             if (connectorID.HasValue)
             {
-                Connector adaptConnector2 = DataModel.Catalog.Connectors.Single(d => d.Id.ReferenceId == connectorID.Value);
-                equipConfig.Connector2Id = adaptConnector2.Id.ReferenceId;
+                adaptConnector2 = DataModel.Catalog.Connectors.SingleOrDefault(d => d.Id.ReferenceId == connectorID.Value);
+                if (adaptConnector2 != null)
+                {
+                    equipConfig.Connector2Id = adaptConnector2.Id.ReferenceId;
 
-                ISODeviceElement isoDeviceElement = TaskDataMapper.DeviceElementHierarchies.GetISODeviceElementFromID(isoConnection.DeviceElementIdRef_1);
-                descriptionBuilder.Append(isoDeviceElement.Device.DeviceDesignator);
-                descriptionBuilder.Append(":");
-                descriptionBuilder.Append(isoDeviceElement.DeviceElementDesignator);
+                    ISODeviceElement isoDeviceElement = TaskDataMapper.DeviceElementHierarchies.GetISODeviceElementFromID(isoConnection.DeviceElementIdRef_1);
+                    descriptionBuilder.Append(isoDeviceElement.Device.DeviceDesignator);
+                    descriptionBuilder.Append(":");
+                    descriptionBuilder.Append(isoDeviceElement.DeviceElementDesignator);
+                }
             }
-            else
+            if (adaptConnector2 == null)
             {
                 descriptionBuilder.Append("Unknown");
             }
