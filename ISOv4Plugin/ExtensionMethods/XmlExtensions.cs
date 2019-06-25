@@ -22,12 +22,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
                 var xmlDoc = new XmlDocument();
 
                 string xmlName = string.Concat(fileName, ".xml");
-
-                //Handle case-sensitive file systems
-                var fileNameToFind = xmlName.ToLower();
-                var allFiles = Directory.GetFiles(baseFolder, "*.*", SearchOption.AllDirectories);
-                var matchedFiles = allFiles.Where(f => f.ToLower().EndsWith(fileNameToFind));
-                string file = matchedFiles.FirstOrDefault();
+                string file = baseFolder.GetDirectoryFiles(xmlName, SearchOption.AllDirectories).FirstOrDefault();
 
                 if (file != null)
                 {

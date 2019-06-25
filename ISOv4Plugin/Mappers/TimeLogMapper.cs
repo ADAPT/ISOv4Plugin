@@ -427,9 +427,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         private IEnumerable<ISOSpatialRow> ReadTimeLog(ISOTimeLog timeLog, string dataPath)
         {
             ISOTime templateTime = timeLog.GetTimeElement(dataPath);
-            string filePath = Path.Combine(dataPath, string.Concat(timeLog.Filename, ".bin"));
-
-            if (templateTime != null && File.Exists(filePath))
+            string binName = string.Concat(timeLog.Filename, ".bin");
+            string filePath = dataPath.GetDirectoryFiles(binName, SearchOption.TopDirectoryOnly).FirstOrDefault();
+            if (templateTime != null && filePath != null)
             {
                 BinaryReader reader = new BinaryReader();
                 return reader.Read(filePath, templateTime);
