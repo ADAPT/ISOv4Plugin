@@ -2,13 +2,11 @@
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
-using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Xml;
-using System.Xml.XPath;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
 {
@@ -23,15 +21,20 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
                     return null;
                 var xmlDoc = new XmlDocument();
 
-                string filePath = Path.ChangeExtension(Path.Combine(baseFolder, fileName), ".xml");
-                try
-                {
-                    xmlDoc.Load(filePath);
+                string xmlName = string.Concat(fileName, ".xml");
+                string file = baseFolder.GetDirectoryFiles(xmlName, SearchOption.AllDirectories).FirstOrDefault();
 
-                    return xmlDoc.SelectNodes("XFC/*");
+                if (file != null)
+                {
+                    try
+                    {
+                        xmlDoc.Load(file);
+
+                        return xmlDoc.SelectNodes("XFC/*");
+                    }
+                    catch (XmlException) { }
+                    catch (IOException) { }
                 }
-                catch (XmlException) { }
-                catch (IOException) { }
             }
             return null;
         }

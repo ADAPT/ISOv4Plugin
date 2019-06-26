@@ -53,8 +53,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 
         public ISOTime GetTimeElement(string dataPath)
         {
-            string filePath = Path.Combine(dataPath, string.Concat(Filename, ".xml"));
-            if (File.Exists(filePath))
+            string xmlName = string.Concat(Filename, ".xml");
+            string filePath = dataPath.GetDirectoryFiles(xmlName, SearchOption.TopDirectoryOnly).FirstOrDefault();
+            if (filePath != null)
             {
                 XmlDocument document = new XmlDocument();
                 document.Load(filePath);
