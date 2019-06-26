@@ -530,7 +530,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
             //GPS Offsets
-            if (deviceHierarchy.Children != null && deviceHierarchy.Children.Any(h => h.DeviceElement.DeviceElementType == ISODeviceElementType.Navigation))
+            if (deviceHierarchy.Children != null && deviceHierarchy.Children.Any(h=>h.DeviceElement!=null &&  h.DeviceElement.DeviceElementType == ISODeviceElementType.Navigation))
             {
                 DeviceElementHierarchy navigation = (deviceHierarchy.Children.First(h => h.DeviceElement.DeviceElementType == ISODeviceElementType.Navigation));
                 machineConfig.GpsReceiverXOffset = navigation.XOffsetRepresentation;
