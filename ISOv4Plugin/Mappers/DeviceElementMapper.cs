@@ -390,7 +390,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         //Device is a machine
                         deviceElement.DeviceElementType = DeviceElementTypeEnum.Machine;
                     }
-                    else if (deviceElementHierarchy.Children != null && deviceElementHierarchy.AllDescendants.Any(d => d.DeviceElementType == ISODeviceElementType.Navigation))
+                    else if (deviceElementHierarchy.Children != null && deviceElementHierarchy.AllDescendants.Any(d => d?.DeviceElementType == ISODeviceElementType.Navigation))
                     {
                         //Device has a navigation element; classify as a machine
                         deviceElement.DeviceElementType = DeviceElementTypeEnum.Machine;
@@ -530,7 +530,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
             //GPS Offsets
-            if (deviceHierarchy.Children != null && deviceHierarchy.Children.Any(h => h.DeviceElement.DeviceElementType == ISODeviceElementType.Navigation))
+            if (deviceHierarchy.Children != null && deviceHierarchy.Children.Any(h=>h.DeviceElement!=null &&  h.DeviceElement.DeviceElementType == ISODeviceElementType.Navigation))
             {
                 DeviceElementHierarchy navigation = (deviceHierarchy.Children.First(h => h.DeviceElement.DeviceElementType == ISODeviceElementType.Navigation));
                 machineConfig.GpsReceiverXOffset = navigation.XOffsetRepresentation;

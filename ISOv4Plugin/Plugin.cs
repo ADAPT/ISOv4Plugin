@@ -101,17 +101,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin
 
         private static List<string> GetListOfTaskDataFiles(string dataPath)
         {
-            //The directory check here is case sensitive for unix-based OSes (see comment below)
-            if (Directory.Exists(dataPath))
-            {
-                //Note! We need to iterate through all files and do a ToLower for this to work in .Net Core in Linux since that filesystem
-                //is case sensitive and the NetStandard interface for Directory.GetFiles doesn't account for that yet.
-                var fileNameToFind = FileName.ToLower();
-                var allFiles = Directory.GetFiles(dataPath, "*.*", SearchOption.AllDirectories);
-                var matchedFiles = allFiles.Where(file => file.ToLower().EndsWith(fileNameToFind));
-                return matchedFiles.ToList();
-            }
-            return new List<string>();
+            return dataPath.GetDirectoryFiles(FileName, SearchOption.AllDirectories).ToList();
         }
 
         private List<ISO11783_TaskData> ReadDataCard(string dataPath)
