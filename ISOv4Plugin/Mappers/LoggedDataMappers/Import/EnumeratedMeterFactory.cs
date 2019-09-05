@@ -1,4 +1,4 @@
-﻿namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
+namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
     public interface IEnumeratedMeterFactory
     {
@@ -28,8 +28,8 @@
                 return new NetWeightStateMeterCreator((int)ddi);
             if (ddi == 240)
                 return new ActualLoadingSystemStatusMeterCreator((int)ddi);
-            if (ddi >= 290 && ddi < 305)
-                return new CondensedWorkStateMeterCreator((int)ddi, 290);
+            //if (ddi >= 290 && ddi < 305)     //Github Issue 92
+            //    return new CondensedWorkStateMeterCreator((int)ddi, 290);
             if (ddi >= 367 && ddi <= 382)
                 return new CondensedSectionOverrideStateMeterCreator((int)ddi);
             return null;
