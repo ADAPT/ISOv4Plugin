@@ -124,7 +124,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Representation
             if (unitDescriptionLocation == -1)
                 unitDescriptionLocation = value.IndexOf(" (", StringComparison.Ordinal);
 
-            return value.Substring(6, unitDescriptionLocation - 6);
+            string parsedUnit = value.Substring(6, unitDescriptionLocation - 6);
+            if (parsedUnit.Contains("("))
+            {
+                //This unit description contained extraneous parenthesized information left of the hyphen
+                unitDescriptionLocation = parsedUnit.IndexOf(" (", StringComparison.Ordinal);
+                return parsedUnit.Substring(0, unitDescriptionLocation);
+            }
+            else
+            {
+                return parsedUnit;
+            }
         }
     }
 }
