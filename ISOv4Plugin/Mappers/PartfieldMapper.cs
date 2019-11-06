@@ -108,7 +108,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
                     }
                 }
-                GuidanceGroupMapper ggpMapper = new GuidanceGroupMapper(TaskDataMapper);
+				GuidanceGroupMapper ggpMapper = TaskDataMapper.GuidanceGroupMapper;
                 isoField.GuidanceGroups = ggpMapper.ExportGuidanceGroups(groups).ToList();
             }
 

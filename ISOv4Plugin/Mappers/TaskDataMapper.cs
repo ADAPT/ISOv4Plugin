@@ -96,6 +96,26 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
         }
 
+        GuidanceGroupMapper _guidanceGroupMapper;
+        public GuidanceGroupMapper GuidanceGroupMapper
+        {
+            get
+            {
+                if (_guidanceGroupMapper == null) _guidanceGroupMapper = new GuidanceGroupMapper(this);
+                return _guidanceGroupMapper;
+            }
+        }
+
+        GuidancePatternMapper _guidancePaddernMapper;
+        public GuidancePatternMapper GuidancePatternMapper
+        {
+            get
+            {
+                if (_guidancePaddernMapper == null) _guidancePaddernMapper = new GuidancePatternMapper(this);
+                return _guidancePaddernMapper;
+            }
+        }
+
         public void AddError(string error, string id = null, string source = null, string stackTrace = null)
         {
             Errors.Add(new Error() { Description = error, Id = id, Source = source, StackTrace = stackTrace });
