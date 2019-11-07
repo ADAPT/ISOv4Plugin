@@ -382,14 +382,25 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             {
                 if (dvc.DeviceElements.Select(d => d.DeviceElementId).Contains(pan.DeviceElementIdRef)) //Filter PANs by this DVC
                 {
-                    if (!output.ContainsKey(pan.DeviceElementIdRef))
-                    {
-                        output.Add(pan.DeviceElementIdRef, new List<ISOProductAllocation>());
-                    }
-                    output[pan.DeviceElementIdRef].Add(pan);
+                    ISODeviceElement deviceElement = dvc.DeviceElements.First(d => d.DeviceElementId == pan.DeviceElementIdRef);
+                    AddProductAllocationsForDeviceElement(output, pan, deviceElement);
                 }
             }
             return output;
+        }
+
+        private void AddProductAllocationsForDeviceElement(Dictionary<string, List<ISOProductAllocation>> productAllocations, ISOProductAllocation pan, ISODeviceElement deviceElement)
+        {
+            if (!productAllocations.ContainsKey(deviceElement.DeviceElementId))
+            {
+                productAllocations.Add(deviceElement.DeviceElementId, new List<ISOProductAllocation>());
+            }
+            productAllocations[deviceElement.DeviceElementId].Add(pan);
+
+            foreach (ISODeviceElement child in deviceElement.ChildDeviceElements)
+            {
+                AddProductAllocationsForDeviceElement(productAllocations, pan, child);
+            }
         }
 
         private OperationTypeEnum GetOperationTypeFromLoggingDevices(ISOTime time)
