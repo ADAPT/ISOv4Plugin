@@ -35,10 +35,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin
 
             //Serialize the ISO model to XML
             TaskDocumentWriter writer = new TaskDocumentWriter();
-            writer.WriteTaskData(exportPath, taskData);
+            writer.WriteTaskData(outputPath, taskData);
 
             //Serialize the Link List
-            writer.WriteLinkList(exportPath, taskData.LinkList);
+            writer.WriteLinkList(outputPath, taskData.LinkList);
         }
 
         public IList<ApplicationDataModel.ADM.ApplicationDataModel> Import(string dataPath, Properties properties = null)
