@@ -37,6 +37,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteXmlAttribute("D", DataLogPGN);
             xmlBuilder.WriteXmlAttribute("E", DataLogPGNStartBit);
             xmlBuilder.WriteXmlAttribute("F", DataLogPGNStopBit);
+            base.WriteXML(xmlBuilder);
             xmlBuilder.WriteEndElement();
 
             return xmlBuilder;

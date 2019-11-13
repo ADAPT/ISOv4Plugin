@@ -19,6 +19,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         {
             xmlBuilder.WriteStartElement("DOR");
             xmlBuilder.WriteXmlAttribute<uint>("A", DeviceObjectId );
+            base.WriteXML(xmlBuilder);
             xmlBuilder.WriteEndElement();
             return xmlBuilder;
         }

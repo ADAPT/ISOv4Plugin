@@ -29,6 +29,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteStartElement("CPC");
             xmlBuilder.WriteXmlAttribute("A", CulturalPracticeID);
             xmlBuilder.WriteXmlAttribute("B", CulturalPracticeDesignator);
+            base.WriteXML(xmlBuilder);
 
             foreach (var item in OperationTechniqueReferences)
             {

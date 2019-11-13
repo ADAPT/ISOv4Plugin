@@ -31,6 +31,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteXmlAttribute<int>("D", TriggerMethods);
             xmlBuilder.WriteXmlAttribute("E", Designator);
             xmlBuilder.WriteXmlAttribute<uint>("F", DeviceValuePresentationObjectId);
+            base.WriteXML(xmlBuilder);
             xmlBuilder.WriteEndElement();
             return xmlBuilder;
         }

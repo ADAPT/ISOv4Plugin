@@ -35,6 +35,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteXmlAttribute("G", FarmState);
             xmlBuilder.WriteXmlAttribute("H", FarmCountry);
             xmlBuilder.WriteXmlAttribute("I", CustomerIdRef);
+            base.WriteXML(xmlBuilder);
             xmlBuilder.WriteEndElement();
 
             return xmlBuilder;

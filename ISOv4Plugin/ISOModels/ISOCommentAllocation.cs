@@ -27,6 +27,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteXmlAttribute("A", CodedCommentIdRef);
             xmlBuilder.WriteXmlAttribute("B", CodedCommentListValueIdRef);
             xmlBuilder.WriteXmlAttribute("C", FreeCommentText);
+            base.WriteXML(xmlBuilder);
             if (AllocationStamp != null)
             {
                 AllocationStamp.WriteXML(xmlBuilder);

@@ -48,6 +48,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteXmlAttribute("D", DeviceElementDesignator);
             xmlBuilder.WriteXmlAttribute<uint>("E", DeviceElementNumber);
             xmlBuilder.WriteXmlAttribute<uint>("F", ParentObjectId);
+            base.WriteXML(xmlBuilder);
             foreach (ISODeviceObjectReference item in DeviceObjectReferences) { item.WriteXML(xmlBuilder); }
 
             xmlBuilder.WriteEndElement();

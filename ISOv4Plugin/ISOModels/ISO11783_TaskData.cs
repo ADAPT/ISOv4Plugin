@@ -18,12 +18,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
     {
         public ISO11783_TaskData()
         {
-            XmlComments = new List<string>();  //191022 MSp
-
             ChildElements = new List<ISOElement>();
         }
 
-        public List<string> XmlComments { get; set; }  //191022 MSp
         public List<ISOElement> ChildElements { get; set; }
         public ISO11783_LinkList LinkList { get; set; }
         public string DataFolder { get; set; }
@@ -53,8 +50,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             {
                 xmlBuilder.WriteAttributeString("DataTransferLanguage", DataTransferLanguage);
             }
-
-            foreach (string item in XmlComments) { xmlBuilder.WriteComment(item); }    //191022 MSp
+            base.WriteXML(xmlBuilder);
 
             if (ChildElements != null)
             {
