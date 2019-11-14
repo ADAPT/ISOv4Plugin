@@ -19,7 +19,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
     public class SpatialRecordMapper : ISpatialRecordMapper
     {
+        // ATTENTION: CoordinateMultiplier and ZMultiplier also exist in TimeLogMapper.cs!
         private const double CoordinateMultiplier = 0.0000001;
+        private const double ZMultiplier = 0.001;   // In ISO the PositionUp value is specified in mm.
         private readonly IRepresentationValueInterpolator _representationValueInterpolator;
         private readonly IWorkingDataMapper _workingDataMapper;
         private readonly ISectionMapper _sectionMapper;
@@ -57,7 +59,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             {
                 X = Convert.ToDouble(isoSpatialRow.EastPosition * CoordinateMultiplier),
                 Y = Convert.ToDouble(isoSpatialRow.NorthPosition * CoordinateMultiplier),
-                Z = isoSpatialRow.Elevation
+                Z = Convert.ToDouble(isoSpatialRow.Elevation.GetValueOrDefault() * ZMultiplier)
             };
 
             spatialRecord.Timestamp = isoSpatialRow.TimeStart;

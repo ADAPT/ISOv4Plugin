@@ -147,7 +147,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         }
 
         private class BinaryWriter
-        {
+        {   // ATTENTION: CoordinateMultiplier and ZMultiplier also exist in Import\SpatialRecordMapper.cs!
             private const double CoordinateMultiplier = 0.0000001;
             private const double ZMultiplier = 0.001;   // In ISO the PositionUp value is specified in mm.
             private readonly DateTime _januaryFirst1980 = new DateTime(1980, 1, 1);
