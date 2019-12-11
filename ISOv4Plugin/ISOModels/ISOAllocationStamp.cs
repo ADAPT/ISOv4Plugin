@@ -37,6 +37,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteXmlAttribute("B", Stop.HasValue ? Stop.Value.ToString("yyyy-MM-ddTHH:mm:ss") : "");
             xmlBuilder.WriteXmlAttribute<uint>("C", Duration);
             xmlBuilder.WriteXmlAttribute("D", ((int)Type).ToString());
+            base.WriteXML(xmlBuilder);
             foreach (ISOPosition item in Positions) { item.WriteXML(xmlBuilder); }
             xmlBuilder.WriteEndElement();
 

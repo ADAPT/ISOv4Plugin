@@ -33,6 +33,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteStartElement("GGP");
             xmlBuilder.WriteXmlAttribute("A", GuidanceGroupId );
             xmlBuilder.WriteXmlAttribute("B", GuidanceGroupDesignator );
+            base.WriteXML(xmlBuilder);
             foreach (ISOGuidancePattern item in GuidancePatterns) { item.WriteXML(xmlBuilder); }
             foreach (ISOPolygon item in BoundaryPolygons) { item.WriteXML(xmlBuilder); }
 

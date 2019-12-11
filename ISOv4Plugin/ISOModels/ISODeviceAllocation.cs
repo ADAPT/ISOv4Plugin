@@ -27,6 +27,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteXmlAttribute("A", ClientNAMEValue);
             xmlBuilder.WriteXmlAttribute("B", ClientNAMEMask);
             xmlBuilder.WriteXmlAttribute("C", DeviceIdRef);
+            base.WriteXML(xmlBuilder);
             if (AllocationStamp != null)
             {
                 AllocationStamp.WriteXML(xmlBuilder);

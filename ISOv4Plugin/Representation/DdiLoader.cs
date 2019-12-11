@@ -94,7 +94,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Representation
 
             double doubleValue;
             //191112 MSp double.TryParse(value, out doubleValue);
-            double.TryParse(value, out doubleValue);
             //191112 MSp With German language settings "0,001" repectively "0.001" becomes 1 (instead of 0.001).
             double.TryParse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out doubleValue); //191112 MSp
             return doubleValue;

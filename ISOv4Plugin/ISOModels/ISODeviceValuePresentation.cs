@@ -29,6 +29,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteXmlAttribute<double>("C", Scale);
             xmlBuilder.WriteXmlAttribute<byte>("D", NumberOfDecimals);
             xmlBuilder.WriteXmlAttribute("E", UnitDesignator);
+            base.WriteXML(xmlBuilder);
             xmlBuilder.WriteEndElement();
             return xmlBuilder;
         }

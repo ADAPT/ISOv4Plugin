@@ -44,6 +44,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteXmlAttribute("H", Filelength);
             xmlBuilder.WriteXmlAttribute<byte>("I", GridType);
             xmlBuilder.WriteXmlAttribute("J", TreatmentZoneCode);
+            base.WriteXML(xmlBuilder);
             xmlBuilder.WriteEndElement();
             return xmlBuilder;
         }

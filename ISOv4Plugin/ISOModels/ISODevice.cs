@@ -46,6 +46,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteXmlAttribute("E", DeviceSerialNumber);
             xmlBuilder.WriteXmlAttribute("F", DeviceStructureLabel);
             xmlBuilder.WriteXmlAttribute("G", DeviceLocalizationLabel);
+            base.WriteXML(xmlBuilder);
             foreach (ISODeviceElement item in DeviceElements) { item.WriteXML(xmlBuilder); }
             foreach (ISODeviceProcessData item in DeviceProcessDatas) { item.WriteXML(xmlBuilder); }
             foreach (ISODeviceProperty item in DeviceProperties) { item.WriteXML(xmlBuilder); }

@@ -25,7 +25,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteXmlAttribute("B", DeviceElementIdRef_0);
             xmlBuilder.WriteXmlAttribute("C", DeviceIdRef_1);
             xmlBuilder.WriteXmlAttribute("D", DeviceElementIdRef_1);
-
+            base.WriteXML(xmlBuilder);
             xmlBuilder.WriteEndElement();
             return xmlBuilder;
         }

@@ -29,6 +29,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         {
             xmlBuilder.WriteStartElement("GAN");
             xmlBuilder.WriteXmlAttribute("A", GuidanceGroupIdRef);
+            base.WriteXML(xmlBuilder);
             if (AllocationStamp != null)
             {
                 AllocationStamp.WriteXML(xmlBuilder);

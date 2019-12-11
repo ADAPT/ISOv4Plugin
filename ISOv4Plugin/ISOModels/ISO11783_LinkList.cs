@@ -44,6 +44,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteAttributeString("TaskControllerVersion", TaskControllerVersion ?? string.Empty);
             xmlBuilder.WriteAttributeString("DataTransferOrigin", ((int)DataTransferOrigin).ToString() ?? string.Empty);
             xmlBuilder.WriteAttributeString("FileVersion", FileVersion ?? string.Empty);
+            base.WriteXML(xmlBuilder);
             foreach (ISOLinkGroup item in LinkGroups) { item.WriteXML(xmlBuilder); }
 
             xmlBuilder.WriteEndElement();
