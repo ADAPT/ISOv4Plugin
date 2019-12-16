@@ -31,6 +31,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteXmlAttribute("A", CropTypeId);
             xmlBuilder.WriteXmlAttribute("B", CropTypeDesignator);
             xmlBuilder.WriteXmlAttribute("C", ProductGroupIdRef);
+            base.WriteXML(xmlBuilder);
 
             foreach (var item in CropVarieties)
             {

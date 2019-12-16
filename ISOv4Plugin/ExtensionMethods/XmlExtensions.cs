@@ -226,7 +226,19 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
             if (!attributeValue.HasValue)
                 return;
 
-            writer.WriteAttributeString(attributeName, attributeValue.Value.ToString());
+            if (typeof(T) == typeof(decimal))
+            {
+                decimal helper = (decimal)(object)(attributeValue.Value);
+                writer.WriteAttributeString(attributeName, helper.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            }
+            else if (typeof(T) == typeof(double))
+            {
+                double helper = (double)(object)(attributeValue.Value);
+                writer.WriteAttributeString(attributeName, helper.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            }
+            else {
+                writer.WriteAttributeString(attributeName, attributeValue.Value.ToString());
+            }
         }
     }
 }

@@ -21,6 +21,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteStartElement("CCL");
             xmlBuilder.WriteXmlAttribute("A", CodedCommentListValueId);
             xmlBuilder.WriteXmlAttribute("B", CodedCommentListValueDesignator);
+            base.WriteXML(xmlBuilder);
             xmlBuilder.WriteEndElement();
             return xmlBuilder;
         }

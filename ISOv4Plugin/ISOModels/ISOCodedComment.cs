@@ -36,6 +36,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteXmlAttribute("B", CodedCommentDesignator);
             xmlBuilder.WriteXmlAttribute<ISOCodedCommentScope>("C", CodedCommentScope);
             xmlBuilder.WriteXmlAttribute("D", CodedCommentGroupIdRef);
+            base.WriteXML(xmlBuilder);
 
             foreach (ISOCodedCommentListValue item in CodedCommentListValues) { item.WriteXML(xmlBuilder); }
 

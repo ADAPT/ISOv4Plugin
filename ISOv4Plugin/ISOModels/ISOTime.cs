@@ -41,13 +41,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteStartElement("TIM");
 
             //Custom behavior for StartTime to support TimeLog use with an empty A
-            string start = Start.HasValue ? Start.Value.ToString("yyyy-MM-ddThh:mm:ss") : HasStart ? string.Empty : null;
+            string start = Start.HasValue ? Start.Value.ToString("yyyy-MM-ddTHH:mm:ss") : HasStart ? string.Empty : null;
             if (start != null)
             {
                 xmlBuilder.WriteAttributeString("A", start);
             }
 
-            xmlBuilder.WriteXmlAttribute("B", Stop.HasValue ? Stop.Value.ToString("yyyy-MM-ddThh:mm:ss") : "");
+            xmlBuilder.WriteXmlAttribute("B", Stop.HasValue ? Stop.Value.ToString("yyyy-MM-ddTHH:mm:ss") : "");
             xmlBuilder.WriteXmlAttribute<uint>("C", Duration);
             xmlBuilder.WriteXmlAttribute("D", ((int)Type).ToString());
 

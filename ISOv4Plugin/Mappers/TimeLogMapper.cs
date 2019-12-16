@@ -62,6 +62,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //ID
             string id = operation.Id.FindIsoId() ?? GenerateId(5);
             isoTimeLog.Filename = id;
+            isoTimeLog.TimeLogType = 1; // TimeLogType TLG.C is a required attribute. Currently only the value "1" is defined.
             ExportIDs(operation.Id, id);
 
             List<DeviceElementUse> deviceElementUses = operation.GetAllSections();
@@ -146,8 +147,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         }
 
         private class BinaryWriter
-        {
+        {   // ATTENTION: CoordinateMultiplier and ZMultiplier also exist in Import\SpatialRecordMapper.cs!
             private const double CoordinateMultiplier = 0.0000001;
+            private const double ZMultiplier = 0.001;   // In ISO the PositionUp value is specified in mm.
             private readonly DateTime _januaryFirst1980 = new DateTime(1980, 1, 1);
 
             private readonly IEnumeratedValueMapper _enumeratedValueMapper;
@@ -205,7 +207,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     {
                         north = (Int32)(location.Y / CoordinateMultiplier);
                         east = (Int32)(location.X / CoordinateMultiplier);
-                        up = (Int32)(location.Z.GetValueOrDefault());
+                        up = (Int32)(location.Z.GetValueOrDefault() / ZMultiplier);
                     }
                 }
 

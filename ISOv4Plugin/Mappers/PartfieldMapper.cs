@@ -108,7 +108,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
                     }
                 }
-                GuidanceGroupMapper ggpMapper = new GuidanceGroupMapper(TaskDataMapper);
+				GuidanceGroupMapper ggpMapper = TaskDataMapper.GuidanceGroupMapper;
                 isoField.GuidanceGroups = ggpMapper.ExportGuidanceGroups(groups).ToList();
             }
 
@@ -185,7 +185,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             {
                 isoField.FarmIdRef = TaskDataMapper.InstanceIDMap.GetISOID(field.FarmId.Value);
                 Farm adaptFarm = DataModel.Catalog.Farms.FirstOrDefault(f => f.Id.ReferenceId == field.FarmId);
-                if (adaptFarm != null)
+                if ((adaptFarm != null) && adaptFarm.GrowerId.HasValue)
                 {
                     isoField.CustomerIdRef = TaskDataMapper.InstanceIDMap.GetISOID(adaptFarm.GrowerId.Value);
                 }

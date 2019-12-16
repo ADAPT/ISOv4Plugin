@@ -52,12 +52,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteXmlAttribute("A", GuidancePatternId);
             xmlBuilder.WriteXmlAttribute("B", GuidancePatternDesignator);
             xmlBuilder.WriteXmlAttribute("C", ((int)GuidancePatternType).ToString());
-            xmlBuilder.WriteXmlAttribute<ISOGuidancePatternOption>("D", GuidancePatternOptions);
-            xmlBuilder.WriteXmlAttribute<ISOGuidancePatternPropagationDirection>("E", PropagationDirection);
-            xmlBuilder.WriteXmlAttribute<ISOGuidancePatternExtension>("F", Extension);
+            //190503 MSp xmlBuilder.WriteXmlAttribute<ISOGuidancePatternOption>("D", GuidancePatternOptions);
+            if (GuidancePatternOptions.HasValue) xmlBuilder.WriteXmlAttribute("D", ((int)GuidancePatternOptions).ToString());    //190503 MSp
+            //190503 MSp xmlBuilder.WriteXmlAttribute<ISOGuidancePatternPropagationDirection>("E", PropagationDirection);   // Gets serialized as E="BothDirections"
+            if (PropagationDirection.HasValue) xmlBuilder.WriteXmlAttribute("E", ((int)PropagationDirection).ToString());  //190503 MSp
+            //190503 MSp xmlBuilder.WriteXmlAttribute<ISOGuidancePatternExtension>("F", Extension);
+            if (Extension.HasValue) xmlBuilder.WriteXmlAttribute("F", ((int)Extension).ToString()); //190503 MSp
             xmlBuilder.WriteXmlAttribute("G", Heading);
             xmlBuilder.WriteXmlAttribute("H", Radius);
-            xmlBuilder.WriteXmlAttribute<ISOGuidancePatternGNSSMethod>("I", GNSSMethod);
+            //190503 MSp xmlBuilder.WriteXmlAttribute<ISOGuidancePatternGNSSMethod>("I", GNSSMethod);
+            if (GNSSMethod.HasValue) xmlBuilder.WriteXmlAttribute("I", ((int)GNSSMethod).ToString());   //190503 MSp
             xmlBuilder.WriteXmlAttribute("J", HorizontalAccuracy);
             xmlBuilder.WriteXmlAttribute("K", VerticalAccuracy);
             xmlBuilder.WriteXmlAttribute("L", BaseStationRef);

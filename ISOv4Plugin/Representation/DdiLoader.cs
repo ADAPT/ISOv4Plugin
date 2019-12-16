@@ -88,22 +88,27 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Representation
             if (resolution == null)
                 return 0;
 
+            // "Resolution: 0,001"
             var split = resolution.Split(':');
             var value = split[1].Trim().Replace(',', '.');
 
             double doubleValue;
-            double.TryParse(value, out doubleValue);
+            //191112 MSp double.TryParse(value, out doubleValue);
+            //191112 MSp With German language settings "0,001" repectively "0.001" becomes 1 (instead of 0.001).
+            double.TryParse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out doubleValue); //191112 MSp
             return doubleValue;
         }
 
         private static int ParseId(string value)
         {
+            // DD Entity: 144 Yaw Angle
             var regex = new Regex("\\d+");
             return int.Parse(regex.Matches(value)[0].Value);
         }
 
         private static string ParseName(string value)
         {
+            // DD Entity: 144 Yaw Angle
             var regex = new Regex("\\d+");
             var match = regex.Matches(value)[0];
 
@@ -112,11 +117,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Representation
 
         private static string ParseDefinition(string value)
         {
+            // Definition: Pivot / Yaw Angle of a DeviceElement
             return value.Substring(12).TrimEnd();
         }
 
         private static string ParseUnit(string value)
         {
+            // Unit: ° - Angle
             if (string.IsNullOrWhiteSpace(value))
                 return string.Empty;
 

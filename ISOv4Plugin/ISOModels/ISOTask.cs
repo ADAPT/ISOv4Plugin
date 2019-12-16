@@ -91,6 +91,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteXmlAttribute<int>("H", DefaultTreatmentZoneCode);
             xmlBuilder.WriteXmlAttribute<int>("I", PositionLostTreatmentZoneCode);
             xmlBuilder.WriteXmlAttribute<int>("J", OutOfFieldTreatmentZoneCode);
+            base.WriteXML(xmlBuilder);
 
             if (Grid != null)
             {

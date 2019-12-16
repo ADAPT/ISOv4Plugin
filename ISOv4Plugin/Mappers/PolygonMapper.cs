@@ -51,9 +51,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             LineStringMapper lsgMapper = new LineStringMapper(TaskDataMapper);
             ISOPolygon.LineStrings = new List<ISOLineString>();
             ISOPolygon.LineStrings.Add(lsgMapper.ExportLinearRing(adaptPolygon.ExteriorRing, ISOLineStringType.PolygonExterior));
-            foreach(LinearRing interiorRing in adaptPolygon.InteriorRings)
+            if (adaptPolygon.InteriorRings != null)
             {
-                ISOPolygon.LineStrings.Add(lsgMapper.ExportLinearRing(interiorRing, ISOLineStringType.PolygonInterior));
+                foreach(LinearRing interiorRing in adaptPolygon.InteriorRings)
+                {
+                    ISOPolygon.LineStrings.Add(lsgMapper.ExportLinearRing(interiorRing, ISOLineStringType.PolygonInterior));
+                }
             }
 
             return ISOPolygon;

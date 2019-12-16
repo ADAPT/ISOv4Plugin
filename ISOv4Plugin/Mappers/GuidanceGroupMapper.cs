@@ -66,7 +66,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         patterns.Add(adaptPattern);
                     }
                 }
-                GuidancePatternMapper patternMapper = new GuidancePatternMapper(TaskDataMapper);
+                GuidancePatternMapper patternMapper = TaskDataMapper.GuidancePatternMapper;
                 isoGroup.GuidancePatterns = patternMapper.ExportGuidancePatterns(patterns).ToList();
             }
 

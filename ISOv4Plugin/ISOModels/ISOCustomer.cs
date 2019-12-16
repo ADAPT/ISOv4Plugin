@@ -44,6 +44,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteXmlAttribute("K", CustomerMobile);
             xmlBuilder.WriteXmlAttribute("L", CustomerFax);
             xmlBuilder.WriteXmlAttribute("M", CustomerEmail);
+            base.WriteXML(xmlBuilder);
             xmlBuilder.WriteEndElement();
             return xmlBuilder;
         }

@@ -33,6 +33,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteXmlAttribute<byte>("D", FileType);
             xmlBuilder.WriteXmlAttribute("E", FileVersion);
             xmlBuilder.WriteXmlAttribute<uint>("F", FileLength);
+            base.WriteXML(xmlBuilder);
             xmlBuilder.WriteEndElement();
 
             return xmlBuilder;
