@@ -42,13 +42,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //and serves to provide a correction if PANs were reported as UTC.
             //This code will require an exact minute/second match between the first record and one of the PANs to take effect
             ISOSpatialRow firstSpatialRow = isoSpatialRows.First();
-            foreach (ISOProductAllocation pan in productAllocations.First().Value)
+            if (productAllocations.Any())
             {
-                if (pan.AllocationStamp?.Start != null &&
-                    pan.AllocationStamp.Start.Value.Minute == firstSpatialRow.TimeStart.Minute &&
-                    pan.AllocationStamp.Start.Value.Second == firstSpatialRow.TimeStart.Second)
+                foreach (ISOProductAllocation pan in productAllocations.First().Value)
                 {
-                    _effectiveTimeZoneOffset = (firstSpatialRow.TimeStart - pan.AllocationStamp.Start.Value).TotalHours;
+                    if (pan.AllocationStamp?.Start != null &&
+                        pan.AllocationStamp.Start.Value.Minute == firstSpatialRow.TimeStart.Minute &&
+                        pan.AllocationStamp.Start.Value.Second == firstSpatialRow.TimeStart.Second)
+                    {
+                        _effectiveTimeZoneOffset = (firstSpatialRow.TimeStart - pan.AllocationStamp.Start.Value).TotalHours;
+                    }
                 }
             }
 

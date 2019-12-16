@@ -528,7 +528,18 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                             }
                         }
 
+                        //Some datasets end here
+                        if (binaryReader.BaseStream.Position >= binaryReader.BaseStream.Length)
+                        {
+                            break;
+                        }
+
                         var numberOfDLVs = binaryReader.ReadByte();
+                        //Some datasets end here
+                        if (binaryReader.BaseStream.Position >= binaryReader.BaseStream.Length)
+                        {
+                            break;
+                        }
                         record.SpatialValues = new List<SpatialValue>();
 
                         //Read DLVs out of the TLG.bin
