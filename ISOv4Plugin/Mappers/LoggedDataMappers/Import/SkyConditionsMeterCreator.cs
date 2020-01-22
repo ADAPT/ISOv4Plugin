@@ -71,8 +71,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         public UInt32 GetMetersValue(List<WorkingData> meters, SpatialRecord spatialRecord)
         {
-            var meter = (ISOEnumeratedMeter) meters.FirstOrDefault();
-            var value = (EnumeratedValue) spatialRecord.GetMeterValue(meter);
+            // Martin Sperlich: I've got a GS3_2630 data set here for which meters.FirstOrDefault()
+            // does return an AgGateway.ADAPT.ApplicationDataModel.LoggedData.EnumeratedWorkingData object.
+            // The direct cast to AgGateway.ADAPT.ApplicationDataModel.LoggedData.EnumeratedWorkingData
+            // does throw an invalid typecast exception.
+
+            // var meter = (ISOEnumeratedMeter) meters.FirstOrDefault();
+            ISOEnumeratedMeter meter = meters.FirstOrDefault() as ISOEnumeratedMeter;
+            if (meter == null) return 0;
+            // var value = (EnumeratedValue) spatialRecord.GetMeterValue(meter);
+            EnumeratedValue value = spatialRecord.GetMeterValue(meter) as EnumeratedValue;
+            if (value == null) return 0;
 
             if (value.Value.Code == DefinedTypeEnumerationInstanceList.dtiClear.ToModelEnumMember().Code)
                 return 0x20524C43;
