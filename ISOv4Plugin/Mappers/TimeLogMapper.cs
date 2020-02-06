@@ -147,8 +147,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         }
 
         private class BinaryWriter
-        {
+        {   // ATTENTION: CoordinateMultiplier and ZMultiplier also exist in Import\SpatialRecordMapper.cs!
             private const double CoordinateMultiplier = 0.0000001;
+            private const double ZMultiplier = 0.001;   // In ISO the PositionUp value is specified in mm.
             private readonly DateTime _januaryFirst1980 = new DateTime(1980, 1, 1);
 
             private readonly IEnumeratedValueMapper _enumeratedValueMapper;
@@ -206,7 +207,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     {
                         north = (Int32)(location.Y / CoordinateMultiplier);
                         east = (Int32)(location.X / CoordinateMultiplier);
-                        up = (Int32)(location.Z.GetValueOrDefault());
+                        up = (Int32)(location.Z.GetValueOrDefault() / ZMultiplier);
                     }
                 }
 
@@ -383,14 +384,25 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             {
                 if (dvc.DeviceElements.Select(d => d.DeviceElementId).Contains(pan.DeviceElementIdRef)) //Filter PANs by this DVC
                 {
-                    if (!output.ContainsKey(pan.DeviceElementIdRef))
-                    {
-                        output.Add(pan.DeviceElementIdRef, new List<ISOProductAllocation>());
-                    }
-                    output[pan.DeviceElementIdRef].Add(pan);
+                    ISODeviceElement deviceElement = dvc.DeviceElements.First(d => d.DeviceElementId == pan.DeviceElementIdRef);
+                    AddProductAllocationsForDeviceElement(output, pan, deviceElement);
                 }
             }
             return output;
+        }
+
+        private void AddProductAllocationsForDeviceElement(Dictionary<string, List<ISOProductAllocation>> productAllocations, ISOProductAllocation pan, ISODeviceElement deviceElement)
+        {
+            if (!productAllocations.ContainsKey(deviceElement.DeviceElementId))
+            {
+                productAllocations.Add(deviceElement.DeviceElementId, new List<ISOProductAllocation>());
+            }
+            productAllocations[deviceElement.DeviceElementId].Add(pan);
+
+            foreach (ISODeviceElement child in deviceElement.ChildDeviceElements)
+            {
+                AddProductAllocationsForDeviceElement(productAllocations, pan, child);
+            }
         }
 
         private OperationTypeEnum GetOperationTypeFromLoggingDevices(ISOTime time)
@@ -518,7 +530,29 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                             }
                         }
 
+                        //Some datasets end here
+                        if (binaryReader.BaseStream.Position >= binaryReader.BaseStream.Length)
+                        {
+                            break;
+                        }
+
                         var numberOfDLVs = binaryReader.ReadByte();
+                        //Some datasets end here
+                        if (binaryReader.BaseStream.Position >= binaryReader.BaseStream.Length)
+                        {
+                            break;
+                        }
+
+                        //If the reported number of values does not fit into the stream, correct the numberOfDLVs
+                        if (numberOfDLVs > 0)
+                        {
+                            var endPosition = binaryReader.BaseStream.Position + 5 * numberOfDLVs;
+                            if (endPosition > binaryReader.BaseStream.Length)
+                            {
+                                numberOfDLVs = (byte)Math.Floor((endPosition - binaryReader.BaseStream.Length) / 5d);
+                            }
+                        }
+
                         record.SpatialValues = new List<SpatialValue>();
 
                         //Read DLVs out of the TLG.bin

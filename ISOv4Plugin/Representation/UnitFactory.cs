@@ -105,12 +105,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin
             _units[new Interval { Min = 139, Max = 139 }] = new ISOUnit("count", 1, 0);             //0x8B
             _units[new Interval { Min = 140, Max = 140 }] = new ISOUnit("ppm", 1, 0);               //0x8C
             _units[new Interval { Min = 142, Max = 143 }] = new ISOUnit("sec", 0.001, 0);           //0x8E - 0x8F
+            _units[new Interval { Min = 144, Max = 146 }] = new ISOUnit("arcdeg", 0.001, 0);        //0x90 - 0x92
             _units[new Interval { Min = 147, Max = 147 }] = new ISOUnit("count", 1, 0);             //0x93
             _units[new Interval { Min = 148, Max = 148 }] = new ISOUnit("ml", 1, 0);                //0x94
             _units[new Interval { Min = 149, Max = 149 }] = new ISOUnit("l1hr-1", 0.0036, 0);       //0x95
             _units[new Interval { Min = 150, Max = 150 }] = new ISOUnit("l1ha-1", 0.01, 0);         //0x96
             _units[new Interval { Min = 151, Max = 151 }] = new ISOUnit("cm2sec-1", 0.01, 0);       //0x97
             _units[new Interval { Min = 152, Max = 152 }] = new ISOUnit("ml1[m3]-1", 0.00001, 0);   //0x98
+
+            _units[new Interval { Min = 396, Max = 399 }] = new ISOUnit("mm1s-1", 1, 0);            //0x18C - 0x18F
         }
 
 

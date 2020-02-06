@@ -18,12 +18,23 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
     {
         public virtual XmlWriter WriteXML(XmlWriter xmlBuilder)
         {
-            throw new NotImplementedException();
+            if (_xmlComments != null) _xmlComments.ForEach(s => xmlBuilder.WriteComment(s));
+            return xmlBuilder;
         }
 
         public virtual List<IError> Validate(List<IError> errors)
         {
             throw new NotImplementedException();
+        }
+
+        private List<string> _xmlComments;
+        public List<string> XmlComments
+        {
+            get
+            {
+                if (_xmlComments == null) _xmlComments = new List<string>();
+                return _xmlComments;
+            }
         }
 
         #region Validation

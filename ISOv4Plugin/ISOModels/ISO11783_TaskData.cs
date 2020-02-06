@@ -50,6 +50,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             {
                 xmlBuilder.WriteAttributeString("DataTransferLanguage", DataTransferLanguage);
             }
+            base.WriteXML(xmlBuilder);
 
             if (ChildElements != null)
             {

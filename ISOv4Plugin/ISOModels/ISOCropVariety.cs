@@ -23,6 +23,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteXmlAttribute("A", CropVarietyId);
             xmlBuilder.WriteXmlAttribute("B", CropVarietyDesignator);
             xmlBuilder.WriteXmlAttribute("C", ProductIdRef);
+            base.WriteXML(xmlBuilder);
             xmlBuilder.WriteEndElement();
             return xmlBuilder;
         }
