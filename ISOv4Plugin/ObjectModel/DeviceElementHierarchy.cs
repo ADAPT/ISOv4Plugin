@@ -312,21 +312,21 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
             }
 
             //Update config values as appropriate
-            if (this.DeviceElement.DeviceElementType == ISODeviceElementType.Navigation)
+            if (this.DeviceElement.DeviceElementType == ISODeviceElementType.Navigation &&
+                config is MachineConfiguration machineConfig)
             {
-                MachineConfiguration machineConfig = config as MachineConfiguration;
-                if (machineConfig.GpsReceiverXOffset == null)
-                {
-                    machineConfig.GpsReceiverXOffset = XOffsetRepresentation;
-                }
-                if (machineConfig.GpsReceiverYOffset == null)
-                {
-                    machineConfig.GpsReceiverYOffset = YOffsetRepresentation;
-                }
-                if (machineConfig.GpsReceiverZOffset == null)
-                {
-                    machineConfig.GpsReceiverZOffset = ZOffsetRepresentation;
-                }
+                    if (machineConfig.GpsReceiverXOffset == null)
+                    {
+                        machineConfig.GpsReceiverXOffset = XOffsetRepresentation;
+                    }
+                    if (machineConfig.GpsReceiverYOffset == null)
+                    {
+                        machineConfig.GpsReceiverYOffset = YOffsetRepresentation;
+                    }
+                    if (machineConfig.GpsReceiverZOffset == null)
+                    {
+                        machineConfig.GpsReceiverZOffset = ZOffsetRepresentation;
+                    }
             }
             else
             {

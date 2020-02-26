@@ -390,11 +390,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         //Device is a machine
                         deviceElement.DeviceElementType = DeviceElementTypeEnum.Machine;
                     }
-                    else if (deviceElementHierarchy.Children != null && deviceElementHierarchy.AllDescendants.Any(d => d?.DeviceElementType == ISODeviceElementType.Navigation))
-                    {
-                        //Device has a navigation element; classify as a machine
-                        deviceElement.DeviceElementType = DeviceElementTypeEnum.Machine;
-                    }
                     else
                     {
                         //Default: classify as an implement
