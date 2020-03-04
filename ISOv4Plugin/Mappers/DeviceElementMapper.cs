@@ -435,13 +435,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             {
                 //Data belongs to the parent device element from the ISO element referenced
                 //Connector and Navigation data may be stored in Timelog data, but Connectors are not DeviceElements in ADAPT.
-                //The data refers to the parent implement, which must always be a Device DET per the ISO spec.  We map this to a Machine Config
+                //The data refers to the parent implement, which must always be a Device DET per the ISO spec.
                 DeviceElement parent = catalog.DeviceElements.FirstOrDefault(d => d.Id.ReferenceId == adaptDeviceElement.ParentDeviceId);
-                while (parent != null && parent.DeviceElementType != DeviceElementTypeEnum.Machine)
-                {
-                    parent = catalog.DeviceElements.FirstOrDefault(d => d.Id.ReferenceId == parent.ParentDeviceId);
-                }
-
                 if (parent == null)
                 {
                     throw new ApplicationException($"Cannot identify Device for Navigation/Connector DeviceElement: {adaptDeviceElement.Description}.");
