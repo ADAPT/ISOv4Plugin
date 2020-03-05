@@ -644,6 +644,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         if (rootDeviceConfiguration != null)
                         {
                             Connector connector = new Connector();
+                            ImportIDs(connector.Id, hierarchy.DeviceElement.DeviceElementId);
                             connector.DeviceElementConfigurationId = rootDeviceConfiguration.Id.ReferenceId;
                             connector.HitchPointId = hitch.Id.ReferenceId;
                             DataModel.Catalog.Connectors.Add(connector);

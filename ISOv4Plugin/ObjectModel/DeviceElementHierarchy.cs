@@ -270,6 +270,31 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
             }
             return item;
         }
+        public void SetWidthsAndOffsetsFromSpatialData(IEnumerable<ISOSpatialRow> isoRecords, HitchPoint hitchPoint, RepresentationMapper representationMapper)
+        {
+            if (hitchPoint.ReferencePoint == null)
+            {
+                hitchPoint.ReferencePoint = new ReferencePoint();
+            }
+
+            if (XOffset == null)
+            {
+                XOffset = GetXOffsetFromSpatialData(isoRecords, DeviceElement.DeviceElementId, representationMapper);
+                hitchPoint.ReferencePoint.XOffset = XOffsetRepresentation;
+            }
+
+            if (YOffset == null)
+            {
+                YOffset = GetYOffsetFromSpatialData(isoRecords, DeviceElement.DeviceElementId, representationMapper);
+                hitchPoint.ReferencePoint.YOffset = YOffsetRepresentation;
+            }
+
+            if (ZOffset == null)
+            {
+                ZOffset = GetZOffsetFromSpatialData(isoRecords, DeviceElement.DeviceElementId, representationMapper);
+                hitchPoint.ReferencePoint.ZOffset = ZOffsetRepresentation;
+            }
+        }
 
         public void SetWidthsAndOffsetsFromSpatialData(IEnumerable<ISOSpatialRow> isoRecords, DeviceElementConfiguration config, RepresentationMapper representationMapper)
         {
