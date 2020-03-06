@@ -390,6 +390,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         //Device is a machine
                         deviceElement.DeviceElementType = DeviceElementTypeEnum.Machine;
                     }
+                    else if (deviceElementHierarchy.Children != null &&
+                             deviceElementHierarchy.Children.Any(d => d?.DeviceElement.DeviceElementType == ISODeviceElementType.Navigation) && //The Nav element should be a direct descendant of the root
+                             (!deviceElementHierarchy.Children.Any(d => d?.DeviceElement.DeviceElementType == ISODeviceElementType.Section) && //If there are section or function elements, classify as an implement vs. a machine
+                             !deviceElementHierarchy.Children.Any(d => d?.DeviceElement.DeviceElementType == ISODeviceElementType.Function)))
+                    {
+                        //Device is a machine
+                        deviceElement.DeviceElementType = DeviceElementTypeEnum.Machine;
+                    }
                     else
                     {
                         //Default: classify as an implement
@@ -437,6 +445,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 //Connector and Navigation data may be stored in Timelog data, but Connectors are not DeviceElements in ADAPT.
                 //The data refers to the parent implement, which must always be a Device DET per the ISO spec.
                 DeviceElement parent = catalog.DeviceElements.FirstOrDefault(d => d.Id.ReferenceId == adaptDeviceElement.ParentDeviceId);
+                while (parent != null && parent.DeviceElementType != DeviceElementTypeEnum.Machine)
+                {
+                    parent = catalog.DeviceElements.FirstOrDefault(d => d.Id.ReferenceId == parent.ParentDeviceId);
+                }
                 if (parent == null)
                 {
                     throw new ApplicationException($"Cannot identify Device for Navigation/Connector DeviceElement: {adaptDeviceElement.Description}.");
