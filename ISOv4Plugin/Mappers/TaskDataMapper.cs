@@ -31,7 +31,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         public const string TaskControllerManufacturerProperty = "TaskControllerManufacturer";
         public const string TaskControllerVersionProperty = "TaskControllerVersion";
         public const string DataTransferOriginProperty = "DataTransferOrigin";
-        
+
         public TaskDataMapper(string dataPath, Properties properties)
         {
             BaseFolder = dataPath;
@@ -126,12 +126,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             AdaptDataModel = adm;
 
             // Try to read some of the ISO11783 attributes from properties.
+            if (Properties == null)
+            {
+                Properties = new Properties();
+            }
             // TaskControllerManufacturer
             string taskControllerManufacturer = Properties.GetProperty(TaskControllerManufacturerProperty);
-            if (taskControllerManufacturer.Length > 32) taskControllerManufacturer = taskControllerManufacturer.Substring(0, 32);
+            if (taskControllerManufacturer != null && taskControllerManufacturer.Length > 32) taskControllerManufacturer = taskControllerManufacturer.Substring(0, 32);
             // TaskControllerVersion
             string taskControllerVersion = Properties.GetProperty(TaskControllerVersionProperty);
-            if (taskControllerManufacturer.Length > 32) taskControllerVersion = taskControllerVersion.Substring(0, 32);
+            if (taskControllerManufacturer != null && taskControllerManufacturer.Length > 32) taskControllerVersion = taskControllerVersion.Substring(0, 32);
             // DataTransferOrigin
             ISOEnumerations.ISOTaskDataTransferOrigin dataTransferOrigin;
             string s = Properties.GetProperty(DataTransferOriginProperty);
