@@ -445,7 +445,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 //Connector and Navigation data may be stored in Timelog data, but Connectors are not DeviceElements in ADAPT.
                 //The data refers to the parent implement, which must always be a Device DET per the ISO spec.
                 DeviceElement parent = catalog.DeviceElements.FirstOrDefault(d => d.Id.ReferenceId == adaptDeviceElement.ParentDeviceId);
-                while (parent != null && parent.DeviceElementType != DeviceElementTypeEnum.Machine)
+                while (parent != null && (parent.DeviceElementType != DeviceElementTypeEnum.Machine && parent.DeviceElementType != DeviceElementTypeEnum.Implement))
                 {
                     parent = catalog.DeviceElements.FirstOrDefault(d => d.Id.ReferenceId == parent.ParentDeviceId);
                 }
