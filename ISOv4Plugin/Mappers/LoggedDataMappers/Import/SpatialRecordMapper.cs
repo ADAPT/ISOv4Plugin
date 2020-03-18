@@ -42,8 +42,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //This value will reflect an offset between the processing computer's timezone settings vs. the actual offset of the data itself,
             //and serves to provide a correction if PANs were reported as UTC.
             //This code will require an exact minute/second match between the first record and one of the PANs to take effect
-            ISOSpatialRow firstSpatialRow = isoSpatialRows.First();
-            if (productAllocations.Any())
+            ISOSpatialRow firstSpatialRow = isoSpatialRows.FirstOrDefault();
+            if (firstSpatialRow != null && productAllocations.Any())
             {
                 foreach (ISOProductAllocation pan in productAllocations.First().Value)
                 {
