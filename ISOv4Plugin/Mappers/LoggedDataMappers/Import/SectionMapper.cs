@@ -96,6 +96,22 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                             sections.Add(deviceElementUse);
                         }
                     }
+                    else if (hierarchy.DeviceElement.DeviceElementType == ISOEnumerations.ISODeviceElementType.Connector)
+                    {
+                        int? connectorID = TaskDataMapper.InstanceIDMap.GetADAPTID(hierarchy.DeviceElement.DeviceElementId).Value;
+                        if (connectorID.HasValue)
+                        {
+                            Connector adaptConnector = DataModel.Catalog.Connectors.FirstOrDefault(c => c.Id.ReferenceId == connectorID.Value);
+                            if (adaptConnector != null)
+                            {
+                                HitchPoint hitch = DataModel.Catalog.HitchPoints.FirstOrDefault(h => h.Id.ReferenceId == adaptConnector.HitchPointId);
+                                if (hitch != null)
+                                {
+                                    hierarchy.SetWidthsAndOffsetsFromSpatialData(isoRecords, hitch, RepresentationMapper);
+                                }
+                            }
+                        }
+                    }
                 }
             }
 

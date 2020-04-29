@@ -300,7 +300,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             IEnumerable<ISOSpatialRow> isoRecords = ReadTimeLog(isoTimeLog, this.TaskDataPath);
             if (isoRecords != null)
             {
-                isoRecords = isoRecords.ToList(); //Avoids multiple reads
+                try
+                {
+                    isoRecords = isoRecords.ToList(); //Avoids multiple reads
+                }
+                catch (Exception ex)
+                {
+                    TaskDataMapper.AddError($"Timelog file {isoTimeLog.Filename} is invalid.  Skipping.", ex.Message, null, ex.StackTrace);
+                    return null;
+                }
                 ISOTime time = isoTimeLog.GetTimeElement(this.TaskDataPath);
 
                 //Identify unique devices represented in this TimeLog data

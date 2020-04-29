@@ -666,6 +666,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 loggedData.SummaryId = summary.Id.ReferenceId;
             }
 
+            loggedData.ReleaseSpatialData = () => { };
+
             return loggedData;
         }
 

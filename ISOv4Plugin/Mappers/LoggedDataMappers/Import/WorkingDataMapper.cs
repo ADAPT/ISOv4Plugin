@@ -221,37 +221,69 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 for (int i = 0; i < isoSectionElements.Count(); i++)
                 {
                     WorkingData workingData = condensedWorkingDatas[i];
-
-                    DeviceElementUse condensedDeviceElementUse = new DeviceElementUse();
-                    condensedDeviceElementUse.OperationDataId = deviceElementUse.OperationDataId;
-
                     ISODeviceElement targetSection = targetSections[i];
-                    int? deviceElementID = TaskDataMapper.InstanceIDMap.GetADAPTID(targetSection.DeviceElementId);
-                    if (deviceElementID.HasValue)
+
+                    DeviceElementUse condensedDeviceElementUse = FindExistingDeviceElementUseForCondensedData(targetSection, pendingDeviceElementUses);
+                    if (condensedDeviceElementUse == null)
                     {
-                        DeviceElement deviceElement = DataModel.Catalog.DeviceElements.SingleOrDefault(d => d.Id.ReferenceId == deviceElementID.Value);
-                        if (deviceElement != null)
+                        //Make a new DeviceElementUse
+                        condensedDeviceElementUse = new DeviceElementUse();
+                        condensedDeviceElementUse.OperationDataId = deviceElementUse.OperationDataId;
+
+                        int? deviceElementID = TaskDataMapper.InstanceIDMap.GetADAPTID(targetSection.DeviceElementId);
+                        if (deviceElementID.HasValue)
                         {
-                            //Reference the device element in its hierarchy so that we can get the depth & order
-                            DeviceElementHierarchy deviceElementInHierarchy = isoDeviceElementHierarchy.FromDeviceElementID(targetSection.DeviceElementId);
+                            DeviceElement deviceElement = DataModel.Catalog.DeviceElements.SingleOrDefault(d => d.Id.ReferenceId == deviceElementID.Value);
+                            if (deviceElement != null)
+                            {
+                                //Reference the device element in its hierarchy so that we can get the depth & order
+                                DeviceElementHierarchy deviceElementInHierarchy = isoDeviceElementHierarchy.FromDeviceElementID(targetSection.DeviceElementId);
 
-                            //Get the config id
-                            DeviceElementConfiguration deviceElementConfig = DeviceElementMapper.GetDeviceElementConfiguration(deviceElement, deviceElementInHierarchy, DataModel.Catalog);
-                            condensedDeviceElementUse.DeviceConfigurationId = deviceElementConfig.Id.ReferenceId;
+                                //Get the config id
+                                DeviceElementConfiguration deviceElementConfig = DeviceElementMapper.GetDeviceElementConfiguration(deviceElement, deviceElementInHierarchy, DataModel.Catalog);
+                                condensedDeviceElementUse.DeviceConfigurationId = deviceElementConfig.Id.ReferenceId;
 
-                            //Set the depth & order
-                            condensedDeviceElementUse.Depth = deviceElementInHierarchy.Depth;
-                            condensedDeviceElementUse.Order = deviceElementInHierarchy.Order;
+                                //Set the depth & order
+                                condensedDeviceElementUse.Depth = deviceElementInHierarchy.Depth;
+                                condensedDeviceElementUse.Order = deviceElementInHierarchy.Order;
+                            }
                         }
+
+                        condensedDeviceElementUse.GetWorkingDatas = () => new List<WorkingData> { workingData };
+
+                        workingData.DeviceElementUseId = condensedDeviceElementUse.Id.ReferenceId;
+
+                        pendingDeviceElementUses.Add(condensedDeviceElementUse);
                     }
-
-                    condensedDeviceElementUse.GetWorkingDatas = () => new List<WorkingData> { workingData };
-
-                    workingData.DeviceElementUseId = condensedDeviceElementUse.Id.ReferenceId;
-
-                    pendingDeviceElementUses.Add(condensedDeviceElementUse);
+                    else
+                    {
+                        //Use the existing DeviceElementUse
+                        List<WorkingData> data = new List<WorkingData>();
+                        IEnumerable<WorkingData> existingWorkingDatas = condensedDeviceElementUse.GetWorkingDatas();
+                        if (existingWorkingDatas != null)
+                        {
+                            data.AddRange(existingWorkingDatas.ToList());  //Add the preexisting 
+                        }
+                        data.Add(workingData);
+                        condensedDeviceElementUse.GetWorkingDatas = () => data;
+                    }
                 }
             }
+        }
+
+        private DeviceElementUse FindExistingDeviceElementUseForCondensedData(ISODeviceElement targetSection, List<DeviceElementUse> pendingDeviceElementUses)
+        {
+            DeviceElementUse existingDeviceElementUse = null;
+            int? deviceElementID =  TaskDataMapper.InstanceIDMap.GetADAPTID(targetSection.DeviceElementId);
+            if (deviceElementID.HasValue)
+            {
+                DeviceElementConfiguration config = DataModel.Catalog.DeviceElementConfigurations.FirstOrDefault(d => d.DeviceElementId == deviceElementID.Value);
+                if (config != null)
+                {
+                    existingDeviceElementUse = pendingDeviceElementUses.FirstOrDefault(p => p.DeviceConfigurationId == config.Id.ReferenceId);
+                }
+            }
+            return existingDeviceElementUse;
         }
 
         #endregion Import

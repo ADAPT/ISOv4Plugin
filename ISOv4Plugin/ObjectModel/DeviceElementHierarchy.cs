@@ -124,7 +124,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                 }
 
                 //Children
-                IEnumerable<ISODeviceElement> childDeviceElements = deviceElement.Device.DeviceElements.Where(det => det.ParentObjectId == deviceElement.DeviceElementObjectId);// && det.DeviceElementType == ISOEnumerations.ISODeviceElementType.Section);
+                IEnumerable<ISODeviceElement> childDeviceElements = deviceElement.Device.DeviceElements.Where(det => det.ParentObjectId == deviceElement.DeviceElementObjectId && det.ParentObjectId != det.DeviceElementObjectId); //Do not create children for an element classified as its own parent
                 if (childDeviceElements.Any())
                 {
                     int childDepth = depth + 1;
@@ -270,6 +270,31 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
             }
             return item;
         }
+        public void SetWidthsAndOffsetsFromSpatialData(IEnumerable<ISOSpatialRow> isoRecords, HitchPoint hitchPoint, RepresentationMapper representationMapper)
+        {
+            if (hitchPoint.ReferencePoint == null)
+            {
+                hitchPoint.ReferencePoint = new ReferencePoint();
+            }
+
+            if (XOffset == null)
+            {
+                XOffset = GetXOffsetFromSpatialData(isoRecords, DeviceElement.DeviceElementId, representationMapper);
+                hitchPoint.ReferencePoint.XOffset = XOffsetRepresentation;
+            }
+
+            if (YOffset == null)
+            {
+                YOffset = GetYOffsetFromSpatialData(isoRecords, DeviceElement.DeviceElementId, representationMapper);
+                hitchPoint.ReferencePoint.YOffset = YOffsetRepresentation;
+            }
+
+            if (ZOffset == null)
+            {
+                ZOffset = GetZOffsetFromSpatialData(isoRecords, DeviceElement.DeviceElementId, representationMapper);
+                hitchPoint.ReferencePoint.ZOffset = ZOffsetRepresentation;
+            }
+        }
 
         public void SetWidthsAndOffsetsFromSpatialData(IEnumerable<ISOSpatialRow> isoRecords, DeviceElementConfiguration config, RepresentationMapper representationMapper)
         {
@@ -312,21 +337,21 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
             }
 
             //Update config values as appropriate
-            if (this.DeviceElement.DeviceElementType == ISODeviceElementType.Navigation)
+            if (this.DeviceElement.DeviceElementType == ISODeviceElementType.Navigation &&
+                config is MachineConfiguration machineConfig)
             {
-                MachineConfiguration machineConfig = config as MachineConfiguration;
-                if (machineConfig.GpsReceiverXOffset == null)
-                {
-                    machineConfig.GpsReceiverXOffset = XOffsetRepresentation;
-                }
-                if (machineConfig.GpsReceiverYOffset == null)
-                {
-                    machineConfig.GpsReceiverYOffset = YOffsetRepresentation;
-                }
-                if (machineConfig.GpsReceiverZOffset == null)
-                {
-                    machineConfig.GpsReceiverZOffset = ZOffsetRepresentation;
-                }
+                    if (machineConfig.GpsReceiverXOffset == null)
+                    {
+                        machineConfig.GpsReceiverXOffset = XOffsetRepresentation;
+                    }
+                    if (machineConfig.GpsReceiverYOffset == null)
+                    {
+                        machineConfig.GpsReceiverYOffset = YOffsetRepresentation;
+                    }
+                    if (machineConfig.GpsReceiverZOffset == null)
+                    {
+                        machineConfig.GpsReceiverZOffset = ZOffsetRepresentation;
+                    }
             }
             else
             {
