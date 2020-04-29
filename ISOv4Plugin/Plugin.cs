@@ -25,7 +25,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin
 
         string IPlugin.Owner => "AgGateway";
 
-        void IPlugin.Export(ApplicationDataModel.ADM.ApplicationDataModel dataModel, string exportPath, Properties properties)
+        public void Export(ApplicationDataModel.ADM.ApplicationDataModel dataModel, string exportPath, Properties properties)
         {
             //Convert the ADAPT model into the ISO model
             string outputPath = exportPath.WithTaskDataPath();
