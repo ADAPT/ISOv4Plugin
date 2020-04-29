@@ -124,7 +124,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                 }
 
                 //Children
-                IEnumerable<ISODeviceElement> childDeviceElements = deviceElement.Device.DeviceElements.Where(det => det.ParentObjectId == deviceElement.DeviceElementObjectId);// && det.DeviceElementType == ISOEnumerations.ISODeviceElementType.Section);
+                IEnumerable<ISODeviceElement> childDeviceElements = deviceElement.Device.DeviceElements.Where(det => det.ParentObjectId == deviceElement.DeviceElementObjectId && det.ParentObjectId != det.DeviceElementObjectId); //Do not create children for an element classified as its own parent
                 if (childDeviceElements.Any())
                 {
                     int childDepth = depth + 1;
