@@ -62,7 +62,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             dvc.DeviceDesignator = adaptDevice.Description;
 
             //Device Elements
-            IEnumerable<DeviceElement> deviceElements = DataModel.Catalog.DeviceElements.Where(d => d.ParentDeviceId == adaptDevice.Id.ReferenceId);
+            IEnumerable<DeviceElement> deviceElements = DataModel.Catalog.DeviceElements.Where(d => d.ParentDeviceId == adaptDevice.Id.ReferenceId ||
+                                                                                                   (d.ParentDeviceId == 0 && d.DeviceModelId == adaptDevice.Id.ReferenceId));
             if (deviceElements.Any())
             {
                 dvc.DeviceElements = _deviceElementMapper.ExportDeviceElements(deviceElements, dvc).ToList();
