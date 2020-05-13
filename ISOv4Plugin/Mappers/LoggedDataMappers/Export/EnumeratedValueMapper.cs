@@ -14,7 +14,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
     public interface IEnumeratedValueMapper
     {
-        UInt32 Map(EnumeratedWorkingData currentMeter, List<WorkingData> meters, SpatialRecord spatialRecord);
+        UInt32? Map(EnumeratedWorkingData currentMeter, List<WorkingData> meters, SpatialRecord spatialRecord);
     }
 
     public class EnumeratedValueMapper : IEnumeratedValueMapper
@@ -33,9 +33,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             _representationMapper = representationMapper;
         }
 
-        public UInt32 Map(EnumeratedWorkingData currentMeter, List<WorkingData> meters, SpatialRecord spatialRecord)
+        public UInt32? Map(EnumeratedWorkingData currentMeter, List<WorkingData> meters, SpatialRecord spatialRecord)
         {
             var ddi = _representationMapper.Map(currentMeter.Representation);
+            if (ddi == null)
+            {
+                return null;
+            }
+
             var creator = _enumeratedMeterFactory.GetMeterCreator(ddi.GetValueOrDefault());
             //The intent of the meters parameter below is to send in those meters that reconcile to a single DLV.
             //Since we are not exporting condensed DDIS at this time, just passing in the collection.
