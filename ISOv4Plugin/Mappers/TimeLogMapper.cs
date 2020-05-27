@@ -106,9 +106,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
             List<ISODataLogValue> dlvs = new List<ISODataLogValue>();
-            for(int i = 0; i < workingDatas.Count(); i++)
+            int i = 0;
+            foreach (WorkingData workingData in workingDatas)
             {
-                WorkingData workingData = workingDatas[i];
 
                 //DDI
                 int? mappedDDI = RepresentationMapper.Map(workingData.Representation);
@@ -140,8 +140,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         dlv.DeviceElementIdRef = TaskDataMapper.InstanceIDMap.GetISOID(deviceElementConfiguration.DeviceElementId);
                     }
                 }
-                dlvs.Add(dlv);
-                _dataLogValueOrdersByWorkingDataID.Add(workingData.Id.ReferenceId, i);
+
+                if (dlv.ProcessDataDDI != null && dlv.DeviceElementIdRef != null)
+                {
+                    dlvs.Add(dlv);
+                    _dataLogValueOrdersByWorkingDataID.Add(workingData.Id.ReferenceId, i++);
+                }
             }
             return dlvs;
         }
@@ -237,7 +241,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 var dlvsToWrite = new Dictionary<int, uint>();
                 var workingDatasWithValues = workingDatas.Where(x => spatialRecord.GetMeterValue(x) != null);
 
-                foreach (WorkingData workingData in workingDatasWithValues)
+                foreach (WorkingData workingData in workingDatasWithValues.Where(d => _dlvOrdersByWorkingDataID.ContainsKey(d.Id.ReferenceId)))
                 {
                     int order = _dlvOrdersByWorkingDataID[workingData.Id.ReferenceId];
 

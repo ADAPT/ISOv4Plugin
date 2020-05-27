@@ -200,7 +200,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 if (taskEquipmentConfigIDs.Any())
                 {
                     IEnumerable<EquipmentConfiguration> taskEquipmentConfigs = DataModel.Catalog.EquipmentConfigurations.Where(d => taskEquipmentConfigIDs.Contains(d.Id.ReferenceId));
-                    task.Connections = ConnectionMapper.ExportConnections(loggedData.Id.ReferenceId, taskEquipmentConfigs).ToList();
+                    task.Connections = ConnectionMapper.ExportConnections(task, taskEquipmentConfigs).ToList();
                 }
             }
 

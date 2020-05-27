@@ -23,8 +23,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
     public interface IConnectionMapper
     {
-        IEnumerable<ISOConnection> ExportConnections(int loggedDataOrWorkItemID, IEnumerable<EquipmentConfiguration> adaptConnections);
-        ISOConnection ExportConnection(int loggedDataOrWorkItemID, EquipmentConfiguration adaptConnection);
+        IEnumerable<ISOConnection> ExportConnections(ISOTask task, IEnumerable<EquipmentConfiguration> adaptConnections);
+        ISOConnection ExportConnection(ISOTask task, EquipmentConfiguration adaptConnection);
 
         IEnumerable<EquipmentConfiguration> ImportConnections(ISOTask isoTask);
         EquipmentConfiguration ImportConnection(ISOTask isoTask, ISOConnection isoConnection);
@@ -37,18 +37,18 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         }
 
         #region Export
-        public IEnumerable<ISOConnection> ExportConnections(int loggedDataOrWorkItemID, IEnumerable<EquipmentConfiguration> adaptConnections)
+        public IEnumerable<ISOConnection> ExportConnections(ISOTask task, IEnumerable<EquipmentConfiguration> adaptConnections)
         {
             List <ISOConnection> connections = new List<ISOConnection>();
             foreach (EquipmentConfiguration adaptConnection in adaptConnections)
             {
-                ISOConnection isoConnection = ExportConnection(loggedDataOrWorkItemID, adaptConnection);
+                ISOConnection isoConnection = ExportConnection(task, adaptConnection);
                 connections.Add(isoConnection);
             }
             return connections;
         }
 
-        public ISOConnection ExportConnection(int loggedDataOrWorkItemID, EquipmentConfiguration adaptConnection)
+        public ISOConnection ExportConnection(ISOTask task, EquipmentConfiguration adaptConnection)
         {
             ISOConnection isoConnection = new ISOConnection();
 
@@ -97,8 +97,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //DataLogTriggers
             if (adaptConnection.DataLogTriggers.Any())
             {
-                string taskID = TaskDataMapper.InstanceIDMap.GetISOID(loggedDataOrWorkItemID);
-                ISOTask task = TaskDataMapper.ISOTaskData.ChildElements.OfType<ISOTask>().First(t => t.TaskID == taskID);
                 DataLogTriggerMapper dltMapper = new DataLogTriggerMapper(TaskDataMapper);
                 task.DataLogTriggers = dltMapper.ExportDataLogTriggers(adaptConnection.DataLogTriggers).ToList();
             }
