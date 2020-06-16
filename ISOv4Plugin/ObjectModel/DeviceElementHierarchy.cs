@@ -430,7 +430,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                                                                                                     s.DataLogValue.ProcessDataDDI == "0087"));
             if (firstYOffset != null)
             {
-                offset = firstYOffset.SpatialValues.Single(s => s.DataLogValue.DeviceElementIdRef == isoDeviceElementID &&
+                offset = firstYOffset.SpatialValues.First(s => s.DataLogValue.DeviceElementIdRef == isoDeviceElementID &&
                                                                                                     s.DataLogValue.ProcessDataDDI == "0087").Value;
                 return (int)offset;
             }
