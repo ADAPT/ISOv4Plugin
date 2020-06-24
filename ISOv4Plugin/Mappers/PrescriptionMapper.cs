@@ -123,7 +123,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Connections
             if (workItem.EquipmentConfigurationGroup != null)
             {
-                task.Connections = _connectionMapper.ExportConnections(workItem.Id.ReferenceId, workItem.EquipmentConfigurationGroup.EquipmentConfigurations).ToList();
+                task.Connections = _connectionMapper.ExportConnections(task, workItem.EquipmentConfigurationGroup.EquipmentConfigurations).ToList();
             }
 
             //Status
