@@ -9,6 +9,7 @@ using AgGateway.ADAPT.Representation.RepresentationSystem.ExtensionMethods;
 using EnumeratedRepresentation = AgGateway.ADAPT.ApplicationDataModel.Representations.EnumeratedRepresentation;
 using EnumerationMember = AgGateway.ADAPT.Representation.RepresentationSystem.EnumerationMember;
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
+using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
@@ -102,7 +103,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         public Dictionary<int, EnumerationMember> SectionValueToEnumerationMember { get; set; } 
 
-        public List<ISOEnumeratedMeter> CreateMeters(IEnumerable<ISOSpatialRow> spatialRows)
+        public List<ISOEnumeratedMeter> CreateMeters(IEnumerable<ISOSpatialRow> spatialRows, ISODataLogValue dlv)
         {
             //We need to find a row of data with the value in order to create the correct number of meters.
             var spatialRowWithDdi = spatialRows.FirstOrDefault(x => x.SpatialValues.Any(y => y.DataLogValue.ProcessDataDDI.AsInt32DDI() == DDI));
@@ -110,7 +111,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             int numberOfSections = 0;
             if (spatialRowWithDdi != null)
             {
-                var spatialValue = spatialRowWithDdi.SpatialValues.First(x => x.DataLogValue.ProcessDataDDI.AsInt32DDI() == DDI);
+                var spatialValue = spatialRowWithDdi.SpatialValues.First(x => x.DataLogValue.ProcessDataDDI.AsInt32DDI() == DDI &&
+                                                                              x.DataLogValue.DeviceElementIdRef == dlv.DeviceElementIdRef);
                 numberOfSections = GetNumberOfInstalledSections(spatialValue);
             }
 

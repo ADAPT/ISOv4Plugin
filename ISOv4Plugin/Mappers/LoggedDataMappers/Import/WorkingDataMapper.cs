@@ -134,7 +134,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             if (meterCreator != null)
             {
                 //Enumerated Representations
-                var isoEnumeratedMeters = meterCreator.CreateMeters(isoSpatialRows);
+                var isoEnumeratedMeters = meterCreator.CreateMeters(isoSpatialRows, dlv);
                 foreach (ISOEnumeratedMeter enumeratedMeter in isoEnumeratedMeters)
                 {
                     DataLogValuesByWorkingDataID.Add(enumeratedMeter.Id.ReferenceId, dlv);
