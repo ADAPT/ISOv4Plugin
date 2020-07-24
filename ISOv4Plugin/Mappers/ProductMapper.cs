@@ -1,4 +1,4 @@
-﻿/*
+/*
 * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
@@ -214,22 +214,29 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     //Find the product referenced by the relation
                     ISOProduct isoComponent = ISOTaskData.ChildElements.OfType<ISOProduct>().FirstOrDefault(p => p.ProductId == prn.ProductIdRef);
 
-                    //Find or create the active ingredient to match the component
-                    Ingredient ingredient = DataModel.Catalog.Ingredients.FirstOrDefault(i => i.Id.FindIsoId() == isoComponent.ProductId);
-                    if (ingredient == null)
+                    if (isoComponent != null) //Skip PRN if PRN@A doesn't resolve to a product
                     {
-                        ingredient = new ActiveIngredient();
-                        ingredient.Description = isoComponent.ProductDesignator;
-                        DataModel.Catalog.Ingredients.Add(ingredient);
-                    }
+                        //Find or create the active ingredient to match the component
+                        Ingredient ingredient = DataModel.Catalog.Ingredients.FirstOrDefault(i => i.Id.FindIsoId() == isoComponent.ProductId);
+                        if (ingredient == null)
+                        {
+                            ingredient = new ActiveIngredient();
+                            ingredient.Description = isoComponent.ProductDesignator;
+                            DataModel.Catalog.Ingredients.Add(ingredient);
+                        }
 
-                    //Create a component for this ingredient
-                    ProductComponent component = new ProductComponent() { IngredientId = ingredient.Id.ReferenceId };
-                    if (!string.IsNullOrEmpty(isoComponent.QuantityDDI))
-                    {
-                        component.Quantity = prn.QuantityValue.AsNumericRepresentationValue(isoComponent.QuantityDDI, RepresentationMapper);
+                        //Create a component for this ingredient
+                        ProductComponent component = new ProductComponent() { IngredientId = ingredient.Id.ReferenceId };
+                        if (!string.IsNullOrEmpty(isoComponent.QuantityDDI))
+                        {
+                            component.Quantity = prn.QuantityValue.AsNumericRepresentationValue(isoComponent.QuantityDDI, RepresentationMapper);
+                        }
+                        product.ProductComponents.Add(component);
                     }
-                    product.ProductComponents.Add(component);
+                    else
+                    {
+                        TaskDataMapper.AddError($"Product relation with quantity {prn.QuantityValue} ommitted for product {isoProduct.ProductId} due to no ProductIdRef");
+                    }
                 }
 
                 //Total Mix quantity

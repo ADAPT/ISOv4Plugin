@@ -261,17 +261,29 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         private List<RxCellLookup> ImportRatesFromProducts(GridDescriptor gridDescriptor, List<int> productIds, RasterGridPrescription prescription)
         {
             var rates = new List<RxCellLookup>();
+            bool binaryDataMatchesDefinition = true;
             foreach (var productRates in gridDescriptor.ProductRates)
             {
                 var lookup = new RxCellLookup { RxRates = new List<RxRate>() };
                 for (int productIndex = 0; productIndex < productRates.Count; productIndex++)
                 {
-                    int adaptProductId = productIds[productIndex];
+                    int adaptProductId = 0;
+                    if (productIds.Count > productIndex)
+                    {
+                        adaptProductId = productIds[productIndex];
+                    }
+                    else if (productIds.Count > 0)
+                    {
+                        binaryDataMatchesDefinition = false;
+                    }
                     lookup.RxRates.Add(PrescriptionMapper.ImportRate(adaptProductId, productRates[productIndex], prescription));
                 }
                 rates.Add(lookup);
             }
-
+            if (!binaryDataMatchesDefinition)
+            {
+                TaskDataMapper.AddError($"Binary Grid Data for Type-2 Grid {TaskDataMapper.InstanceIDMap.GetISOID(prescription.Id.ReferenceId)} does not match its definition.  Product data will be omitted.");
+            }
             return rates;
         }
 
