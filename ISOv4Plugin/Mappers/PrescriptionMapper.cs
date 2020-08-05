@@ -569,20 +569,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         internal static RxRate ImportRate(int productId, double productRate, Prescription prescription)
         {
             RxProductLookup rxProductLookup = prescription.RxProductLookups.SingleOrDefault(x => x.ProductId == productId);
-            if (rxProductLookup != null)
+            return new RxRate()
             {
-                var rxRate = new RxRate
-                {
-                    Rate = productRate,
-                    RxProductLookupId = rxProductLookup.Id.ReferenceId,
-                };
-
-                return rxRate;
-            }
-            else
-            {
-                return null;
-            }
+                Rate = productRate,
+                RxProductLookupId = rxProductLookup?.Id?.ReferenceId ?? 0
+            };
         }
 
         #endregion Import
