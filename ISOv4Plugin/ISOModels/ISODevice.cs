@@ -73,22 +73,22 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
                 device.DeviceElements.AddRange(ISODeviceElement.ReadXML(detNodes, device));
             }
 
+            XmlNodeList dvpNodes = node.SelectNodes("DVP");
+            if (dvpNodes != null)
+            {
+                device.DeviceValuePresentations.AddRange(ISODeviceValuePresentation.ReadXML(dvpNodes));
+            }
+
             XmlNodeList dpdNodes = node.SelectNodes("DPD");
             if (dpdNodes != null)
             {
-                device.DeviceProcessDatas.AddRange(ISODeviceProcessData.ReadXML(dpdNodes));
+                device.DeviceProcessDatas.AddRange(ISODeviceProcessData.ReadXML(dpdNodes, device.DeviceValuePresentations));
             }
 
             XmlNodeList dptNodes = node.SelectNodes("DPT");
             if (dptNodes != null)
             {
                 device.DeviceProperties.AddRange(ISODeviceProperty.ReadXML(dptNodes));
-            }
-
-            XmlNodeList dvpNodes = node.SelectNodes("DVP");
-            if (dvpNodes != null)
-            {
-                device.DeviceValuePresentations.AddRange(ISODeviceValuePresentation.ReadXML(dvpNodes));
             }
 
             return device;
