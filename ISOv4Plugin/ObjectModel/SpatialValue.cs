@@ -13,5 +13,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
         public ISODataLogValue DataLogValue { get; set; }
 
         public double Value { get; set; }
+
+        public ISODeviceProcessData DeviceProcessData { get; set; }
     }
 }
