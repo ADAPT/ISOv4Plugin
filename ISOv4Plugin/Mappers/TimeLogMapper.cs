@@ -307,6 +307,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 try
                 {
                     isoRecords = isoRecords.ToList(); //Avoids multiple reads
+
+                    //Set a UTC "delta" from the first record where possible.  We set only one per data import.
+                    if (!TaskDataMapper.GPSToLocalDelta.HasValue)
+                    {
+                        var firstRecord = isoRecords.FirstOrDefault();
+                        if (firstRecord != null && firstRecord.GpsUtcDateTime.HasValue)
+                        {
+                            //Local - UTC = Delta.  This value will be rough based on the accuracy of the clock settings but will expose the ability to derive the UTC times from the exported local times.
+                            TaskDataMapper.GPSToLocalDelta = (firstRecord.TimeStart - firstRecord.GpsUtcDateTime.Value).TotalHours;
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
