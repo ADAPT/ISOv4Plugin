@@ -17,6 +17,8 @@ using AgGateway.ADAPT.ISOv4Plugin.Representation;
 using AgGateway.ADAPT.ApplicationDataModel.Equipment;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
+using AgGateway.ADAPT.ApplicationDataModel.Common;
+using System.Globalization;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
@@ -56,6 +58,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         internal RepresentationMapper RepresentationMapper { get; private set; }
         internal Dictionary<int, DdiDefinition> DDIs { get; private set; }
         internal DeviceOperationTypes DeviceOperationTypes { get; private set; }
+        internal double? GPSToLocalDelta { get; set; }
 
         CodedCommentListMapper _commentListMapper;
         public CodedCommentListMapper CommentListMapper
@@ -429,6 +432,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                                 summary.WorkRecordId = record.Id.ReferenceId;
                             }
                         }
+
+                        //Export Derived UTC Delta as a ContextItem
+                        //The value will be as accurate as the clock settings and thus terming "Delta" vs "Offset" to underscore this is not an accurate UTC offset for the local timezone
+                        //Not rounding value so that relatively accurate GPS UTC values can be reverse calculated from this value.  
+                        string offset = GPSToLocalDelta.HasValue ? GPSToLocalDelta.Value.ToString(CultureInfo.InvariantCulture) : "no data";
+                        ContextItem contextItem = new ContextItem() { Code = "GPSUTC_Local_Delta", Value = offset, ValueUOM = "hr" };
+                        record.ContextItems.Add(contextItem);
+
                         workRecords.Add(record);
                     }
                     AdaptDataModel.Documents.WorkRecords = workRecords;
