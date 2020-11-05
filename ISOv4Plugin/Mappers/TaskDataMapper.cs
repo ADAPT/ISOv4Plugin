@@ -357,7 +357,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             {
                 PartfieldMapper partFieldMapper = new PartfieldMapper(this);
                 AdaptDataModel.Catalog.Fields.AddRange(partFieldMapper.ImportFields(partFields));
-                AdaptDataModel.Catalog.CropZones.AddRange(partFieldMapper.ImportCropZones(partFields));
+                AdaptDataModel.Catalog.CropZones.AddRange(partFieldMapper.ImportCropZones(partFields, crops));
             }
 
             //Devices

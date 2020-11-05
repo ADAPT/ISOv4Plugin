@@ -350,7 +350,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             ImportIDs(deviceElement.Id, isoDeviceElement.DeviceElementId);
 
             //Device ID
-            deviceElement.DeviceModelId = TaskDataMapper.InstanceIDMap.GetADAPTID(isoDeviceElement.Device.DeviceId).Value;
+            int? deviceModelId = TaskDataMapper.InstanceIDMap.GetADAPTID(isoDeviceElement.Device.DeviceId);
+            if (deviceModelId.HasValue)
+            {
+                deviceElement.DeviceModelId = deviceModelId.Value;
+            }
 
             //Description
             deviceElement.Description = isoDeviceElement.DeviceElementDesignator;
@@ -361,19 +365,22 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Parent ID
             if (isoDeviceElement.Parent != null)
             {
+                int? parentDeviceId = null;
                 if (isoDeviceElement.ParentObjectId == isoDeviceElement.DeviceElementObjectId)
                 {
                     //Element has listed itself as its own parent.   Do not include a parent on the adapt element as it will invalidate logic in the hierarchy creation.
                 }
-                else if (isoDeviceElement.Parent is ISODeviceElement)
+                else if (isoDeviceElement.Parent is ISODeviceElement parentElement)
                 {
-                    ISODeviceElement parentElement = isoDeviceElement.Parent as ISODeviceElement;
-                    deviceElement.ParentDeviceId = TaskDataMapper.InstanceIDMap.GetADAPTID(parentElement.DeviceElementId).Value;
+                    parentDeviceId = TaskDataMapper.InstanceIDMap.GetADAPTID(parentElement.DeviceElementId);
                 }
-                else
+                else if (isoDeviceElement.Parent is ISODevice parentDevice)
                 {
-                    ISODevice parentDevice = isoDeviceElement.Parent as ISODevice;
-                    deviceElement.ParentDeviceId = TaskDataMapper.InstanceIDMap.GetADAPTID(parentDevice.DeviceId).Value;
+                    parentDeviceId = TaskDataMapper.InstanceIDMap.GetADAPTID(parentDevice.DeviceId);
+                }
+                if (parentDeviceId.HasValue)
+                {
+                    deviceElement.ParentDeviceId = parentDeviceId.Value;
                 }
             }
 
