@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
@@ -30,7 +30,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         IEnumerable<Field> ImportFields(IEnumerable<ISOPartfield> isoFields);
         Field ImportField(ISOPartfield isoField);
-        IEnumerable<CropZone> ImportCropZones(IEnumerable<ISOPartfield> isoFields);
+        IEnumerable<CropZone> ImportCropZones(IEnumerable<ISOPartfield> isoPartFields, IEnumerable<ISOCropType> isoCrops);
         CropZone ImportCropZone(ISOPartfield isoField);
     }
 
@@ -209,12 +209,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return adaptFields;
         }
 
-        public IEnumerable<CropZone> ImportCropZones(IEnumerable<ISOPartfield> ISOPartfields)
+        public IEnumerable<CropZone> ImportCropZones(IEnumerable<ISOPartfield> isoPartFields, IEnumerable<ISOCropType> isoCrops)
         {
             List<CropZone> adaptCropzones = new List<CropZone>();
-            foreach (ISOPartfield isoPartField in ISOPartfields)
+            foreach (ISOPartfield isoPartField in isoPartFields)
             {
-                if (!string.IsNullOrEmpty(isoPartField.FieldIdRef) || !String.IsNullOrEmpty(isoPartField.CropTypeIdRef))
+                //A reference to a parent field or a crop exists and that reference points to something that exists
+                if ((!string.IsNullOrEmpty(isoPartField.FieldIdRef) && isoPartFields.Any(pf => pf.PartfieldID == isoPartField.FieldIdRef) ||
+                    (!string.IsNullOrEmpty(isoPartField.CropTypeIdRef)) && isoCrops.Any(c => c.CropTypeId == isoPartField.CropTypeIdRef)))
                 {
                     CropZone cropZone = ImportCropZone(isoPartField);
                     adaptCropzones.Add(cropZone);
@@ -285,13 +287,19 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             ImportIDs(cropZone.Id, isoPartfield.PartfieldID);
 
             //Field ID
+            int? fieldID = null;
             if (!string.IsNullOrEmpty(isoPartfield.FieldIdRef))
             {
-                cropZone.FieldId = TaskDataMapper.InstanceIDMap.GetADAPTID(isoPartfield.FieldIdRef).Value;  //Cropzone has a defined parent field in the ISO XML
+                fieldID = TaskDataMapper.InstanceIDMap.GetADAPTID(isoPartfield.FieldIdRef);  //Cropzone has a defined parent field in the ISO XML
+
             }
             else
             {
-                cropZone.FieldId = TaskDataMapper.InstanceIDMap.GetADAPTID(isoPartfield.PartfieldID).Value;  //Field had a crop assigned and we created a single cropzone
+                fieldID = TaskDataMapper.InstanceIDMap.GetADAPTID(isoPartfield.PartfieldID);  //Field had a crop assigned and we created a single cropzone
+            }
+            if (fieldID.HasValue)
+            {
+                cropZone.FieldId = fieldID.Value;
             }
 
             //Area
