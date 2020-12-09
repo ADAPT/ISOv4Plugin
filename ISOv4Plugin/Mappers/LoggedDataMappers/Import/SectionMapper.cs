@@ -12,7 +12,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
     public interface ISectionMapper
     {
-        List<DeviceElementUse> Map(ISOTime time, IEnumerable<ISOSpatialRow> isoRecords, int operationDataId, IEnumerable<string> isoDeviceElementIDs, Dictionary<string, List<ISOProductAllocation>> isoProductAllocations);
+        List<DeviceElementUse> Map(ISOTime time, IEnumerable<ISOSpatialRow> isoRecords, int operationDataId, IEnumerable<string> isoDeviceElementIDs, Dictionary<string, List<ISOProductAllocation>> isoProductAllocations, bool useDeferredExecution);
         List<DeviceElementUse> ConvertToBaseTypes(List<DeviceElementUse> meters);
     }
 
@@ -30,7 +30,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                                           IEnumerable<ISOSpatialRow> isoRecords,
                                           int operationDataId,
                                           IEnumerable<string> isoDeviceElementIDs,
-                                          Dictionary<string, List<ISOProductAllocation>> isoProductAllocations)
+                                          Dictionary<string, List<ISOProductAllocation>> isoProductAllocations,
+                                          bool useDeferredExecution)
         {
             var sections = new List<DeviceElementUse>();
             foreach (string isoDeviceElementID in isoDeviceElementIDs)
@@ -58,7 +59,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         }
 
                         //Read any spatially-listed widths/offsets on this data onto the DeviceElementConfiguration objects
-                        hierarchy.SetWidthsAndOffsetsFromSpatialData(isoRecords, config, RepresentationMapper);
+                        hierarchy.SetWidthsAndOffsetsFromSpatialData(time, isoRecords, config, RepresentationMapper, useDeferredExecution);
 
                         deviceElementUse = sections.FirstOrDefault(d => d.DeviceConfigurationId == config.Id.ReferenceId);
                         if (deviceElementUse == null)
@@ -107,7 +108,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                                 HitchPoint hitch = DataModel.Catalog.HitchPoints.FirstOrDefault(h => h.Id.ReferenceId == adaptConnector.HitchPointId);
                                 if (hitch != null)
                                 {
-                                    hierarchy.SetWidthsAndOffsetsFromSpatialData(isoRecords, hitch, RepresentationMapper);
+                                    hierarchy.SetHitchOffsetsFromSpatialData(time, isoRecords, hitch, RepresentationMapper);
                                 }
                             }
                         }

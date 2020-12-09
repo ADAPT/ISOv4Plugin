@@ -302,11 +302,21 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             SectionMapper sectionMapper = new SectionMapper(workingDataMapper, TaskDataMapper);
             SpatialRecordMapper spatialMapper = new SpatialRecordMapper(new RepresentationValueInterpolator(), sectionMapper, workingDataMapper, TaskDataMapper);
             IEnumerable<ISOSpatialRow> isoRecords = ReadTimeLog(isoTimeLog, this.TaskDataPath);
+            bool useDeferredExecution = false;
             if (isoRecords != null)
             {
                 try
                 {
-                    isoRecords = isoRecords.ToList(); //Avoids multiple reads
+                    if (TaskDataMapper.Properties != null)
+                    {
+                        //Set this property to override the default behavior of pre-iterating the data
+                        bool.TryParse(TaskDataMapper.Properties.GetProperty("SpatialRecordDeferredExecution"), out useDeferredExecution);
+                    }
+
+                    if (!useDeferredExecution)
+                    {
+                        isoRecords = isoRecords.ToList(); //Avoids multiple reads
+                    }
 
                     //Set a UTC "delta" from the first record where possible.  We set only one per data import.
                     if (!TaskDataMapper.GPSToLocalDelta.HasValue)
@@ -361,7 +371,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                                                                                isoRecords,
                                                                                operationData.Id.ReferenceId,
                                                                                loggedDeviceElementsByDevice[dvc],
-                                                                               productAllocations);
+                                                                               productAllocations,
+                                                                               useDeferredExecution);
 
                     var workingDatas = sections != null ? sections.SelectMany(x => x.GetWorkingDatas()).ToList() : new List<WorkingData>();
 
