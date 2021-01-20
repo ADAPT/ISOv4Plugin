@@ -371,8 +371,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                                                                                isoRecords,
                                                                                operationData.Id.ReferenceId,
                                                                                loggedDeviceElementsByDevice[dvc],
-                                                                               productAllocations,
-                                                                               useDeferredExecution);
+                                                                               productAllocations);
 
                     var workingDatas = sections != null ? sections.SelectMany(x => x.GetWorkingDatas()).ToList() : new List<WorkingData>();
 
