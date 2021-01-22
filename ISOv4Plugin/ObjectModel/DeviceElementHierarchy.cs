@@ -296,12 +296,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
             }
         }
 
-        public void SetWidthsAndOffsetsFromSpatialData(ISOTime time, IEnumerable<ISOSpatialRow> isoRecords, DeviceElementConfiguration config, RepresentationMapper representationMapper, bool useDeferredExecution)
+        public void SetWidthsAndOffsetsFromSpatialData(ISOTime time, IEnumerable<ISOSpatialRow> isoRecords, DeviceElementConfiguration config, RepresentationMapper representationMapper)
         {
             //Set values on this object and associated DeviceElementConfiguration 
             if (Width == null)
             {
-                Width = GetWidthFromSpatialData(time, isoRecords, DeviceElement.DeviceElementId, representationMapper, useDeferredExecution);
+                Width = GetWidthFromSpatialData(time, isoRecords, DeviceElement.DeviceElementId, representationMapper);
             }
 
             if (config.Offsets == null)
@@ -382,7 +382,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
             }
         }
 
-        private int? GetWidthFromSpatialData(ISOTime time, IEnumerable<ISOSpatialRow> isoRecords, string isoDeviceElementID, RepresentationMapper representationMapper, bool useDeferredExecution)
+        private int? GetWidthFromSpatialData(ISOTime time, IEnumerable<ISOSpatialRow> isoRecords, string isoDeviceElementID, RepresentationMapper representationMapper)
         {
             double maxWidth = 0d;
             string updatedWidthDDI = null;
@@ -420,13 +420,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                 else
                 {
                     IEnumerable<ISOSpatialRow> rows = isoRecords.Where(r => r.SpatialValues.Any(s => s.DataLogValue.DeviceElementIdRef == isoDeviceElementID &&
-                                                                                                     s.DataLogValue.ProcessDataDDI == "0043"));
-                    if (useDeferredExecution)
-                    {
-                        //Limit iteration to first 50 rows for performance
-                        rows = rows.Take(50);
-                    }
-                                                               
+                                                                                                     s.DataLogValue.ProcessDataDDI == "0043"));                                                               
                     if (rows.Any())
                     {
                         foreach (ISOSpatialRow row in rows)

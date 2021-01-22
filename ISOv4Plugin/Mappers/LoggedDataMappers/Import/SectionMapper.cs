@@ -12,7 +12,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
     public interface ISectionMapper
     {
-        List<DeviceElementUse> Map(ISOTime time, IEnumerable<ISOSpatialRow> isoRecords, int operationDataId, IEnumerable<string> isoDeviceElementIDs, Dictionary<string, List<ISOProductAllocation>> isoProductAllocations, bool useDeferredExecution);
+        List<DeviceElementUse> Map(ISOTime time, IEnumerable<ISOSpatialRow> isoRecords, int operationDataId, IEnumerable<string> isoDeviceElementIDs, Dictionary<string, List<ISOProductAllocation>> isoProductAllocations);
         List<DeviceElementUse> ConvertToBaseTypes(List<DeviceElementUse> meters);
     }
 
@@ -30,8 +30,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                                           IEnumerable<ISOSpatialRow> isoRecords,
                                           int operationDataId,
                                           IEnumerable<string> isoDeviceElementIDs,
-                                          Dictionary<string, List<ISOProductAllocation>> isoProductAllocations,
-                                          bool useDeferredExecution)
+                                          Dictionary<string, List<ISOProductAllocation>> isoProductAllocations)
         {
             var sections = new List<DeviceElementUse>();
             foreach (string isoDeviceElementID in isoDeviceElementIDs)
@@ -59,7 +58,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         }
 
                         //Read any spatially-listed widths/offsets on this data onto the DeviceElementConfiguration objects
-                        hierarchy.SetWidthsAndOffsetsFromSpatialData(time, isoRecords, config, RepresentationMapper, useDeferredExecution);
+                        hierarchy.SetWidthsAndOffsetsFromSpatialData(time, isoRecords, config, RepresentationMapper);
 
                         deviceElementUse = sections.FirstOrDefault(d => d.DeviceConfigurationId == config.Id.ReferenceId);
                         if (deviceElementUse == null)

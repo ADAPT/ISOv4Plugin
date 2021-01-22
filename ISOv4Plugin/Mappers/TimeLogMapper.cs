@@ -371,8 +371,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                                                                                isoRecords,
                                                                                operationData.Id.ReferenceId,
                                                                                loggedDeviceElementsByDevice[dvc],
-                                                                               productAllocations,
-                                                                               useDeferredExecution);
+                                                                               productAllocations);
 
                     var workingDatas = sections != null ? sections.SelectMany(x => x.GetWorkingDatas()).ToList() : new List<WorkingData>();
 
@@ -496,7 +495,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 if (!File.Exists(fileName))
                     yield break;
 
-                using (var binaryReader = new System.IO.BinaryReader(File.Open(fileName, FileMode.Open)))
+                using (var binaryReader = new System.IO.BinaryReader(File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read)))
                 {
                     while (binaryReader.BaseStream.Position < binaryReader.BaseStream.Length)
                     {
