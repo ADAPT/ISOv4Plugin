@@ -112,7 +112,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         {
             var gridFileName = GenerateId(5);
             Dictionary<string, ISOUnit> unitsByDDI = new Dictionary<string, ISOUnit>();
-            using (var binaryWriter = CreateWriter(Path.ChangeExtension(gridFileName, ".BIN")))
+            using (var binaryWriter = CreateWriter(Path.ChangeExtension(gridFileName, ".bin")))
             {
                 byte[] previousBytes = BitConverter.GetBytes(0);
                 foreach (var rxCellLookup in prescription.Rates)
@@ -150,7 +150,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         private string WriteType1GridFile(List<byte> treatmentZoneCodes)
         {
             var gridFileName = GenerateId(5);
-            using (var binaryWriter = CreateWriter(Path.ChangeExtension(gridFileName, ".BIN")))
+            using (var binaryWriter = CreateWriter(Path.ChangeExtension(gridFileName, ".bin")))
             {
                 foreach (byte code in treatmentZoneCodes)
                 {
