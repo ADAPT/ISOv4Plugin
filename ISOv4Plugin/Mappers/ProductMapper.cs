@@ -7,15 +7,9 @@ using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AgGateway.ADAPT.ApplicationDataModel.Logistics;
-using AgGateway.ADAPT.ApplicationDataModel.Shapes;
 using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
-using AgGateway.ADAPT.ApplicationDataModel.Guidance;
 using AgGateway.ADAPT.ApplicationDataModel.Products;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
-using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
@@ -57,17 +51,19 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
                     foreach (ProductComponent component in adaptMixProduct.ProductComponents)
                     {
-                        Ingredient ingredient = DataModel.Catalog.Ingredients.FirstOrDefault(i => i.Id.ReferenceId == component.IngredientId);
-                        if (ingredient != null)
+                        //Components may map to either an ingredient or a product
+                        //See comments at ProductComponent in ADAPT repo.
+                        Product adaptProduct = DataModel.Catalog.Products.FirstOrDefault(i => i.Id.ReferenceId == component.IngredientId);
+                        if (adaptProduct != null)
                         {
-                            ISOProduct componentProduct = isoProducts.FirstOrDefault(p => p.ProductDesignator == ingredient.Description); //Matches on name; assumes all ingredients are also products
-                            if (componentProduct != null)
+                            ExportProductRelation(isoProducts, adaptProduct.Description, component.Quantity, isoMixProduct);
+                        }
+                        else
+                        {
+                            Ingredient adaptIngredient = DataModel.Catalog.Ingredients.FirstOrDefault(i => i.Id.ReferenceId == component.IngredientId);
+                            if (adaptIngredient != null)
                             {
-                                //Create PRNs if we can match to pre-existing products
-                                ISOProductRelation relation = new ISOProductRelation();
-                                relation.ProductIdRef = componentProduct.ProductId;
-                                relation.QuantityValue = component.Quantity.AsIntViaMappedDDI(RepresentationMapper);
-                                isoMixProduct.ProductRelations.Add(relation);
+                                ExportProductRelation(isoProducts, adaptIngredient.Description, component.Quantity, isoMixProduct);
                             }
                         }
                     }
@@ -85,6 +81,23 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             }
             return isoProducts;
+        }
+
+        private void ExportProductRelation(List<ISOProduct> isoProducts,
+                                           string adaptDescription,
+                                           ApplicationDataModel.Representations.NumericRepresentationValue quantity,
+                                           ISOProduct targetMixProduct)
+        {
+
+            ISOProduct componentProduct = isoProducts.FirstOrDefault(p => p.ProductDesignator == adaptDescription); //Matches on name; assumes all ingredients are also products
+            if (componentProduct != null)
+            {
+                //Create PRNs if we can match to pre-existing products
+                ISOProductRelation relation = new ISOProductRelation();
+                relation.ProductIdRef = componentProduct.ProductId;
+                relation.QuantityValue = quantity.AsIntViaMappedDDI(RepresentationMapper);
+                targetMixProduct.ProductRelations.Add(relation);
+            }
         }
 
         public ISOProduct ExportProduct(Product adaptProduct)
@@ -216,17 +229,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
                     if (isoComponent != null) //Skip PRN if PRN@A doesn't resolve to a product
                     {
-                        //Find or create the active ingredient to match the component
-                        Ingredient ingredient = DataModel.Catalog.Ingredients.FirstOrDefault(i => i.Id.FindIsoId() == isoComponent.ProductId);
-                        if (ingredient == null)
+                        //Find or create the product to match the component
+                        Product adaptProduct = DataModel.Catalog.Products.FirstOrDefault(i => i.Id.FindIsoId() == isoComponent.ProductId);
+                        if (adaptProduct == null)
                         {
-                            ingredient = new ActiveIngredient();
-                            ingredient.Description = isoComponent.ProductDesignator;
-                            DataModel.Catalog.Ingredients.Add(ingredient);
+                            adaptProduct = new GenericProduct();
+                            adaptProduct.Description = isoComponent.ProductDesignator;
+                            DataModel.Catalog.Products.Add(adaptProduct);
                         }
 
                         //Create a component for this ingredient
-                        ProductComponent component = new ProductComponent() { IngredientId = ingredient.Id.ReferenceId };
+                        ProductComponent component = new ProductComponent() { IngredientId = adaptProduct.Id.ReferenceId, IsProduct = true };
                         if (!string.IsNullOrEmpty(isoComponent.QuantityDDI))
                         {
                             component.Quantity = prn.QuantityValue.AsNumericRepresentationValue(isoComponent.QuantityDDI, RepresentationMapper);
