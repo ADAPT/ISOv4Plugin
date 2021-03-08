@@ -83,6 +83,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             string id = adaptDeviceElement.Id.FindIsoId() ?? GenerateId();
             det.DeviceElementId = id;
             ExportIDs(adaptDeviceElement.Id, id);
+            ExportContextItems(adaptDeviceElement.ContextItems, id, "ADAPT_Context_Items:DeviceElement");
 
             //Object ID
             det.DeviceElementObjectId = (uint)objectID;
@@ -348,6 +349,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             //ID
             ImportIDs(deviceElement.Id, isoDeviceElement.DeviceElementId);
+            deviceElement.ContextItems = ImportContextItems(isoDeviceElement.DeviceElementId, "ADAPT_Context_Items:DeviceElement");
 
             //Device ID
             int? deviceModelId = TaskDataMapper.InstanceIDMap.GetADAPTID(isoDeviceElement.Device.DeviceId);
