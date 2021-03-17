@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
@@ -55,6 +55,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             string id = adaptCropType.Id.FindIsoId() ?? GenerateId();
             isoCrop.CropTypeId = id;
             ExportIDs(adaptCropType.Id, id);
+            ExportContextItems(adaptCropType.ContextItems, id, "ADAPT_Context_Items:Crop");
 
             //Designator
             isoCrop.CropTypeDesignator = adaptCropType.Name;
@@ -103,6 +104,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             //ID
             ImportIDs(adaptCrop.Id, isoCropType.CropTypeId);
+            adaptCrop.ContextItems = ImportContextItems(isoCropType.CropTypeId, "ADAPT_Context_Items:Crop");
 
             //Description
             adaptCrop.Name = isoCropType.CropTypeDesignator;

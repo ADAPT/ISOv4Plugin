@@ -258,7 +258,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
             //Tasks
-            if (AdaptDataModel.Documents.WorkItems.Any() || AdaptDataModel.Documents.LoggedData.Any())
+            if (AdaptDataModel.Documents != null &&
+                (AdaptDataModel.Documents.WorkItems.Any() || AdaptDataModel.Documents.LoggedData.Any()))
             {
                 TaskMapper taskMapper = new TaskMapper(this);
                 if (AdaptDataModel.Documents.WorkItems != null)

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
@@ -65,6 +65,23 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         {
             id.UniqueIds.AddRange(UniqueIDMapper.ImportUniqueIDs(isoIDRef));
             return TaskDataMapper.InstanceIDMap.Add(id.ReferenceId, isoIDRef);
+        }
+
+        protected void ExportContextItems(List<ContextItem> contextItems, string isoIDRef, string groupName, string prefix = "")
+        {
+            if (contextItems.Any())
+            {
+                List<string> errors = UniqueIDMapper.ExportContextItems(contextItems, isoIDRef, groupName, prefix);
+                foreach (string error in errors)
+                {
+                    TaskDataMapper.AddError(error);
+                }
+            }
+        }
+
+        protected List<ContextItem> ImportContextItems(string isoIDRef, string linkGroupDescription)
+        {
+            return UniqueIDMapper.ImportContextItems(isoIDRef, linkGroupDescription);
         }
     }
 }

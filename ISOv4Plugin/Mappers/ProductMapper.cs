@@ -110,6 +110,19 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 TaskDataMapper.InstanceIDMap.ReplaceISOID(adaptProduct.Id.ReferenceId, productID);
             }
 
+            //Context Items
+            ExportContextItems(adaptProduct.ContextItems, productID, "ADAPT_Context_Items:Product");
+            int packagedProductIndex = 0;
+            foreach (var packagedProduct in DataModel.Catalog.PackagedProducts.Where(pp => pp.ProductId == adaptProduct.Id.ReferenceId))
+            {
+                ExportContextItems(packagedProduct.ContextItems, productID, "ADAPT_Context_Items:PackagedProduct", $"{(++packagedProductIndex).ToString()}.");
+                int packagedProductInstanceIndex = 0;
+                foreach (var packagedProductInstance in DataModel.Catalog.PackagedProductInstances.Where(ppi => ppi.PackagedProductId == packagedProduct.Id.ReferenceId))
+                {
+                    ExportContextItems(packagedProductInstance.ContextItems, productID, "ADAPT_Context_Items:PackagedProductInstance", $"{packagedProductIndex.ToString()}.{(++packagedProductInstanceIndex).ToString()}.");
+                }
+            }
+
             //Designator
             isoProduct.ProductDesignator = adaptProduct.Description;
 
@@ -198,6 +211,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 TaskDataMapper.InstanceIDMap.ReplaceISOID(product.Id.ReferenceId, isoProduct.ProductId);
             }
 
+            //Context Items
+            product.ContextItems = ImportContextItems(isoProduct.ProductId, "ADAPT_Context_Items:Product");
+            ImportPackagedProductClasses(isoProduct, product);
+
+
             //Description
             product.Description = isoProduct.ProductDesignator;
 
@@ -264,6 +282,53 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return product;
         }
 
+        /// <summary>
+        /// Import any PackagedProduct & PackagedProductInstance classes as may be defined in the LinkList/ContextItems
+        /// Any export process (above) will have named the context items with with integer prefixes so that we can identify
+        /// the source object hierarchy.
+        /// E.g., 1.1.Code|Value is the first PackagedProduct and the first PackagedProduct belonging to it.
+        /// </summary>
+        /// <param name="isoProduct"></param>
+        /// <param name="product"></param>
+        private void ImportPackagedProductClasses(ISOProduct isoProduct, Product product)
+        {
+            List<ContextItem> ppContextItems = ImportContextItems(isoProduct.ProductId, "ADAPT_Context_Items:PackagedProduct");
+            List<ContextItem> ppiContextItems = ImportContextItems(isoProduct.ProductId, "ADAPT_Context_Items:PackagedProductInstance");
+            int packagedProductIndex = 1;
+            ContextItem relevantPPContextItem = ppContextItems.FirstOrDefault(ci => ci.Code == packagedProductIndex.ToString());
+            while (relevantPPContextItem != null)
+            {
+                //PackagedProduct
+                PackagedProduct packagedProduct = new PackagedProduct();
+                packagedProduct.ProductId = product.Id.ReferenceId;
+                packagedProduct.ContextItems = relevantPPContextItem.NestedItems;
+                packagedProduct.Description = packagedProduct.ContextItems.FirstOrDefault()?.Value;
+                DataModel.Catalog.PackagedProducts.Add(packagedProduct);
+
+                //PackagedProductInstance
+                ContextItem containingContextItem = ppiContextItems.FirstOrDefault(ci => ci.Code == packagedProductIndex.ToString());
+                if (containingContextItem != null)
+                {
+                    int packagedProductInstanceIndex = 1;
+                    ContextItem relevantPPIContextItem = containingContextItem.NestedItems.FirstOrDefault(ci => ci.Code == packagedProductInstanceIndex.ToString());
+                    while (relevantPPIContextItem != null)
+                    {
+                        PackagedProductInstance packagedProductInstance = new PackagedProductInstance();
+                        packagedProductInstance.PackagedProductId = packagedProduct.Id.ReferenceId;
+                        packagedProductInstance.ContextItems = relevantPPIContextItem.NestedItems;
+                        packagedProductInstance.Description = packagedProductInstance.ContextItems.FirstOrDefault()?.Value;
+                        DataModel.Catalog.PackagedProductInstances.Add(packagedProductInstance);
+
+                        //Increment the counter and see if there is a PackagedProductInstance 1.2, etc.
+                        int index = ++packagedProductInstanceIndex; 
+                        relevantPPIContextItem = containingContextItem.NestedItems.FirstOrDefault(ci => ci.Code == index.ToString());
+                    }
+                }
+
+                //Increment the counter and see if there is a PackagedProduct 2, etc.
+                relevantPPContextItem = ppContextItems.FirstOrDefault(ci => ci.Code == (++packagedProductIndex).ToString());
+            }
+        }
         #endregion Import
     }
 }
