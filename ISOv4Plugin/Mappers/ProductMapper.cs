@@ -111,6 +111,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
             //Context Items
+            //The 1.1, etc. convention below for PackagedProduct and PackagedProductInstance is internal to this plugin.
+            //As LinkList.xml items classified in ManufacturerGLN LGP's, the data carries a proprietary definition that,
+            //in this case, is internal to the Import/Export methods in this class and serves
+            //no purpose other than ensuring exported data is reimported in its same form.   If in future there is a need to expose
+            //other product data in this way, we need simply alter these to methods to allow for the same.
             ExportContextItems(adaptProduct.ContextItems, productID, "ADAPT_Context_Items:Product");
             int packagedProductIndex = 0;
             foreach (var packagedProduct in DataModel.Catalog.PackagedProducts.Where(pp => pp.ProductId == adaptProduct.Id.ReferenceId))
@@ -287,6 +292,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         /// Any export process (above) will have named the context items with with integer prefixes so that we can identify
         /// the source object hierarchy.
         /// E.g., 1.1.Code|Value is the first PackagedProduct and the first PackagedProduct belonging to it.
+        /// The 1.1, etc. convention is internal to this plugin.  As LinkList.xml items classified in ManufacturerGLN LGP's, the
+        /// data carries a proprietary definition that, in this case, is internal to the Import/Export methods in this class and serves
+        /// no purpose other than ensuring exported data is reimported in its same form.   If in future there is a need to expose
+        /// other product data in this way, we need simply alter these to methods to allow for the same.
         /// </summary>
         /// <param name="isoProduct"></param>
         /// <param name="product"></param>

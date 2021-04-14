@@ -145,7 +145,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
                 if (meterCreator is CondensedStateMeterCreator)
                 {
-                    UpdateCondensedWorkingDatas(workingDatas, dlv, deviceElementUse, pendingDeviceElementUses, isoDeviceElementHierarchy);
+                    UpdateCondensedWorkingDatas(workingDatas.Cast<ISOEnumeratedMeter>().ToList(), dlv, deviceElementUse, pendingDeviceElementUses, isoDeviceElementHierarchy);
                 }
             }
             else
@@ -199,20 +199,21 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return meter;
         }
 
-        private void UpdateCondensedWorkingDatas(List<WorkingData> condensedWorkingDatas, ISODataLogValue dlv, DeviceElementUse deviceElementUse, List<DeviceElementUse> pendingDeviceElementUses, DeviceElementHierarchy isoDeviceElementHierarchy)
+        private void UpdateCondensedWorkingDatas(List<ISOEnumeratedMeter> condensedWorkingDatas, ISODataLogValue dlv, DeviceElementUse deviceElementUse, List<DeviceElementUse> pendingDeviceElementUses, DeviceElementHierarchy isoDeviceElementHierarchy)
         {
             ISODeviceElement isoDeviceElement = TaskDataMapper.DeviceElementHierarchies.GetISODeviceElementFromID(dlv.DeviceElementIdRef);
-            IEnumerable<ISODeviceElement> isoSectionElements = isoDeviceElement.ChildDeviceElements.Where(d => d.DeviceElementType == ISOEnumerations.ISODeviceElementType.Section);
-            if (isoSectionElements.Count() > 0 && isoSectionElements.Count() <= condensedWorkingDatas.Count)
+            List<ISODeviceElement> isoSectionElements = isoDeviceElement.ChildDeviceElements.Where(d => d.DeviceElementType == ISOEnumerations.ISODeviceElementType.Section).ToList();
+            //We have some sections in the DDOP
+            if (isoSectionElements.Count > 0)
             {
-                //We have found the expected number of sections in the DDOP
-                List<ISODeviceElement> targetSections = isoSectionElements.ToList();
-
                 //Update the DeviceElementReference on the Condensed WorkingDatas
-                for (int i = 0; i < isoSectionElements.Count(); i++)
+                foreach (var workingData in condensedWorkingDatas)
                 {
-                    WorkingData workingData = condensedWorkingDatas[i];
-                    ISODeviceElement targetSection = targetSections[i];
+                    if (workingData.SectionIndex - 1 >= isoSectionElements.Count)
+                    {
+                        break;
+                    }
+                    ISODeviceElement targetSection = isoSectionElements[workingData.SectionIndex - 1];
 
                     DeviceElementUse condensedDeviceElementUse = FindExistingDeviceElementUseForCondensedData(targetSection, pendingDeviceElementUses);
                     if (condensedDeviceElementUse == null)
