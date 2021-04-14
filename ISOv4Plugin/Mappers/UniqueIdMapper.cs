@@ -138,7 +138,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //1. Add any matching link in the LinkList.xml
             if (LinkList != null)
             {
-                foreach (ISOLinkGroup isoLinkGroup in LinkList.LinkGroups.Where(lg => !lg.LinkGroupDesignator.Contains("ADAPT_Context_Items")))
+                foreach (ISOLinkGroup isoLinkGroup in LinkList.LinkGroups.Where(lg => lg.LinkGroupDesignator != null && !lg.LinkGroupDesignator.Contains("ADAPT_Context_Items")))
                 {
                     ISOLink link = isoLinkGroup.Links.FirstOrDefault(l => l.ObjectIdRef == isoObjectIdRef);
                     if (link != null)
@@ -204,7 +204,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             List<ContextItem> outputItems = new List<ContextItem>();
             if (LinkList != null)
             {
-                foreach (ISOLinkGroup isoLinkGroup in LinkList.LinkGroups.Where(lg => lg.LinkGroupDesignator.Equals(linkGroupDescription)))
+                foreach (ISOLinkGroup isoLinkGroup in LinkList.LinkGroups.Where(lg => lg.LinkGroupDesignator != null && lg.LinkGroupDesignator.Equals(linkGroupDescription)))
                 {
                     foreach (ISOLink link in isoLinkGroup.Links.Where(link => link.ObjectIdRef == isoObjectIdRef))
                     {
