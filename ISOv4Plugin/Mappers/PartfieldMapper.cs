@@ -71,6 +71,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             string fieldID = adaptField.Id.FindIsoId() ?? GenerateId();
             isoField.PartfieldID = fieldID;
             ExportIDs(adaptField.Id, fieldID);
+            ExportContextItems(adaptField.ContextItems, fieldID, "ADAPT_Context_Items:Field");
 
             //Customer & Farm ID
             ExportFarmAndGrower(adaptField, isoField);
@@ -125,6 +126,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             string fieldID = cropZone.Id.FindIsoId() ?? GenerateId();
             isoField.PartfieldID = fieldID;
             ExportIDs(cropZone.Id, fieldID);
+            ExportContextItems(cropZone.ContextItems, fieldID, "ADAPT_Context_Items:CropZone");
 
             //Parent Field ID
             isoField.FieldIdRef = TaskDataMapper.InstanceIDMap.GetISOID(cropZone.FieldId);
@@ -231,6 +233,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             //Field ID
             ImportIDs(field.Id, isoPartfield.PartfieldID);
+            field.ContextItems = ImportContextItems(isoPartfield.PartfieldID, "ADAPT_Context_Items:Field");
 
             //Farm ID
             field.FarmId = TaskDataMapper.InstanceIDMap.GetADAPTID(isoPartfield.FarmIdRef);
@@ -285,6 +288,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             //Cropzone ID
             ImportIDs(cropZone.Id, isoPartfield.PartfieldID);
+            cropZone.ContextItems = ImportContextItems(isoPartfield.PartfieldID, "ADAPT_Context_Items:CropZone");
 
             //Field ID
             int? fieldID = null;

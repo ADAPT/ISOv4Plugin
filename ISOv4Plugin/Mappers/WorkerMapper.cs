@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
@@ -45,6 +45,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             string workerID = adaptWorker.Id.FindIsoId() ?? GenerateId();
             isoWorker.WorkerId = workerID;
             ExportIDs(adaptWorker.Id, workerID);
+            ExportContextItems(adaptWorker.ContextItems, workerID, "ADAPT_Context_Items:Person");
 
             //Worker name
             isoWorker.WorkerFirstName = adaptWorker.FirstName;
@@ -109,6 +110,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             //Worker ID
             ImportIDs(worker.Id, isoWorker.WorkerId);
+            worker.ContextItems = ImportContextItems(isoWorker.WorkerId, null);
 
             //Worker name
             worker.LastName = isoWorker.WorkerLastName;

@@ -495,7 +495,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 if (!File.Exists(fileName))
                     yield break;
 
-                using (var binaryReader = new System.IO.BinaryReader(File.Open(fileName, FileMode.Open)))
+                using (var binaryReader = new System.IO.BinaryReader(File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read)))
                 {
                     while (binaryReader.BaseStream.Position < binaryReader.BaseStream.Length)
                     {

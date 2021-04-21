@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
@@ -57,6 +57,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             string id = adaptDevice.Id.FindIsoId() ?? GenerateId();
             dvc.DeviceId = id;
             ExportIDs(adaptDevice.Id, id);
+            ExportContextItems(adaptDevice.ContextItems, id, "ADAPT_Context_Items:DeviceModel");
 
             //Designator
             dvc.DeviceDesignator = adaptDevice.Description;
@@ -99,6 +100,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             //ID
             ImportIDs(deviceModel.Id, isoDevice.DeviceId);
+            deviceModel.ContextItems = ImportContextItems(isoDevice.DeviceId, "ADAPT_Context_Items:DeviceModel");
 
             //Description
             deviceModel.Description = isoDevice.DeviceDesignator;

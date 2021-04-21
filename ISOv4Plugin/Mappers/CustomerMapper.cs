@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
@@ -46,6 +46,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             string customerId = adaptGrower.Id.FindIsoId() ?? GenerateId();
             customer.CustomerId = customerId;
             ExportIDs(adaptGrower.Id, customerId);
+            ExportContextItems(adaptGrower.ContextItems, customerId, "ADAPT_Context_Items:Grower");
 
             //Customer Name
             customer.CustomerLastName = adaptGrower.Name;
@@ -97,6 +98,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             //Customer ID
             ImportIDs(grower.Id, isoCustomer.CustomerId);
+            grower.ContextItems = ImportContextItems(isoCustomer.CustomerId, "ADAPT_Context_Items:Grower");
 
             //Customer Name
             grower.Name = !string.IsNullOrEmpty(isoCustomer.CustomerFirstName) ? string.Concat(isoCustomer.CustomerFirstName," ", isoCustomer.CustomerLastName) : isoCustomer.CustomerLastName;
