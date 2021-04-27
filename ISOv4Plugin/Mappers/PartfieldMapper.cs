@@ -18,6 +18,7 @@ using AgGateway.ADAPT.ApplicationDataModel.Guidance;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
 using AgGateway.ADAPT.Representation.RepresentationSystem;
 using AgGateway.ADAPT.Representation.RepresentationSystem.ExtensionMethods;
+using AgGateway.ADAPT.ApplicationDataModel.Common;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
@@ -246,13 +247,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             field.Description = isoPartfield.PartfieldDesignator;
 
             //Boundary
+            FieldBoundary fieldBoundary = null;
             PolygonMapper polygonMapper = new PolygonMapper(TaskDataMapper);
-            IEnumerable<Polygon> boundaryPolygons = polygonMapper.ImportPolygons(isoPartfield.Polygons).ToList();
+            IEnumerable<Polygon> boundaryPolygons = polygonMapper.ImportBoundaryPolygons(isoPartfield.Polygons);
             if (boundaryPolygons.Any())
             {
                 MultiPolygon boundary = new MultiPolygon();
                 boundary.Polygons = boundaryPolygons.ToList();
-                FieldBoundary fieldBoundary = new FieldBoundary
+                fieldBoundary = new FieldBoundary
                 {
                     FieldId = field.Id.ReferenceId,
                     SpatialData = boundary,
@@ -276,7 +278,49 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 field.GuidanceGroupIds = groups.Select(g => g.Id.ReferenceId).ToList();
             }
 
-            //TODO any obstacle, flag, entry, etc. data
+            //Obstacles, flags, etc.
+            if (fieldBoundary != null)
+            {
+                foreach (AttributeShape attributePolygon in polygonMapper.ImportAttributePolygons(isoPartfield.Polygons))
+                {
+                    fieldBoundary.InteriorBoundaryAttributes.Add(
+                        new InteriorBoundaryAttribute()
+                        {
+                            Description = attributePolygon.Name,
+                            //ContextItems.Add(new ContextItem(){Code = "Pr_ISOXML_Attribute_Type", Value = attributePolygon.TypeName)},
+                            Shape = attributePolygon.Shape
+                        });
+                }
+                if (isoPartfield.LineStrings.Any())
+                {
+                    LineStringMapper lsgMapper = new LineStringMapper(TaskDataMapper);
+                    foreach (AttributeShape attributeLsg in lsgMapper.ImportAttributeLineStrings(isoPartfield.LineStrings))
+                    {
+                        fieldBoundary.InteriorBoundaryAttributes.Add(
+                            new InteriorBoundaryAttribute()
+                            {
+                                Description = attributeLsg.Name,
+                                //ContextItems.Add(new ContextItem(){Code = "Pr_ISOXML_Attribute_Type", Value = attributeLsg.TypeName)},
+                                Shape = attributeLsg.Shape
+                            });
+                    }
+                }
+                if (isoPartfield.Points.Any())
+                {
+                    PointMapper pointMapper = new PointMapper(TaskDataMapper);
+                    foreach (AttributeShape attributePoint in pointMapper.ImportAttributePoints(isoPartfield.Points))
+                    {
+                        fieldBoundary.InteriorBoundaryAttributes.Add(
+                            new InteriorBoundaryAttribute()
+                            {
+                                Description = attributePoint.Name,
+                                //ContextItems.Add(new ContextItem(){Code = "Pr_ISOXML_Attribute_Type", Value = attributePoint.TypeName)},
+                                Shape = attributePoint.Shape
+                            });
+                    }
+                }
+            }
+
             //TODO store Partfield Code as ContextItem
 
             return field;
@@ -315,7 +359,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             //Boundary
             PolygonMapper polygonMapper = new PolygonMapper(TaskDataMapper);
-            IEnumerable<Polygon> boundaryPolygons = polygonMapper.ImportPolygons(isoPartfield.Polygons).ToList();
+            IEnumerable<Polygon> boundaryPolygons = polygonMapper.ImportBoundaryPolygons(isoPartfield.Polygons).ToList();
             if (boundaryPolygons.Any())
             {
                 MultiPolygon boundary = new MultiPolygon();

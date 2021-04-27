@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
@@ -19,6 +19,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
     {
         IEnumerable<ISOLineString> ExportLineStrings(IEnumerable<LineString> adaptLineStrings, ISOLineStringType lsgType);
         IEnumerable<LineString> ImportLineStrings(IEnumerable<ISOLineString> isoLineStrings);
+        IEnumerable<AttributeShape> ImportAttributeLineStrings(IEnumerable<ISOLineString> isoLineStrings);
         IEnumerable<ISOLineString> ExportLinearRings(IEnumerable<LinearRing> adaptLinearRings, ISOLineStringType lsgType);
         IEnumerable<LinearRing> ImportLinearRings(IEnumerable<ISOLineString> isoLineStrings);
     }
@@ -143,13 +144,48 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return adaptLineStrings;
         }
 
+        public IEnumerable<AttributeShape> ImportAttributeLineStrings(IEnumerable<ISOLineString> isoLineStrings)
+        {
+            List<AttributeShape> attributeLinestrings = new List<AttributeShape>();
+            foreach (ISOLineString isoLineString in isoLineStrings)
+            {
+                AttributeShape lineString = ImportAttributeLineString(isoLineString);
+                if (lineString != null)
+                {
+                    attributeLinestrings.Add(lineString);
+                }               
+            }
+            return attributeLinestrings;
+        }
+
         public LineString ImportLineString(ISOLineString isoLineString)
         {
             LineString lineString = new LineString();
-
             PointMapper pointMapper = new PointMapper(TaskDataMapper);
             lineString.Points = pointMapper.ImportPoints(isoLineString.Points).ToList();
             return lineString;
+        }
+
+        public AttributeShape ImportAttributeLineString(ISOLineString isoLineString)
+        {
+            if (IsFieldAttributeType(isoLineString))
+            {
+                return new AttributeShape(){
+                    Shape = ImportLineString(isoLineString),
+                    TypeName = Enum.GetName(typeof(ISOPointType), isoLineString.LineStringType),
+                    Name = isoLineString.LineStringDesignator };
+            }
+            return null;
+        }
+
+        internal static bool IsFieldAttributeType(ISOLineString isoLineString)
+        {
+            return isoLineString.LineStringType == ISOLineStringType.Drainage ||
+                isoLineString.LineStringType == ISOLineStringType.Fence ||
+                isoLineString.LineStringType == ISOLineStringType.Flag ||
+                isoLineString.LineStringType == ISOLineStringType.Obstacle ||
+                isoLineString.LineStringType == ISOLineStringType.SamplingRoute ||
+                isoLineString.LineStringType == ISOLineStringType.TramLine;
         }
 
         #endregion Import
