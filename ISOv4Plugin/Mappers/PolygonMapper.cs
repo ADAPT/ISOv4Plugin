@@ -141,7 +141,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 //The data has defined an explicit PLN type that maps to an attribute type
                 return new AttributeShape() {
                     Shape = boundaryPolygon,
-                    TypeName = Enum.GetName(typeof(ISOPointType), isoPolygon.PolygonType),
+                    TypeName = Enum.GetName(typeof(ISOPolygonType), isoPolygon.PolygonType),
                     Name = isoPolygon.PolygonDesignator };
             }
             else if (isoPolygon.LineStrings.Count == 1)
@@ -158,7 +158,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     return new AttributeShape()
                     {
                         Shape = polygon,
-                        TypeName = Enum.GetName(typeof(ISOPointType), isoPolygon.PolygonType),
+                        TypeName = Enum.GetName(typeof(ISOPolygonType), isoPolygon.PolygonType),
                         Name = isoPolygon.PolygonDesignator
                     };
                 }
