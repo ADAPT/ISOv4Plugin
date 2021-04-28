@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
@@ -69,6 +69,20 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return adaptPoints;
         }
 
+        public IEnumerable<AttributeShape> ImportAttributePoints(IEnumerable<ISOPoint> isoPoints)
+        {
+            List<AttributeShape> attributePoints = new List<AttributeShape>();
+            foreach (ISOPoint isoPoint in isoPoints)
+            {
+                AttributeShape attributePoint = ImportAttributePoint(isoPoint);
+                if (attributePoint != null)
+                {
+                    attributePoints.Add(attributePoint);
+                }
+            }
+            return attributePoints;
+        }
+
         public Point ImportPoint(ISOPoint isoPoint)
         {
             Point point = new Point();
@@ -76,6 +90,30 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             point.Y = Convert.ToDouble(isoPoint.PointNorth);
             point.Z = isoPoint.PointUp;
             return point;
+        }
+
+        public AttributeShape ImportAttributePoint(ISOPoint isoPoint)
+        {
+            if (IsFieldAttributeType(isoPoint))
+            {
+                return new AttributeShape()
+                {
+                    Shape = ImportPoint(isoPoint),
+                    TypeName = Enum.GetName(typeof(ISOPointType), isoPoint.PointType),
+                    Name = isoPoint.PointDesignator
+                };
+            }
+            return null;
+        }
+
+        internal static bool IsFieldAttributeType(ISOPoint isoPoint)
+        {
+            return isoPoint.PointType == ISOPointType.FieldAccess ||
+             isoPoint.PointType == ISOPointType.Flag ||
+             isoPoint.PointType == ISOPointType.Homebase ||
+             isoPoint.PointType == ISOPointType.Obstacle ||
+             isoPoint.PointType == ISOPointType.Other ||
+             isoPoint.PointType == ISOPointType.Storage;
         }
 
         #endregion Import

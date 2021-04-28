@@ -133,7 +133,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 PolygonMapper polygonMapper = new PolygonMapper(TaskDataMapper);
                 adaptGroup.BoundingPolygon = new MultiPolygon();
                 adaptGroup.BoundingPolygon.Polygons = new List<Polygon>();
-                adaptGroup.BoundingPolygon.Polygons.AddRange(polygonMapper.ImportPolygons(isoGuidanceGroup.BoundaryPolygons));
+                adaptGroup.BoundingPolygon.Polygons.AddRange(polygonMapper.ImportBoundaryPolygons(isoGuidanceGroup.BoundaryPolygons));
             }
 
             return adaptGroup;

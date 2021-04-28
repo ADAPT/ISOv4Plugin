@@ -449,7 +449,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 //Shapes
                 PolygonMapper polygonMapper = new PolygonMapper(TaskDataMapper);
                 shapeLookup.Shape = new MultiPolygon();
-                shapeLookup.Shape.Polygons = polygonMapper.ImportPolygons(treatmentZone.Polygons).ToList();
+                shapeLookup.Shape.Polygons = polygonMapper.ImportBoundaryPolygons(treatmentZone.Polygons).ToList();
 
                 //Add to the collection
                 vectorRx.RxShapeLookups.Add(shapeLookup);
