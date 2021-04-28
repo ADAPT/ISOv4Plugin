@@ -172,7 +172,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             {
                 return new AttributeShape(){
                     Shape = ImportLineString(isoLineString),
-                    TypeName = Enum.GetName(typeof(ISOPointType), isoLineString.LineStringType),
+                    TypeName = Enum.GetName(typeof(ISOLineStringType), isoLineString.LineStringType),
                     Name = isoLineString.LineStringDesignator };
             }
             return null;

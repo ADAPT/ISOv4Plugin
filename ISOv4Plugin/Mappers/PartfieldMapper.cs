@@ -287,7 +287,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         new InteriorBoundaryAttribute()
                         {
                             Description = attributePolygon.Name,
-                            //ContextItems.Add(new ContextItem(){Code = "Pr_ISOXML_Attribute_Type", Value = attributePolygon.TypeName)},
+                            ContextItems = new List<ContextItem>() { new ContextItem() { Code = "Pr_ISOXML_Attribute_Type", Value = attributePolygon.TypeName } },
                             Shape = attributePolygon.Shape
                         });
                 }
@@ -300,7 +300,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                             new InteriorBoundaryAttribute()
                             {
                                 Description = attributeLsg.Name,
-                                //ContextItems.Add(new ContextItem(){Code = "Pr_ISOXML_Attribute_Type", Value = attributeLsg.TypeName)},
+                                ContextItems = new List<ContextItem>() { new ContextItem() { Code = "Pr_ISOXML_Attribute_Type", Value = attributeLsg.TypeName } },
                                 Shape = attributeLsg.Shape
                             });
                     }
@@ -314,7 +314,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                             new InteriorBoundaryAttribute()
                             {
                                 Description = attributePoint.Name,
-                                //ContextItems.Add(new ContextItem(){Code = "Pr_ISOXML_Attribute_Type", Value = attributePoint.TypeName)},
+                                ContextItems = new List<ContextItem>() { new ContextItem() { Code = "Pr_ISOXML_Attribute_Type", Value = attributePoint.TypeName } },
                                 Shape = attributePoint.Shape
                             });
                     }
