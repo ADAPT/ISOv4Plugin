@@ -152,6 +152,18 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         ISOProductAllocation relevantPan = productAllocations[detID].FirstOrDefault(p => Offset(p.AllocationStamp.Start) <= spatialRecord.Timestamp &&
                                                                                                          (p.AllocationStamp.Stop == null ||
                                                                                                           Offset(p.AllocationStamp.Stop) >= spatialRecord.Timestamp));
+                        if (relevantPan == null)
+                        {
+                            //We couldn't correlate strictly based on time.  Check for a more general match on date alone before returning null.
+                            var pansMatchingDate = productAllocations[detID].Where(p => p.AllocationStamp.Start?.Date == p.AllocationStamp.Stop?.Date &&
+                                                                               p.AllocationStamp.Start?.Date == spatialRecord.Timestamp.Date);
+                            if (pansMatchingDate.Count() == 1)
+                            {
+                                //Only one PAN on this date, use it.
+                                relevantPan = pansMatchingDate.Single();
+                            }
+                        }
+
                         if (relevantPan != null)
                         {
                             int? adaptProductID = _taskDataMapper.InstanceIDMap.GetADAPTID(relevantPan.ProductIdRef);
