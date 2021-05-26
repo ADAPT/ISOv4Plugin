@@ -501,7 +501,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     {
                         ISOPosition templatePosition = templateTime.Positions.FirstOrDefault();
 
-                        var record = new ISOSpatialRow { TimeStart = GetStartTime(templateTime, binaryReader) };
+                        var record = new ISOSpatialRow { TimeStart = GetStartTime(templateTime, binaryReader).GetValueOrDefault() };
 
                         if (templatePosition != null)
                         {
@@ -509,53 +509,21 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                             record.NorthPosition = ReadInt32((double?)templatePosition.PositionNorth, templatePosition.HasPositionNorth, binaryReader).GetValueOrDefault(0);
                             record.EastPosition = ReadInt32((double?)templatePosition.PositionEast, templatePosition.HasPositionEast, binaryReader).GetValueOrDefault(0);
 
-                            if (templatePosition.HasPositionUp) //Optional position attributes will be included in the binary only if a corresponding attribute is present in the PTN element
-                            {
-                                record.Elevation = ReadInt32(templatePosition.PositionUp, templatePosition.HasPositionUp, binaryReader);
-                            }
+                            //Optional position attributes will be included in the binary only if a corresponding attribute is present in the PTN element
+                            record.Elevation = ReadInt32(templatePosition.PositionUp, templatePosition.HasPositionUp, binaryReader);
 
                             //Position status is required
                             record.PositionStatus = ReadByte((byte?)templatePosition.PositionStatus, templatePosition.HasPositionStatus, binaryReader);
 
-                            if (templatePosition.HasPDOP)
-                            {
-                                record.PDOP = ReadUShort((double?)templatePosition.PDOP, templatePosition.HasPDOP, binaryReader);
-                            }
+                            record.PDOP = ReadUShort((double?)templatePosition.PDOP, templatePosition.HasPDOP, binaryReader);
 
-                            if (templatePosition.HasHDOP)
-                            {
-                                record.HDOP = ReadUShort((double?)templatePosition.HDOP, templatePosition.HasHDOP, binaryReader);
-                            }
+                            record.HDOP = ReadUShort((double?)templatePosition.HDOP, templatePosition.HasHDOP, binaryReader);
 
-                            if (templatePosition.HasNumberOfSatellites)
-                            {
-                                record.NumberOfSatellites = ReadByte(templatePosition.NumberOfSatellites, templatePosition.HasNumberOfSatellites, binaryReader);
-                            }
+                            record.NumberOfSatellites = ReadByte(templatePosition.NumberOfSatellites, templatePosition.HasNumberOfSatellites, binaryReader);
 
-                            if (templatePosition.HasGpsUtcTime)
-                            {
-                                if (templatePosition.GpsUtcTime.HasValue)
-                                {
-                                    record.GpsUtcTime = Convert.ToUInt32(templatePosition.GpsUtcTime.Value);
-                                }
-                                else
-                                {
-                                    record.GpsUtcTime = binaryReader.ReadUInt32();
-                                }
-                            }
+                            record.GpsUtcTime = ReadUInt32(templatePosition.GpsUtcTime, templatePosition.HasGpsUtcTime, binaryReader).GetValueOrDefault();
 
-                            if (templatePosition.HasGpsUtcDate)
-                            {
-                                if (templatePosition.GpsUtcDate.HasValue)
-                                {
-                                    record.GpsUtcDate = (ushort)templatePosition.GpsUtcDate.Value;
-                                }
-                                else
-                                {
-                                    record.GpsUtcDate = binaryReader.ReadUInt16();
-                                }
-                                
-                            }
+                            record.GpsUtcDate = ReadUShort(templatePosition.GpsUtcDate, templatePosition.HasGpsUtcDate, binaryReader);
 
                             if (record.GpsUtcDate != null && record.GpsUtcTime != null)
                             {
@@ -569,9 +537,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                             break;
                         }
 
-                        var numberOfDLVs = binaryReader.ReadByte();
-                        //Some datasets end here
-                        if (binaryReader.BaseStream.Position >= binaryReader.BaseStream.Length)
+                        var numberOfDLVs = ReadByte(null, true, binaryReader).GetValueOrDefault(0);
+                        // There should be some values but no more data exists in file, stop processing
+                        if (numberOfDLVs > 0 && binaryReader.BaseStream.Position >= binaryReader.BaseStream.Length)
                         {
                             break;
                         }
@@ -582,21 +550,33 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                             var endPosition = binaryReader.BaseStream.Position + 5 * numberOfDLVs;
                             if (endPosition > binaryReader.BaseStream.Length)
                             {
-                                numberOfDLVs = (byte)Math.Floor((endPosition - binaryReader.BaseStream.Length) / 5d);
+                                numberOfDLVs = (byte)Math.Floor((binaryReader.BaseStream.Length - binaryReader.BaseStream.Position) / 5d);
                             }
                         }
 
                         record.SpatialValues = new List<SpatialValue>();
 
+                        bool unexpectedEndOfStream = false;
                         //Read DLVs out of the TLG.bin
                         for (int i = 0; i < numberOfDLVs; i++)
                         {
-                            var order = binaryReader.ReadByte();
-                            var value = binaryReader.ReadInt32();
+                            var order = ReadByte(null, true, binaryReader).GetValueOrDefault();
+                            var value = ReadInt32(null, true, binaryReader).GetValueOrDefault();
+                            // Can't read either order or value or both, stop processing
+                            if (i < numberOfDLVs - 1 &&  binaryReader.BaseStream.Position >= binaryReader.BaseStream.Length)
+                            {
+                                unexpectedEndOfStream = true;
+                                break;
+                            }
 
                             SpatialValue spatialValue = CreateSpatialValue(templateTime, order, value, deviceHierarchies);
-                            if(spatialValue != null)
+                            if (spatialValue != null)
                                 record.SpatialValues.Add(spatialValue);
+                        }
+                        // Unable to read some of the expected DLVs, stop processing
+                        if (unexpectedEndOfStream)
+                        {
+                            break;
                         }
 
                         //Add any fixed values from the TLG.xml
@@ -622,7 +602,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 {
                     if (value.HasValue)
                         return (ushort)value.Value;
-                    return binaryReader.ReadUInt16();
+
+                    var buffer = new byte[2];
+                    var actualSize = binaryReader.Read(buffer, 0, buffer.Length);
+                    return actualSize != buffer.Length ? null : (ushort?)BitConverter.ToUInt16(buffer, 0);
                 }
                 return null;
             }
@@ -633,7 +616,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 {
                     if (byteValue.HasValue)
                         return byteValue;
-                    return binaryReader.ReadByte();
+
+                    var buffer = new byte[1];
+                    var actualSize = binaryReader.Read(buffer, 0, buffer.Length);
+                    return actualSize != buffer.Length ? null : (byte?)buffer[0];
                 }
                 return null;
             }
@@ -645,21 +631,37 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     if (d.HasValue)
                         return (int)d.Value;
 
-                    return binaryReader.ReadInt32();
+                    var buffer = new byte[4];
+                    var actualSize = binaryReader.Read(buffer, 0, buffer.Length);
+                    return actualSize != buffer.Length ? null : (int?)BitConverter.ToInt32(buffer, 0);
                 }
                 return null;
             }
 
-            private DateTime GetStartTime(ISOTime templateTime, System.IO.BinaryReader binaryReader)
+            private static uint? ReadUInt32(double? d, bool specified, System.IO.BinaryReader binaryReader)
+            {
+                if (specified)
+                {
+                    if (d.HasValue)
+                        return (uint)d.Value;
+
+                    var buffer = new byte[4];
+                    var actualSize = binaryReader.Read(buffer, 0, buffer.Length);
+                    return actualSize != buffer.Length ? null : (uint?)BitConverter.ToUInt32(buffer, 0);
+                }
+                return null;
+            }
+
+            private DateTime? GetStartTime(ISOTime templateTime, System.IO.BinaryReader binaryReader)
             {
                 if (templateTime.HasStart && templateTime.Start == null)
                 {
-                    var milliseconds = (double)binaryReader.ReadInt32();
-                    var daysFrom1980 = binaryReader.ReadInt16();
-                    return _firstDayOf1980.AddDays(daysFrom1980).AddMilliseconds(milliseconds);
+                    var milliseconds = ReadInt32(null, true, binaryReader);
+                    var daysFrom1980 = ReadUShort(null, true, binaryReader);
+                    return !milliseconds.HasValue || !daysFrom1980.HasValue ? null : (DateTime?)_firstDayOf1980.AddDays(daysFrom1980.Value).AddMilliseconds(milliseconds.Value);
                 }
                 else if (templateTime.HasStart)
-                    return (DateTime)templateTime.Start.Value;
+                    return templateTime.Start;
 
                 return _firstDayOf1980;
             }
