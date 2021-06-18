@@ -1,0 +1,30 @@
+name: Release
+
+on:
+  push:
+    tags:
+    - "v[0-9]+.[0-9]+.[0-9]+"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set VERSION variable from tag
+        run: echo "VERSION=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_ENV
+      - name: Build artifacts
+        run: dotnet build --configuration Release /p:Version=${{ env.VERSION }} /p:FileVersion=${{ env.VERSION }}.${{ github.run_number }}
+      - name: Package
+        run: mkdir -p ./dist; nuget pack ./AgGatewayISOPlugin.nuspec -outputdirectory ./dist -version ${{ env.VERSION }} 
+      - name: Push release to Github
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./dist/AgGatewayISOPlugin.${{ env.VERSION }}.nupkg
+          tag: ${{ github.ref }}
+      - name: Push release to public Nuget
+        run: dotnet nuget push ./dist/AgGatewayISOPlugin.${{ env.VERSION }}.nupkg --source https://api.nuget.org/v3t st/index.json --api-key ${NUGET_API_KEY}
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
