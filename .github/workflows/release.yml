@@ -25,6 +25,6 @@ jobs:
           file: ./dist/AgGatewayISOPlugin.${{ env.VERSION }}.nupkg
           tag: ${{ github.ref }}
       - name: Push release to public Nuget
-        run: dotnet nuget push ./dist/AgGatewayISOPlugin.${{ env.VERSION }}.nupkg --source https://api.nuget.org/v3t st/index.json --api-key ${NUGET_API_KEY}
+        run: dotnet nuget push ./dist/AgGatewayISOPlugin.${{ env.VERSION }}.nupkg --source https://api.nuget.org/v3/index.json --api-key ${NUGET_API_KEY}
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
