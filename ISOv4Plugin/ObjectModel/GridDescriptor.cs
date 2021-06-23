@@ -106,12 +106,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
             if (grid.GridType == 1)
             {
                 TreatmentZoneCodes = grid.GetRatesForGridType1(dataPath);
-                return TreatmentZoneCodes.Count == RowCount * ColumnCount;
+                return TreatmentZoneCodes?.Count == RowCount * ColumnCount;
             }
             else if (grid.GridType == 2)
             {
                 ProductRates = grid.GetRatesForGridType2(dataPath, treatmentZone);
-                return ProductRates.Count == RowCount * ColumnCount;
+                return ProductRates?.Count == RowCount * ColumnCount;
             }
             else
             {
