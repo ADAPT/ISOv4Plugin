@@ -265,10 +265,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 if (AdaptDataModel.Documents.WorkItems != null)
                 {
                     //Prescriptions
-                    int gridType = 1;
+                    int gridType = 0;
                     if (Properties != null)
                     {
                         Int32.TryParse(Properties.GetProperty(ISOGrid.GridTypeProperty), out gridType);
+                    }
+                    if (gridType == 0)
+                    {
+                        gridType = 1;
                     }
                     if (gridType == 1 || gridType == 2)
                     {
