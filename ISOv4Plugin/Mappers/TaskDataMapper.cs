@@ -33,6 +33,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         public const string TaskControllerManufacturerProperty = "TaskControllerManufacturer";
         public const string TaskControllerVersionProperty = "TaskControllerVersion";
         public const string DataTransferOriginProperty = "DataTransferOrigin";
+        public const string SpatialRecordDeferredExecution = "SpatialRecordDeferredExecution";
+        public const string MergeSingleBinsIntoBoom = "MergeSingleBinsIntoBoom";
 
         public TaskDataMapper(string dataPath, Properties properties)
         {
@@ -369,7 +371,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             IEnumerable<ISODevice> devices = taskData.ChildElements.OfType<ISODevice>();
             if (devices.Any())
             {
-                DeviceElementHierarchies = new DeviceElementHierarchies(devices, RepresentationMapper);
+                bool mergeBins = false;
+                bool.TryParse(Properties.GetProperty(MergeSingleBinsIntoBoom), out mergeBins);
+                DeviceElementHierarchies = new DeviceElementHierarchies(devices, RepresentationMapper, mergeBins);
 
                 DeviceMapper deviceMapper = new DeviceMapper(this);
                 AdaptDataModel.Catalog.DeviceModels.AddRange(deviceMapper.ImportDevices(devices));

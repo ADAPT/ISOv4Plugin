@@ -22,7 +22,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         IEnumerable<ISODeviceElement> ExportDeviceElements(IEnumerable<DeviceElement> adaptDeviceElements, ISODevice isoDevice);
         ISODeviceElement ExportDeviceElement(DeviceElement adaptDeviceElement, ISODevice isoDevice, List<ISODeviceElement> pendingDeviceElements, ref int objectID, ref int deviceElementNumber);
         IEnumerable<DeviceElement> ImportDeviceElements(ISODevice isoDevice);
-        DeviceElement ImportDeviceElement(ISODeviceElement isoDeviceElement, EnumeratedValue deviceClassification, DeviceElementHierarchy rootDeviceHierarchy);
+        DeviceElement ImportDeviceElement(ISODeviceElement isoDeviceElement, EnumeratedValue deviceClassification);
     }
 
     public class DeviceElementMapper : BaseMapper, IDeviceElementMapper
@@ -323,7 +323,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 {
                     if (isoDeviceElement.DeviceElementType != ISODeviceElementType.Connector)
                     {
-                        DeviceElement adaptDeviceElement = ImportDeviceElement(isoDeviceElement, deviceClassification, rootDeviceElementHierarchy);
+                        DeviceElement adaptDeviceElement = ImportDeviceElement(isoDeviceElement, deviceClassification);
                         if (isoDeviceElement.DeviceElementType == ISODeviceElementType.Device)
                         {
                             //Setting the Device serial number on the root Device Element only
@@ -343,10 +343,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return adaptDeviceElements;
         }
 
-        public DeviceElement ImportDeviceElement(ISODeviceElement isoDeviceElement, EnumeratedValue deviceClassification, DeviceElementHierarchy rootDeviceHierarchy)
+        public DeviceElement ImportDeviceElement(ISODeviceElement isoDeviceElement, EnumeratedValue deviceClassification)
         {
             DeviceElement deviceElement = new DeviceElement();
-
+            DeviceElementHierarchy deviceElementHierarchy = TaskDataMapper.DeviceElementHierarchies.GetRelevantHierarchy(isoDeviceElement.DeviceElementId);
             //ID
             ImportIDs(deviceElement.Id, isoDeviceElement.DeviceElementId);
             deviceElement.ContextItems = ImportContextItems(isoDeviceElement.DeviceElementId, "ADAPT_Context_Items:DeviceElement");
@@ -372,9 +372,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 {
                     //Element has listed itself as its own parent.   Do not include a parent on the adapt element as it will invalidate logic in the hierarchy creation.
                 }
-                else if (isoDeviceElement.Parent is ISODeviceElement parentElement)
+                else if (isoDeviceElement.Parent is ISODeviceElement)
                 {
-                    parentDeviceId = TaskDataMapper.InstanceIDMap.GetADAPTID(parentElement.DeviceElementId);
+                    //Read the parent off of the DeviceElementHierarchy in case we merged the parent into another DeviceElement
+                    parentDeviceId = TaskDataMapper.InstanceIDMap.GetADAPTID(deviceElementHierarchy.Parent.DeviceElement.DeviceElementId);
                 }
                 else if (isoDeviceElement.Parent is ISODevice parentDevice)
                 {
@@ -385,8 +386,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     deviceElement.ParentDeviceId = parentDeviceId.Value;
                 }
             }
-
-            DeviceElementHierarchy deviceElementHierarchy = TaskDataMapper.DeviceElementHierarchies.GetRelevantHierarchy(isoDeviceElement.DeviceElementId);
 
             //Device Element Type
             switch (isoDeviceElement.DeviceElementType)

@@ -19,7 +19,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
 {
     public class DeviceElementHierarchies
     {
-        public DeviceElementHierarchies(IEnumerable<ISODevice> devices, RepresentationMapper representationMapper)
+        public DeviceElementHierarchies(IEnumerable<ISODevice> devices, RepresentationMapper representationMapper, bool mergeBins)
         {
             Items = new Dictionary<string, DeviceElementHierarchy>();
             foreach (ISODevice device in devices)
@@ -27,7 +27,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                 ISODeviceElement rootDeviceElement = device.DeviceElements.SingleOrDefault(det => det.DeviceElementType == ISODeviceElementType.Device);
                 if (rootDeviceElement != null)
                 {
-                    DeviceElementHierarchy hierarchy = new DeviceElementHierarchy(rootDeviceElement, 0, representationMapper);
+                    DeviceElementHierarchy hierarchy = new DeviceElementHierarchy(rootDeviceElement, 0, representationMapper, mergeBins);
                     DeviceElementHierarchy.HandleBinDeviceElements(hierarchy);
                     Items.Add(device.DeviceId, hierarchy);
                 }
@@ -66,9 +66,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
     /// </summary>
     public class DeviceElementHierarchy
     {
-        public DeviceElementHierarchy(ISODeviceElement deviceElement, int depth, RepresentationMapper representationMapper, HashSet<int> crawledElements = null, DeviceElementHierarchy parent = null)
+        public DeviceElementHierarchy(ISODeviceElement deviceElement, int depth, RepresentationMapper representationMapper, bool mergeSingleBinsIntoBoom, HashSet<int> crawledElements = null, DeviceElementHierarchy parent = null)
         {
             RepresentationMapper = representationMapper;
+            MergedElements = new List<ISODeviceElement>();
             //This Hashset will track that we don't build infinite hierarchies.   
             //The plugin does not support peer control at this time.
             _crawledElements = crawledElements;
@@ -129,10 +130,42 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                 {
                     int childDepth = depth + 1;
                     Children = new List<DeviceElementHierarchy>();
-                    foreach (ISODeviceElement det in childDeviceElements)
+                    foreach (ISODeviceElement childDeviceElement in childDeviceElements)
                     {
-                        DeviceElementHierarchy child = new DeviceElementHierarchy(det, childDepth, representationMapper, _crawledElements, this);
-                        Children.Add(child);
+                        //If there is a single bin child of the boom (usually alongside sections),
+                        //we can logically combine the bin and boom to have a clean hierarchy
+                        //where sections are the direct children of the element containing the rates.
+                        //We currently use an import property (MergeSingleBinsIntoBoom) to enable this functionality.
+                        //Note that if there are any duplicate DDIs on both the Bin and Boom (non-standard per Annex F.3),
+                        //the FirstOrDefault() logic in the setter methods in the SpatialRecordMapper will suppress the Bin data.
+                        if (mergeSingleBinsIntoBoom &&
+                            (DeviceElement.DeviceElementType == ISODeviceElementType.Device || DeviceElement.DeviceElementType == ISODeviceElementType.Function) &&
+                            childDeviceElement.DeviceElementType == ISODeviceElementType.Bin &&
+                            childDeviceElements.Count(c => c.DeviceElementType == ISODeviceElementType.Bin) == 1)
+                        {
+                            //Set the element into the MergedElements list
+                            MergedElements.Add(childDeviceElement);
+
+                            //Set its children as children of the boom
+                            foreach (ISODeviceElement binChild in childDeviceElement.ChildDeviceElements.Where(det => det.ParentObjectId == childDeviceElement.DeviceElementObjectId && det.ParentObjectId != det.DeviceElementObjectId))
+                            {
+                                Children.Add(new DeviceElementHierarchy(binChild, childDepth, representationMapper, mergeSingleBinsIntoBoom, _crawledElements, this));
+                            }
+
+                            //This functionality will not work in the ADAPT framework today for multiple bins on one boom (i.e., ISO 11783-10:2015(E) F.23 & F.33).
+                            //For these, we will fall back to the more basic default functionality in HandleBinDeviceElements()
+                            //where we separate bins and sections into different depths within the ADAPT device hierarchy.
+                            //Plugin implementers will need to rationalize the separate bins to the single boom, 
+                            //with the rate for each bin associated to the corresponding DeviceElement in the ADAPT model.
+                            //Were this multi-bin/single boom DDOP common, we could perhaps extend the WorkingData(?) class with some new piece of information
+                            //To differentiate like data elements from different bins and thereby extend the merge functionality to this case.
+                        }
+                        else
+                        {
+                            //Add the child device element
+                            DeviceElementHierarchy child = new DeviceElementHierarchy(childDeviceElement, childDepth, representationMapper, mergeSingleBinsIntoBoom, _crawledElements, this);
+                            Children.Add(child);
+                        }
                     }
                 }
 
@@ -148,6 +181,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
         public int Order { get; set; }
         public ISODeviceElementType Type { get; set; }
         private HashSet<int> _crawledElements;
+
+        /// <summary>
+        /// Tracks any secondary DeviceElements that exist independently in the ISOXML
+        /// but have been merged into another DeviceElement in the ADAPT model
+        /// </summary>
+        public List<ISODeviceElement> MergedElements { get; private set; }
 
         public string WidthDDI { get; set; }
         public int? Width { get; set; }
