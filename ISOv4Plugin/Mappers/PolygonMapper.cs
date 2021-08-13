@@ -2,14 +2,11 @@
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
-using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AgGateway.ADAPT.ApplicationDataModel.Logistics;
+using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.Shapes;
 using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
 
@@ -67,7 +64,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return ISOPolygon;
         }
 
-        #endregion Export 
+        #endregion Export
 
         #region Import
 
@@ -125,7 +122,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 {
                     if (ls.LineStringType == ISOLineStringType.PolygonExterior)
                     {
-                        output.Add(new Polygon { ExteriorRing = lsgMapper.ImportLinearRing(ls) });
+                        Polygon polygon = new Polygon { ExteriorRing = lsgMapper.ImportLinearRing(ls) };
+                        if (isoPolygon.PolygonDesignator != null)
+                        {
+                            polygon.ContextItems.Add(new ContextItem() { Code = "Pr_ISOXML_Attribute_Designator", Value = isoPolygon.PolygonDesignator });
+                        }
+                        output.Add(polygon);
                     }
                     else if (ls.LineStringType == ISOLineStringType.PolygonInterior)
                     {
@@ -147,6 +149,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         polygon.ExteriorRing = lsgMapper.ImportLinearRing(exteriorRing);
                     }
                     polygon.InteriorRings = lsgMapper.ImportLinearRings(interiorRings).ToList();
+                    if (isoPolygon.PolygonDesignator != null)
+                    {
+                        polygon.ContextItems.Add(new ContextItem() { Code = "Pr_ISOXML_Attribute_Designator", Value = isoPolygon.PolygonDesignator });
+                    }
                     output.Add(polygon);
                 }
             }

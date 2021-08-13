@@ -80,6 +80,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             List<int> values = new List<int>();
             string filePath = Path.ChangeExtension(Path.Combine(dataPath, Filename), ".bin");
             filePath = dataPath.GetDirectoryFiles(filePath, SearchOption.TopDirectoryOnly).FirstOrDefault();
+            if (filePath == null)
+            {
+                return null;
+            }
             using (var fileStream = File.OpenRead(filePath))
             {
                 int treatmentZoneId;
@@ -107,6 +111,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             Dictionary<string, ISOUnit> unitsByDDI = new Dictionary<string, ISOUnit>();
             string filePath = Path.ChangeExtension(Path.Combine(dataPath, Filename), ".bin");
             filePath = dataPath.GetDirectoryFiles(filePath, SearchOption.TopDirectoryOnly).FirstOrDefault();
+            if (filePath == null)
+            {
+                return null;
+            }
             using (var fileStream = File.OpenRead(filePath))
             {
                 var bytes = new byte[4];
