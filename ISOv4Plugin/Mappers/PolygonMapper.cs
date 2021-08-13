@@ -20,7 +20,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         IEnumerable<ISOPolygon> ExportPolygons(IEnumerable<Polygon> adaptPolygons, ISOPolygonType PolygonType);
         ISOPolygon ExportPolygon(Polygon adaptPolygon, ISOPolygonType PolygonType);
         IEnumerable<Polygon> ImportBoundaryPolygons(IEnumerable<ISOPolygon> isoPolygons);
-        Polygon ImportBoundaryPolygon(ISOPolygon isoPolygon);
+        IEnumerable<Polygon> ImportBoundaryPolygon(ISOPolygon isoPolygon, bool isVersion3Multipolygon);
         IEnumerable<AttributeShape> ImportAttributePolygons(IEnumerable<ISOPolygon> isoPolygons);
         AttributeShape ImportAttributePolygon(ISOPolygon isoPolygon);
     }
@@ -74,12 +74,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         public IEnumerable<Polygon> ImportBoundaryPolygons(IEnumerable<ISOPolygon> isoPolygons)
         {
             List<Polygon> adaptPolygons = new List<Polygon>();
+
+            //Prior to version 4, ISOXML allowed multiple external linestrings in a single polygon, logically equating to a multipolygon
+            //In version 4, multipolygons must be rendered as multiple polygons
+            bool isVersion3Multipolygon = isoPolygons.Count() == 1 && isoPolygons.Single().LineStrings.Count(i => i.LineStringType == ISOLineStringType.PolygonExterior) > 1;
             foreach (ISOPolygon isoPolygon in isoPolygons)
             {
-                Polygon adaptPolygon = ImportBoundaryPolygon(isoPolygon);
-                if (adaptPolygon != null)
+                IEnumerable<Polygon> polygonOutput = ImportBoundaryPolygon(isoPolygon, isVersion3Multipolygon);
+                if (polygonOutput != null)
                 {
-                    adaptPolygons.Add(adaptPolygon);
+                    adaptPolygons.AddRange(polygonOutput);
                 }
             }
             return adaptPolygons;
@@ -104,7 +108,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         /// </summary>
         /// <param name="isoPolygon"></param>
         /// <returns></returns>
-        public Polygon ImportBoundaryPolygon(ISOPolygon isoPolygon)
+        public IEnumerable<Polygon> ImportBoundaryPolygon(ISOPolygon isoPolygon, bool isVersion3Multipolygon)
         {
             if (IsFieldAttributeType(isoPolygon))
             {
@@ -112,20 +116,41 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 return null;
             }
 
-            ISOLineString exteriorRing = isoPolygon.LineStrings.FirstOrDefault(l => l.LineStringType == ISOLineStringType.PolygonExterior);
-            IEnumerable<ISOLineString> interiorRings = isoPolygon.LineStrings.Where(l => l.LineStringType == ISOLineStringType.PolygonInterior);
-            if (exteriorRing != null || interiorRings.Any())
+            LineStringMapper lsgMapper = new LineStringMapper(TaskDataMapper);
+            List<Polygon> output = new List<Polygon>();
+            if (isVersion3Multipolygon)
             {
-                Polygon polygon = new Polygon();
-                LineStringMapper lsgMapper = new LineStringMapper(TaskDataMapper);
-                if (exteriorRing != null)
+                //Version 3 only allowed one polygon for the boundary with multiple external linestrings acting as individual polygons
+                foreach (ISOLineString ls in isoPolygon.LineStrings)
                 {
-                    polygon.ExteriorRing = lsgMapper.ImportLinearRing(exteriorRing);
+                    if (ls.LineStringType == ISOLineStringType.PolygonExterior)
+                    {
+                        output.Add(new Polygon { ExteriorRing = lsgMapper.ImportLinearRing(ls) });
+                    }
+                    else if (ls.LineStringType == ISOLineStringType.PolygonInterior)
+                    {
+                        //We will interpret any interior linestrings as belonging to the preceeding external linestring
+                        output.Last().InteriorRings.Add(lsgMapper.ImportLinearRing(ls));
+                    }
                 }
-                polygon.InteriorRings = lsgMapper.ImportLinearRings(interiorRings).ToList();
-                return polygon;
             }
-            return null;
+            else
+            {
+                //Normal Polygon behavior with only one possible exterior ring.
+                ISOLineString exteriorRing = isoPolygon.LineStrings.FirstOrDefault(l => l.LineStringType == ISOLineStringType.PolygonExterior);
+                IEnumerable<ISOLineString> interiorRings = isoPolygon.LineStrings.Where(l => l.LineStringType == ISOLineStringType.PolygonInterior);
+                if (exteriorRing != null || interiorRings.Any())
+                {
+                    Polygon polygon = new Polygon();
+                    if (exteriorRing != null)
+                    {
+                        polygon.ExteriorRing = lsgMapper.ImportLinearRing(exteriorRing);
+                    }
+                    polygon.InteriorRings = lsgMapper.ImportLinearRings(interiorRings).ToList();
+                    output.Add(polygon);
+                }
+            }
+            return output;
         }
 
         /// <summary>
@@ -135,7 +160,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         /// <returns></returns>
         public AttributeShape ImportAttributePolygon(ISOPolygon isoPolygon)
         {
-            Polygon boundaryPolygon = ImportBoundaryPolygon(isoPolygon); 
+            Polygon boundaryPolygon = ImportBoundaryPolygon(isoPolygon, false).FirstOrDefault(); 
             if (boundaryPolygon != null && IsFieldAttributeType(isoPolygon))
             {
                 //The data has defined an explicit PLN type that maps to an attribute type
