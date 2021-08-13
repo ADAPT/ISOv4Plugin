@@ -137,7 +137,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                         //where sections are the direct children of the element containing the rates.
                         //We currently use an import property (MergeSingleBinsIntoBoom) to enable this functionality.
                         //Note that if there are any duplicate DDIs on both the Bin and Boom (non-standard per Annex F.3),
-                        //the FirstOrDefault() logic in the setter methods in the SpatialRecordMapper will suppress the Bin data.
+                        //the FirstOrDefault() logic in the setter methods in the SpatialRecordMapper will prefer the Boom and suppress the Bin data.
                         if (mergeSingleBinsIntoBoom &&
                             (DeviceElement.DeviceElementType == ISODeviceElementType.Device || DeviceElement.DeviceElementType == ISODeviceElementType.Function) &&
                             childDeviceElement.DeviceElementType == ISODeviceElementType.Bin &&
@@ -565,7 +565,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
         }
 
         /// <summary>
-        /// Seeder/Drill data will often report rates on bin device elements.   These device elements are the geometrical equivalent of the parent boom for mapping purposes.
+        /// As-applied/planted data will often report rates on bin device elements.   These device elements are the geometrical equivalent of the parent boom for mapping purposes.
         /// They are modeled as sections in ADAPT so that we can detect individual products/rates from these different device elements (tanks).
         /// Since they fall at the same level in the hierarchy as true implement sections, we need to reorder the section depths so that anything below the boom
         /// that is not a bin is moved down one level.   As such, the bin will not effect the geometric modeling of individual sections from left to right.
