@@ -33,7 +33,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         }
 
         #region Export
-       
+
         public IEnumerable<ISOGuidancePattern> ExportGuidancePatterns(IEnumerable<GuidancePattern> adaptGuidancePatterns)
         {
             List<ISOGuidancePattern> GuidancePatterns = new List<ISOGuidancePattern>();
@@ -236,9 +236,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         }
 
 
-        
 
-        #endregion Export 
+
+        #endregion Export
 
         #region Import
 
@@ -270,44 +270,45 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             GuidancePattern pattern = null;
             LineStringMapper lineStringMapper = new LineStringMapper(TaskDataMapper);
             PointMapper pointMapper = new PointMapper(TaskDataMapper);
+            var isoLineString = isoGuidancePattern.LineString ?? new ISOLineString();
             switch (isoGuidancePattern.GuidancePatternType)
             {
                 case ISOGuidancePatternType.AB:
                     pattern = new AbLine();
                     AbLine abLine = pattern as AbLine;
-                    abLine.A = pointMapper.ImportPoint(isoGuidancePattern.LineString.Points.First());
-                    abLine.B = pointMapper.ImportPoint(isoGuidancePattern.LineString.Points.Last());
+                    abLine.A = pointMapper.ImportPoint(isoLineString.Points.First());
+                    abLine.B = pointMapper.ImportPoint(isoLineString.Points.Last());
                     break;
                 case ISOGuidancePatternType.APlus:
                     pattern = new APlus();
                     APlus aPlus = pattern as APlus;
-                    aPlus.Point = pointMapper.ImportPoint(isoGuidancePattern.LineString.Points.First());
+                    aPlus.Point = pointMapper.ImportPoint(isoLineString.Points.First());
                     break;
                 case ISOGuidancePatternType.Curve:
                     pattern = new AbCurve();
                     AbCurve abCurve = pattern as AbCurve;
-                    abCurve.Shape = new List<LineString>() { lineStringMapper.ImportLineString(isoGuidancePattern.LineString) }; //As with export, we only have 1 linestring.
+                    abCurve.Shape = new List<LineString>() { lineStringMapper.ImportLineString(isoLineString) }; //As with export, we only have 1 linestring.
                     break;
                 case ISOGuidancePatternType.Pivot:
                     pattern = new PivotGuidancePattern();
                     PivotGuidancePattern pivot = pattern as PivotGuidancePattern;
-                    pivot.Center = pointMapper.ImportPoint(isoGuidancePattern.LineString.Points.First());
+                    pivot.Center = pointMapper.ImportPoint(isoLineString.Points.First());
                     pivot.Radius = isoGuidancePattern.Radius.HasValue ? ((int)isoGuidancePattern.Radius).AsNumericRepresentationValue("mm") : null;
-                    if (isoGuidancePattern.LineString.Points.Count == 1)
+                    if (isoLineString.Points.Count == 1)
                     {
                         pivot.DefinitionMethod = PivotGuidanceDefinitionEnum.PivotGuidancePatternCenterRadius;
                     }
-                    else if (isoGuidancePattern.LineString.Points.Count == 3)
+                    else if (isoLineString.Points.Count == 3)
                     {
                         pivot.DefinitionMethod = PivotGuidanceDefinitionEnum.PivotGuidancePatternStartEndCenter;
-                        pivot.StartPoint = pointMapper.ImportPoint(isoGuidancePattern.LineString.Points[1]);
-                        pivot.EndPoint = pointMapper.ImportPoint(isoGuidancePattern.LineString.Points[2]);
+                        pivot.StartPoint = pointMapper.ImportPoint(isoLineString.Points[1]);
+                        pivot.EndPoint = pointMapper.ImportPoint(isoLineString.Points[2]);
                     }
                     break;
                 case ISOGuidancePatternType.Spiral:
                     pattern = new Spiral();
                     Spiral spiral = pattern as Spiral;
-                    spiral.Shape = lineStringMapper.ImportLineString(isoGuidancePattern.LineString);
+                    spiral.Shape = lineStringMapper.ImportLineString(isoLineString);
                     break;
             }
 
@@ -318,7 +319,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             pattern.GuidancePatternType = ImportGuidancePatternType(isoGuidancePattern.GuidancePatternType);
             pattern.PropagationDirection = ImportPropagationDirection(isoGuidancePattern.PropagationDirection);
             pattern.Extension = ImportExtension(isoGuidancePattern.Extension);
-           
+
             //Heading
             if (isoGuidancePattern.Heading.HasValue)
             {
