@@ -425,7 +425,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                     {
                         foreach (ISOSpatialRow row in rows)
                         {
-                            double value = row.SpatialValues.Single(s => s.DataLogValue.DeviceElementIdRef == isoDeviceElementID && s.DataLogValue.ProcessDataDDI == "0043").Value;
+                            double value = row.SpatialValues.First(s => s.DataLogValue.DeviceElementIdRef == isoDeviceElementID && s.DataLogValue.ProcessDataDDI == "0043").Value;
                             if (value > maxWidth)
                             {
                                 maxWidth = value;
