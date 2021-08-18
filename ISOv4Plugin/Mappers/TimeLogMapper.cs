@@ -310,7 +310,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     if (TaskDataMapper.Properties != null)
                     {
                         //Set this property to override the default behavior of pre-iterating the data
-                        bool.TryParse(TaskDataMapper.Properties.GetProperty("SpatialRecordDeferredExecution"), out useDeferredExecution);
+                        bool.TryParse(TaskDataMapper.Properties.GetProperty(TaskDataMapper.SpatialRecordDeferredExecution), out useDeferredExecution);
                     }
 
                     if (!useDeferredExecution)

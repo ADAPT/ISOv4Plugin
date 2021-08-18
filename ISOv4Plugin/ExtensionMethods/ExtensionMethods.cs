@@ -142,27 +142,20 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
             }
             if (userUnit != null)
             {
-
-                UnitOfMeasure adaptUnit = null;
-                try
-                {
-                    adaptUnit = userUnit.ToAdaptUnit();
-                }
-                catch
-                {
-                    //Suppressing this as a non-critical exception
-                }
-                return adaptUnit;
+                return userUnit.ToAdaptUnit();
             }
             return null;
         }
 
         public static UnitOfMeasure ToAdaptUnit(this ISOUnit isoUnit)
         {
-            if (isoUnit == null)
-                return null;
-
-            return AgGateway.ADAPT.Representation.UnitSystem.UnitSystemManager.GetUnitOfMeasure(isoUnit.Code);
+            //TODO move the contains logic upstream into the Representation assembly.
+            if (isoUnit != null &&
+                AgGateway.ADAPT.Representation.UnitSystem.InternalUnitSystemManager.Instance.UnitOfMeasures.Contains(isoUnit.Code))
+            {
+               return AgGateway.ADAPT.Representation.UnitSystem.UnitSystemManager.GetUnitOfMeasure(isoUnit.Code);
+            }
+            return null;
         }
 
         public static double ConvertFromIsoUnit(this ISOUnit unit, double value)
