@@ -19,28 +19,30 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
 {
     public class DeviceElementHierarchies
     {
-        public DeviceElementHierarchies(IEnumerable<ISODevice> devices, RepresentationMapper representationMapper, bool mergeBins)
+        public DeviceElementHierarchies(IEnumerable<ISODevice> devices,
+                                        RepresentationMapper representationMapper,
+                                        bool mergeBins)
         {
-            Items = new Dictionary<string, DeviceElementHierarchy>();
+            Items = new Dictionary<string, DeviceHierarchyElement>();
             foreach (ISODevice device in devices)
             {
                 ISODeviceElement rootDeviceElement = device.DeviceElements.SingleOrDefault(det => det.DeviceElementType == ISODeviceElementType.Device);
                 if (rootDeviceElement != null)
                 {
-                    DeviceElementHierarchy hierarchy = new DeviceElementHierarchy(rootDeviceElement, 0, representationMapper, mergeBins);
-                    DeviceElementHierarchy.HandleBinDeviceElements(hierarchy);
-                    Items.Add(device.DeviceId, hierarchy);
+                    DeviceHierarchyElement hierarchyElement = new DeviceHierarchyElement(rootDeviceElement, 0, representationMapper, mergeBins);
+                    DeviceHierarchyElement.HandleBinDeviceElements(hierarchyElement);
+                    Items.Add(device.DeviceId, hierarchyElement);
                 }
             }
         }
 
-        public Dictionary<string, DeviceElementHierarchy> Items { get; set; }
+        public Dictionary<string, DeviceHierarchyElement> Items { get; set; }
 
-        public DeviceElementHierarchy GetRelevantHierarchy(string isoDeviceElementId)
+        public DeviceHierarchyElement GetRelevantHierarchy(string isoDeviceElementId)
         {
-            foreach (DeviceElementHierarchy hierarchy in this.Items.Values)
+            foreach (DeviceHierarchyElement hierarchy in this.Items.Values)
             {
-                DeviceElementHierarchy foundModel = hierarchy.FromDeviceElementID(isoDeviceElementId);
+                DeviceHierarchyElement foundModel = hierarchy.FromDeviceElementID(isoDeviceElementId);
                 if (foundModel != null)
                 {
                     return foundModel;
@@ -51,10 +53,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
 
         public ISODeviceElement GetISODeviceElementFromID(string deviceElementID)
         {
-            DeviceElementHierarchy hierarchy = GetRelevantHierarchy(deviceElementID);
-            if (hierarchy != null)
+            DeviceHierarchyElement hierarchyElement = GetRelevantHierarchy(deviceElementID);
+            if (hierarchyElement != null)
             {
-                return hierarchy.DeviceElement;
+                return hierarchyElement.DeviceElement;
             }
             return null;
         }
@@ -64,9 +66,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
     /// This utility class serves to map the hierarchies of ISO DeviceElements within a single ISO Device.   Each ISODeviceElement will have a hierarchy object that references its parents and children.
     /// Where the parent is null, it is the root device element in a device.
     /// </summary>
-    public class DeviceElementHierarchy
+    public class DeviceHierarchyElement
     {
-        public DeviceElementHierarchy(ISODeviceElement deviceElement, int depth, RepresentationMapper representationMapper, bool mergeSingleBinsIntoBoom, HashSet<int> crawledElements = null, DeviceElementHierarchy parent = null)
+        public DeviceHierarchyElement(ISODeviceElement deviceElement,
+                                      int depth,
+                                      RepresentationMapper representationMapper,
+                                      bool mergeSingleBinsIntoBoom,
+                                      HashSet<int> crawledElements = null,
+                                      DeviceHierarchyElement parent = null)
         {
             RepresentationMapper = representationMapper;
             MergedElements = new List<ISODeviceElement>();
@@ -89,7 +96,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                 //DeviceProcessData assigned values will be assigned as the SectionMapper reads timelog data.
 
                 //Width
-                ISODeviceProperty widthProperty = deviceElement.DeviceProperties.FirstOrDefault(dpt => dpt.DDI == "0046");
+                ISODeviceProperty widthProperty = deviceElement.DeviceProperties.FirstOrDefault(dpt => dpt.DDI == "0046"); //Max width
                 if (widthProperty != null)
                 {
                     Width = widthProperty.Value;
@@ -97,7 +104,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                 }
                 else
                 {
-                    widthProperty = deviceElement.DeviceProperties.FirstOrDefault(dpt => dpt.DDI == "0043");
+                    widthProperty = deviceElement.DeviceProperties.FirstOrDefault(dpt => dpt.DDI == "0043"); //Actual working width
                     if (widthProperty != null)
                     {
                         Width = widthProperty.Value;
@@ -129,7 +136,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                 if (childDeviceElements.Any())
                 {
                     int childDepth = depth + 1;
-                    Children = new List<DeviceElementHierarchy>();
+                    Children = new List<DeviceHierarchyElement>();
                     foreach (ISODeviceElement childDeviceElement in childDeviceElements)
                     {
                         //If there is a single bin child of the boom (usually alongside sections),
@@ -149,7 +156,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                             //Set its children as children of the boom
                             foreach (ISODeviceElement binChild in childDeviceElement.ChildDeviceElements.Where(det => det.ParentObjectId == childDeviceElement.DeviceElementObjectId && det.ParentObjectId != det.DeviceElementObjectId))
                             {
-                                Children.Add(new DeviceElementHierarchy(binChild, childDepth, representationMapper, mergeSingleBinsIntoBoom, _crawledElements, this));
+                                Children.Add(new DeviceHierarchyElement(binChild, childDepth, representationMapper, mergeSingleBinsIntoBoom, _crawledElements, this));
                             }
 
                             //This functionality will not work in the ADAPT framework today for multiple bins on one boom (i.e., ISO 11783-10:2015(E) F.23 & F.33).
@@ -163,7 +170,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                         else
                         {
                             //Add the child device element
-                            DeviceElementHierarchy child = new DeviceElementHierarchy(childDeviceElement, childDepth, representationMapper, mergeSingleBinsIntoBoom, _crawledElements, this);
+                            DeviceHierarchyElement child = new DeviceHierarchyElement(childDeviceElement, childDepth, representationMapper, mergeSingleBinsIntoBoom, _crawledElements, this);
                             Children.Add(child);
                         }
                     }
@@ -199,11 +206,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
         public NumericRepresentationValue YOffsetRepresentation { get { return YOffset.HasValue ? YOffset.Value.AsNumericRepresentationValue("0087", RepresentationMapper) : null; } }
         public NumericRepresentationValue ZOffsetRepresentation { get { return ZOffset.HasValue ? ZOffset.Value.AsNumericRepresentationValue("0088", RepresentationMapper) : null; } }
 
-        public List<DeviceElementHierarchy> Children { get; set; }
-        public DeviceElementHierarchy Parent { get; set; }
+        public List<DeviceHierarchyElement> Children { get; set; }
+        public DeviceHierarchyElement Parent { get; set; }
 
 
-        public DeviceElementHierarchy FromDeviceElementID(string deviceElementID)
+        public DeviceHierarchyElement FromDeviceElementID(string deviceElementID)
         {
             if (DeviceElement?.DeviceElementId == deviceElementID)
             {
@@ -211,9 +218,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
             }
             else if (Children != null)
             {
-                foreach (DeviceElementHierarchy child in Children)
+                foreach (DeviceHierarchyElement child in Children)
                 {
-                    DeviceElementHierarchy childModel = child.FromDeviceElementID(deviceElementID);
+                    DeviceHierarchyElement childModel = child.FromDeviceElementID(deviceElementID);
                     if (childModel != null)
                     {
                         return childModel;
@@ -240,7 +247,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
         public NumericRepresentationValue GetLowestLevelSectionWidth()
         {
             int maxDepth = GetMaxDepth();
-            IEnumerable<DeviceElementHierarchy> lowestLevelItems = GetElementsAtDepth(maxDepth);
+            IEnumerable<DeviceHierarchyElement> lowestLevelItems = GetElementsAtDepth(maxDepth);
             if (lowestLevelItems.Any() && lowestLevelItems.All(i => i.WidthRepresentation != null && i.WidthRepresentation.Value != null && i.WidthRepresentation.Value.Value == lowestLevelItems.First().WidthRepresentation.Value.Value))
             {
                 return lowestLevelItems.First().WidthRepresentation;
@@ -263,7 +270,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
             int depth = Depth;
             if (Children != null)
             {
-                foreach (DeviceElementHierarchy child in Children)
+                foreach (DeviceHierarchyElement child in Children)
                 {
                     depth = child.FindMaxDepth(ref maxDepth);
                     if (depth > maxDepth)
@@ -275,16 +282,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
             return depth;
         }
 
-        public IEnumerable<DeviceElementHierarchy> GetElementsAtDepth(int depth)
+        public IEnumerable<DeviceHierarchyElement> GetElementsAtDepth(int depth)
         {
-            List<DeviceElementHierarchy> list = new List<DeviceElementHierarchy>();
+            List<DeviceHierarchyElement> list = new List<DeviceHierarchyElement>();
             if (depth == 0)
             {
-                return new List<DeviceElementHierarchy>() { this };
+                return new List<DeviceHierarchyElement>() { this };
             }
             if (Children != null)
             {
-                foreach (DeviceElementHierarchy child in Children)
+                foreach (DeviceHierarchyElement child in Children)
                 {
                     if (child.Depth == depth)
                     {
@@ -300,9 +307,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
             return list;
         }
 
-        public DeviceElementHierarchy GetRootDeviceElementHierarchy()
+        public DeviceHierarchyElement GetRootDeviceElementHierarchy()
         {
-            DeviceElementHierarchy item = this;
+            DeviceHierarchyElement item = this;
             while (item.Parent != null)
             {
                 item = item.Parent;
@@ -571,7 +578,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
         /// that is not a bin is moved down one level.   As such, the bin will not effect the geometric modeling of individual sections from left to right.
         /// </summary>
         /// <param name="h"></param>
-        public static void HandleBinDeviceElements(DeviceElementHierarchy h)
+        public static void HandleBinDeviceElements(DeviceHierarchyElement h)
         {
             for (int i = 0; i <= h.GetMaxDepth(); i++)
             {

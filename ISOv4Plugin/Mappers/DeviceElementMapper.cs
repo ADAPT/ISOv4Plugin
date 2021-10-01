@@ -310,7 +310,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 return null;
             }
 
-            DeviceElementHierarchy rootDeviceElementHierarchy = TaskDataMapper.DeviceElementHierarchies.Items[isoDevice.DeviceId];
+            DeviceHierarchyElement rootDeviceElementHierarchy = TaskDataMapper.DeviceElementHierarchies.Items[isoDevice.DeviceId];
 
             //Import device elements
             List<DeviceElement> adaptDeviceElements = new List<DeviceElement>();
@@ -346,7 +346,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         public DeviceElement ImportDeviceElement(ISODeviceElement isoDeviceElement, EnumeratedValue deviceClassification)
         {
             DeviceElement deviceElement = new DeviceElement();
-            DeviceElementHierarchy deviceElementHierarchy = TaskDataMapper.DeviceElementHierarchies.GetRelevantHierarchy(isoDeviceElement.DeviceElementId);
+            DeviceHierarchyElement deviceElementHierarchy = TaskDataMapper.DeviceElementHierarchies.GetRelevantHierarchy(isoDeviceElement.DeviceElementId);
             //ID
             ImportIDs(deviceElement.Id, isoDeviceElement.DeviceElementId);
             deviceElement.ContextItems = ImportContextItems(isoDeviceElement.DeviceElementId, "ADAPT_Context_Items:DeviceElement");
@@ -439,12 +439,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return deviceElement;
         }
 
-        private bool HasGeometryInformation(DeviceElementHierarchy deviceElementHierarchy)
+        private bool HasGeometryInformation(DeviceHierarchyElement deviceHierarchyElement)
         {
-            return deviceElementHierarchy.Width.HasValue || deviceElementHierarchy.XOffset.HasValue || deviceElementHierarchy.YOffset.HasValue || deviceElementHierarchy.ZOffset.HasValue;
+            return deviceHierarchyElement.Width.HasValue || deviceHierarchyElement.XOffset.HasValue || deviceHierarchyElement.YOffset.HasValue || deviceHierarchyElement.ZOffset.HasValue;
         }
 
-        public static DeviceElementConfiguration GetDeviceElementConfiguration(DeviceElement adaptDeviceElement, DeviceElementHierarchy isoHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
+        public static DeviceElementConfiguration GetDeviceElementConfiguration(DeviceElement adaptDeviceElement, DeviceHierarchyElement isoHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
         {
             if (isoHierarchy.DeviceElement.DeviceElementType == ISOEnumerations.ISODeviceElementType.Connector ||
                  isoHierarchy.DeviceElement.DeviceElementType == ISOEnumerations.ISODeviceElementType.Navigation)
@@ -481,7 +481,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
         }
 
-        private static DeviceElementConfiguration AddDeviceElementConfiguration(DeviceElement adaptDeviceElement, DeviceElementHierarchy isoHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
+        private static DeviceElementConfiguration AddDeviceElementConfiguration(DeviceElement adaptDeviceElement, DeviceHierarchyElement isoHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
         {
             switch (adaptDeviceElement.DeviceElementType)
             {
@@ -509,7 +509,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
         }
 
-        private static MachineConfiguration AddMachineConfiguration(DeviceElement adaptDeviceElement, DeviceElementHierarchy deviceHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
+        private static MachineConfiguration AddMachineConfiguration(DeviceElement adaptDeviceElement, DeviceHierarchyElement deviceHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
         {
             MachineConfiguration machineConfig = new MachineConfiguration();
 
@@ -542,7 +542,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //GPS Offsets
             if (deviceHierarchy.Children != null && deviceHierarchy.Children.Any(h=>h.DeviceElement!=null &&  h.DeviceElement.DeviceElementType == ISODeviceElementType.Navigation))
             {
-                DeviceElementHierarchy navigation = (deviceHierarchy.Children.First(h => h.DeviceElement.DeviceElementType == ISODeviceElementType.Navigation));
+                DeviceHierarchyElement navigation = (deviceHierarchy.Children.First(h => h.DeviceElement.DeviceElementType == ISODeviceElementType.Navigation));
                 machineConfig.GpsReceiverXOffset = navigation.XOffsetRepresentation;
                 machineConfig.GpsReceiverYOffset = navigation.YOffsetRepresentation;
                 machineConfig.GpsReceiverZOffset = navigation.ZOffsetRepresentation;
@@ -553,7 +553,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return machineConfig;
         }
 
-        private static ImplementConfiguration AddImplementConfiguration(DeviceElement adaptDeviceElement, DeviceElementHierarchy deviceHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
+        private static ImplementConfiguration AddImplementConfiguration(DeviceElement adaptDeviceElement, DeviceHierarchyElement deviceHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
         {
             ImplementConfiguration implementConfig = new ImplementConfiguration();
 
@@ -596,7 +596,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return implementConfig;
         }
 
-        private static SectionConfiguration AddSectionConfiguration(DeviceElement adaptDeviceElement, DeviceElementHierarchy deviceHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
+        private static SectionConfiguration AddSectionConfiguration(DeviceElement adaptDeviceElement, DeviceHierarchyElement deviceHierarchy, AgGateway.ADAPT.ApplicationDataModel.ADM.Catalog catalog)
         {
             SectionConfiguration sectionConfiguration = new SectionConfiguration();
 
@@ -642,17 +642,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         /// <param name="rootDeviceHierarchy"></param>
         /// <param name="connectorDeviceElement"></param>
         /// <param name="deviceElement"></param>
-        private void AddConnector(DeviceElementHierarchy rootDeviceHierarchy, ISODeviceElement connectorDeviceElement)
+        private void AddConnector(DeviceHierarchyElement rootDeviceHierarchy, ISODeviceElement connectorDeviceElement)
         {
             //Per the TC-GEO specification, the connector is always a child of the root device element.
-            DeviceElementHierarchy hierarchy = rootDeviceHierarchy.FromDeviceElementID(connectorDeviceElement.DeviceElementId);
-            if (hierarchy.Parent == rootDeviceHierarchy)
+            DeviceHierarchyElement hierarchyElement = rootDeviceHierarchy.FromDeviceElementID(connectorDeviceElement.DeviceElementId);
+            if (hierarchyElement.Parent == rootDeviceHierarchy)
             {
                 int? rootDeviceElementID = TaskDataMapper.InstanceIDMap.GetADAPTID(rootDeviceHierarchy.DeviceElement.DeviceElementId);
                 if (rootDeviceElementID.HasValue)
                 {
                     HitchPoint hitch = new HitchPoint();
-                    hitch.ReferencePoint = new ReferencePoint() { XOffset = hierarchy.XOffsetRepresentation, YOffset = hierarchy.YOffsetRepresentation, ZOffset = hierarchy.ZOffsetRepresentation };
+                    hitch.ReferencePoint = new ReferencePoint() { XOffset = hierarchyElement.XOffsetRepresentation, YOffset = hierarchyElement.YOffsetRepresentation, ZOffset = hierarchyElement.ZOffsetRepresentation };
                     hitch.HitchTypeEnum = HitchTypeEnum.Unkown;
                     DataModel.Catalog.HitchPoints.Add(hitch);
 
@@ -664,7 +664,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         if (rootDeviceConfiguration != null)
                         {
                             Connector connector = new Connector();
-                            ImportIDs(connector.Id, hierarchy.DeviceElement.DeviceElementId);
+                            ImportIDs(connector.Id, hierarchyElement.DeviceElement.DeviceElementId);
                             connector.DeviceElementConfigurationId = rootDeviceConfiguration.Id.ReferenceId;
                             connector.HitchPointId = hitch.Id.ReferenceId;
                             DataModel.Catalog.Connectors.Add(connector);
