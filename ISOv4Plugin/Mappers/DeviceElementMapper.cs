@@ -346,7 +346,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         public DeviceElement ImportDeviceElement(ISODeviceElement isoDeviceElement, EnumeratedValue deviceClassification)
         {
             DeviceElement deviceElement = new DeviceElement();
-            DeviceHierarchyElement deviceElementHierarchy = TaskDataMapper.DeviceElementHierarchies.GetRelevantHierarchy(isoDeviceElement.DeviceElementId);
+            DeviceHierarchyElement deviceElementHierarchy = TaskDataMapper.DeviceElementHierarchies.GetMatchingElement(isoDeviceElement.DeviceElementId);
             //ID
             ImportIDs(deviceElement.Id, isoDeviceElement.DeviceElementId);
             deviceElement.ContextItems = ImportContextItems(isoDeviceElement.DeviceElementId, "ADAPT_Context_Items:DeviceElement");
@@ -581,14 +581,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Total Width 
             if (deviceHierarchy.Width != null)
             {
-                implementConfig.PhysicalWidth = deviceHierarchy.WidthRepresentation;
-            }
-
-            //Row Width
-            NumericRepresentationValue rowWidth = deviceHierarchy.GetLowestLevelSectionWidth();
-            if (rowWidth != null)
-            {
-                implementConfig.Width = rowWidth;
+                //In an earlier implementation, we used Width for an individual Row Width and Physical Width for the max width.
+                //Going forward, we are adopting a more conventional definition that Width is any reported width of the implement, and
+                //Physical width is a reported max width specifically.
+                //Widths set from Timelog binaries will have already observed this convention as they did not contain the row width variation.
+                implementConfig.Width = deviceHierarchy.WidthRepresentation;
+                if (deviceHierarchy.WidthDDI == "0046")
+                {
+                    implementConfig.PhysicalWidth = deviceHierarchy.WidthRepresentation;
+                }
             }
             
             catalog.DeviceElementConfigurations.Add(implementConfig);

@@ -14,7 +14,6 @@ using AgGateway.ADAPT.Representation.UnitSystem;
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
     #region Import
-
     public interface IWorkingDataMapper
     {
         List<WorkingData> Map(ISOTime time, IEnumerable<ISOSpatialRow> isoRecords, DeviceElementUse deviceElementUse, DeviceHierarchyElement isoDeviceElementHierarchy, List<DeviceElementUse> pendingDeviceElementUses, Dictionary<string, List<ISOProductAllocation>> isoProductAllocations);
@@ -25,6 +24,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
     public class WorkingDataMapper : BaseMapper, IWorkingDataMapper
     {
+        private readonly List<string> _implementGeometryDDIsToOmit = new List<string> { "0044", "0046", "0086", "0087", "0088" };
         private readonly IEnumeratedMeterFactory _enumeratedMeterCreatorFactory;
         private readonly Dictionary<int, DdiDefinition> _ddis;
         public Dictionary<int, ISODataLogValue> DataLogValuesByWorkingDataID { get; set;}
@@ -50,15 +50,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         {
             var workingDatas = new List<WorkingData>();
 
-           //Set orders on the collection of DLVs
-            var allDLVs = time.DataLogValues;
-            for (int order = 0; order < allDLVs.Count(); order++)
-            {
-                var dlv = allDLVs.ElementAt(order);
-                dlv.Order = order;
-            }
-
-
             //Create vrProductIndex on relevant device elements if more than one product on this OperationData
             if (TimeLogMapper.GetDistinctProductIDs(TaskDataMapper, isoProductAllocations).Count > 1 &&
                 isoProductAllocations.Keys.Contains(isoDeviceElementHierarchy.DeviceElement.DeviceElementId))
@@ -69,14 +60,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
             //Add the Working Datas for this DeviceElement
-            IEnumerable<ISODataLogValue> deviceElementDLVs = allDLVs.Where(dlv => dlv.DeviceElementIdRef == isoDeviceElementHierarchy.DeviceElement.DeviceElementId ||  //DLV DET reference matches the primary DET for the ADAPT element
+            IEnumerable<ISODataLogValue> deviceElementDLVs = time.DataLogValues.Where(dlv => dlv.DeviceElementIdRef == isoDeviceElementHierarchy.DeviceElement.DeviceElementId ||  //DLV DET reference matches the primary DET for the ADAPT element
                                                                                   isoDeviceElementHierarchy.MergedElements.Any(e => e.DeviceElementId == dlv.DeviceElementIdRef)); //DLV DET reference matches one of the merged DETs on the ADAPT element
-            foreach (ISODataLogValue dlv in deviceElementDLVs)
+
+
+            foreach (ISODataLogValue dlv in deviceElementDLVs.Where(d => !_implementGeometryDDIsToOmit.Contains(d.ProcessDataDDI))) //Omit implement geomtry data from the spatial records (with the exception of 0043 working width which is commonly dynamic).
             {
                 IEnumerable<WorkingData> newWorkingDatas = Map(dlv, 
                                                                isoSpatialRows,
                                                                deviceElementUse,
-                                                               dlv.Order,
+                                                               dlv.Index,
                                                                pendingDeviceElementUses,
                                                                isoDeviceElementHierarchy);
                 if (newWorkingDatas.Count() > 0)
@@ -129,7 +122,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         private IEnumerable<WorkingData> Map(ISODataLogValue dlv, 
                                              IEnumerable<ISOSpatialRow> isoSpatialRows, 
                                              DeviceElementUse deviceElementUse, 
-                                             int order, 
+                                             byte order, 
                                              List<DeviceElementUse> pendingDeviceElementUses,
                                              DeviceHierarchyElement isoDeviceElementHierarchy)
         {

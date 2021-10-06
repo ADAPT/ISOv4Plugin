@@ -22,7 +22,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         public byte? DataLogPGNStartBit { get; set; }
         public byte? DataLogPGNStopBit { get; set; }
 
-        public int Order { get; set; }
+        public byte Index { get; set; }
 
         public override XmlWriter WriteXML(XmlWriter xmlBuilder)
         {
@@ -43,7 +43,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             return xmlBuilder;
         }
 
-        public static ISODataLogValue ReadXML(XmlNode node)
+        public static ISODataLogValue ReadXML(XmlNode node, byte dlvIndex)
         {
             if (node == null)
                 return null;
@@ -55,6 +55,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             dlv.DataLogPGN = node.GetXmlNodeValueAsNullableUInt("@D");
             dlv.DataLogPGNStartBit = node.GetXmlNodeValueAsNullableByte("@E");
             dlv.DataLogPGNStopBit = node.GetXmlNodeValueAsNullableByte("@F");
+            dlv.Index = dlvIndex;
 
             return dlv;
         }
@@ -62,9 +63,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         public static List<ISODataLogValue> ReadXML(XmlNodeList nodes)
         {
             List<ISODataLogValue> items = new List<ISODataLogValue>();
+            byte i = 0;
             foreach (XmlNode node in nodes)
             {
-                items.Add(ISODataLogValue.ReadXML(node));
+                items.Add(ISODataLogValue.ReadXML(node, i++));
             }
             return items;
         }

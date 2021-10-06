@@ -377,7 +377,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 bool.TryParse(Properties.GetProperty(MergeSingleBinsIntoBoom), out mergeBins);
 
                 //Load the internal objects modeling hierarchies of DETs per DVC
-                DeviceElementHierarchies = new DeviceElementHierarchies(devices, RepresentationMapper, mergeBins);
+                DeviceElementHierarchies = new DeviceElementHierarchies(devices,
+                                                                        RepresentationMapper,
+                                                                        mergeBins,
+                                                                        taskData.ChildElements.OfType<ISOTask>().SelectMany(t => t.TimeLogs),
+                                                                        BaseFolder);
 
                 //Import the ISO DVC & DET data into the actual ADAPT models.
                 //During DET import, we use the DeviceElementHierarchies from above to map the actual hierarchies and fill in details.

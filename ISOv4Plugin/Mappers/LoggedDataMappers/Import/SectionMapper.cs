@@ -32,7 +32,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             var sections = new List<DeviceElementUse>();
             foreach (string isoDeviceElementID in isoDeviceElementIDs)
             {
-                DeviceHierarchyElement hierarchyElement = TaskDataMapper.DeviceElementHierarchies.GetRelevantHierarchy(isoDeviceElementID);
+                DeviceHierarchyElement hierarchyElement = TaskDataMapper.DeviceElementHierarchies.GetMatchingElement(isoDeviceElementID);
                 if (hierarchyElement != null)
                 {
                     DeviceElementUse deviceElementUse = null;
@@ -53,9 +53,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                             depth = hierarchyElement.Parent.Depth;
                             order = hierarchyElement.Parent.Order;
                         }
-
-                        //Read any spatially-listed widths/offsets on this data onto the DeviceElementConfiguration objects
-                        hierarchyElement.SetWidthsAndOffsetsFromSpatialData(time, isoRecords, config, RepresentationMapper);
 
                         deviceElementUse = sections.FirstOrDefault(d => d.DeviceConfigurationId == config.Id.ReferenceId);
                         if (deviceElementUse == null)
@@ -91,22 +88,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         if (!sections.Contains(deviceElementUse))
                         {
                             sections.Add(deviceElementUse);
-                        }
-                    }
-                    else if (hierarchyElement.DeviceElement.DeviceElementType == ISOEnumerations.ISODeviceElementType.Connector)
-                    {
-                        int? connectorID = TaskDataMapper.InstanceIDMap.GetADAPTID(hierarchyElement.DeviceElement.DeviceElementId).Value;
-                        if (connectorID.HasValue)
-                        {
-                            Connector adaptConnector = DataModel.Catalog.Connectors.FirstOrDefault(c => c.Id.ReferenceId == connectorID.Value);
-                            if (adaptConnector != null)
-                            {
-                                HitchPoint hitch = DataModel.Catalog.HitchPoints.FirstOrDefault(h => h.Id.ReferenceId == adaptConnector.HitchPointId);
-                                if (hitch != null)
-                                {
-                                    hierarchyElement.SetHitchOffsetsFromSpatialData(time, isoRecords, hitch, RepresentationMapper);
-                                }
-                            }
                         }
                     }
                 }

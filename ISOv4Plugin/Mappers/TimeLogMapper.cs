@@ -23,7 +23,7 @@ using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.Representation.RepresentationSystem;
 using AgGateway.ADAPT.Representation.RepresentationSystem.ExtensionMethods;
 
-namespace AgGateway.ADAPT.ISOv4Plugin.Mappers 
+namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
     public interface ITimeLogMapper
     {
@@ -74,7 +74,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             isoTime.DataLogValues = ExportDataLogValues(workingDatas, deviceElementUses).ToList();
 
             //Set the timelog data definition for PTN
-            ISOPosition position = new ISOPosition(); 
+            ISOPosition position = new ISOPosition();
             position.HasPositionNorth = true;
             position.HasPositionEast = true;
             position.HasPositionUp = true;
@@ -95,7 +95,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             BinaryWriter writer = new BinaryWriter(_dataLogValueOrdersByWorkingDataID);
             writer.Write(binFilePath, workingDatas.ToList(), spatialRecords);
 
-            return isoTimeLog;            
+            return isoTimeLog;
         }
 
         public IEnumerable<ISODataLogValue> ExportDataLogValues(List<WorkingData> workingDatas, List<DeviceElementUse> deviceElementUses)
@@ -380,7 +380,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     operationData.GetDeviceElementUses = x => sectionMapper.ConvertToBaseTypes(sections.Where(s => s.Depth == x).ToList());
                     operationData.PrescriptionId = prescriptionID;
                     operationData.OperationType = GetOperationTypeFromLoggingDevices(time);
-                    operationData.ProductIds = productIDs; 
+                    operationData.ProductIds = productIDs;
                     operationData.SpatialRecordCount = isoRecords.Count();
                     operationDatas.Add(operationData);
                 }
@@ -477,17 +477,127 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             string filePath = dataPath.GetDirectoryFiles(binName, SearchOption.TopDirectoryOnly).FirstOrDefault();
             if (templateTime != null && filePath != null)
             {
-                BinaryReader reader = new BinaryReader();
-                return reader.Read(filePath, templateTime, TaskDataMapper.DeviceElementHierarchies);
+                return BinaryReader.Read(filePath, templateTime, TaskDataMapper.DeviceElementHierarchies);
             }
             return null;
         }
 
+        internal static Dictionary<byte, int> ReadImplementGeometryValues(IEnumerable<byte> dlvsToRead, ISOTime templateTime, string filePath)
+        {
+            return BinaryReader.ReadImplementGeometryValues(filePath, templateTime, dlvsToRead);
+        }
+
         private class BinaryReader
         {
-            private DateTime _firstDayOf1980 = new DateTime(1980, 01, 01);
+            private static readonly DateTime _firstDayOf1980 = new DateTime(1980, 01, 01);
 
-            public IEnumerable<ISOSpatialRow> Read(string fileName, ISOTime templateTime, DeviceElementHierarchies deviceHierarchies)
+            public static Dictionary<byte, int> ReadImplementGeometryValues(string filePath, ISOTime templateTime, IEnumerable<byte> desiredDLVIndices)
+            {
+                Dictionary<byte, int> output = new Dictionary<byte, int>();
+                List<byte> orderedDLVIndicesToRead = desiredDLVIndices.OrderBy(d => d).ToList();
+                byte lastDesiredDLVIndex = orderedDLVIndicesToRead.Last();
+
+                //Determine the number of header bytes in each position
+                short headerCount = 0;
+                SkipBytes(templateTime.HasStart && templateTime.Start == null, 6, ref headerCount);
+                ISOPosition templatePosition = templateTime.Positions.FirstOrDefault();
+                if (templatePosition != null)
+                {
+                    SkipBytes(templatePosition.HasPositionNorth && templatePosition.PositionNorth == null, 4, ref headerCount);
+                    SkipBytes(templatePosition.HasPositionEast && templatePosition.PositionEast == null, 4, ref headerCount);
+                    SkipBytes(templatePosition.HasPositionUp && templatePosition.PositionUp == null, 4, ref headerCount);
+                    SkipBytes(templatePosition.HasPositionStatus && templatePosition.PositionStatus == null, 1, ref headerCount);
+                    SkipBytes(templatePosition.HasPDOP && templatePosition.PDOP == null, 2, ref headerCount);
+                    SkipBytes(templatePosition.HasHDOP && templatePosition.HDOP == null, 2, ref headerCount);
+                    SkipBytes(templatePosition.HasNumberOfSatellites && templatePosition.NumberOfSatellites == null, 1, ref headerCount);
+                    SkipBytes(templatePosition.HasGpsUtcTime && templatePosition.GpsUtcTime == null, 4, ref headerCount);
+                    SkipBytes(templatePosition.HasGpsUtcDate && templatePosition.GpsUtcDate == null, 2, ref headerCount);
+                }
+
+                using (var binaryReader = new System.IO.BinaryReader(File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read)))
+                {
+                    while (ContinueReading(binaryReader))
+                    {
+                        binaryReader.BaseStream.Position += headerCount; //Skip over the header
+                        if (ContinueReading(binaryReader))
+                        {
+                            var numberOfDLVs = ReadByte(null, true, binaryReader).GetValueOrDefault(0);
+                            if (ContinueReading(binaryReader))
+                            {
+                                numberOfDLVs = ConfirmNumberOfDLVs(binaryReader, numberOfDLVs); //Validate we are not at the end of a truncated file
+
+                                int readIndex = 0; //Initialize DLVs to start of requested range for this new record
+                                byte nextIndexToRead = orderedDLVIndicesToRead[readIndex]; 
+                                for (byte i = 0; i < numberOfDLVs; i++)
+                                {
+                                    byte dlvIndex = ReadByte(null, true, binaryReader).GetValueOrDefault(); //This is the current DLV reported
+                                    if (nextIndexToRead != 0 && dlvIndex > nextIndexToRead) 
+                                    {
+                                        //If the binary skipped past and of our desired DLVs, jump ahead in our request list
+                                        nextIndexToRead = orderedDLVIndicesToRead.FirstOrDefault(x => x >= dlvIndex); //This returns 0 by default which cannot be less than dlvIndex so we will skip values until the next record if 0.
+                                        readIndex = orderedDLVIndicesToRead.IndexOf(nextIndexToRead);
+                                    }
+                                    if (dlvIndex == nextIndexToRead)
+                                    {
+                                        //A desired DLV is reported here
+                                        int value = ReadInt32(null, true, binaryReader).GetValueOrDefault();
+                                        if (!output.ContainsKey(dlvIndex))
+                                        {
+                                            output.Add(dlvIndex, value);
+                                        }
+                                        else if (Math.Abs(value) > Math.Abs(output[dlvIndex]))
+                                        {
+                                            //Values should be all the same, but prefer the furthest from 0
+                                            output[dlvIndex] = value;
+                                        }
+
+                                        if (readIndex < orderedDLVIndicesToRead.Count - 1)
+                                        {
+                                            //Increment the read index unless we are at the end of desired values
+                                            nextIndexToRead = orderedDLVIndicesToRead[++readIndex];
+                                        }
+                                    }
+                                    else
+                                    {
+                                        binaryReader.BaseStream.Position += 4;
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+
+                }
+                return output;
+            }
+
+            private static void SkipBytes(bool hasValue, short byteRange, ref short skipCount)
+            {
+                if (hasValue)
+                {
+                    skipCount += byteRange;
+                }
+            }
+
+            private static bool ContinueReading(System.IO.BinaryReader binaryReader)
+            {
+                return binaryReader.BaseStream.Position < binaryReader.BaseStream.Length;
+            }
+
+            private static byte ConfirmNumberOfDLVs(System.IO.BinaryReader binaryReader, byte numberOfDLVs)
+            {
+                if (numberOfDLVs > 0)
+                {
+                    var endPosition = binaryReader.BaseStream.Position + 5 * numberOfDLVs;
+                    if (endPosition > binaryReader.BaseStream.Length)
+                    {
+                        numberOfDLVs = (byte)Math.Floor((binaryReader.BaseStream.Length - binaryReader.BaseStream.Position) / 5d);
+                    }
+                }
+                return numberOfDLVs;
+            }
+
+            public static IEnumerable<ISOSpatialRow> Read(string fileName, ISOTime templateTime, DeviceElementHierarchies deviceHierarchies)
             {
                 if (templateTime == null)
                     yield break;
@@ -545,14 +655,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         }
 
                         //If the reported number of values does not fit into the stream, correct the numberOfDLVs
-                        if (numberOfDLVs > 0)
-                        {
-                            var endPosition = binaryReader.BaseStream.Position + 5 * numberOfDLVs;
-                            if (endPosition > binaryReader.BaseStream.Length)
-                            {
-                                numberOfDLVs = (byte)Math.Floor((binaryReader.BaseStream.Length - binaryReader.BaseStream.Position) / 5d);
-                            }
-                        }
+                        numberOfDLVs = ConfirmNumberOfDLVs(binaryReader, numberOfDLVs);
 
                         record.SpatialValues = new List<SpatialValue>();
 
@@ -563,7 +666,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                             var order = ReadByte(null, true, binaryReader).GetValueOrDefault();
                             var value = ReadInt32(null, true, binaryReader).GetValueOrDefault();
                             // Can't read either order or value or both, stop processing
-                            if (i < numberOfDLVs - 1 &&  binaryReader.BaseStream.Position >= binaryReader.BaseStream.Length)
+                            if (i < numberOfDLVs - 1 && binaryReader.BaseStream.Position >= binaryReader.BaseStream.Length)
                             {
                                 unexpectedEndOfStream = true;
                                 break;
@@ -652,7 +755,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 return null;
             }
 
-            private DateTime? GetStartTime(ISOTime templateTime, System.IO.BinaryReader binaryReader)
+            private static DateTime? GetStartTime(ISOTime templateTime, System.IO.BinaryReader binaryReader)
             {
                 if (templateTime.HasStart && templateTime.Start == null)
                 {
