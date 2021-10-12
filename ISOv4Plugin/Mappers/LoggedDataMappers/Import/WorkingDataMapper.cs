@@ -24,7 +24,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
     public class WorkingDataMapper : BaseMapper, IWorkingDataMapper
     {
-        private readonly List<string> _implementGeometryDDIsToOmit = new List<string> { "0044", "0046", "0086", "0087", "0088" };
         private readonly IEnumeratedMeterFactory _enumeratedMeterCreatorFactory;
         private readonly Dictionary<int, DdiDefinition> _ddis;
         public Dictionary<int, ISODataLogValue> DataLogValuesByWorkingDataID { get; set;}
@@ -64,7 +63,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                                                                                   isoDeviceElementHierarchy.MergedElements.Any(e => e.DeviceElementId == dlv.DeviceElementIdRef)); //DLV DET reference matches one of the merged DETs on the ADAPT element
 
 
-            foreach (ISODataLogValue dlv in deviceElementDLVs.Where(d => !_implementGeometryDDIsToOmit.Contains(d.ProcessDataDDI))) //Omit implement geomtry data from the spatial records (with the exception of 0043 working width which is commonly dynamic).
+            foreach (ISODataLogValue dlv in deviceElementDLVs)
             {
                 IEnumerable<WorkingData> newWorkingDatas = Map(dlv, 
                                                                isoSpatialRows,

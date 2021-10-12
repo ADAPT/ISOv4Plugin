@@ -82,11 +82,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
         /// <param name="allDeviceHierarchyElements"></param>
         public void FillDPDGeometryDefinitions(Dictionary<string, List<string>> missingDefinitions, IEnumerable<ISOTimeLog> timeLogs, string taskDataPath)
         {
-            Dictionary<string, int?> reportedValues = new Dictionary<string, int?>(); //DLV signature / value - used to track conflicting data
+            Dictionary<string, int?> reportedValues = new Dictionary<string, int?>(); //DLV signature / value 
             foreach (ISOTimeLog timeLog in timeLogs)
             {
                 ISOTime time = timeLog.GetTimeElement(taskDataPath);
-                if (time.DataLogValues.Any(dlv => missingDefinitions.ContainsKey(dlv.DeviceElementIdRef)))
+                if (time != null &&
+                    time.DataLogValues.Any(dlv => missingDefinitions.ContainsKey(dlv.DeviceElementIdRef)))
                 {
                     List<ISODataLogValue> dlvsToRead = time.DataLogValues.Where(dlv => missingDefinitions.ContainsKey(dlv.DeviceElementIdRef) &&
                                                                                                          missingDefinitions[dlv.DeviceElementIdRef].Contains(dlv.ProcessDataDDI)).ToList();
@@ -121,17 +122,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                         {
                             ISODataLogValue reportedDLV = dlvsToRead.First(d => d.Index == reportedDLVIndex);
                             string dlvKey = DeviceHierarchyElement.GetDataLogValueKey(reportedDLV);
-                            if (reportedValues.ContainsKey(dlvKey))
-                            {
-                                if (reportedValues[dlvKey] != timelogValues[reportedDLVIndex])
-                                {
-                                    //TODO
-                                }
-                            }
-                            else
+                            if (!reportedValues.ContainsKey(dlvKey))
                             {
                                 //First occurence of this DET and DDI in the timelogs
-                                //Add to the tracking list
+                                //We take the max width/max (from 0) offset from the 1st timelog.  This matches existing functionality, and is workable for foreseeable cases where working width is the only dynamic value.
+                                //ISOXML supports changing widths and offsets dynamically throughout and across timelogs.    
+                                //Should max width and/or offset parameters change dynamically, data consumers will need to obtain this information via the OperationData.SpatialRecords as is commonly done with 0043 (working width) today
+                                //An alternative would be to enhance this logic to clone the entire DeviceModel hierarchy for each variation in offset value, should such data ever occur in the field.
                                 reportedValues.Add(dlvKey, timelogValues[reportedDLV.Index]);
 
                                 //Add to this element
