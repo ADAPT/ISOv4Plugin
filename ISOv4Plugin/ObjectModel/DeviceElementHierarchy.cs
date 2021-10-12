@@ -94,7 +94,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                     foreach (string deviceElementID in missingDefinitions.Keys)
                     {
                         List<string> ddis = missingDefinitions[deviceElementID];
-                        if (ddis.Any(d => d == "0046" && !dlvsToRead.Any(dlv => dlv.DeviceElementIdRef == deviceElementID && dlv.ProcessDataDDI == "0046")))
+                        if (ddis.Any(d => d == "0046"))
                         {
                             //We used 0046 generically for a missing width.  Check for any 0044 or 0043
                             var defaultWidthDLV = time.DataLogValues.FirstOrDefault(gt => gt.ProcessDataDDI == "0044" && gt.DeviceElementIdRef == deviceElementID);
@@ -140,8 +140,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                                         case "0046":
                                         case "0044":
                                         case "0043":
-                                            matchingElement.Width = timelogValues[reportedDLV.Index];
-                                            matchingElement.WidthDDI = reportedDLV.ProcessDataDDI;
+                                            if (matchingElement.Width == null || timelogValues[reportedDLV.Index] > matchingElement.Width)
+                                            {
+                                                //If max 0043 is greater than 0046, then take max 0043
+                                                matchingElement.Width = timelogValues[reportedDLV.Index];
+                                                matchingElement.WidthDDI = reportedDLV.ProcessDataDDI;
+                                            }
                                             break;
                                         case "0086":
                                             matchingElement.XOffset = timelogValues[reportedDLV.Index];
