@@ -14,10 +14,9 @@ using AgGateway.ADAPT.Representation.UnitSystem;
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
     #region Import
-
     public interface IWorkingDataMapper
     {
-        List<WorkingData> Map(ISOTime time, IEnumerable<ISOSpatialRow> isoRecords, DeviceElementUse deviceElementUse, DeviceElementHierarchy isoDeviceElementHierarchy, List<DeviceElementUse> pendingDeviceElementUses, Dictionary<string, List<ISOProductAllocation>> isoProductAllocations);
+        List<WorkingData> Map(ISOTime time, IEnumerable<ISOSpatialRow> isoRecords, DeviceElementUse deviceElementUse, DeviceHierarchyElement isoDeviceElementHierarchy, List<DeviceElementUse> pendingDeviceElementUses, Dictionary<string, List<ISOProductAllocation>> isoProductAllocations);
         WorkingData ConvertToBaseType(WorkingData meter);
         Dictionary<int, ISODataLogValue> DataLogValuesByWorkingDataID { get; set; }
         Dictionary<int, string> ISODeviceElementIDsByWorkingDataID { get; set; }
@@ -44,20 +43,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         public List<WorkingData> Map(ISOTime time,
                                      IEnumerable<ISOSpatialRow> isoSpatialRows,
                                      DeviceElementUse deviceElementUse,
-                                     DeviceElementHierarchy isoDeviceElementHierarchy,
+                                     DeviceHierarchyElement isoDeviceElementHierarchy,
                                      List<DeviceElementUse> pendingDeviceElementUses,
                                      Dictionary<string, List<ISOProductAllocation>> isoProductAllocations)
         {
             var workingDatas = new List<WorkingData>();
-
-           //Set orders on the collection of DLVs
-            var allDLVs = time.DataLogValues;
-            for (int order = 0; order < allDLVs.Count(); order++)
-            {
-                var dlv = allDLVs.ElementAt(order);
-                dlv.Order = order;
-            }
-
 
             //Create vrProductIndex on relevant device elements if more than one product on this OperationData
             if (TimeLogMapper.GetDistinctProductIDs(TaskDataMapper, isoProductAllocations).Count > 1 &&
@@ -69,14 +59,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
             //Add the Working Datas for this DeviceElement
-            IEnumerable<ISODataLogValue> deviceElementDLVs = allDLVs.Where(dlv => dlv.DeviceElementIdRef == isoDeviceElementHierarchy.DeviceElement.DeviceElementId ||  //DLV DET reference matches the primary DET for the ADAPT element
+            IEnumerable<ISODataLogValue> deviceElementDLVs = time.DataLogValues.Where(dlv => dlv.DeviceElementIdRef == isoDeviceElementHierarchy.DeviceElement.DeviceElementId ||  //DLV DET reference matches the primary DET for the ADAPT element
                                                                                   isoDeviceElementHierarchy.MergedElements.Any(e => e.DeviceElementId == dlv.DeviceElementIdRef)); //DLV DET reference matches one of the merged DETs on the ADAPT element
+
+
             foreach (ISODataLogValue dlv in deviceElementDLVs)
             {
                 IEnumerable<WorkingData> newWorkingDatas = Map(dlv, 
                                                                isoSpatialRows,
                                                                deviceElementUse,
-                                                               dlv.Order,
+                                                               dlv.Index,
                                                                pendingDeviceElementUses,
                                                                isoDeviceElementHierarchy);
                 if (newWorkingDatas.Count() > 0)
@@ -129,9 +121,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         private IEnumerable<WorkingData> Map(ISODataLogValue dlv, 
                                              IEnumerable<ISOSpatialRow> isoSpatialRows, 
                                              DeviceElementUse deviceElementUse, 
-                                             int order, 
+                                             byte order, 
                                              List<DeviceElementUse> pendingDeviceElementUses,
-                                             DeviceElementHierarchy isoDeviceElementHierarchy)
+                                             DeviceHierarchyElement isoDeviceElementHierarchy)
         {
             var workingDatas = new List<WorkingData>();
             if (_ddis.ContainsKey(dlv.ProcessDataDDI.AsInt32DDI()))
@@ -213,7 +205,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return meter;
         }
 
-        private void UpdateCondensedWorkingDatas(List<ISOEnumeratedMeter> condensedWorkingDatas, ISODataLogValue dlv, DeviceElementUse deviceElementUse, List<DeviceElementUse> pendingDeviceElementUses, DeviceElementHierarchy isoDeviceElementHierarchy)
+        private void UpdateCondensedWorkingDatas(List<ISOEnumeratedMeter> condensedWorkingDatas, ISODataLogValue dlv, DeviceElementUse deviceElementUse, List<DeviceElementUse> pendingDeviceElementUses, DeviceHierarchyElement isoDeviceElementHierarchy)
         {
             ISODeviceElement isoDeviceElement = TaskDataMapper.DeviceElementHierarchies.GetISODeviceElementFromID(dlv.DeviceElementIdRef);
             List<ISODeviceElement> isoSectionElements = isoDeviceElement.ChildDeviceElements.Where(d => d.DeviceElementType == ISOEnumerations.ISODeviceElementType.Section).ToList();
@@ -243,7 +235,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                             if (deviceElement != null)
                             {
                                 //Reference the device element in its hierarchy so that we can get the depth & order
-                                DeviceElementHierarchy deviceElementInHierarchy = isoDeviceElementHierarchy.FromDeviceElementID(targetSection.DeviceElementId);
+                                DeviceHierarchyElement deviceElementInHierarchy = isoDeviceElementHierarchy.FromDeviceElementID(targetSection.DeviceElementId);
 
                                 //Get the config id
                                 DeviceElementConfiguration deviceElementConfig = DeviceElementMapper.GetDeviceElementConfiguration(deviceElement, deviceElementInHierarchy, DataModel.Catalog);

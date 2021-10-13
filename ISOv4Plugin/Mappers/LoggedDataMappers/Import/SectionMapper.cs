@@ -32,8 +32,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             var sections = new List<DeviceElementUse>();
             foreach (string isoDeviceElementID in isoDeviceElementIDs)
             {
-                DeviceElementHierarchy hierarchy = TaskDataMapper.DeviceElementHierarchies.GetRelevantHierarchy(isoDeviceElementID);
-                if (hierarchy != null)
+                DeviceHierarchyElement hierarchyElement = TaskDataMapper.DeviceElementHierarchies.GetMatchingElement(isoDeviceElementID);
+                if (hierarchyElement != null)
                 {
                     DeviceElementUse deviceElementUse = null;
                     List<WorkingData> workingDatas = new List<WorkingData>();
@@ -43,19 +43,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     DeviceElement adaptDeviceElement = DataModel.Catalog.DeviceElements.SingleOrDefault(d => d.Id.ReferenceId == adaptDeviceElementId);
                     if (adaptDeviceElement != null)
                     {
-                        DeviceElementConfiguration config = DeviceElementMapper.GetDeviceElementConfiguration(adaptDeviceElement, hierarchy, DataModel.Catalog);
+                        DeviceElementConfiguration config = DeviceElementMapper.GetDeviceElementConfiguration(adaptDeviceElement, hierarchyElement, DataModel.Catalog);
 
-                        int depth = hierarchy.Depth;
-                        int order = hierarchy.Order;
+                        int depth = hierarchyElement.Depth;
+                        int order = hierarchyElement.Order;
                         if (config.DeviceElementId == adaptDeviceElement.ParentDeviceId)
                         {
                             //The configuration references the parent ISO element
-                            depth = hierarchy.Parent.Depth;
-                            order = hierarchy.Parent.Order;
+                            depth = hierarchyElement.Parent.Depth;
+                            order = hierarchyElement.Parent.Order;
                         }
-
-                        //Read any spatially-listed widths/offsets on this data onto the DeviceElementConfiguration objects
-                        hierarchy.SetWidthsAndOffsetsFromSpatialData(time, isoRecords, config, RepresentationMapper);
 
                         deviceElementUse = sections.FirstOrDefault(d => d.DeviceConfigurationId == config.Id.ReferenceId);
                         if (deviceElementUse == null)
@@ -68,7 +65,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                             deviceElementUse.DeviceConfigurationId = config.Id.ReferenceId;
 
                             //Add Working Data for any data on this device element
-                            List<WorkingData> data = _workingDataMapper.Map(time, isoRecords, deviceElementUse, hierarchy, sections, isoProductAllocations);
+                            List<WorkingData> data = _workingDataMapper.Map(time, isoRecords, deviceElementUse, hierarchyElement, sections, isoProductAllocations);
                             if (data.Any())
                             {
                                 workingDatas.AddRange(data);
@@ -79,7 +76,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                             workingDatas = deviceElementUse.GetWorkingDatas().ToList();
 
                             //Add Additional Working Data
-                            List<WorkingData> data = _workingDataMapper.Map(time, isoRecords, deviceElementUse, hierarchy, sections, isoProductAllocations);
+                            List<WorkingData> data = _workingDataMapper.Map(time, isoRecords, deviceElementUse, hierarchyElement, sections, isoProductAllocations);
                             if (data.Any())
                             {
                                 workingDatas.AddRange(data);
@@ -91,22 +88,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         if (!sections.Contains(deviceElementUse))
                         {
                             sections.Add(deviceElementUse);
-                        }
-                    }
-                    else if (hierarchy.DeviceElement.DeviceElementType == ISOEnumerations.ISODeviceElementType.Connector)
-                    {
-                        int? connectorID = TaskDataMapper.InstanceIDMap.GetADAPTID(hierarchy.DeviceElement.DeviceElementId).Value;
-                        if (connectorID.HasValue)
-                        {
-                            Connector adaptConnector = DataModel.Catalog.Connectors.FirstOrDefault(c => c.Id.ReferenceId == connectorID.Value);
-                            if (adaptConnector != null)
-                            {
-                                HitchPoint hitch = DataModel.Catalog.HitchPoints.FirstOrDefault(h => h.Id.ReferenceId == adaptConnector.HitchPointId);
-                                if (hitch != null)
-                                {
-                                    hierarchy.SetHitchOffsetsFromSpatialData(time, isoRecords, hitch, RepresentationMapper);
-                                }
-                            }
                         }
                     }
                 }
