@@ -862,11 +862,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             if (deviceElementID.HasValue)
             {
                 //Since Device creation is on-demand, we need to call GetDeviceElementConfiguration here to ensure the relevant device is created if it hasn't been yet.
-                var hierarchy = TaskDataMapper?.DeviceElementHierarchies?.GetRelevantHierarchy(dlv.DeviceElementIdRef);
+                var hierarchyElement = TaskDataMapper?.DeviceElementHierarchies?.GetMatchingElement(dlv.DeviceElementIdRef);
                 var adaptDeviceElement = DataModel?.Catalog?.DeviceElements?.FirstOrDefault(d => d?.Id?.ReferenceId == deviceElementID.Value);
-                if (hierarchy != null && adaptDeviceElement != null)
+                if (hierarchyElement != null && adaptDeviceElement != null)
                 {
-                    DeviceElementConfiguration config = DeviceElementMapper.GetDeviceElementConfiguration(adaptDeviceElement, hierarchy, DataModel.Catalog);
+                    DeviceElementConfiguration config = DeviceElementMapper.GetDeviceElementConfiguration(adaptDeviceElement, hierarchyElement, DataModel.Catalog);
                     if (config != null)
                     {
                         deviceConfigurationID = config.Id.ReferenceId;

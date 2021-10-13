@@ -368,13 +368,23 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
             //Devices
+
             IEnumerable<ISODevice> devices = taskData.ChildElements.OfType<ISODevice>();
             if (devices.Any())
             {
+                //See explanation of MergeSingleBinsIntoBoom in DeviceElementHierarchy
                 bool mergeBins = false;
                 bool.TryParse(Properties.GetProperty(MergeSingleBinsIntoBoom), out mergeBins);
-                DeviceElementHierarchies = new DeviceElementHierarchies(devices, RepresentationMapper, mergeBins);
 
+                //Load the internal objects modeling hierarchies of DETs per DVC
+                DeviceElementHierarchies = new DeviceElementHierarchies(devices,
+                                                                        RepresentationMapper,
+                                                                        mergeBins,
+                                                                        taskData.ChildElements.OfType<ISOTask>().SelectMany(t => t.TimeLogs),
+                                                                        BaseFolder);
+
+                //Import the ISO DVC & DET data into the actual ADAPT models.
+                //During DET import, we use the DeviceElementHierarchies from above to map the actual hierarchies and fill in details.
                 DeviceMapper deviceMapper = new DeviceMapper(this);
                 AdaptDataModel.Catalog.DeviceModels.AddRange(deviceMapper.ImportDevices(devices));
             }
