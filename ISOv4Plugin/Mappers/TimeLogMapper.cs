@@ -302,14 +302,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             SectionMapper sectionMapper = new SectionMapper(workingDataMapper, TaskDataMapper);
             SpatialRecordMapper spatialMapper = new SpatialRecordMapper(new RepresentationValueInterpolator(), sectionMapper, workingDataMapper, TaskDataMapper);
             IEnumerable<ISOSpatialRow> isoRecords = ReadTimeLog(isoTimeLog, this.TaskDataPath);
-            bool useDeferredExecution = false;
+            bool useDeferredExecution = true;
             if (isoRecords != null)
             {
                 try
                 {
                     if (TaskDataMapper.Properties != null)
                     {
-                        //Set this property to override the default behavior of pre-iterating the data
+                        //Set this property to override the default behavior of deferring execution on the spatial data
+                        //We historically pre-iterated this data, giving certain benefits but having negative memory impacts
+                        //Going forward the default is to defer execution
                         bool.TryParse(TaskDataMapper.Properties.GetProperty(TaskDataMapper.SpatialRecordDeferredExecution), out useDeferredExecution);
                     }
 
