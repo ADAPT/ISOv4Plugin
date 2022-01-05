@@ -15,6 +15,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Representation
 
         private static string _isoUOMDataLocation = null;
 
+        /// <summary>
+        /// Static property to allow applications (particuarly web and cloud) to override the default location of resources as they may require.
+        /// Set AgGateway.ADAPT.ISOv4Plugin.Representation.IsoUnitOfMeasureList.ISOUOMDataFile = {Path to IsoUnitOfMeasure.xml} 
+        /// </summary>
         public static string ISOUOMDataFile
         {
             get

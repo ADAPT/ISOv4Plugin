@@ -14,6 +14,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Representation
     {
         private static string _ddiDataLocation = null;
 
+
+        /// <summary>
+        /// Static property to allow applications (particuarly web and cloud) to override the default location of resources as they may require.
+        /// Set AgGateway.ADAPT.ISOv4Plugin.Representation.DdiLoader.DDIDataFile = {Path to ddiExport.txt} 
+        /// </summary>
         public static string DDIDataFile
         {
             get
