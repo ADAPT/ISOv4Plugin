@@ -12,6 +12,29 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Representation
 {
     public static class DdiLoader
     {
+        private static string _ddiDataLocation = null;
+
+
+        /// <summary>
+        /// Static property to allow applications (particuarly web and cloud) to override the default location of resources as they may require.
+        /// Set AgGateway.ADAPT.ISOv4Plugin.Representation.DdiLoader.DDIDataFile = {Path to ddiExport.txt} 
+        /// </summary>
+        public static string DDIDataFile
+        {
+            get
+            {
+                if (_ddiDataLocation == null)
+                {
+                    return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "ddiExport.txt");
+                }
+                else
+                {
+                    return _ddiDataLocation;
+                }
+            }
+            set { _ddiDataLocation = value; }
+        }
+
         private static Dictionary<int, DdiDefinition> _ddis;
         public static Dictionary<int, DdiDefinition> Ddis
         {
@@ -22,8 +45,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Representation
         {
             if (ddiExportFileContents == null)
             {
-                var ddiExportFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "ddiExport.txt");
-                ddiExportFileContents = File.ReadAllText(ddiExportFile);
+                ddiExportFileContents = File.ReadAllText(DDIDataFile);
             }
 
             _ddis = ParseFile(ddiExportFileContents)
@@ -123,7 +145,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Representation
 
         private static string ParseUnit(string value)
         {
-            // Unit: ° - Angle
+            // Unit: Â° - Angle
             if (string.IsNullOrWhiteSpace(value))
                 return string.Empty;
 
