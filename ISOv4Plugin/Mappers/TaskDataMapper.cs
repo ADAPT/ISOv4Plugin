@@ -373,7 +373,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             if (devices.Any())
             {
                 //See explanation of MergeSingleBinsIntoBoom in DeviceElementHierarchy
-                bool mergeBins = false;
+                bool mergeBins = true;
                 bool.TryParse(Properties.GetProperty(MergeSingleBinsIntoBoom), out mergeBins);
 
                 //Load the internal objects modeling hierarchies of DETs per DVC

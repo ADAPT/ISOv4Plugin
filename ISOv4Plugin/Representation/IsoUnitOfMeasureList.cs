@@ -11,22 +11,42 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Representation
 {
     public static class IsoUnitOfMeasureList
     {
-        private static readonly List<DdiToUnitOfMeasure> IsoMappings;
+        private static List<DdiToUnitOfMeasure> _isoMappings;
 
-        static IsoUnitOfMeasureList()
+        private static string _isoUOMDataLocation = null;
+
+        /// <summary>
+        /// Static property to allow applications (particuarly web and cloud) to override the default location of resources as they may require.
+        /// Set AgGateway.ADAPT.ISOv4Plugin.Representation.IsoUnitOfMeasureList.ISOUOMDataFile = {Path to IsoUnitOfMeasure.xml} 
+        /// </summary>
+        public static string ISOUOMDataFile
         {
-            var isoUnitOfMeasureFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "IsoUnitOfMeasure.xml");
-
-            var serializer = new System.Xml.Serialization.XmlSerializer(typeof(DdiToUnitOfMeasureMapping));
-            using (var stringReader = new StringReader(File.ReadAllText(isoUnitOfMeasureFile)))
-                IsoMappings = ((DdiToUnitOfMeasureMapping)serializer.Deserialize(stringReader)).Mappings.ToList();
+            get
+            {
+                if (_isoUOMDataLocation == null)
+                {
+                    return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "IsoUnitOfMeasure.xml");
+                }
+                else
+                {
+                    return _isoUOMDataLocation;
+                }
+            }
+            set { _isoUOMDataLocation = value; }
         }
+
 
         public static List<DdiToUnitOfMeasure> Mappings
         {
             get
             {
-                return IsoMappings;
+                if (_isoMappings == null)
+                {
+                    var serializer = new System.Xml.Serialization.XmlSerializer(typeof(DdiToUnitOfMeasureMapping));
+                    using (var stringReader = new StringReader(File.ReadAllText(ISOUOMDataFile)))
+                        _isoMappings = ((DdiToUnitOfMeasureMapping)serializer.Deserialize(stringReader)).Mappings.ToList();
+                }
+                return _isoMappings;
             }
         }
     }
