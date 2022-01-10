@@ -383,7 +383,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     operationData.PrescriptionId = prescriptionID;
                     operationData.OperationType = GetOperationTypeFromLoggingDevices(time);
                     operationData.ProductIds = productIDs;
-                    operationData.SpatialRecordCount = isoRecords.Count();
+                    if (!useDeferredExecution)
+                    {
+                        operationData.SpatialRecordCount = isoRecords.Count(); //We will leave this at 0 unless a consumer has overridden deferred execution of spatial data iteration
+                    }
                     operationDatas.Add(operationData);
                 }
 
