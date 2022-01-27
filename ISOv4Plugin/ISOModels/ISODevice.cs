@@ -66,7 +66,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             device.DeviceSerialNumber = node.GetXmlNodeValue("@E");
             device.DeviceStructureLabel = node.GetXmlNodeValue("@F");
             device.DeviceLocalizationLabel = node.GetXmlNodeValue("@G");
-
+            device.ProprietarySchemaExtensions = ReadProperietarySchemaExtensions(node);
             XmlNodeList detNodes = node.SelectNodes("DET");
             if (detNodes != null)
             {

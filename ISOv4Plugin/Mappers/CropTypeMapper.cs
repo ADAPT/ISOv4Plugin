@@ -104,7 +104,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             //ID
             ImportIDs(adaptCrop.Id, isoCropType.CropTypeId);
-            adaptCrop.ContextItems = ImportContextItems(isoCropType.CropTypeId, "ADAPT_Context_Items:Crop");
+            adaptCrop.ContextItems = ImportContextItems(isoCropType.CropTypeId, "ADAPT_Context_Items:Crop", isoCropType);
 
             //Description
             adaptCrop.Name = isoCropType.CropTypeDesignator;

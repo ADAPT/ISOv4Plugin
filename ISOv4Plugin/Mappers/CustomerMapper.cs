@@ -98,7 +98,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             //Customer ID
             ImportIDs(grower.Id, isoCustomer.CustomerId);
-            grower.ContextItems = ImportContextItems(isoCustomer.CustomerId, "ADAPT_Context_Items:Grower");
+            grower.ContextItems = ImportContextItems(isoCustomer.CustomerId, "ADAPT_Context_Items:Grower", isoCustomer);
 
             //Customer Name
             grower.Name = !string.IsNullOrEmpty(isoCustomer.CustomerFirstName) ? string.Concat(isoCustomer.CustomerFirstName," ", isoCustomer.CustomerLastName) : isoCustomer.CustomerLastName;

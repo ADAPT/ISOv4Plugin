@@ -53,6 +53,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             farm.FarmState = node.GetXmlNodeValue("@G");
             farm.FarmCountry = node.GetXmlNodeValue("@H");
             farm.CustomerIdRef = node.GetXmlNodeValue("@I");
+            farm.ProprietarySchemaExtensions = ReadProperietarySchemaExtensions(node);
             return farm;
         }
 

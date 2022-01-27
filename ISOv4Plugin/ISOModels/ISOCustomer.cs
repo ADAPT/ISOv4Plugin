@@ -65,6 +65,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             customer.CustomerMobile = customerNode.GetXmlNodeValue("@K");
             customer.CustomerFax = customerNode.GetXmlNodeValue("@L");
             customer.CustomerEmail = customerNode.GetXmlNodeValue("@M");
+            customer.ProprietarySchemaExtensions = ReadProperietarySchemaExtensions(customerNode);
             return customer;
         }
 

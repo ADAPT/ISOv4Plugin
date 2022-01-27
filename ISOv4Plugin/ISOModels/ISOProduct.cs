@@ -75,6 +75,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
                 product.ProductRelations.AddRange(ISOProductRelation.ReadXML(prnNodes));
             }
 
+            product.ProprietarySchemaExtensions = ReadProperietarySchemaExtensions(pdtNode);
+
             return product;
         }
 

@@ -64,6 +64,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             item.DeviceElementDesignator = node.GetXmlNodeValue("@D");
             item.DeviceElementNumber = node.GetXmlNodeValueAsUInt("@E");
             item.ParentObjectId = node.GetXmlNodeValueAsUInt("@F");
+            item.ProprietarySchemaExtensions = ReadProperietarySchemaExtensions(node);
             XmlNodeList dorNodes = node.SelectNodes("DOR");
             if (dorNodes != null)
             {
