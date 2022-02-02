@@ -230,7 +230,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
             //Context Items
-            product.ContextItems = ImportContextItems(isoProduct.ProductId, "ADAPT_Context_Items:Product");
+            product.ContextItems = ImportContextItems(isoProduct.ProductId, "ADAPT_Context_Items:Product", isoProduct);
             ImportPackagedProductClasses(isoProduct, product);
 
 

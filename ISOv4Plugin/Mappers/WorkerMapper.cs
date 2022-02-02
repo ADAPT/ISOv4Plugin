@@ -110,7 +110,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             //Worker ID
             ImportIDs(worker.Id, isoWorker.WorkerId);
-            worker.ContextItems = ImportContextItems(isoWorker.WorkerId, null);
+            worker.ContextItems = ImportContextItems(isoWorker.WorkerId, null, isoWorker);
 
             //Worker name
             worker.LastName = isoWorker.WorkerLastName;

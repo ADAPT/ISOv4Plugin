@@ -64,6 +64,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             worker.WorkerMobile = node.GetXmlNodeValue("@K");
             worker.WorkerLicenseNumber = node.GetXmlNodeValue("@L");
             worker.WorkerEmail = node.GetXmlNodeValue("@M");
+            worker.ProprietarySchemaExtensions = ReadProperietarySchemaExtensions(node);
             return worker;
         }
 

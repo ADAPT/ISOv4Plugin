@@ -72,7 +72,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             field.CropTypeIdRef = node.GetXmlNodeValue("@G");
             field.CropVarietyIdRef = node.GetXmlNodeValue("@H");
             field.FieldIdRef = node.GetXmlNodeValue("@I");
-
+            field.ProprietarySchemaExtensions = ReadProperietarySchemaExtensions(node);
             XmlNodeList plnNodes = node.SelectNodes("PLN");
             if (plnNodes != null)
             {

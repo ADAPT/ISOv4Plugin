@@ -194,12 +194,34 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         }
 
         /// <summary>
+        /// Creates ContextItems out of any proprietary attributes
+        /// </summary>
+        /// <param name="element"></param>
+        /// <returns></returns>
+        public List<ContextItem> ImportContextItemsFromProprietaryAttributes(ISOElement element)
+        {
+            List<ContextItem> output = new List<ContextItem>();
+            if (element.ProprietarySchemaExtensions != null)
+            {
+                foreach (string key in element.ProprietarySchemaExtensions.Keys)
+                {
+                    output.Add(new ContextItem
+                    {
+                        Code = string.Concat("Pr_", key), //Recommended ContextItem practice is to prefix any items with Pr_ which are not intended to be common industry vocabulary
+                        Value = element.ProprietarySchemaExtensions[key]
+                    });
+                }
+            }
+            return output;
+        }
+
+        /// <summary>
         /// Returns a list of ContextItems from the LinkGroup matching the object ID
         /// </summary>
         /// <param name="isoObjectIdRef"></param>
         /// <param name="linkGroupDescription">If supplied, the link grup description must match</param>
         /// <returns></returns>
-        public List<ContextItem> ImportContextItems(string isoObjectIdRef, string linkGroupDescription)
+        public List<ContextItem> ImportContextItemsFromLinkList(string isoObjectIdRef, string linkGroupDescription)
         {
             List<ContextItem> outputItems = new List<ContextItem>();
             if (LinkList != null)

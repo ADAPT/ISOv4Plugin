@@ -6,10 +6,7 @@ using System.Xml;
 using System.Collections.Generic;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using System;
-using System.Reflection;
 using System.Linq.Expressions;
-using System.Linq;
-using System.Globalization;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
@@ -20,6 +17,21 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         {
             if (_xmlComments != null) _xmlComments.ForEach(s => xmlBuilder.WriteComment(s));
             return xmlBuilder;
+        }
+
+        public static Dictionary<string, string> ReadProperietarySchemaExtensions(XmlNode node)
+        {
+            Dictionary<string, string> output = new Dictionary<string, string>();
+            foreach (XmlAttribute attribute in node.Attributes)
+            {
+                if (attribute.Name.Length > 1 &&
+                    attribute.Name.StartsWith("P") &&
+                    !output.ContainsKey(attribute.Name))
+                {
+                    output.Add(attribute.Name, attribute.Value);
+                }
+            }
+            return output;
         }
 
         public virtual List<IError> Validate(List<IError> errors)
@@ -36,6 +48,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
                 return _xmlComments;
             }
         }
+
+        /// <summary>
+        /// Manufacturer specific attributes added to the XML.
+        /// </summary>
+        public Dictionary<string, string> ProprietarySchemaExtensions { get; protected set; }
 
         #region Validation
         //Elected to use this custom validation logic vs. the Attribute based logic in System.ComponentModel.DataAnnotations

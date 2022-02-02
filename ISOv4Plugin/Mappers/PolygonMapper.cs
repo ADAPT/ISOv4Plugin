@@ -166,7 +166,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         /// <returns></returns>
         public AttributeShape ImportAttributePolygon(ISOPolygon isoPolygon)
         {
-            Polygon boundaryPolygon = ImportBoundaryPolygon(isoPolygon, false).FirstOrDefault(); 
+            Polygon boundaryPolygon = ImportBoundaryPolygon(isoPolygon, false)?.FirstOrDefault(); 
             if (boundaryPolygon != null && IsFieldAttributeType(isoPolygon))
             {
                 //The data has defined an explicit PLN type that maps to an attribute type
