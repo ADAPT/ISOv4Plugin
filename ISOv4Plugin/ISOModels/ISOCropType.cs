@@ -49,7 +49,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             type.CropTypeId = typeNode.GetXmlNodeValue("@A");
             type.CropTypeDesignator = typeNode.GetXmlNodeValue("@B");
             type.ProductGroupIdRef = typeNode.GetXmlNodeValue("@C");
-
+            type.ProprietarySchemaExtensions = ReadProperietarySchemaExtensions(typeNode);
             XmlNodeList cvtNodes = typeNode.SelectNodes("CVT");
             if (cvtNodes != null)
             {

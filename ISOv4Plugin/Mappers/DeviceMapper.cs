@@ -100,7 +100,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             //ID
             ImportIDs(deviceModel.Id, isoDevice.DeviceId);
-            deviceModel.ContextItems = ImportContextItems(isoDevice.DeviceId, "ADAPT_Context_Items:DeviceModel");
+            deviceModel.ContextItems = ImportContextItems(isoDevice.DeviceId, "ADAPT_Context_Items:DeviceModel", isoDevice);
 
             //Description
             deviceModel.Description = isoDevice.DeviceDesignator;

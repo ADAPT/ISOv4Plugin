@@ -79,9 +79,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
         }
 
-        protected List<ContextItem> ImportContextItems(string isoIDRef, string linkGroupDescription)
+        protected List<ContextItem> ImportContextItems(string isoIDRef, string linkGroupDescription, ISOElement element = null)
         {
-            return UniqueIDMapper.ImportContextItems(isoIDRef, linkGroupDescription);
+            //Read any data from the LinkList
+            List<ContextItem> output = UniqueIDMapper.ImportContextItemsFromLinkList(isoIDRef, linkGroupDescription);
+            if (element != null)
+            {
+                //Add any proprietary attributes on the element
+                output.AddRange(UniqueIDMapper.ImportContextItemsFromProprietaryAttributes(element));
+            }
+            return output;
         }
     }
 }

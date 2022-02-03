@@ -349,7 +349,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             DeviceHierarchyElement deviceElementHierarchy = TaskDataMapper.DeviceElementHierarchies.GetMatchingElement(isoDeviceElement.DeviceElementId);
             //ID
             ImportIDs(deviceElement.Id, isoDeviceElement.DeviceElementId);
-            deviceElement.ContextItems = ImportContextItems(isoDeviceElement.DeviceElementId, "ADAPT_Context_Items:DeviceElement");
+            deviceElement.ContextItems = ImportContextItems(isoDeviceElement.DeviceElementId, "ADAPT_Context_Items:DeviceElement", isoDeviceElement);
 
             //Device ID
             int? deviceModelId = TaskDataMapper.InstanceIDMap.GetADAPTID(isoDeviceElement.Device.DeviceId);

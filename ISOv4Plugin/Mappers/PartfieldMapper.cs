@@ -234,7 +234,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             //Field ID
             ImportIDs(field.Id, isoPartfield.PartfieldID);
-            field.ContextItems = ImportContextItems(isoPartfield.PartfieldID, "ADAPT_Context_Items:Field");
+            field.ContextItems = ImportContextItems(isoPartfield.PartfieldID, "ADAPT_Context_Items:Field", isoPartfield);
 
             //Farm ID
             field.FarmId = TaskDataMapper.InstanceIDMap.GetADAPTID(isoPartfield.FarmIdRef);
@@ -332,7 +332,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             //Cropzone ID
             ImportIDs(cropZone.Id, isoPartfield.PartfieldID);
-            cropZone.ContextItems = ImportContextItems(isoPartfield.PartfieldID, "ADAPT_Context_Items:CropZone");
+            cropZone.ContextItems = ImportContextItems(isoPartfield.PartfieldID, "ADAPT_Context_Items:CropZone", isoPartfield);
 
             //Field ID
             int? fieldID = null;

@@ -90,7 +90,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             //Farm ID
             ImportIDs(farm.Id, isoFarm.FarmId);
-            farm.ContextItems = ImportContextItems(isoFarm.FarmId, "ADAPT_Context_Items:Farm");
+            farm.ContextItems = ImportContextItems(isoFarm.FarmId, "ADAPT_Context_Items:Farm", isoFarm);
 
             //Grower ID
             farm.GrowerId = TaskDataMapper.InstanceIDMap.GetADAPTID(isoFarm.CustomerIdRef);

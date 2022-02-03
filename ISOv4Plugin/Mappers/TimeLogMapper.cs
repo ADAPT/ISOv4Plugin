@@ -383,7 +383,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     operationData.PrescriptionId = prescriptionID;
                     operationData.OperationType = GetOperationTypeFromLoggingDevices(time);
                     operationData.ProductIds = productIDs;
-                    operationData.SpatialRecordCount = isoRecords.Count();
+                    if (!useDeferredExecution)
+                    {
+                        operationData.SpatialRecordCount = isoRecords.Count(); //We will leave this at 0 unless a consumer has overridden deferred execution of spatial data iteration
+                    }
                     operationDatas.Add(operationData);
                 }
 
@@ -539,7 +542,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                                         nextIndexToRead = orderedDLVIndicesToRead.FirstOrDefault(x => x >= dlvIndex); //This returns 0 by default which cannot be less than dlvIndex so we will skip values until the next record if 0.
                                         readIndex = orderedDLVIndicesToRead.IndexOf(nextIndexToRead);
                                     }
-                                    if (dlvIndex == nextIndexToRead)
+                                    if (dlvIndex == nextIndexToRead && orderedDLVIndicesToRead.Contains(dlvIndex))
                                     {
                                         //A desired DLV is reported here
                                         int value = ReadInt32(null, true, binaryReader).GetValueOrDefault();

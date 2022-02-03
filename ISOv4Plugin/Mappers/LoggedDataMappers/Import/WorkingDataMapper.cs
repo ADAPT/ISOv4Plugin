@@ -209,6 +209,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         {
             ISODeviceElement isoDeviceElement = TaskDataMapper.DeviceElementHierarchies.GetISODeviceElementFromID(dlv.DeviceElementIdRef);
             List<ISODeviceElement> isoSectionElements = isoDeviceElement.ChildDeviceElements.Where(d => d.DeviceElementType == ISOEnumerations.ISODeviceElementType.Section).ToList();
+            foreach (var subElement in isoDeviceElement.ChildDeviceElements)
+            {
+                //This handles cases where the condensed workstate is reported on a top-level boom with sub-booms in the hierarchy above the sections (e.g., ISO 11783-10:2015(E) Figure F.35)
+                isoSectionElements.AddRange(subElement.ChildDeviceElements.Where(d => d.DeviceElementType == ISOEnumerations.ISODeviceElementType.Section).ToList());
+            }
             //We have some sections in the DDOP
             if (isoSectionElements.Count > 0)
             {
