@@ -112,7 +112,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     }
                 }
             }
-
             return tasks;
         }
 
@@ -476,6 +475,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
                 //Track any prescription IDs to map to any completed TimeLog data 
                 _rxIDsByTask.Add(isoPrescribedTask.TaskID, rx.Id.ReferenceId);
+            }
+
+            //DataLogTriggers
+            if (isoPrescribedTask.DataLogTriggers.Any())
+            {
+                DataLogTriggerMapper dltMapper = new DataLogTriggerMapper(TaskDataMapper);
+                workItem.DataLogTriggers = dltMapper.ImportDataLogTriggers(isoPrescribedTask.DataLogTriggers).ToList();
             }
 
             return workItem;

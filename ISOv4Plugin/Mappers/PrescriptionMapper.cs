@@ -151,6 +151,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 ExportManualPresciption(task, prescription as ManualPrescription);
             }
 
+            //DataLogTriggers
+            if (workItem.DataLogTriggers.Any())
+            {
+                DataLogTriggerMapper dltMapper = new DataLogTriggerMapper(TaskDataMapper);
+                task.DataLogTriggers = dltMapper.ExportDataLogTriggers(workItem.DataLogTriggers).ToList();
+            }
+
             return task;
         }
 
