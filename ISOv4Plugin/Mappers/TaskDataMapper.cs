@@ -314,6 +314,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         public ApplicationDataModel.ADM.ApplicationDataModel Import(ISO11783_TaskData taskData)
         {
+            if (Properties == null)
+            {
+                Properties = new Properties();
+            }
+
             ISOTaskData = taskData;
             UniqueIDMapper = new UniqueIdMapper(ISOTaskData.LinkList);
 

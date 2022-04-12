@@ -263,17 +263,18 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 var isoUnit = DetermineIsoUnit(prescription.RxProductLookups.First(p => p.ProductId == productId).UnitOfMeasure);
 
                 string isoProductId = TaskDataMapper.InstanceIDMap.GetISOID(productId) ?? string.Empty;
-                ISOProcessDataVariable lossPDV = ExportProcessDataVariable(prescription.LossOfGpsRate, isoProductId, isoUnit);
+                RxProductLookup productLookup = prescription.RxProductLookups.FirstOrDefault(p => p.ProductId == productId);
+                ISOProcessDataVariable lossPDV = ExportProcessDataVariable(productLookup?.LossOfGpsRate ?? prescription.LossOfGpsRate, isoProductId, isoUnit);
                 if (lossPDV != null)
                 {
                     lossOfSignalTreatmentZone.ProcessDataVariables.Add(lossPDV);
                 }
-                ISOProcessDataVariable oofPDV = ExportProcessDataVariable(prescription.OutOfFieldRate, isoProductId, isoUnit);
+                ISOProcessDataVariable oofPDV = ExportProcessDataVariable(productLookup?.OutOfFieldRate ?? prescription.OutOfFieldRate, isoProductId, isoUnit);
                 if (oofPDV != null)
                 {
                     outOfFieldTreatmentZone.ProcessDataVariables.Add(oofPDV);
                 }
-                ISOProcessDataVariable defaultPDV = ExportProcessDataVariable(prescription.LossOfGpsRate, isoProductId, isoUnit);  //ADAPT doesn't have a separate Default Rate.  Using Loss of GPS Rate as a logical equivalent for a default rate.
+                ISOProcessDataVariable defaultPDV = ExportProcessDataVariable(productLookup?.LossOfGpsRate ?? prescription.LossOfGpsRate, isoProductId, isoUnit);  //ADAPT doesn't have a separate Default Rate.  Using Loss of GPS Rate as a logical equivalent for a default rate.
                 if (defaultPDV == null)
                 {
                     //Add 0 as the default rate so that we have at least one PDV to reference

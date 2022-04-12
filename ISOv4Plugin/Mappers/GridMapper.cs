@@ -229,13 +229,22 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         private void ImportRates(ISOTask task, GridDescriptor gridDescriptor, RasterGridPrescription prescription)
         {
+
             if (task.PositionLostTreatmentZone != null)
             {
-                prescription.LossOfGpsRate = ImportTreatmentZoneAsNumericRepValue(task.PositionLostTreatmentZone);
+                prescription.LossOfGpsRate = ImportTreatmentZoneAsNumericRepValue(task.PositionLostTreatmentZone, null);
+                foreach (RxProductLookup rxProductLookup in prescription.RxProductLookups)
+                {
+                    rxProductLookup.LossOfGpsRate = ImportTreatmentZoneAsNumericRepValue(task.PositionLostTreatmentZone, rxProductLookup);
+                }
             }
             if (task.OutOfFieldTreatmentZone != null)
             {
-                prescription.OutOfFieldRate = ImportTreatmentZoneAsNumericRepValue(task.OutOfFieldTreatmentZone);
+                prescription.OutOfFieldRate = ImportTreatmentZoneAsNumericRepValue(task.OutOfFieldTreatmentZone, null);
+                foreach (RxProductLookup rxProductLookup in prescription.RxProductLookups)
+                {
+                    rxProductLookup.OutOfFieldRate = ImportTreatmentZoneAsNumericRepValue(task.PositionLostTreatmentZone, rxProductLookup);
+                }
             }
 
             if (gridDescriptor.TreatmentZoneCodes != null)
@@ -317,14 +326,22 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return rates;
         }
 
-        private NumericRepresentationValue ImportTreatmentZoneAsNumericRepValue(ISOTreatmentZone treatmentZone)
+        private NumericRepresentationValue ImportTreatmentZoneAsNumericRepValue(ISOTreatmentZone treatmentZone, RxProductLookup productLookup)
         {
             if (treatmentZone.ProcessDataVariables == null || treatmentZone.ProcessDataVariables.Count == 0)
             {
                 return null;
             }
 
-            return treatmentZone.ProcessDataVariables.First().AsNumericRepresentationValue(RepresentationMapper, ISOTaskData); //In this situation, there should be only one PDV
+            if (productLookup == null) //This clause supports the obsolete placement of default rates on the prescription
+            {
+                return treatmentZone.ProcessDataVariables.First().AsNumericRepresentationValue(RepresentationMapper, ISOTaskData); //In this situation, there should be only one PDV
+            }
+            else
+            {
+                ISOProcessDataVariable productPDV = treatmentZone.ProcessDataVariables.FirstOrDefault(pdv => productLookup.ProductId == TaskDataMapper.InstanceIDMap.GetADAPTID(pdv.ProductIdRef));
+                return productPDV?.AsNumericRepresentationValue(RepresentationMapper, ISOTaskData);
+            }
         }
         #endregion Import
     }
