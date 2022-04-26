@@ -45,7 +45,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         public ISOLineString ExportLineString(LineString adaptLineString, ISOLineStringType lsgType)
         {
-            ISOLineString lineString = new ISOLineString();
+            ISOLineString lineString = new ISOLineString(TaskDataMapper.Version);
             lineString.LineStringType = lsgType;
 
             ISOPointType pointType = ISOPointType.Other;
@@ -84,25 +84,33 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         public ISOLineString ExportLinearRing(LinearRing ring, ISOLineStringType lsgType)
         {
-            ISOLineString lineString = new ISOLineString();
+            ISOLineString lineString = new ISOLineString(TaskDataMapper.Version);
             lineString.LineStringType = lsgType;
 
             ISOPointType pointType = ISOPointType.Other;
-            switch (lsgType)
+            if (TaskDataMapper.Version > 3)
             {
-                case ISOLineStringType.PolygonExterior:
-                case ISOLineStringType.PolygonInterior:
-                    pointType = ISOPointType.PartfieldReference;
-                    break;
-                case ISOLineStringType.GuidancePattern:
-                    pointType = ISOPointType.GuidancePoint;
-                    break;
-                case ISOLineStringType.Flag:
-                    pointType = ISOPointType.Flag;
-                    break;
-                case ISOLineStringType.Obstacle:
-                    pointType = ISOPointType.Obstacle;
-                    break;
+                switch (lsgType)
+                {
+                    case ISOLineStringType.PolygonExterior:
+                    case ISOLineStringType.PolygonInterior:
+                        pointType = ISOPointType.PartfieldReference;
+                        break;
+                    case ISOLineStringType.GuidancePattern:
+                        pointType = ISOPointType.GuidancePoint;
+                        break;
+                    case ISOLineStringType.Flag:
+                        pointType = ISOPointType.Flag;
+                        break;
+                    case ISOLineStringType.Obstacle:
+                        pointType = ISOPointType.Obstacle;
+                        break;
+                }
+            }
+            else if (lineString.LineStringType == ISOLineStringType.Flag)
+            {
+                //Flag & Other (default) are the only 2 options for version 3
+                pointType = ISOPointType.Flag;
             }
 
             PointMapper pointMapper = new PointMapper(TaskDataMapper);

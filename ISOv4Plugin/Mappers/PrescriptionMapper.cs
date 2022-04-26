@@ -50,7 +50,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         #region Export
         public ISOTask ExportPrescription(WorkItem workItem, int gridType, Prescription prescription)
         {
-            ISOTask task = new ISOTask();
+            ISOTask task = new ISOTask(TaskDataMapper.Version);
 
             //Task ID
             string taskID = workItem.Id.FindIsoId() ?? GenerateId();
@@ -189,7 +189,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 }
 
                 PolygonMapper polygonMapper = new PolygonMapper(TaskDataMapper);
-                tzn.Polygons = polygonMapper.ExportPolygons(shapeLookup.Shape.Polygons, ISOEnumerations.ISOPolygonType.TreatmentZone).ToList();
+                tzn.Polygons = polygonMapper.ExportMultipolygon(shapeLookup.Shape, ISOEnumerations.ISOPolygonType.TreatmentZone).ToList();
                 task.TreatmentZones.Add(tzn);
             }         
         }
@@ -347,7 +347,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         private ISOProcessDataVariable ExportProcessDataVariable(RxRate rxRate, Prescription rx)
         {
-            ISOProcessDataVariable processDataVariable = new ISOProcessDataVariable();
+            ISOProcessDataVariable processDataVariable = new ISOProcessDataVariable(TaskDataMapper.Version);
             RxProductLookup lookup = rx.RxProductLookups.FirstOrDefault(l => l.Id.ReferenceId == rxRate.RxProductLookupId);
             if (lookup != null)
             {
@@ -375,7 +375,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 {
                     ProductIdRef = isoProductIdRef,
                     ProcessDataValue = value.AsIntViaMappedDDI(RepresentationMapper),
-                    ProcessDataDDI = DetermineVariableDDI(value.Representation, adaptUnit).AsHexDDI()
+                    ProcessDataDDI = DetermineVariableDDI(value.Representation, adaptUnit).AsHexDDI(),
+                    Version = TaskDataMapper.Version
                 };
 
                 return dataVariable;

@@ -36,8 +36,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteStartElement("GRD");
             xmlBuilder.WriteXmlAttribute<decimal>("A", GridMinimumNorthPosition);
             xmlBuilder.WriteXmlAttribute<decimal>("B", GridMinimumEastPosition);
-            xmlBuilder.WriteXmlAttribute("C", GridCellNorthSize.ToString("F14"));
-            xmlBuilder.WriteXmlAttribute("D", GridCellEastSize.ToString("F14"));
+            xmlBuilder.WriteXmlAttribute("C", GridCellNorthSize.ToString("F8"));
+            xmlBuilder.WriteXmlAttribute("D", GridCellEastSize.ToString("F8"));
             xmlBuilder.WriteXmlAttribute<uint>("E", GridMaximumColumn);
             xmlBuilder.WriteXmlAttribute<uint>("F", GridMaximumRow);
             xmlBuilder.WriteXmlAttribute("G", Filename);

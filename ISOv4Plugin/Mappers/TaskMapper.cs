@@ -147,7 +147,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             if (task == null)
             {
-                task = new ISOTask();
+                task = new ISOTask(TaskDataMapper.Version);
 
                 //Task ID
                 string taskID = loggedData.Id.FindIsoId() ?? GenerateId();
