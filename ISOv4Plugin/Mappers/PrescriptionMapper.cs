@@ -24,6 +24,7 @@ using AgGateway.ADAPT.Representation.UnitSystem.ExtensionMethods;
 using AgGateway.ADAPT.ApplicationDataModel.Logistics;
 using AgGateway.ADAPT.ApplicationDataModel.Guidance;
 using AgGateway.ADAPT.ApplicationDataModel.Equipment;
+using AgGateway.ADAPT.ISOv4Plugin.Representation;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
@@ -271,23 +272,47 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
                 string isoProductId = TaskDataMapper.InstanceIDMap.GetISOID(productId) ?? string.Empty;
                 RxProductLookup productLookup = prescription.RxProductLookups.FirstOrDefault(p => p.ProductId == productId);
+
                 ISOProcessDataVariable lossPDV = ExportProcessDataVariable(productLookup?.LossOfGpsRate ?? prescription.LossOfGpsRate, isoProductId, isoUnit);
                 if (lossPDV != null)
                 {
                     lossOfSignalTreatmentZone.ProcessDataVariables.Add(lossPDV);
                 }
+
                 ISOProcessDataVariable oofPDV = ExportProcessDataVariable(productLookup?.OutOfFieldRate ?? prescription.OutOfFieldRate, isoProductId, isoUnit);
                 if (oofPDV != null)
                 {
                     outOfFieldTreatmentZone.ProcessDataVariables.Add(oofPDV);
                 }
-                ISOProcessDataVariable defaultPDV = ExportProcessDataVariable(productLookup?.LossOfGpsRate ?? prescription.LossOfGpsRate, isoProductId, isoUnit);  //ADAPT doesn't have a separate Default Rate.  Using Loss of GPS Rate as a logical equivalent for a default rate.
-                if (defaultPDV == null)
+
+                NumericRepresentation defaultRepresentation = productLookup?.LossOfGpsRate.Representation; //We can reuse the loss of gps representation here if it exists
+                if (defaultRepresentation == null)
                 {
-                    //Add 0 as the default rate so that we have at least one PDV to reference
-                    var defaultRate = new NumericRepresentationValue(null, new NumericValue(prescription.RxProductLookups.First().UnitOfMeasure, 0));
-                    defaultPDV = ExportProcessDataVariable(defaultRate, isoProductId, isoUnit);
+                    //Determine the representation based on the unit of the product to be applied
+                    var unitDimension = isoUnit.ToAdaptUnit().Dimension;
+                    if (UnitFactory.DimensionToDdi.ContainsKey(unitDimension))
+                    {
+                        int ddi = UnitFactory.DimensionToDdi[unitDimension];
+                        RepresentationMapper representationMapper = new RepresentationMapper();
+                        var representation = representationMapper.Map(ddi) as NumericRepresentation;
+                        if (representation == null)
+                        {
+                            representation = new NumericRepresentation
+                            {
+                                Code = ddi.ToString(),
+                                CodeSource = RepresentationCodeSourceEnum.ISO11783_DDI
+                            };
+                        }
+                    }
+                    else
+                    {
+                        TaskDataMapper.AddError($"Unable to identify a default representation: {prescription.Description}", prescription.Id.ReferenceId.ToString());
+                        return null;
+                    }
                 }
+                //Add 0 as the default rate in the PDV; actual values are in the binary
+                var defaultRate = new NumericRepresentationValue(defaultRepresentation, new NumericValue(prescription.RxProductLookups.First(p => p.ProductId == productId).UnitOfMeasure, 0d));
+                ISOProcessDataVariable defaultPDV = ExportProcessDataVariable(defaultRate, isoProductId, isoUnit);
                 defaultTreatmentZone.ProcessDataVariables.Add(defaultPDV);
             }
 
@@ -331,7 +356,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 ISOUnit unit = UnitFactory.Instance.GetUnitByDDI(processDataVariable.ProcessDataDDI.AsInt32DDI());
                 if (unit != null)
                 {
-                    processDataVariable.ProcessDataValue = (int)unit.ConvertToIsoUnit(rxRate.Rate);
+                    processDataVariable.ProcessDataValue = (int)unit.ConvertToIsoUnit(rxRate.Rate, lookup.UnitOfMeasure.Code);
                 }
                 else
                 {

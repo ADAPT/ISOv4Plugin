@@ -112,6 +112,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         {
             var gridFileName = GenerateId(5);
             Dictionary<string, ISOUnit> unitsByDDI = new Dictionary<string, ISOUnit>();
+            Dictionary<int, Tuple<ISOProcessDataVariable, string>> treatmentZoneDataByLookupId = new Dictionary<int, Tuple<ISOProcessDataVariable, string>>();
             using (var binaryWriter = CreateWriter(Path.ChangeExtension(gridFileName, ".bin")))
             {
                 byte[] previousBytes = BitConverter.GetBytes(0);
@@ -124,12 +125,19 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     }
                     else
                     {
-                        for (int index = 0; index < rxCellLookup.RxRates.Count; index++)
+                        foreach (var rxRate in rxCellLookup.RxRates)
                         {
-                            ISOProcessDataVariable pdv = treatmentZone.ProcessDataVariables[index];
-                            var rate = rxCellLookup.RxRates[index].Rate;
- 
-                            ISOUnit unit = null;
+                            if (!treatmentZoneDataByLookupId.ContainsKey(rxRate.RxProductLookupId))
+                            {
+                                var lookup = prescription.RxProductLookups.First(x => x.Id.ReferenceId == rxRate.RxProductLookupId);
+                                string isoPDTDesignator = TaskDataMapper.InstanceIDMap.GetISOID(lookup.ProductId.Value);
+                                ISOProcessDataVariable dataVariable = treatmentZone.ProcessDataVariables.First(i => i.ProductIdRef == isoPDTDesignator);
+                                treatmentZoneDataByLookupId.Add(rxRate.RxProductLookupId, new Tuple<ISOProcessDataVariable, string>(dataVariable, lookup.UnitOfMeasure.Code));
+                            }
+                            ISOProcessDataVariable pdv = treatmentZoneDataByLookupId[rxRate.RxProductLookupId].Item1;
+                            string srcUnitCode = treatmentZoneDataByLookupId[rxRate.RxProductLookupId].Item2;
+
+                            ISOUnit unit;
                             if (!unitsByDDI.ContainsKey(pdv.ProcessDataDDI))
                             {
                                 unit = UnitFactory.Instance.GetUnitByDDI(pdv.ProcessDataDDI.AsInt32DDI());
@@ -137,7 +145,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                             }
                             unit = unitsByDDI[pdv.ProcessDataDDI];
 
-                            previousBytes = BitConverter.GetBytes((int)Math.Round(unit.ConvertToIsoUnit(rate), 0));
+                            previousBytes = BitConverter.GetBytes((int)Math.Round(unit.ConvertToIsoUnit(rxRate.Rate, srcUnitCode), 0));
                             binaryWriter.Write(previousBytes, 0, previousBytes.Length);
                         }
                     }

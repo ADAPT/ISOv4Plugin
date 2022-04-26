@@ -173,13 +173,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
             return newValue;
         }
 
-        public static double ConvertToIsoUnit(this ISOUnit unit, double value)
+        public static double ConvertToIsoUnit(this ISOUnit unit, double srcValue, string srcUnitCode)
         {
             if (unit == null)
-                return value;
+                return srcValue;
 
-            double newValue = (value / unit.Scale) - unit.Offset;
-            return newValue;
+            double convertedValue = srcValue.ConvertValue(srcUnitCode, unit.ToAdaptUnit().Code);
+            double scaledValue = (convertedValue / unit.Scale) - unit.Offset;
+            return scaledValue;
         }
 
         /// <summary>
@@ -191,10 +192,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
         public static int AsIntViaMappedDDI(this NumericRepresentationValue value, RepresentationMapper mapper)
         {
             int? ddi = mapper.Map(value.Representation);
-            if (ddi.HasValue)
+            if (ddi.HasValue &&
+                value?.Value != null &&
+                value?.Value?.UnitOfMeasure != null)
             {
                 ISOUnit unit = UnitFactory.Instance.GetUnitByDDI(ddi.Value);
-                return (int) unit.ConvertToIsoUnit(value.Value.Value);
+                return (int) unit.ConvertToIsoUnit(value.Value.Value, value.Value.UnitOfMeasure.Code);
             }
             else if (value.Representation != null && value.Representation.CodeSource == RepresentationCodeSourceEnum.ISO11783_DDI)
             {
@@ -222,17 +225,34 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
             }
             else
             {
-                RepresentationUnitSystem.UnitOfMeasure sourceUOM = RepresentationUnitSystem.InternalUnitSystemManager.Instance.UnitOfMeasures[value.Value.UnitOfMeasure.Code];
-                RepresentationUnitSystem.UnitOfMeasure targetUOM = RepresentationUnitSystem.InternalUnitSystemManager.Instance.UnitOfMeasures[targetUnitCode];
-                if (sourceUOM == null || targetUOM == null)
+                return value.Value.Value.ConvertValue(value.Value.UnitOfMeasure.Code, targetUnitCode);
+            }
+        }
+
+        public static double ConvertValue(this double n, string srcUnitCode, string dstUnitCode)
+        {
+            RepresentationUnitSystem.UnitOfMeasure sourceUOM = RepresentationUnitSystem.InternalUnitSystemManager.Instance.UnitOfMeasures[srcUnitCode];
+            RepresentationUnitSystem.UnitOfMeasure targetUOM = RepresentationUnitSystem.InternalUnitSystemManager.Instance.UnitOfMeasures[dstUnitCode];
+            if (sourceUOM == null || targetUOM == null)
+            {
+                return n; //Return the unconverted value
+            }
+            else
+            {
+                //The plugin uses "count" instead of "seeds".  Alter the codes so that the conversion will succeed if there are mismatches
+                if (srcUnitCode.StartsWith("seeds"))
                 {
-                    return value.Value.Value; //Return the unconverted value
+                    srcUnitCode = srcUnitCode.Replace("seeds", "count");
+                    sourceUOM = RepresentationUnitSystem.InternalUnitSystemManager.Instance.UnitOfMeasures[srcUnitCode];
                 }
-                else
+                if (dstUnitCode.StartsWith("seeds"))
                 {
-                    RepresentationUnitSystem.UnitOfMeasureConverter converter = new RepresentationUnitSystem.UnitOfMeasureConverter();
-                    return converter.Convert(sourceUOM, targetUOM, value.Value.Value);
+                    dstUnitCode = dstUnitCode.Replace("seeds", "count");
+                    targetUOM = RepresentationUnitSystem.InternalUnitSystemManager.Instance.UnitOfMeasures[dstUnitCode];
                 }
+
+                RepresentationUnitSystem.UnitOfMeasureConverter converter = new RepresentationUnitSystem.UnitOfMeasureConverter();
+                return converter.Convert(sourceUOM, targetUOM, n);
             }
         }
 

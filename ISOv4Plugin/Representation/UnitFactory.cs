@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
@@ -24,6 +24,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin
                 { UnitOfMeasureDimensionEnum.VolumePerArea, 1 },
                 { UnitOfMeasureDimensionEnum.MassPerArea, 6 },
                 { UnitOfMeasureDimensionEnum.CountPerArea, 11 },
+                { UnitOfMeasureDimensionEnum.SeedsPerArea, 11 },
                 { UnitOfMeasureDimensionEnum.VolumePerVolume, 21 },
                 { UnitOfMeasureDimensionEnum.MassPerMass, 26 },
                 { UnitOfMeasureDimensionEnum.VolumePerMass, 31 },
@@ -32,6 +33,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin
                 { UnitOfMeasureDimensionEnum.PerTime, 46 },
                 { UnitOfMeasureDimensionEnum.Mass, 74 },
                 { UnitOfMeasureDimensionEnum.Count, 77 },
+                { UnitOfMeasureDimensionEnum.Seeds, 77 },
                 { UnitOfMeasureDimensionEnum.PerVolume, 89 },
                 { UnitOfMeasureDimensionEnum.Volume, 89 }
             };
