@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
@@ -29,6 +29,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
     public class DataLogTriggerMapper : BaseMapper, IDataLogTriggerMapper
     {
+
+        public const int DefaultSet = 57343; //DFFF
+
         public DataLogTriggerMapper(TaskDataMapper taskDataMapper) : base(taskDataMapper, "DLT")
         {
         }
@@ -36,7 +39,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         #region Export
         public IEnumerable<ISODataLogTrigger> ExportDataLogTriggers(IEnumerable<DataLogTrigger> adaptDataLogTriggers)
         {
-            List <ISODataLogTrigger> dataLogTriggers = new List<ISODataLogTrigger>();
+            List<ISODataLogTrigger> dataLogTriggers = new List<ISODataLogTrigger>();
             foreach (DataLogTrigger trigger in adaptDataLogTriggers)
             {
                 ISODataLogTrigger isoTrigger = ExportDataLogTrigger(trigger);
@@ -49,11 +52,21 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         {
             ISODataLogTrigger isoDataLogTrigger = new ISODataLogTrigger();
 
-            int? ddi = RepresentationMapper.Map(adaptDataLogTrigger.Representation);
+            int? ddi = null;
+            if (adaptDataLogTrigger.RequestDefaultProcessData)
+            {
+                ddi = DefaultSet; //DFFF
+            }
+            else if (adaptDataLogTrigger.Representation != null)
+            {
+                ddi = RepresentationMapper.Map(adaptDataLogTrigger.Representation);
+            }
+             
             if (ddi.HasValue) //Need DDI for a valid DLT
             {
                 isoDataLogTrigger.DataLogDDI = ddi.Value.AsHexDDI();
-                isoDataLogTrigger.DataLogMethod = ExportDataLogMethod(adaptDataLogTrigger.DataLogMethod);
+                var loggingMethods = adaptDataLogTrigger.DataLogMethods.Any() ? adaptDataLogTrigger.DataLogMethods : new List<LoggingMethodEnum> { adaptDataLogTrigger.DataLogMethod };
+                isoDataLogTrigger.DataLogMethod = ExportDataLogMethods(loggingMethods);
                 isoDataLogTrigger.DataLogDistanceInterval = adaptDataLogTrigger.DataLogDistanceInterval?.AsIntViaMappedDDI(RepresentationMapper);
                 isoDataLogTrigger.DataLogTimeInterval = adaptDataLogTrigger.DataLogTimeInterval?.AsIntViaMappedDDI(RepresentationMapper);
                 isoDataLogTrigger.DataLogThresholdMinimum = adaptDataLogTrigger.DataLogThresholdMinimum?.AsIntViaMappedDDI(RepresentationMapper);
@@ -74,22 +87,31 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return isoDataLogTrigger;
         }
 
-        private byte ExportDataLogMethod(LoggingMethodEnum loggingMethod)
+        private byte ExportDataLogMethods(List<LoggingMethodEnum> methods)
         {
-            switch (loggingMethod)
+            byte output = 0;
+            foreach (LoggingMethodEnum loggingMethod in methods)
             {
-                case LoggingMethodEnum.TimeInterval:
-                    return (byte)1;
-                case LoggingMethodEnum.DistanceInterval:
-                    return (byte)2;
-                case LoggingMethodEnum.ThresholdLimits:
-                    return (byte)4;
-                case LoggingMethodEnum.OnChange:
-                    return (byte)8;
-                case LoggingMethodEnum.Total:
-                default:
-                    return (byte)16; 
+                switch (loggingMethod)
+                {
+                    case LoggingMethodEnum.TimeInterval:
+                        output += 1;
+                        break;
+                    case LoggingMethodEnum.DistanceInterval:
+                        output += 2;
+                        break;
+                    case LoggingMethodEnum.ThresholdLimits:
+                        output += 4;
+                        break;
+                    case LoggingMethodEnum.OnChange:
+                        output += 8;
+                        break;
+                    case LoggingMethodEnum.Total:
+                        output += 16;
+                        break;
+                }
             }
+            return output;
         }
 
         #endregion Export 
@@ -115,12 +137,28 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         public DataLogTrigger ImportDataLogTrigger(ISODataLogTrigger isoDataLogTrigger)
         {
             int ddi = isoDataLogTrigger.DataLogDDI.AsInt32DDI();
-            ApplicationDataModel.Representations.Representation representation = RepresentationMapper.Map(ddi);
-            if (representation != null)
+            ApplicationDataModel.Representations.Representation representation = null;
+            if (ddi != DefaultSet)
+            {
+                representation = RepresentationMapper.Map(ddi);
+            }
+            if (ddi == DefaultSet || representation != null) //Check that we can map to something meaningful before creating the DLT
             {
                 DataLogTrigger adaptTrigger = new DataLogTrigger();
-                adaptTrigger.Representation = representation;
-                adaptTrigger.DataLogMethod = ImportDataLogMethod(isoDataLogTrigger.DataLogMethod);
+                
+                if (ddi == DefaultSet)
+                {
+                    adaptTrigger.RequestDefaultProcessData = true;
+                }
+                else
+                {
+                    adaptTrigger.Representation = representation;
+                }
+                adaptTrigger.DataLogMethods = ImportDataLogMethods(isoDataLogTrigger.DataLogMethod);
+
+                //Obsolete behavior
+                adaptTrigger.DataLogMethod = adaptTrigger.DataLogMethods.Any() ? adaptTrigger.DataLogMethods.First() : LoggingMethodEnum.Total;  
+
                 if (isoDataLogTrigger.DataLogDistanceInterval.HasValue)
                 {
                     adaptTrigger.DataLogDistanceInterval = isoDataLogTrigger.DataLogDistanceInterval.Value.AsNumericRepresentationValue(ddi, RepresentationMapper);
@@ -151,22 +189,30 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return null;
         }
 
-        private LoggingMethodEnum ImportDataLogMethod(byte dataLogMethod)
+        private List<LoggingMethodEnum> ImportDataLogMethods(byte dataLogMethod)
         {
-            switch (dataLogMethod)
+            List<LoggingMethodEnum> dataLogMethods = new List<LoggingMethodEnum>();
+            if ((dataLogMethod & 1) != 0)
             {
-                case 1:
-                    return LoggingMethodEnum.TimeInterval;
-                case 2:
-                    return LoggingMethodEnum.DistanceInterval;
-                case 4:
-                    return LoggingMethodEnum.ThresholdLimits;
-                case 8:
-                    return LoggingMethodEnum.OnChange;
-                case 16:
-                default:
-                    return LoggingMethodEnum.Total;
+                dataLogMethods.Add(LoggingMethodEnum.TimeInterval);
             }
+            if ((dataLogMethod & 2) != 0)
+            {
+                dataLogMethods.Add(LoggingMethodEnum.DistanceInterval);
+            }
+            if ((dataLogMethod & 4) != 0)
+            {
+                dataLogMethods.Add(LoggingMethodEnum.ThresholdLimits);
+            }
+            if ((dataLogMethod & 8) != 0)
+            {
+                dataLogMethods.Add(LoggingMethodEnum.OnChange);
+            }
+            if ((dataLogMethod & 16) != 0)
+            {
+                dataLogMethods.Add(LoggingMethodEnum.Total);
+            }
+            return dataLogMethods;
         }
         #endregion Import
     }

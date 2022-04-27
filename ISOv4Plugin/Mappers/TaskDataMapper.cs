@@ -35,21 +35,34 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         public const string DataTransferOriginProperty = "DataTransferOrigin";
         public const string SpatialRecordDeferredExecution = "SpatialRecordDeferredExecution";
         public const string MergeSingleBinsIntoBoom = "MergeSingleBinsIntoBoom";
+        public const string ExportVersion = "ExportVersion"; //Version "3" or "4"
 
         public TaskDataMapper(string dataPath, Properties properties)
         {
             BaseFolder = dataPath;
             RepresentationMapper = new RepresentationMapper();
             DDIs = DdiLoader.Ddis;
-            Properties = properties;
+            Properties = properties ?? new Properties();
             DeviceOperationTypes = new DeviceOperationTypes();
             InstanceIDMap = new InstanceIDMap();
             Errors = new List<IError>();
+
+            //Export version
+            string exportVersion = Properties.GetProperty(ExportVersion);
+            if (Int32.TryParse(exportVersion, out int version))
+            {
+                Version = version;  //3 or 4
+            }
+            if (version != 3 && version != 4)
+            {
+                Version = 4; //Default ISO Version for the export
+            }
         }
 
         public string BaseFolder { get; private set; }
         public Properties Properties { get; private set; }
         public InstanceIDMap InstanceIDMap { get; private set; }
+        public int Version { get; set; }
         public List<IError> Errors { get; private set; }
 
         public ApplicationDataModel.ADM.ApplicationDataModel AdaptDataModel { get; private set; }
@@ -138,9 +151,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             // TaskControllerManufacturer
             string taskControllerManufacturer = Properties.GetProperty(TaskControllerManufacturerProperty);
             if (taskControllerManufacturer != null && taskControllerManufacturer.Length > 32) taskControllerManufacturer = taskControllerManufacturer.Substring(0, 32);
+
             // TaskControllerVersion
             string taskControllerVersion = Properties.GetProperty(TaskControllerVersionProperty);
-            if (taskControllerManufacturer != null && taskControllerManufacturer.Length > 32) taskControllerVersion = taskControllerVersion.Substring(0, 32);
+            if (taskControllerVersion != null && taskControllerVersion.Length > 32) taskControllerVersion = taskControllerVersion.Substring(0, 32);
+
             // DataTransferOrigin
             ISOEnumerations.ISOTaskDataTransferOrigin dataTransferOrigin;
             string s = Properties.GetProperty(DataTransferOriginProperty);
@@ -150,11 +165,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 dataTransferOrigin = ISOEnumerations.ISOTaskDataTransferOrigin.FMIS;    // Default
             }
 
-
             //TaskData
-            ISOTaskData = new ISO11783_TaskData();
-            ISOTaskData.VersionMajor = 4;
-            ISOTaskData.VersionMinor = 2;
+            ISOTaskData = new ISO11783_TaskData(Version);
+            ISOTaskData.VersionMajor = Version;
+            ISOTaskData.VersionMinor = Version == 4 ? 2 : 0;
             ISOTaskData.ManagementSoftwareManufacturer = "AgGateway";
             ISOTaskData.ManagementSoftwareVersion = "1.0";
             ISOTaskData.DataTransferOrigin = dataTransferOrigin;
@@ -164,7 +178,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             //LinkList
             ISOTaskData.LinkList = new ISO11783_LinkList();
-            ISOTaskData.LinkList.VersionMajor = 4;
+            ISOTaskData.LinkList.VersionMajor = 4;  //The linklist will only be written if version 4
             ISOTaskData.LinkList.VersionMinor = 2;
             ISOTaskData.LinkList.ManagementSoftwareManufacturer = "AgGateway";
             ISOTaskData.LinkList.ManagementSoftwareVersion = "1.0";
@@ -173,6 +187,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             ISOTaskData.LinkList.TaskControllerVersion = taskControllerVersion;
             ISOTaskData.LinkList.FileVersion = "";
             UniqueIDMapper = new UniqueIdMapper(ISOTaskData.LinkList);
+
 
             //Crops
             if (adm.Catalog.Crops != null)
@@ -299,7 +314,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             ISOTaskData.ChildElements.AddRange(CommentMapper.ExportedComments);
 
             //Add LinkList Attached File Reference
-            if (ISOTaskData.LinkList.LinkGroups.Any())
+            if (Version > 3 && ISOTaskData.LinkList.LinkGroups.Any())
             {
                 ISOAttachedFile afe = new ISOAttachedFile();
                 afe.FilenamewithExtension = "LINKLIST.XML";
@@ -314,6 +329,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         public ApplicationDataModel.ADM.ApplicationDataModel Import(ISO11783_TaskData taskData)
         {
+            if (Properties == null)
+            {
+                Properties = new Properties();
+            }
+
             ISOTaskData = taskData;
             UniqueIDMapper = new UniqueIdMapper(ISOTaskData.LinkList);
 

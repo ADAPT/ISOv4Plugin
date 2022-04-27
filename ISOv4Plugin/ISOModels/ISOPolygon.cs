@@ -15,6 +15,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
     public class ISOPolygon : ISOElement
     {
         public ISOPolygon()
+            :this(4)
+        {
+        }
+
+        public ISOPolygon(int version)
+            :base(version)
         {
             LineStrings = new List<ISOLineString>();
         }
@@ -37,7 +43,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteXmlAttribute("B", PolygonDesignator);
             xmlBuilder.WriteXmlAttribute<uint>("C", PolygonArea);
             xmlBuilder.WriteXmlAttribute<byte>("D", PolygonColour);
-            xmlBuilder.WriteXmlAttribute("E", PolygonId);
+            if (Version > 3)
+            {
+                xmlBuilder.WriteXmlAttribute("E", PolygonId);
+            }
 
             foreach (var item in LineStrings)
             {
