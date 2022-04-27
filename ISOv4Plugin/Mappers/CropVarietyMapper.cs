@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
@@ -46,7 +46,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         public ISOCropVariety ExportCropVariety(CropVarietyProduct adaptCropVariety)
         {
-            ISOCropVariety isoVariety = new ISOCropVariety();
+            ISOCropVariety isoVariety = new ISOCropVariety(TaskDataMapper.Version);
 
             //ID
             string id = adaptCropVariety.Id.FindIsoId() ?? GenerateId();

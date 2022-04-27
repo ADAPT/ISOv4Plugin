@@ -13,6 +13,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
     public class ISOCropType : ISOElement
     {
         public ISOCropType()
+            :this(4)
+        {
+        }
+
+        public ISOCropType(int version)
+            :base(version)
         {
             CropVarieties = new List<ISOCropVariety>();
         }
@@ -30,7 +36,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteStartElement("CTP");
             xmlBuilder.WriteXmlAttribute("A", CropTypeId);
             xmlBuilder.WriteXmlAttribute("B", CropTypeDesignator);
-            xmlBuilder.WriteXmlAttribute("C", ProductGroupIdRef);
+            if (Version > 3)
+            {
+                xmlBuilder.WriteXmlAttribute("C", ProductGroupIdRef);
+            }
             base.WriteXML(xmlBuilder);
 
             foreach (var item in CropVarieties)

@@ -45,7 +45,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin
             writer.WriteTaskData(outputPath, taskData);
 
             //Serialize the Link List
-            writer.WriteLinkList(outputPath, taskData.LinkList);
+            if (taskData.Version > 3)
+            {
+                writer.WriteLinkList(outputPath, taskData.LinkList);
+            }
         }
 
         public IList<ApplicationDataModel.ADM.ApplicationDataModel> Import(string dataPath, Properties properties = null)

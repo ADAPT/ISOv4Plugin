@@ -16,6 +16,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
     public class ISOTask : ISOElement
     {
         public ISOTask()
+            :this(4)
+        {
+        }
+        public ISOTask(int version)
+            :base(version)
         {
             TreatmentZones = new List<ISOTreatmentZone>();
             Times = new List<ISOTime>();
@@ -112,7 +117,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             foreach (ISODataLogTrigger item in DataLogTriggers) { item.WriteXML(xmlBuilder); }
             foreach (ISOCommentAllocation item in CommentAllocations) { item.WriteXML(xmlBuilder); }
             foreach (ISOTimeLog item in TimeLogs) { item.WriteXML(xmlBuilder); }
-            foreach (ISOGuidanceAllocation item in GuidanceAllocations) { item.WriteXML(xmlBuilder); }
+            if (Version > 3)
+            {
+                foreach (ISOGuidanceAllocation item in GuidanceAllocations) { item.WriteXML(xmlBuilder); }
+            }
 
             xmlBuilder.WriteEndElement();
 

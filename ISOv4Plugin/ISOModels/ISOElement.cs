@@ -13,6 +13,21 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
     public class ISOElement
     {
+        public ISOElement()
+        {
+            Version = 4;  //By default, we are tracking the version 4 data constructs
+        }
+
+        /// <summary>
+        /// Elements that have varying behavior between versions will call this constructor
+        /// </summary>
+        /// <param name="version"></param>
+        public ISOElement(int version)
+        {
+            Version = version;
+        }
+
+        public int Version { get; set; } 
         public virtual XmlWriter WriteXML(XmlWriter xmlBuilder)
         {
             if (_xmlComments != null) _xmlComments.ForEach(s => xmlBuilder.WriteComment(s));

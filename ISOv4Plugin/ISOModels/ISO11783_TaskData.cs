@@ -17,6 +17,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
     public class ISO11783_TaskData : ISOElement
     {
         public ISO11783_TaskData()
+            :this(4)
+        {
+        }
+        public ISO11783_TaskData(int version)
+            : base(version)
         {
             ChildElements = new List<ISOElement>();
         }
@@ -46,7 +51,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteAttributeString("TaskControllerManufacturer", TaskControllerManufacturer ?? string.Empty);
             xmlBuilder.WriteAttributeString("TaskControllerVersion", TaskControllerVersion ?? string.Empty);
             xmlBuilder.WriteXmlAttribute("DataTransferOrigin", ((int)DataTransferOrigin).ToString());
-            if (DataTransferLanguage != null)
+            if (Version > 3 && DataTransferLanguage != null)
             {
                 xmlBuilder.WriteAttributeString("DataTransferLanguage", DataTransferLanguage);
             }

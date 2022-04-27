@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
@@ -74,7 +74,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             if (adaptGuidanceGroup.BoundingPolygon != null)
             { 
                 PolygonMapper polygonMapper = new PolygonMapper(TaskDataMapper);
-                isoGroup.BoundaryPolygons = polygonMapper.ExportPolygons(adaptGuidanceGroup.BoundingPolygon.Polygons, ISOPolygonType.Other).ToList();
+                isoGroup.BoundaryPolygons = polygonMapper.ExportMultipolygon(adaptGuidanceGroup.BoundingPolygon, ISOPolygonType.Other).ToList();
             }
 
             return isoGroup;

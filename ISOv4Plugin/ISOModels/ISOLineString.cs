@@ -15,6 +15,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
     public class ISOLineString : ISOElement
     {
         public ISOLineString()
+            :this(4)
+        {
+        }
+        public ISOLineString(int version)
+            :base(version)
         {
             Points = new List<ISOPoint>();
         }
@@ -39,7 +44,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteXmlAttribute("C", LineStringWidth);
             xmlBuilder.WriteXmlAttribute("D", LineStringLength);
             xmlBuilder.WriteXmlAttribute<byte>("E", LineStringColour);
-            xmlBuilder.WriteXmlAttribute("F", LineStringId);
+            if (Version > 3)
+            {
+                xmlBuilder.WriteXmlAttribute("F", LineStringId);
+            }
 
             foreach (var item in Points)
             {
