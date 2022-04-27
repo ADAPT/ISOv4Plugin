@@ -13,6 +13,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
     public class ISOProductGroup : ISOElement
     {
+        public ISOProductGroup()
+            :this(4)
+        {
+        }
+        public ISOProductGroup(int version)
+            :base(version)
+        {
+        }
+
         //Attributes
         public string ProductGroupId { get; set; }
         public string ProductGroupDesignator { get; set; }
@@ -24,7 +33,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteStartElement("PGP");
             xmlBuilder.WriteXmlAttribute("A", ProductGroupId);
             xmlBuilder.WriteXmlAttribute("B", ProductGroupDesignator);
-            xmlBuilder.WriteXmlAttribute("C", (int?)ProductGroupType);
+            if (Version > 3)
+            {
+                xmlBuilder.WriteXmlAttribute("C", (int?)ProductGroupType);
+            }
             xmlBuilder.WriteEndElement();
 
             return xmlBuilder;

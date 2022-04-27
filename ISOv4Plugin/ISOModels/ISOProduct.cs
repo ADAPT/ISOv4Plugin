@@ -15,6 +15,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
     public class ISOProduct : ISOElement
     {
         public ISOProduct()
+            :this(4)
+        {
+        }
+
+        public ISOProduct(int version)
+            :base(version)
         {
             ProductRelations = new List<ISOProductRelation>();
         }
@@ -43,12 +49,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteXmlAttribute("C", ProductGroupRef);
             xmlBuilder.WriteXmlAttribute("D", ValuePresentationIdRef);
             xmlBuilder.WriteXmlAttribute("E", QuantityDDI);
-            xmlBuilder.WriteXmlAttribute("F", ((int)ProductType).ToString());
-            xmlBuilder.WriteXmlAttribute<int>("G", MixtureRecipeQuantity);
-            xmlBuilder.WriteXmlAttribute<int>("H", DensityMassPerVolume);
-            xmlBuilder.WriteXmlAttribute<int>("I", DensityMassPerCount);
-            xmlBuilder.WriteXmlAttribute<int>("J", DensityVolumePerCount);
-            foreach (ISOProductRelation item in ProductRelations) { item.WriteXML(xmlBuilder); }
+            if (Version > 3)
+            {
+                xmlBuilder.WriteXmlAttribute("F", ((int)ProductType).ToString());
+                xmlBuilder.WriteXmlAttribute<int>("G", MixtureRecipeQuantity);
+                xmlBuilder.WriteXmlAttribute<int>("H", DensityMassPerVolume);
+                xmlBuilder.WriteXmlAttribute<int>("I", DensityMassPerCount);
+                xmlBuilder.WriteXmlAttribute<int>("J", DensityVolumePerCount);
+                foreach (ISOProductRelation item in ProductRelations) { item.WriteXML(xmlBuilder); }
+            }
 
             xmlBuilder.WriteEndElement();
 

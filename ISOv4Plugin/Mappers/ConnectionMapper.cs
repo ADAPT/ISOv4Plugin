@@ -94,7 +94,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 }
             }
 
-            //DataLogTriggers
+            //DataLogTriggers - obsolete
             if (adaptConnection.DataLogTriggers.Any())
             {
                 DataLogTriggerMapper dltMapper = new DataLogTriggerMapper(TaskDataMapper);
@@ -169,13 +169,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
             equipConfig.Description = descriptionBuilder.ToString();
-
-            //DataLogTriggers
-            if (task.DataLogTriggers.Any())
-            {
-                DataLogTriggerMapper dltMapper = new DataLogTriggerMapper(TaskDataMapper);
-                dltMapper.ImportDataLogTriggers(task.DataLogTriggers);
-            }
 
             return equipConfig;
         }

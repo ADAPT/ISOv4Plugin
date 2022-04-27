@@ -14,7 +14,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
     public interface IPolygonMapper
     {
-        IEnumerable<ISOPolygon> ExportPolygons(IEnumerable<Polygon> adaptPolygons, ISOPolygonType PolygonType);
+        IEnumerable<ISOPolygon> ExportMultipolygon(MultiPolygon adaptMultiPolygon, ISOPolygonType PolygonType);
         ISOPolygon ExportPolygon(Polygon adaptPolygon, ISOPolygonType PolygonType);
         IEnumerable<Polygon> ImportBoundaryPolygons(IEnumerable<ISOPolygon> isoPolygons);
         IEnumerable<Polygon> ImportBoundaryPolygon(ISOPolygon isoPolygon, bool isVersion3Multipolygon);
@@ -29,39 +29,85 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         }
 
         #region Export
-        public IEnumerable<ISOPolygon> ExportPolygons(IEnumerable<Polygon> adaptPolygons, ISOPolygonType polygonType)
+        public IEnumerable<ISOPolygon> ExportMultipolygon(MultiPolygon adaptMultiPolygon, ISOPolygonType polygonType)
         {
             List<ISOPolygon> polygons = new List<ISOPolygon>();
-            foreach (Polygon polygon in adaptPolygons)
+            if (TaskDataMapper.Version > 3)
             {
-                ISOPolygon ISOPolygon = ExportPolygon(polygon, polygonType);
-                polygons.Add(ISOPolygon);
+                //Version 4 supports multiple polygons to define a spatial entity
+                foreach (Polygon polygon in adaptMultiPolygon.Polygons)
+                {
+                    ISOPolygon ISOPolygon = ExportPolygon(polygon, polygonType);
+                    polygons.Add(ISOPolygon);
+                }
+            }
+            else
+            {
+                //Version 3
+                if (adaptMultiPolygon != null && adaptMultiPolygon.Polygons.Any())
+                {
+                    ISOPolygon polygon = ExportVersion3Polygon(adaptMultiPolygon.Polygons, polygonType);
+                    polygons.Add(polygon);
+                }
             }
             return polygons;
         }
 
+        //Version 3 defines a multipolygon by a single PLN with multiple exterior linestrings and interior rings in order below their exterior
+        private ISOPolygon ExportVersion3Polygon(List<Polygon> adaptPolygons, ISOPolygonType polygonType)
+        {
+            ISOPolygon isoPolygon = new ISOPolygon(TaskDataMapper.Version);
+            if ((int)polygonType < 9)
+            {
+                isoPolygon.PolygonType = polygonType;
+            }
+            else
+            {
+                isoPolygon.PolygonType = ISOPolygonType.Other; //Version 3 stops at 8/Other
+            }
+
+            isoPolygon.PolygonDesignator = adaptPolygons.First().Id.ToString();
+            LineStringMapper lsgMapper = new LineStringMapper(TaskDataMapper);
+            isoPolygon.LineStrings = new List<ISOLineString>();
+            foreach (Polygon adaptPolygon in adaptPolygons)
+            {
+                if (adaptPolygon.ExteriorRing != null)
+                {
+                    isoPolygon.LineStrings.Add(lsgMapper.ExportLinearRing(adaptPolygon.ExteriorRing, ISOLineStringType.PolygonExterior));
+                }
+                if (adaptPolygon.InteriorRings != null)
+                {
+                    foreach (LinearRing interiorRing in adaptPolygon.InteriorRings)
+                    {
+                        isoPolygon.LineStrings.Add(lsgMapper.ExportLinearRing(interiorRing, ISOLineStringType.PolygonInterior));
+                    }
+                }
+            }
+            return isoPolygon;
+        }
+
         public ISOPolygon ExportPolygon(Polygon adaptPolygon, ISOPolygonType polygonType)
         {
-            ISOPolygon ISOPolygon = new ISOPolygon();
+            ISOPolygon isoPolygon = new ISOPolygon(TaskDataMapper.Version);
 
-            ISOPolygon.PolygonType = polygonType;
-            ISOPolygon.PolygonDesignator = adaptPolygon.Id.ToString();
+            isoPolygon.PolygonType = polygonType;
+            isoPolygon.PolygonDesignator = adaptPolygon.Id.ToString();
 
             LineStringMapper lsgMapper = new LineStringMapper(TaskDataMapper);
-            ISOPolygon.LineStrings = new List<ISOLineString>();
+            isoPolygon.LineStrings = new List<ISOLineString>();
             if (adaptPolygon.ExteriorRing != null)
             {
-                ISOPolygon.LineStrings.Add(lsgMapper.ExportLinearRing(adaptPolygon.ExteriorRing, ISOLineStringType.PolygonExterior));
+                isoPolygon.LineStrings.Add(lsgMapper.ExportLinearRing(adaptPolygon.ExteriorRing, ISOLineStringType.PolygonExterior));
             }
             if (adaptPolygon.InteriorRings != null)
             {
                 foreach (LinearRing interiorRing in adaptPolygon.InteriorRings)
                 {
-                    ISOPolygon.LineStrings.Add(lsgMapper.ExportLinearRing(interiorRing, ISOLineStringType.PolygonInterior));
+                    isoPolygon.LineStrings.Add(lsgMapper.ExportLinearRing(interiorRing, ISOLineStringType.PolygonInterior));
                 }
             }
 
-            return ISOPolygon;
+            return isoPolygon;
         }
 
         #endregion Export

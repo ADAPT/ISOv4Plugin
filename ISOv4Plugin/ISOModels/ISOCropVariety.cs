@@ -12,6 +12,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
     public class ISOCropVariety : ISOElement
     {
+        public ISOCropVariety()
+            : this(4)
+        {
+        }
+
+        public ISOCropVariety(int version)
+            :base(version)
+        {
+        }
+
         //Attributes
         public string CropVarietyId { get; set; }
         public string CropVarietyDesignator { get; set; }
@@ -22,7 +32,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteStartElement("CVT");
             xmlBuilder.WriteXmlAttribute("A", CropVarietyId);
             xmlBuilder.WriteXmlAttribute("B", CropVarietyDesignator);
-            xmlBuilder.WriteXmlAttribute("C", ProductIdRef);
+            if (Version > 3)
+            {
+                xmlBuilder.WriteXmlAttribute("C", ProductIdRef);
+            }
             base.WriteXML(xmlBuilder);
             xmlBuilder.WriteEndElement();
             return xmlBuilder;

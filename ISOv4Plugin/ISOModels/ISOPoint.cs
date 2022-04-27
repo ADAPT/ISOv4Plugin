@@ -14,6 +14,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
     public class ISOPoint : ISOElement
     {
+
+        public ISOPoint()
+            :this(4)
+        {
+        }
+
+        public ISOPoint(int version)
+            :base(version)
+        {
+        }
+
         //Attributes
         public ISOPointType PointType { get { return (ISOPointType)PointTypeInt; } set { PointTypeInt = (int)value; } }
         private int PointTypeInt { get; set; }
@@ -37,11 +48,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteXmlAttribute<decimal>("D", PointEast);
             xmlBuilder.WriteXmlAttribute<int>("E", PointUp);
             xmlBuilder.WriteXmlAttribute<byte>("F", PointColour);
-            xmlBuilder.WriteXmlAttribute("G", PointId);
-            xmlBuilder.WriteXmlAttribute<decimal>("H", PointHorizontalAccuracy);
-            xmlBuilder.WriteXmlAttribute<decimal>("I", PointVerticalAccuracy);
-            xmlBuilder.WriteXmlAttribute("J", Filename);
-            xmlBuilder.WriteXmlAttribute<uint>("K", Filelength);
+            if (Version > 3)
+            {
+                xmlBuilder.WriteXmlAttribute("G", PointId);
+                xmlBuilder.WriteXmlAttribute<decimal>("H", PointHorizontalAccuracy);
+                xmlBuilder.WriteXmlAttribute<decimal>("I", PointVerticalAccuracy);
+                xmlBuilder.WriteXmlAttribute("J", Filename);
+                xmlBuilder.WriteXmlAttribute<uint>("K", Filelength);
+            }
             xmlBuilder.WriteEndElement();
 
             return xmlBuilder;

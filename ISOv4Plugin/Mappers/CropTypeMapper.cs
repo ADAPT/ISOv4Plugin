@@ -49,7 +49,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         public ISOCropType ExportCropType(Crop adaptCropType, ISOProductGroup cropTypeProductGroup)
         {
-            ISOCropType isoCrop = new ISOCropType();
+            ISOCropType isoCrop = new ISOCropType(TaskDataMapper.Version);
 
             //ID
             string id = adaptCropType.Id.FindIsoId() ?? GenerateId();

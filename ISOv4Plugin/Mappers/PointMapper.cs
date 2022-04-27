@@ -44,7 +44,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         public ISOPoint ExportPoint(Point adaptPoint, ISOPointType pointType)
         {
-            ISOPoint point = new ISOPoint();
+            ISOPoint point = new ISOPoint(TaskDataMapper.Version);
             point.PointEast = Convert.ToDecimal(adaptPoint.X);
             point.PointNorth = Convert.ToDecimal(adaptPoint.Y);
             if (adaptPoint.Z.HasValue)

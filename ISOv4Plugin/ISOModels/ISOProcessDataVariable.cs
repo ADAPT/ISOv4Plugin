@@ -15,6 +15,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
     public class ISOProcessDataVariable : ISOElement
     {
         public ISOProcessDataVariable()
+            :this(4)
+        {
+        }
+
+        public ISOProcessDataVariable(int version)
+            :base(version)
         {
             ChildProcessDataVariables = new List<ISOProcessDataVariable>();
         }
@@ -39,8 +45,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             xmlBuilder.WriteXmlAttribute("C", ProductIdRef);
             xmlBuilder.WriteXmlAttribute("D", DeviceElementIdRef);
             xmlBuilder.WriteXmlAttribute("E", ValuePresentationIdRef);
-            xmlBuilder.WriteXmlAttribute<int>("F", ActualCulturalPracticeValue);
-            xmlBuilder.WriteXmlAttribute<int>("G", ElementTypeInstanceValue);
+            if (Version > 3)
+            {
+                xmlBuilder.WriteXmlAttribute<int>("F", ActualCulturalPracticeValue);
+                xmlBuilder.WriteXmlAttribute<int>("G", ElementTypeInstanceValue);
+            }
 
             foreach (var item in ChildProcessDataVariables)
             {
