@@ -2,25 +2,19 @@
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
-using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
-using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AgGateway.ADAPT.ApplicationDataModel.Logistics;
-using AgGateway.ADAPT.ApplicationDataModel.Shapes;
-using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
-using AgGateway.ADAPT.ApplicationDataModel.Guidance;
-using AgGateway.ADAPT.ApplicationDataModel.Products;
+using AgGateway.ADAPT.ApplicationDataModel.Common;
+using AgGateway.ADAPT.ApplicationDataModel.Equipment;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
+using AgGateway.ADAPT.ApplicationDataModel.Shapes;
+using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
+using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
+using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using AgGateway.ADAPT.ISOv4Plugin.Representation;
-using AgGateway.ADAPT.ApplicationDataModel.Equipment;
-using System.IO;
-using AgGateway.ADAPT.ApplicationDataModel.Common;
-using AgGateway.ADAPT.Representation.RepresentationSystem;
 using AgGateway.ADAPT.Representation.RepresentationSystem.ExtensionMethods;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
@@ -28,12 +22,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
     public interface ITimeLogMapper
     {
         IEnumerable<ISOTimeLog> ExportTimeLogs(IEnumerable<OperationData> operationDatas, string dataPath);
-        IEnumerable<OperationData> ImportTimeLogs(ISOTask loggedTask, int? prescriptionID);
+        IEnumerable<OperationData> ImportTimeLogs(ISOTask loggedTask, IEnumerable<ISOTimeLog> timeLogs, int? prescriptionID);
     }
 
-    public class TimeLogMapper : BaseMapper, ITimeLogMapper
+    internal class TimeLogMapper : BaseMapper, ITimeLogMapper
     {
-        public TimeLogMapper(TaskDataMapper taskDataMapper) : base(taskDataMapper, "TLG")
+        internal TimeLogMapper(TaskDataMapper taskDataMapper) : base(taskDataMapper, "TLG")
         {
         }
 
@@ -281,10 +275,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         #region Import
 
-        public IEnumerable<OperationData> ImportTimeLogs(ISOTask loggedTask, int? prescriptionID)
+        public virtual IEnumerable<OperationData> ImportTimeLogs(ISOTask loggedTask, IEnumerable<ISOTimeLog> timeLogs, int? prescriptionID)
         {
             List<OperationData> operations = new List<OperationData>();
-            foreach (ISOTimeLog isoTimeLog in loggedTask.TimeLogs)
+            foreach (ISOTimeLog isoTimeLog in timeLogs)
             {
                 IEnumerable<OperationData> operationData = ImportTimeLog(loggedTask, isoTimeLog, prescriptionID);
                 if (operationData != null)
@@ -296,7 +290,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return operations;
         }
 
-        private IEnumerable<OperationData> ImportTimeLog(ISOTask loggedTask, ISOTimeLog isoTimeLog, int? prescriptionID)
+        protected IEnumerable<OperationData> ImportTimeLog(ISOTask loggedTask, ISOTimeLog isoTimeLog, int? prescriptionID)
         {
             WorkingDataMapper workingDataMapper = new WorkingDataMapper(new EnumeratedMeterFactory(), TaskDataMapper);
             SectionMapper sectionMapper = new SectionMapper(workingDataMapper, TaskDataMapper);
@@ -336,10 +330,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     TaskDataMapper.AddError($"Timelog file {isoTimeLog.Filename} is invalid.  Skipping.", ex.Message, null, ex.StackTrace);
                     return null;
                 }
-                ISOTime time = isoTimeLog.GetTimeElement(this.TaskDataPath);
+                ISOTime time = GetTimeElmenetFromTimeLog(isoTimeLog);
 
                 //Identify unique devices represented in this TimeLog data
-                IEnumerable<string> deviceElementIDs = time.DataLogValues.Where(d => d.ProcessDataDDI != "DFFF" && d.ProcessDataDDI != "DFFE").Select(d => d.DeviceElementIdRef);
+                IEnumerable<string> deviceElementIDs = time.DataLogValues.Where(d => !d.ProcessDataDDI.EqualsIgnoreCase("DFFF") && !d.ProcessDataDDI.EqualsIgnoreCase("DFFE"))
+                    .Select(d => d.DeviceElementIdRef).Distinct().ToList();
                 Dictionary<ISODevice, HashSet<string>> loggedDeviceElementsByDevice = new Dictionary<ISODevice, HashSet<string>>();
                 foreach (string deviceElementID in deviceElementIDs)
                 {
@@ -398,6 +393,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return null;
         }
 
+        protected virtual ISOTime GetTimeElmenetFromTimeLog(ISOTimeLog isoTimeLog)
+        {
+            return isoTimeLog.GetTimeElement(this.TaskDataPath);
+        }
+
         internal static List<int> GetDistinctProductIDs(TaskDataMapper taskDataMapper, Dictionary<string, List<ISOProductAllocation>> productAllocations)
         {
             HashSet<int> productIDs = new HashSet<int>();
@@ -420,9 +420,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             Dictionary<string, List<ISOProductAllocation>> output = new Dictionary<string, List<ISOProductAllocation>>();
             foreach (ISOProductAllocation pan in loggedTask.ProductAllocations.Where(p => !string.IsNullOrEmpty(p.DeviceElementIdRef)))
             {
-                if (dvc.DeviceElements.Select(d => d.DeviceElementId).Contains(pan.DeviceElementIdRef)) //Filter PANs by this DVC
+                ISODeviceElement deviceElement = dvc.DeviceElements.FirstOrDefault(d => d.DeviceElementId == pan.DeviceElementIdRef);
+                if (deviceElement != null) //Filter PANs by this DVC
                 {
-                    ISODeviceElement deviceElement = dvc.DeviceElements.First(d => d.DeviceElementId == pan.DeviceElementIdRef);
                     AddProductAllocationsForDeviceElement(output, pan, deviceElement);
                 }
             }
@@ -475,7 +475,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return OperationTypeEnum.Unknown;
         }
 
-        private IEnumerable<ISOSpatialRow> ReadTimeLog(ISOTimeLog timeLog, string dataPath)
+        protected virtual IEnumerable<ISOSpatialRow> ReadTimeLog(ISOTimeLog timeLog, string dataPath)
         {
             ISOTime templateTime = timeLog.GetTimeElement(dataPath);
             string binName = string.Concat(timeLog.Filename, ".bin");
@@ -492,7 +492,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return BinaryReader.ReadImplementGeometryValues(filePath, templateTime, dlvsToRead);
         }
 
-        private class BinaryReader
+        protected class BinaryReader
         {
             private static readonly DateTime _firstDayOf1980 = new DateTime(1980, 01, 01);
 

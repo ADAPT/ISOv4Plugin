@@ -2,13 +2,12 @@
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
-using AgGateway.ADAPT.ApplicationDataModel.ADM;
-using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
-using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
-using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using System;
 using System.Collections.Generic;
 using System.Xml;
+using AgGateway.ADAPT.ApplicationDataModel.ADM;
+using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
+using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
@@ -104,6 +103,35 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             Positions.ForEach(i => i.Validate(errors));
             DataLogValues.ForEach(i => i.Validate(errors));
             return errors;
+        }
+
+        public static ISOTime Merge(ISOTime time, ISOTime otherTime)
+        {
+            if (time == null)
+            {
+                return otherTime;
+            }
+            if (otherTime == null)
+            {
+                return time;
+            }
+
+            ISOTime result = new ISOTime
+            {
+                Start = time.Start.Min(otherTime.Start),
+                Stop = time.Stop.Max(otherTime.Stop),
+                Duration = time.Duration.Sum(otherTime.Duration),
+                Type = time.Type == 0 ? otherTime.Type : time.Type,
+                HasStart = time.HasStart || otherTime.HasStart,
+                HasStop = time.HasStop || otherTime.HasStop,
+                HasDuration = time.HasDuration || otherTime.HasDuration,
+                HasType = time.HasType || otherTime.HasType
+            };
+
+            result.DataLogValues.AddRange(time.DataLogValues);
+            result.DataLogValues.AddRange(otherTime.DataLogValues);
+
+            return result;
         }
     }
 }
