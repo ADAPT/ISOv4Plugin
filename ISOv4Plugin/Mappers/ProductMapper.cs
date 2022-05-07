@@ -10,6 +10,7 @@ using System.Linq;
 using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
 using AgGateway.ADAPT.ApplicationDataModel.Products;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
+using AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
@@ -24,9 +25,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
     public class ProductMapper : BaseMapper, IProductMapper
     {
+        private readonly IManufacturer _manufacturer;
+
         public ProductMapper(TaskDataMapper taskDataMapper, ProductGroupMapper productGroupMapper) : base(taskDataMapper, "PDT")
         {
             _productGroupMapper = productGroupMapper;
+
+            _manufacturer = ManufacturerFactory.GetManufacturer(taskDataMapper);
         }
 
         #region Export
@@ -202,25 +207,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         public Product ImportProduct(ISOProduct isoProduct)
         {
             //First check if we've already created a matching seed product from the crop type
-            Product product = DataModel.Catalog.Products.FirstOrDefault(p => p.ProductType == ProductTypeEnum.Variety && p.Description == isoProduct.ProductDesignator);
-
-            //If not, create a new product
-            if (product == null)
-            {
-                //Type
-                switch (isoProduct.ProductType)
-                {
-                    case ISOProductType.Mixture:
-                    case ISOProductType.TemporaryMixture:
-                        product = new MixProduct();
-                        product.ProductType = ProductTypeEnum.Mix;
-                        break;
-                    default:
-                        product = new GenericProduct();
-                        product.ProductType = ProductTypeEnum.Generic;
-                        break;
-                }
-            }
+            Product product = DataModel.Catalog.Products.FirstOrDefault(p => p.ProductType == ProductTypeEnum.Variety && p.Description == isoProduct.ProductDesignator)
+                ?? CreateNewProductInstance(isoProduct);
 
             //ID
             if (!ImportIDs(product.Id, isoProduct.ProductId))
@@ -297,6 +285,46 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 product.Density = isoProduct.DensityVolumePerCount.Value.AsNumericRepresentationValue("007B", RepresentationMapper);
             }
 
+            return product;
+        }
+
+        private Product CreateNewProductInstance(ISOProduct isoProduct)
+        {
+            // If there is a manufacturer defined attribute representing a crop name, use it
+            string cropName = _manufacturer?.GetCropName(isoProduct);
+            if (!string.IsNullOrWhiteSpace(cropName))
+            {
+                // New crop variety product
+                var cropProduct = new CropVarietyProduct();
+                cropProduct.ProductType = ProductTypeEnum.Variety;
+
+                // Check if there is already Crop in ADAPT model
+                Crop adaptCrop = TaskDataMapper.AdaptDataModel.Catalog.Crops.FirstOrDefault(x => x.Name.EqualsIgnoreCase(cropName));
+                if (adaptCrop == null)
+                {
+                    // Create a new one
+                    adaptCrop = new Crop();
+                    adaptCrop.Name = cropName;
+                    TaskDataMapper.AdaptDataModel.Catalog.Crops.Add(adaptCrop);
+                }
+                cropProduct.CropId = adaptCrop.Id.ReferenceId;
+                return cropProduct;
+            }
+
+            Product product;
+            //Type
+            switch (isoProduct.ProductType)
+            {
+                case ISOProductType.Mixture:
+                case ISOProductType.TemporaryMixture:
+                    product = new MixProduct();
+                    product.ProductType = ProductTypeEnum.Mix;
+                    break;
+                default:
+                    product = new GenericProduct();
+                    product.ProductType = ProductTypeEnum.Generic;
+                    break;
+            }
             return product;
         }
 

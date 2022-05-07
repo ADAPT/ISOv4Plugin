@@ -281,5 +281,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
             }
             return new List<string>();
         }
+
+        /// <summary>
+        /// Case-insensitive comparison of two strings
+        /// </summary>
+        /// <param name="value1"></param>
+        /// <param name="value2"></param>
+        /// <returns></returns>
+        public static bool EqualsIgnoreCase(this string value1, string value2)
+        {
+            return string.Equals(value1, value2, StringComparison.OrdinalIgnoreCase);
+        }
     }
 }
