@@ -74,6 +74,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         private IEnumerable<ISOSpatialRow> ReadFromBinaryReaders(List<BinaryReaderHelper> readers)
         {
+            // Below alogrithm is using queues for each binary file and matching records on TimeStart/Position.
+            // At start of each iteration a single record is read from binary file into queue.
+            // Records with earliest TimeStart are merged together and removed from each file queue.
             while (true)
             {
                 // Read next record from each time log
@@ -94,6 +97,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 }
 
                 // Group records by TimeStart and East/North position, and then grab ones with earliest TimeStart.
+                // This leads to processing earliest records from any file first and keeping other records untouched.
+                // They will be processed in the next loop iteration along with any records read from already processed files.
                 var candidates = readersWithData.GroupBy(x => new { x.CurrentRecord.TimeStart, x.CurrentRecord.EastPosition, x.CurrentRecord.NorthPosition })
                     .OrderBy(x => x.Key.TimeStart)
                     .First().ToList();
@@ -111,7 +116,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
         }
 
-        protected override ISOTime GetTimeElmenetFromTimeLog(ISOTimeLog isoTimeLog)
+        protected override ISOTime GetTimeElementFromTimeLog(ISOTimeLog isoTimeLog)
         {
             // Always return a combined ISOTime record.
             return _combinedTime;
@@ -125,6 +130,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 var time = timeLog.GetTimeElement(TaskDataPath);
                 result = ISOTime.Merge(result, time);
             }
+
+            var duplicateDataLogValues = result.DataLogValues
+                .Where(x => x.DataLogPGN == null)
+                .GroupBy(x => new { x.DeviceElementIdRef, x.ProcessDataDDI })
+                .Where(x => x.Count() > 1)
+                .SelectMany(x => x.Skip(1))
+                .ToList();
+            duplicateDataLogValues.ForEach(x => result.DataLogValues.Remove(x));
+
             return result;
         }
 

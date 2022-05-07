@@ -323,16 +323,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
         }
 
         /// <summary>
-        /// Sums two integer values
+        /// Max of two integer values
         /// </summary>
         /// <param name="value1"></param>
         /// <param name="value2"></param>
         /// <returns></returns>
-        public static uint? Sum(this uint? value1, uint? value2)
+        public static uint? Max(this uint? value1, uint? value2)
         {
             if (value1.HasValue && value1.HasValue)
             {
-                return value1 + value2;
+                return value1 >= value2 ? value1 : value2;
             }
             return value1.HasValue ? value1 : value2;
         }

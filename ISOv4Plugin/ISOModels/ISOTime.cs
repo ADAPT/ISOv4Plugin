@@ -118,9 +118,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 
             ISOTime result = new ISOTime
             {
+                // Pick earlier date
                 Start = time.Start.Min(otherTime.Start),
+                // Pick later date
                 Stop = time.Stop.Max(otherTime.Stop),
-                Duration = time.Duration.Sum(otherTime.Duration),
+                // Pick max from both since they most likely overlap
+                Duration = time.Duration.Max(otherTime.Duration),
                 Type = time.Type == 0 ? otherTime.Type : time.Type,
                 HasStart = time.HasStart || otherTime.HasStart,
                 HasStop = time.HasStop || otherTime.HasStop,

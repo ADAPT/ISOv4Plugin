@@ -330,7 +330,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     TaskDataMapper.AddError($"Timelog file {isoTimeLog.Filename} is invalid.  Skipping.", ex.Message, null, ex.StackTrace);
                     return null;
                 }
-                ISOTime time = GetTimeElmenetFromTimeLog(isoTimeLog);
+                ISOTime time = GetTimeElementFromTimeLog(isoTimeLog);
 
                 //Identify unique devices represented in this TimeLog data
                 IEnumerable<string> deviceElementIDs = time.DataLogValues.Where(d => !d.ProcessDataDDI.EqualsIgnoreCase("DFFF") && !d.ProcessDataDDI.EqualsIgnoreCase("DFFE"))
@@ -393,7 +393,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return null;
         }
 
-        protected virtual ISOTime GetTimeElmenetFromTimeLog(ISOTimeLog isoTimeLog)
+        protected virtual ISOTime GetTimeElementFromTimeLog(ISOTimeLog isoTimeLog)
         {
             return isoTimeLog.GetTimeElement(this.TaskDataPath);
         }
