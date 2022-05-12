@@ -1,9 +1,10 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.Equipment;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
@@ -27,8 +28,19 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                                           IEnumerable<ISOSpatialRow> isoRecords,
                                           int operationDataId,
                                           IEnumerable<string> isoDeviceElementIDs,
-                                          Dictionary<string, List<ISOProductAllocation>> isoProductAllocations)
+                                          Dictionary<string, List<ISOProductAllocation>> productAllocations)
         {
+            // Determine the lowest depth at which product allocations are reported
+            DeviceHierarchyElement deviceElement = isoDeviceElementIDs
+                .Select(x => TaskDataMapper.DeviceElementHierarchies.GetMatchingElement(x))
+                .Where(x => x != null)
+                .FirstOrDefault();
+            int lowestLevel = GetLowestProductAllocationLevel(deviceElement?.GetRootDeviceElementHierarchy(), productAllocations);
+            // Remove allocations for all other levels
+            Dictionary<string, List<ISOProductAllocation>> isoProductAllocations = productAllocations
+                .Where(x =>TaskDataMapper.DeviceElementHierarchies.GetMatchingElement(x.Key)?.Depth == lowestLevel)
+                .ToDictionary(x => x.Key, x => x.Value);
+
             var sections = new List<DeviceElementUse>();
             foreach (string isoDeviceElementID in isoDeviceElementIDs)
             {
@@ -120,5 +132,20 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 }).ToList();
         }
 
+        private int GetLowestProductAllocationLevel(DeviceHierarchyElement isoDeviceElementHierarchy, Dictionary<string, List<ISOProductAllocation>> isoProductAllocations)
+        {
+            int level = -1;
+            // If device element has direct product allocations, use its Depth.
+            if (isoProductAllocations.TryGetValue(isoDeviceElementHierarchy?.DeviceElement.DeviceElementId, out List<ISOProductAllocation> productAllocations) &&
+                productAllocations.Any(x => x.DeviceElementIdRef == isoDeviceElementHierarchy.DeviceElement.DeviceElementId))
+            {
+                level = isoDeviceElementHierarchy.Depth;
+            }
+
+            // Get max level from children elements
+            int? maxChildLevel = isoDeviceElementHierarchy?.Children?.Max(x => GetLowestProductAllocationLevel(x, isoProductAllocations));
+
+            return Math.Max(level, maxChildLevel.GetValueOrDefault(-1));
+        }
     }
 }
