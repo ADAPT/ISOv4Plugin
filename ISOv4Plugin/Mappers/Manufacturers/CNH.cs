@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Globalization;
+using AgGateway.ADAPT.ApplicationDataModel.Products;
 using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers
@@ -86,8 +87,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers
             {75, "Vegetable-Misc"}
         };
         private const string CropTypeAttributeName = "P094_Crop_Type";
+        private const string ProductFormAttributeName = "P094_Product_Form";
 
-        public string GetCropName(ISOElement isoElement)
+        private string GetAttributeByName(ISOElement isoElement, string name)
         {
             Dictionary<string, string> schemaProperties = isoElement?.ProprietarySchemaExtensions;
             if (schemaProperties == null || schemaProperties.Count == 0)
@@ -95,7 +97,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers
                 return string.Empty;
             }
 
-            if (!schemaProperties.TryGetValue(CropTypeAttributeName, out string cropTypeAsString) ||
+            return schemaProperties.TryGetValue(name, out string value)
+                ? value
+                : string.Empty;
+        }
+
+        public string GetCropName(ISOElement isoElement)
+        {
+            var cropTypeAsString = GetAttributeByName(isoElement, CropTypeAttributeName);
+
+            if (string.IsNullOrEmpty(cropTypeAsString) ||
                 !int.TryParse(cropTypeAsString, NumberStyles.Integer, CultureInfo.InvariantCulture, out int cropType) ||
                 !_supportedCrops.TryGetValue(cropType, out string cropName))
             {
@@ -103,6 +114,51 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers
             }
 
             return cropName;
+        }
+
+        public ProductFormEnum? GetProductForm(ISOProduct isoProduct)
+        {
+            var productFormAsString = GetAttributeByName(isoProduct, ProductFormAttributeName);
+
+            if (string.IsNullOrEmpty(productFormAsString) ||
+               !int.TryParse(productFormAsString, NumberStyles.Integer, CultureInfo.InvariantCulture, out int productForm))
+            {
+                return null;
+            }
+
+            switch (productForm)
+            {
+                case 0: // Anhydrous
+                    return ProductFormEnum.Gas;
+                case 1: // Granular/Other
+                case 3: // Plant
+                case 4: // Seed
+                case 5: // Bulk Seed
+                    return ProductFormEnum.Solid;
+                case 2: // Liquid
+                    return ProductFormEnum.Liquid;
+                default:
+                    return null;
+            }
+        }
+
+        public ProductTypeEnum? GetProductType(ISOProduct isoProduct)
+        {
+            var productFormAsString = GetAttributeByName(isoProduct, ProductFormAttributeName);
+
+            if (string.IsNullOrEmpty(productFormAsString) ||
+               !int.TryParse(productFormAsString, NumberStyles.Integer, CultureInfo.InvariantCulture, out int productForm))
+            {
+                return null;
+            }
+
+            switch (productForm)
+            {
+                case 0: // Anhydrous
+                    return ProductTypeEnum.Fertilizer;
+                default:
+                    return null;
+            }
         }
     }
 }

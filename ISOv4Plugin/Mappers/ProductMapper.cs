@@ -217,6 +217,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 TaskDataMapper.InstanceIDMap.ReplaceISOID(product.Id.ReferenceId, isoProduct.ProductId);
             }
 
+            // ProductForm
+            product.Form = _manufacturer?.GetProductForm(isoProduct) ?? product.Form;
+
             //Context Items
             product.ContextItems = ImportContextItems(isoProduct.ProductId, "ADAPT_Context_Items:Product", isoProduct);
             ImportPackagedProductClasses(isoProduct, product);
@@ -322,7 +325,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     break;
                 default:
                     product = new GenericProduct();
-                    product.ProductType = ProductTypeEnum.Generic;
+                    product.ProductType = _manufacturer?.GetProductType(isoProduct) ?? ProductTypeEnum.Generic;
                     break;
             }
             return product;
