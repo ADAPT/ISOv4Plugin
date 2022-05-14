@@ -88,6 +88,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers
         };
         private const string CropTypeAttributeName = "P094_Crop_Type";
         private const string ProductFormAttributeName = "P094_Product_Form";
+        private const string ProductUsageAttributeName = "P094_Product_Usage";
 
         private string GetAttributeByName(ISOElement isoElement, string name)
         {
@@ -159,6 +160,38 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers
                 default:
                     return null;
             }
+        }
+
+        public CategoryEnum? GetProductCategory(ISOProduct isoProduct)
+        {
+            var productUsageAsString = GetAttributeByName(isoProduct, ProductUsageAttributeName);
+
+            if (string.IsNullOrEmpty(productUsageAsString) ||
+               !int.TryParse(productUsageAsString, NumberStyles.Integer, CultureInfo.InvariantCulture, out int productUsage))
+            {
+                return null;
+            }
+
+            switch (productUsage)
+            {
+                case 0: // Generic
+                    return CategoryEnum.Unknown;
+                case 1: // Carrier
+                    return CategoryEnum.Carrier;
+                case 2: // Fertilizer
+                    return CategoryEnum.Fertilizer;
+                case 3: // Herbicide
+                    return CategoryEnum.Herbicide;
+                case 4: // Fungicide
+                    return CategoryEnum.Fungicide;
+                case 5: // Insecticide
+                    return CategoryEnum.Insecticide;
+                case 6: // Pesticide
+                    return CategoryEnum.Pesticide;
+                case 7: // Seed/Plant
+                    return CategoryEnum.Variety;
+            }
+            return null;
         }
     }
 }

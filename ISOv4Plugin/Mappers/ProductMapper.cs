@@ -26,6 +26,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
     public class ProductMapper : BaseMapper, IProductMapper
     {
         private readonly IManufacturer _manufacturer;
+        private readonly static List<CategoryEnum> _chemicalCategories = new List<CategoryEnum>
+        {
+            CategoryEnum.Fungicide, CategoryEnum.Herbicide, CategoryEnum.Insecticide, CategoryEnum.Pesticide
+        };
 
         public ProductMapper(TaskDataMapper taskDataMapper, ProductGroupMapper productGroupMapper) : base(taskDataMapper, "PDT")
         {
@@ -220,6 +224,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             // ProductForm
             product.Form = _manufacturer?.GetProductForm(isoProduct) ?? product.Form;
 
+            // Category
+            product.Category = _manufacturer?.GetProductCategory(isoProduct) ?? CategoryEnum.Unknown;
+
+            // Update ProductType
+            if (product.ProductType == ProductTypeEnum.Generic && product.Category != CategoryEnum.Unknown)
+            {
+                product.ProductType = product.Category == CategoryEnum.Fertilizer
+                    ? ProductTypeEnum.Fertilizer
+                    : (_chemicalCategories.Contains(product.Category) ? ProductTypeEnum.Chemical : ProductTypeEnum.Generic);
+            }
+
             //Context Items
             product.ContextItems = ImportContextItems(isoProduct.ProductId, "ADAPT_Context_Items:Product", isoProduct);
             ImportPackagedProductClasses(isoProduct, product);
@@ -253,7 +268,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         }
 
                         //Create a component for this ingredient
-                        ProductComponent component = new ProductComponent() { IngredientId = adaptProduct.Id.ReferenceId, IsProduct = true };
+                        ProductComponent component = new ProductComponent()
+                        {
+                            IngredientId = adaptProduct.Id.ReferenceId,
+                            IsProduct = true,
+                            IsCarrier = adaptProduct.Category == CategoryEnum.Carrier
+                        };
                         if (!string.IsNullOrEmpty(isoComponent.QuantityDDI))
                         {
                             component.Quantity = prn.QuantityValue.AsNumericRepresentationValue(isoComponent.QuantityDDI, RepresentationMapper);

@@ -9,6 +9,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers
         string GetCropName(ISOElement isoElement);
         ProductFormEnum? GetProductForm(ISOProduct isoProduct);
         ProductTypeEnum? GetProductType(ISOProduct isoProduct);
+        CategoryEnum? GetProductCategory(ISOProduct isoProduct);
     }
 
     internal static class ManufacturerFactory
