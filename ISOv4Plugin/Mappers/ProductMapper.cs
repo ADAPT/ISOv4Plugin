@@ -244,54 +244,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             product.Description = isoProduct.ProductDesignator;
 
             //Mixes
-            if (isoProduct.ProductRelations.Any())
+            product.ProductComponents = ImportProductComponents(isoProduct, product.Form);
+
+            //Total Mix quantity
+            if (isoProduct.MixtureRecipeQuantity.HasValue && product is MixProduct mixProduct)
             {
-                if (product.ProductComponents == null)
-                {
-                    product.ProductComponents = new List<ProductComponent>();
-                }
-
-                foreach (ISOProductRelation prn in isoProduct.ProductRelations)
-                {
-                    //Find the product referenced by the relation
-                    ISOProduct isoComponent = ISOTaskData.ChildElements.OfType<ISOProduct>().FirstOrDefault(p => p.ProductId == prn.ProductIdRef);
-
-                    if (isoComponent != null) //Skip PRN if PRN@A doesn't resolve to a product
-                    {
-                        //Find or create the product to match the component
-                        Product adaptProduct = DataModel.Catalog.Products.FirstOrDefault(i => i.Id.FindIsoId() == isoComponent.ProductId);
-                        if (adaptProduct == null)
-                        {
-                            adaptProduct = new GenericProduct();
-                            adaptProduct.Description = isoComponent.ProductDesignator;
-                            DataModel.Catalog.Products.Add(adaptProduct);
-                        }
-
-                        //Create a component for this ingredient
-                        ProductComponent component = new ProductComponent()
-                        {
-                            IngredientId = adaptProduct.Id.ReferenceId,
-                            IsProduct = true,
-                            IsCarrier = adaptProduct.Category == CategoryEnum.Carrier
-                        };
-                        if (!string.IsNullOrEmpty(isoComponent.QuantityDDI))
-                        {
-                            component.Quantity = prn.QuantityValue.AsNumericRepresentationValue(isoComponent.QuantityDDI, RepresentationMapper);
-                        }
-                        product.ProductComponents.Add(component);
-                    }
-                    else
-                    {
-                        TaskDataMapper.AddError($"Product relation with quantity {prn.QuantityValue} ommitted for product {isoProduct.ProductId} due to no ProductIdRef");
-                    }
-                }
-
-                //Total Mix quantity
-                if (isoProduct.MixtureRecipeQuantity.HasValue)
-                {
-                    MixProduct mixProduct = product as MixProduct;
-                    mixProduct.TotalQuantity = isoProduct.MixtureRecipeQuantity.Value.AsNumericRepresentationValue(isoProduct.QuantityDDI, RepresentationMapper);
-                }
+                mixProduct.TotalQuantity = isoProduct.MixtureRecipeQuantity.Value.AsNumericRepresentationValue(
+                    GetQuantityDDI(isoProduct.QuantityDDI, product.Form), RepresentationMapper);
             }
 
             //Density
@@ -309,6 +268,62 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
             return product;
+        }
+
+        private List<ProductComponent> ImportProductComponents(ISOProduct isoProduct, ProductFormEnum productForm)
+        {
+            if (!isoProduct.ProductRelations.Any())
+            {
+                return null;
+
+            }
+            var productComponents = new List<ProductComponent>();
+
+            foreach (ISOProductRelation prn in isoProduct.ProductRelations)
+            {
+                //Find the product referenced by the relation
+                ISOProduct isoComponent = ISOTaskData.ChildElements.OfType<ISOProduct>().FirstOrDefault(p => p.ProductId == prn.ProductIdRef);
+
+                if (isoComponent != null) //Skip PRN if PRN@A doesn't resolve to a product
+                {
+                    //Find or create the product to match the component
+                    Product adaptProduct = DataModel.Catalog.Products.FirstOrDefault(i => i.Id.FindIsoId() == isoComponent.ProductId);
+                    if (adaptProduct == null)
+                    {
+                        adaptProduct = new GenericProduct();
+                        adaptProduct.Description = isoComponent.ProductDesignator;
+                        DataModel.Catalog.Products.Add(adaptProduct);
+                    }
+
+                    //Create a component for this ingredient
+                    ProductComponent component = new ProductComponent()
+                    {
+                        IngredientId = adaptProduct.Id.ReferenceId,
+                        IsProduct = true,
+                        IsCarrier = adaptProduct.Category == CategoryEnum.Carrier
+                    };
+
+                    var quantityDDI = GetQuantityDDI(isoComponent.QuantityDDI, productForm);
+                    if (!string.IsNullOrEmpty(quantityDDI))
+                    {
+                        component.Quantity = prn.QuantityValue.AsNumericRepresentationValue(quantityDDI, RepresentationMapper);
+                    }
+                    productComponents.Add(component);
+                }
+                else
+                {
+                    TaskDataMapper.AddError($"Product relation with quantity {prn.QuantityValue} ommitted for product {isoProduct.ProductId} due to no ProductIdRef");
+                }
+            }
+
+            return productComponents;
+        }
+
+        private string GetQuantityDDI(string quantityDDI, ProductFormEnum productForm)
+        {
+            return !string.IsNullOrEmpty(quantityDDI)
+                ? quantityDDI
+                : productForm == ProductFormEnum.Liquid ? "0048" : (productForm == ProductFormEnum.Solid ? "004B" : null);
         }
 
         private Product CreateNewProductInstance(ISOProduct isoProduct)
