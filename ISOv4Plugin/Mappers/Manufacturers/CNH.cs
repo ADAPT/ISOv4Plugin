@@ -89,6 +89,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers
         private const string CropTypeAttributeName = "P094_Crop_Type";
         private const string ProductFormAttributeName = "P094_Product_Form";
         private const string ProductUsageAttributeName = "P094_Product_Usage";
+        private const string ProductManufacturer = "P094_Product_Manufacturer";
 
         private string GetAttributeByName(ISOElement isoElement, string name)
         {
@@ -192,6 +193,18 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers
                     return CategoryEnum.Variety;
             }
             return null;
+        }
+
+        public string GetProductManufacturer(ISOProduct isoProduct)
+        {
+            var productManufacturer = GetAttributeByName(isoProduct, ProductManufacturer);
+
+            if (string.IsNullOrEmpty(productManufacturer))
+            {
+                return string.Empty;
+            }
+
+            return productManufacturer;
         }
     }
 }

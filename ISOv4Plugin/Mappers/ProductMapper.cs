@@ -11,6 +11,7 @@ using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
 using AgGateway.ADAPT.ApplicationDataModel.Products;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers;
+using AgGateway.ADAPT.ApplicationDataModel.Logistics;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
@@ -239,6 +240,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             product.ContextItems = ImportContextItems(isoProduct.ProductId, "ADAPT_Context_Items:Product", isoProduct);
             ImportPackagedProductClasses(isoProduct, product);
 
+            // Manufacturer
+            product.ManufacturerId = ImportManufacturer(isoProduct);
 
             //Description
             product.Description = isoProduct.ProductDesignator;
@@ -268,6 +271,24 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
 
             return product;
+        }
+
+        private int? ImportManufacturer(ISOProduct isoProduct)
+        {
+            var manufacturerName = _manufacturer?.GetProductManufacturer(isoProduct);
+            if (string.IsNullOrWhiteSpace(manufacturerName))
+            {
+                return null;
+            }
+
+            var manufacturer = TaskDataMapper.AdaptDataModel.Catalog.Manufacturers.FirstOrDefault(x => x.Description.EqualsIgnoreCase(manufacturerName));
+            if (manufacturer == null)
+            {
+                manufacturer = new Manufacturer();
+                manufacturer.Description = manufacturerName;
+                TaskDataMapper.AdaptDataModel.Catalog.Manufacturers.Add(manufacturer);
+            }
+            return manufacturer.Id.ReferenceId;
         }
 
         private List<ProductComponent> ImportProductComponents(ISOProduct isoProduct, ProductFormEnum productForm)

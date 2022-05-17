@@ -10,6 +10,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers
         ProductFormEnum? GetProductForm(ISOProduct isoProduct);
         ProductTypeEnum? GetProductType(ISOProduct isoProduct);
         CategoryEnum? GetProductCategory(ISOProduct isoProduct);
+        string GetProductManufacturer(ISOProduct isoProduct);
     }
 
     internal static class ManufacturerFactory
