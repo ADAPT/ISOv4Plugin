@@ -89,9 +89,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         private void SetEnumeratedMeterValue(ISOSpatialRow isoSpatialRow, EnumeratedWorkingData meter, SpatialRecord spatialRecord)
         {
+            var isoDataLogValue = _workingDataMapper.DataLogValuesByWorkingDataID[meter.Id.ReferenceId];
             var isoValue = isoSpatialRow.SpatialValues.FirstOrDefault(v =>
-                    v.DataLogValue.DeviceElementIdRef == _workingDataMapper.DataLogValuesByWorkingDataID[meter.Id.ReferenceId].DeviceElementIdRef &&
-                    v.DataLogValue.ProcessDataDDI == _workingDataMapper.DataLogValuesByWorkingDataID[meter.Id.ReferenceId].ProcessDataDDI);
+                    v.DataLogValue.DeviceElementIdRef == isoDataLogValue.DeviceElementIdRef &&
+                    v.DataLogValue.ProcessDataDDI == isoDataLogValue.ProcessDataDDI);
             if (isoValue != null)
             {
                 var isoEnumeratedMeter = meter as ISOEnumeratedMeter;
@@ -108,11 +109,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         private void SetNumericMeterValue(ISOSpatialRow isoSpatialRow, NumericWorkingData meter, SpatialRecord spatialRecord, Dictionary<string, List<ISOProductAllocation>> productAllocations)
         {
-            var isoValue = isoSpatialRow.SpatialValues.FirstOrDefault(v =>
+            var dataLogValue = _workingDataMapper.DataLogValuesByWorkingDataID.ContainsKey(meter.Id.ReferenceId)
+                ? _workingDataMapper.DataLogValuesByWorkingDataID[meter.Id.ReferenceId]
+                : null;
+            var isoValue = dataLogValue != null
+                           ? isoSpatialRow.SpatialValues.FirstOrDefault(v =>
                                 v.DataLogValue.ProcessDataDDI != "DFFE" &&
-                                _workingDataMapper.DataLogValuesByWorkingDataID.ContainsKey(meter.Id.ReferenceId) &&
-                                v.DataLogValue.DeviceElementIdRef == _workingDataMapper.DataLogValuesByWorkingDataID[meter.Id.ReferenceId].DeviceElementIdRef &&
-                                v.DataLogValue.ProcessDataDDI == _workingDataMapper.DataLogValuesByWorkingDataID[meter.Id.ReferenceId].ProcessDataDDI);
+                                v.DataLogValue.DeviceElementIdRef == dataLogValue.DeviceElementIdRef &&
+                                v.DataLogValue.ProcessDataDDI == dataLogValue.ProcessDataDDI)
+                           : null;
 
 
             if (isoValue != null)
