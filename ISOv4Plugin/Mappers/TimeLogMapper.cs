@@ -417,29 +417,57 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         private Dictionary<string, List<ISOProductAllocation>> GetProductAllocationsByDeviceElement(ISOTask loggedTask, ISODevice dvc)
         {
-            Dictionary<string, List<ISOProductAllocation>> output = new Dictionary<string, List<ISOProductAllocation>>();
+            Dictionary<string, Dictionary<string, ISOProductAllocation>> output = new Dictionary<string, Dictionary<string, ISOProductAllocation>>();
+            int panIndex = 0; // This supports multiple direct PANs for the same DET
             foreach (ISOProductAllocation pan in loggedTask.ProductAllocations.Where(p => !string.IsNullOrEmpty(p.DeviceElementIdRef)))
             {
                 ISODeviceElement deviceElement = dvc.DeviceElements.FirstOrDefault(d => d.DeviceElementId == pan.DeviceElementIdRef);
                 if (deviceElement != null) //Filter PANs by this DVC
                 {
-                    AddProductAllocationsForDeviceElement(output, pan, deviceElement);
+                    AddProductAllocationsForDeviceElement(output, pan, deviceElement, $"{GetHierarchyPosition(deviceElement)}_{panIndex}");
                 }
+                panIndex++;
             }
-            return output;
+            // Sort product allocations for each DeviceElement using it's position among ancestors.
+            // This arranges PANs on each DET in reverse order: ones from lowest DET in hierarchy having precedence over ones from top.
+            return output.ToDictionary(x => x.Key, x=>
+            {
+                var allocations = x.Value.OrderByDescending(y => y.Key).Select(y => y.Value).ToList();
+                // Check if there are any indirect allocations: ones that came from parent device element
+                var indirectAllocations = allocations.Where(y => y.DeviceElementIdRef != x.Key).ToList();
+                if (indirectAllocations.Count > 0 && indirectAllocations.Count != allocations.Count)
+                {
+                    // Only keep direct allocations
+                    allocations = allocations.Except(indirectAllocations).ToList();
+                }
+                return allocations;
+            });
         }
 
-        private void AddProductAllocationsForDeviceElement(Dictionary<string, List<ISOProductAllocation>> productAllocations, ISOProductAllocation pan, ISODeviceElement deviceElement)
+        private int GetHierarchyPosition(ISODeviceElement deviceElement)
+        {
+            int position = 0;
+
+            while(deviceElement != null)
+            {
+                deviceElement = deviceElement.Parent as ISODeviceElement;
+                position++;
+            }
+            return position;
+        }
+
+        private void AddProductAllocationsForDeviceElement(Dictionary<string, Dictionary<string, ISOProductAllocation>> productAllocations, ISOProductAllocation pan, ISODeviceElement deviceElement, string hierarchyPoistion)
         {
             if (!productAllocations.ContainsKey(deviceElement.DeviceElementId))
             {
-                productAllocations.Add(deviceElement.DeviceElementId, new List<ISOProductAllocation>());
+                productAllocations.Add(deviceElement.DeviceElementId, new Dictionary<string, ISOProductAllocation>());
             }
-            productAllocations[deviceElement.DeviceElementId].Add(pan);
+
+            productAllocations[deviceElement.DeviceElementId][hierarchyPoistion] = pan;
 
             foreach (ISODeviceElement child in deviceElement.ChildDeviceElements)
             {
-                AddProductAllocationsForDeviceElement(productAllocations, pan, child);
+                AddProductAllocationsForDeviceElement(productAllocations, pan, child, hierarchyPoistion);
             }
         }
 
