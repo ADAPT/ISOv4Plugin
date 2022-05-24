@@ -19,7 +19,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         private readonly IWorkingDataMapper _workingDataMapper;
 
         public SectionMapper(IWorkingDataMapper meterMapper, TaskDataMapper taskDataMapper)
-            : base (taskDataMapper, null)
+            : base(taskDataMapper, null)
         {
             _workingDataMapper = meterMapper;
         }
@@ -28,19 +28,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                                           IEnumerable<ISOSpatialRow> isoRecords,
                                           int operationDataId,
                                           IEnumerable<string> isoDeviceElementIDs,
-                                          Dictionary<string, List<ISOProductAllocation>> productAllocations)
+                                          Dictionary<string, List<ISOProductAllocation>> isoProductAllocations)
         {
-            // Determine the lowest depth at which product allocations are reported
-            DeviceHierarchyElement deviceElement = isoDeviceElementIDs
-                .Select(x => TaskDataMapper.DeviceElementHierarchies.GetMatchingElement(x))
-                .Where(x => x != null)
-                .FirstOrDefault();
-            int lowestLevel = GetLowestProductAllocationLevel(deviceElement?.GetRootDeviceElementHierarchy(), productAllocations);
-            // Remove allocations for all other levels
-            Dictionary<string, List<ISOProductAllocation>> isoProductAllocations = productAllocations
-                .Where(x =>TaskDataMapper.DeviceElementHierarchies.GetMatchingElement(x.Key)?.Depth == lowestLevel)
-                .ToDictionary(x => x.Key, x => x.Value);
-
             var sections = new List<DeviceElementUse>();
             foreach (string isoDeviceElementID in isoDeviceElementIDs)
             {
@@ -116,7 +105,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         /// <returns></returns>
         public List<DeviceElementUse> ConvertToBaseTypes(List<DeviceElementUse> sections)
         {
-            return sections.Select(x => {
+            return sections.Select(x =>
+            {
                 var section = new DeviceElementUse();
                 var meters = x.GetWorkingDatas().Select(y => _workingDataMapper.ConvertToBaseType(y)).ToList();
                 section.GetWorkingDatas = () => meters;
@@ -129,23 +119,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 section.Id.ReferenceId = x.Id.ReferenceId;
                 section.Id.UniqueIds = x.Id.UniqueIds;
                 return section;
-                }).ToList();
-        }
-
-        private int GetLowestProductAllocationLevel(DeviceHierarchyElement isoDeviceElementHierarchy, Dictionary<string, List<ISOProductAllocation>> isoProductAllocations)
-        {
-            int level = -1;
-            // If device element has direct product allocations, use its Depth.
-            if (isoProductAllocations.TryGetValue(isoDeviceElementHierarchy?.DeviceElement.DeviceElementId, out List<ISOProductAllocation> productAllocations) &&
-                productAllocations.Any(x => x.DeviceElementIdRef == isoDeviceElementHierarchy.DeviceElement.DeviceElementId))
-            {
-                level = isoDeviceElementHierarchy.Depth;
-            }
-
-            // Get max level from children elements
-            int? maxChildLevel = isoDeviceElementHierarchy?.Children?.Max(x => GetLowestProductAllocationLevel(x, isoProductAllocations));
-
-            return Math.Max(level, maxChildLevel.GetValueOrDefault(-1));
+            }).ToList();
         }
     }
 }

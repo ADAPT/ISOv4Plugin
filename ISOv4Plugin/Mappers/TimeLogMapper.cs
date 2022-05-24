@@ -417,20 +417,20 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         private Dictionary<string, List<ISOProductAllocation>> GetProductAllocationsByDeviceElement(ISOTask loggedTask, ISODevice dvc)
         {
-            Dictionary<string, Dictionary<string, ISOProductAllocation>> output = new Dictionary<string, Dictionary<string, ISOProductAllocation>>();
+            Dictionary<string, Dictionary<string, ISOProductAllocation>> reportedPANs = new Dictionary<string, Dictionary<string, ISOProductAllocation>>();
             int panIndex = 0; // This supports multiple direct PANs for the same DET
             foreach (ISOProductAllocation pan in loggedTask.ProductAllocations.Where(p => !string.IsNullOrEmpty(p.DeviceElementIdRef)))
             {
                 ISODeviceElement deviceElement = dvc.DeviceElements.FirstOrDefault(d => d.DeviceElementId == pan.DeviceElementIdRef);
                 if (deviceElement != null) //Filter PANs by this DVC
                 {
-                    AddProductAllocationsForDeviceElement(output, pan, deviceElement, $"{GetHierarchyPosition(deviceElement)}_{panIndex}");
+                    AddProductAllocationsForDeviceElement(reportedPANs, pan, deviceElement, $"{GetHierarchyPosition(deviceElement)}_{panIndex}");
                 }
                 panIndex++;
             }
             // Sort product allocations for each DeviceElement using it's position among ancestors.
             // This arranges PANs on each DET in reverse order: ones from lowest DET in hierarchy having precedence over ones from top.
-            return output.ToDictionary(x => x.Key, x=>
+            Dictionary<string, List<ISOProductAllocation>> output = reportedPANs.ToDictionary(x => x.Key, x=>
             {
                 var allocations = x.Value.OrderByDescending(y => y.Key).Select(y => y.Value).ToList();
                 // Check if there are any indirect allocations: ones that came from parent device element
@@ -442,6 +442,35 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 }
                 return allocations;
             });
+
+            // Determine the lowest depth at which product allocations are reported to eliminate any duplicate PANs
+            // at multiple levels within the hierarchy
+            DeviceHierarchyElement det = reportedPANs.Keys
+                .Select(x => TaskDataMapper.DeviceElementHierarchies.GetMatchingElement(x))
+                .Where(x => x != null)
+                .FirstOrDefault();
+            int lowestLevel = GetLowestProductAllocationLevel(det?.GetRootDeviceElementHierarchy(), output);
+            // Remove allocations for all other levels
+            return output
+                .Where(x => TaskDataMapper.DeviceElementHierarchies.GetMatchingElement(x.Key)?.Depth == lowestLevel)
+                .ToDictionary(x => x.Key, x => x.Value);
+        }
+
+        private int GetLowestProductAllocationLevel(DeviceHierarchyElement isoDeviceElementHierarchy, Dictionary<string, List<ISOProductAllocation>> isoProductAllocations)
+        {
+            int level = -1;
+            // If device element has direct product allocations, use its Depth.
+            if (isoDeviceElementHierarchy != null &&
+                isoProductAllocations.TryGetValue(isoDeviceElementHierarchy.DeviceElement.DeviceElementId, out List<ISOProductAllocation> productAllocations) &&
+                productAllocations.Any(x => x.DeviceElementIdRef == isoDeviceElementHierarchy.DeviceElement.DeviceElementId))
+            {
+                level = isoDeviceElementHierarchy.Depth;
+            }
+
+            // Get max level from children elements
+            int? maxChildLevel = isoDeviceElementHierarchy?.Children?.Max(x => GetLowestProductAllocationLevel(x, isoProductAllocations));
+
+            return Math.Max(level, maxChildLevel.GetValueOrDefault(-1));
         }
 
         private int GetHierarchyPosition(ISODeviceElement deviceElement)
