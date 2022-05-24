@@ -247,7 +247,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             product.Description = isoProduct.ProductDesignator;
 
             //Mixes
-            product.ProductComponents = ImportProductComponents(isoProduct, product.Form);
+            product.ProductComponents = ImportProductComponents(isoProduct);
 
             //Total Mix quantity
             if (isoProduct.MixtureRecipeQuantity.HasValue && product is MixProduct mixProduct)
@@ -291,7 +291,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return manufacturer.Id.ReferenceId;
         }
 
-        private List<ProductComponent> ImportProductComponents(ISOProduct isoProduct, ProductFormEnum productForm)
+        private List<ProductComponent> ImportProductComponents(ISOProduct isoProduct)
         {
             if (!isoProduct.ProductRelations.Any())
             {
@@ -311,9 +311,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     Product adaptProduct = DataModel.Catalog.Products.FirstOrDefault(i => i.Id.FindIsoId() == isoComponent.ProductId);
                     if (adaptProduct == null)
                     {
-                        adaptProduct = new GenericProduct();
-                        adaptProduct.Description = isoComponent.ProductDesignator;
-                        DataModel.Catalog.Products.Add(adaptProduct);
+                        adaptProduct = ImportProduct(isoComponent);
                     }
 
                     //Create a component for this ingredient
@@ -324,7 +322,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         IsCarrier = adaptProduct.Category == CategoryEnum.Carrier
                     };
 
-                    var quantityDDI = GetQuantityDDI(isoComponent.QuantityDDI, productForm);
+                    var quantityDDI = GetQuantityDDI(isoComponent.QuantityDDI, adaptProduct.Form);
                     if (!string.IsNullOrEmpty(quantityDDI))
                     {
                         component.Quantity = prn.QuantityValue.AsNumericRepresentationValue(quantityDDI, RepresentationMapper);
