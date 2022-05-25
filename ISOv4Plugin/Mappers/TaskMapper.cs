@@ -2,6 +2,8 @@
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
+using System.Collections.Generic;
+using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.Documents;
 using AgGateway.ADAPT.ApplicationDataModel.Equipment;
@@ -13,10 +15,8 @@ using AgGateway.ADAPT.ApplicationDataModel.Representations;
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
 using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
+using AgGateway.ADAPT.ISOv4Plugin.Mappers.Factories;
 using AgGateway.ADAPT.ISOv4Plugin.Representation;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
@@ -51,16 +51,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
         }
 
-        TimeLogMapper _timeLogMapper;
-        public TimeLogMapper TimeLogMapper
+        TimeLogMapperFactory _timeLogFactoryMapper;
+        public TimeLogMapperFactory TimeLogMapperFactory
         {
             get
             {
-                if (_timeLogMapper == null)
+                if (_timeLogFactoryMapper == null)
                 {
-                    _timeLogMapper = new TimeLogMapper(TaskDataMapper);
+                    _timeLogFactoryMapper = new TimeLogMapperFactory(TaskDataMapper);
                 }
-                return _timeLogMapper;
+                return _timeLogFactoryMapper;
             }
         }
 
@@ -192,7 +192,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             if (loggedData.OperationData.Any())
             {
                 //Time Logs
-                task.TimeLogs = TimeLogMapper.ExportTimeLogs(loggedData.OperationData, TaskDataPath).ToList();
+                task.TimeLogs = TimeLogMapperFactory.ExportTimeLogs(loggedData.OperationData, TaskDataPath).ToList();
 
                 //Connections
                 IEnumerable<int> taskEquipmentConfigIDs = loggedData.OperationData.SelectMany(o => o.EquipmentConfigurationIds);
@@ -639,7 +639,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     rxID = _rxIDsByTask[isoLoggedTask.TaskID];
                 }
 
-                loggedData.OperationData = TimeLogMapper.ImportTimeLogs(isoLoggedTask, rxID);
+                loggedData.OperationData = TimeLogMapperFactory.ImportTimeLogs(isoLoggedTask, rxID);
             }
 
             //Connections

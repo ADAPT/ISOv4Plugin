@@ -1,9 +1,10 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.Equipment;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
@@ -18,7 +19,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         private readonly IWorkingDataMapper _workingDataMapper;
 
         public SectionMapper(IWorkingDataMapper meterMapper, TaskDataMapper taskDataMapper)
-            : base (taskDataMapper, null)
+            : base(taskDataMapper, null)
         {
             _workingDataMapper = meterMapper;
         }
@@ -104,7 +105,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         /// <returns></returns>
         public List<DeviceElementUse> ConvertToBaseTypes(List<DeviceElementUse> sections)
         {
-            return sections.Select(x => {
+            return sections.Select(x =>
+            {
                 var section = new DeviceElementUse();
                 var meters = x.GetWorkingDatas().Select(y => _workingDataMapper.ConvertToBaseType(y)).ToList();
                 section.GetWorkingDatas = () => meters;
@@ -117,8 +119,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 section.Id.ReferenceId = x.Id.ReferenceId;
                 section.Id.UniqueIds = x.Id.UniqueIds;
                 return section;
-                }).ToList();
+            }).ToList();
         }
-
     }
 }

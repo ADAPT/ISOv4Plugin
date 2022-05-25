@@ -89,9 +89,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         private void SetEnumeratedMeterValue(ISOSpatialRow isoSpatialRow, EnumeratedWorkingData meter, SpatialRecord spatialRecord)
         {
+            var isoDataLogValue = _workingDataMapper.DataLogValuesByWorkingDataID[meter.Id.ReferenceId];
             var isoValue = isoSpatialRow.SpatialValues.FirstOrDefault(v =>
-                    v.DataLogValue.DeviceElementIdRef == _workingDataMapper.DataLogValuesByWorkingDataID[meter.Id.ReferenceId].DeviceElementIdRef &&
-                    v.DataLogValue.ProcessDataDDI == _workingDataMapper.DataLogValuesByWorkingDataID[meter.Id.ReferenceId].ProcessDataDDI);
+                    v.DataLogValue.DeviceElementIdRef == isoDataLogValue.DeviceElementIdRef &&
+                    v.DataLogValue.ProcessDataDDI == isoDataLogValue.ProcessDataDDI);
             if (isoValue != null)
             {
                 var isoEnumeratedMeter = meter as ISOEnumeratedMeter;
@@ -108,11 +109,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         private void SetNumericMeterValue(ISOSpatialRow isoSpatialRow, NumericWorkingData meter, SpatialRecord spatialRecord, Dictionary<string, List<ISOProductAllocation>> productAllocations)
         {
-            var isoValue = isoSpatialRow.SpatialValues.FirstOrDefault(v =>
+            var dataLogValue = _workingDataMapper.DataLogValuesByWorkingDataID.ContainsKey(meter.Id.ReferenceId)
+                ? _workingDataMapper.DataLogValuesByWorkingDataID[meter.Id.ReferenceId]
+                : null;
+            var isoValue = dataLogValue != null
+                           ? isoSpatialRow.SpatialValues.FirstOrDefault(v =>
                                 v.DataLogValue.ProcessDataDDI != "DFFE" &&
-                                _workingDataMapper.DataLogValuesByWorkingDataID.ContainsKey(meter.Id.ReferenceId) &&
-                                v.DataLogValue.DeviceElementIdRef == _workingDataMapper.DataLogValuesByWorkingDataID[meter.Id.ReferenceId].DeviceElementIdRef &&
-                                v.DataLogValue.ProcessDataDDI == _workingDataMapper.DataLogValuesByWorkingDataID[meter.Id.ReferenceId].ProcessDataDDI);
+                                v.DataLogValue.DeviceElementIdRef == dataLogValue.DeviceElementIdRef &&
+                                v.DataLogValue.ProcessDataDDI == dataLogValue.ProcessDataDDI)
+                           : null;
 
 
             if (isoValue != null)
@@ -137,25 +142,26 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 string detID = _workingDataMapper.ISODeviceElementIDsByWorkingDataID[meter.Id.ReferenceId];
                 if (productAllocations.ContainsKey(detID)) //The DeviceElement for this meter exists in the list of allocations
                 {
+                    var productAllocationsForDeviceElement = productAllocations[detID];
                     double numericValue = 0d;
-                    if (productAllocations[detID].Count == 1 || TimeLogMapper.GetDistinctProductIDs(_taskDataMapper, productAllocations).Count == 1)
+                    if (productAllocationsForDeviceElement.Count == 1 || TimeLogMapper.GetDistinctProductIDs(_taskDataMapper, productAllocations).Count == 1)
                     {
                         //This product is consistent throughout the task on this device element
-                        int? adaptProductID = _taskDataMapper.InstanceIDMap.GetADAPTID(productAllocations[detID].Single().ProductIdRef);
+                        int? adaptProductID = _taskDataMapper.InstanceIDMap.GetADAPTID(productAllocationsForDeviceElement.Single().ProductIdRef);
                         numericValue = adaptProductID.HasValue ? adaptProductID.Value : 0d;
 
                     }
-                    else if (productAllocations[detID].Count > 1)
+                    else if (productAllocationsForDeviceElement.Count > 1)
                     {
                         //There are multiple product allocations for the device element
                         //Find the product allocation that governs this timestamp
-                        ISOProductAllocation relevantPan = productAllocations[detID].FirstOrDefault(p => Offset(p.AllocationStamp.Start) <= spatialRecord.Timestamp &&
+                        ISOProductAllocation relevantPan = productAllocationsForDeviceElement.FirstOrDefault(p => Offset(p.AllocationStamp.Start) <= spatialRecord.Timestamp &&
                                                                                                          (p.AllocationStamp.Stop == null ||
                                                                                                           Offset(p.AllocationStamp.Stop) >= spatialRecord.Timestamp));
                         if (relevantPan == null)
                         {
                             //We couldn't correlate strictly based on time.  Check for a more general match on date alone before returning null.
-                            var pansMatchingDate = productAllocations[detID].Where(p => p.AllocationStamp.Start?.Date == p.AllocationStamp.Stop?.Date &&
+                            var pansMatchingDate = productAllocationsForDeviceElement.Where(p => p.AllocationStamp.Start?.Date == p.AllocationStamp.Stop?.Date &&
                                                                                p.AllocationStamp.Start?.Date == spatialRecord.Timestamp.Date);
                             if (pansMatchingDate.Count() == 1)
                             {
