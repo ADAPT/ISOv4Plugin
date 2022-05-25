@@ -4,21 +4,17 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 using AgGateway.ADAPT.ApplicationDataModel.ADM;
+using AgGateway.ADAPT.ApplicationDataModel.Common;
+using AgGateway.ADAPT.ApplicationDataModel.Documents;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ApplicationDataModel.Logistics;
 using AgGateway.ADAPT.ApplicationDataModel.Products;
-using AgGateway.ADAPT.ApplicationDataModel.Documents;
-using AgGateway.ADAPT.ISOv4Plugin.Representation;
-using AgGateway.ADAPT.ApplicationDataModel.Equipment;
+using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
-using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
-using AgGateway.ADAPT.ApplicationDataModel.Common;
-using System.Globalization;
+using AgGateway.ADAPT.ISOv4Plugin.Representation;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {

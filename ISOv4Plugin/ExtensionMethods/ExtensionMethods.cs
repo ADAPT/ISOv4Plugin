@@ -2,21 +2,20 @@
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
+using System;
 using System.Collections.Generic;
-using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.Equipment;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
-using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
+using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 using AgGateway.ADAPT.ISOv4Plugin.Mappers;
-using System;
-using System.IO;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using AgGateway.ADAPT.ISOv4Plugin.Representation;
 using RepresentationUnitSystem = AgGateway.ADAPT.Representation.UnitSystem;
-using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
@@ -280,6 +279,62 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
                 return matchedFiles;
             }
             return new List<string>();
+        }
+
+        /// <summary>
+        /// Case-insensitive comparison of two strings
+        /// </summary>
+        /// <param name="value1"></param>
+        /// <param name="value2"></param>
+        /// <returns></returns>
+        public static bool EqualsIgnoreCase(this string value1, string value2)
+        {
+            return string.Equals(value1, value2, StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Returns an earlier value of two DateTime objects
+        /// </summary>
+        /// <param name="time1"></param>
+        /// <param name="time2"></param>
+        /// <returns></returns>
+        public static DateTime? Min(this DateTime? time1, DateTime? time2)
+        {
+            if (time1.HasValue && time2.HasValue)
+            {
+                return time1.Value <= time2.Value ? time1: time2;
+            }
+            return time1.HasValue ? time1 : time2;
+        }
+
+        /// <summary>
+        /// Returns a later value of two DateTime objects
+        /// </summary>
+        /// <param name="time1"></param>
+        /// <param name="time2"></param>
+        /// <returns></returns>
+        public static DateTime? Max(this DateTime? time1, DateTime? time2)
+        {
+            if (time1.HasValue && time2.HasValue)
+            {
+                return time1.Value >= time2.Value ? time1 : time2;
+            }
+            return time1.HasValue ? time1 : time2;
+        }
+
+        /// <summary>
+        /// Max of two integer values
+        /// </summary>
+        /// <param name="value1"></param>
+        /// <param name="value2"></param>
+        /// <returns></returns>
+        public static uint? Max(this uint? value1, uint? value2)
+        {
+            if (value1.HasValue && value1.HasValue)
+            {
+                return value1 >= value2 ? value1 : value2;
+            }
+            return value1.HasValue ? value1 : value2;
         }
     }
 }

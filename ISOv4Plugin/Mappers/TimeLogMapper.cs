@@ -2,25 +2,19 @@
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
-using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
-using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AgGateway.ADAPT.ApplicationDataModel.Logistics;
-using AgGateway.ADAPT.ApplicationDataModel.Shapes;
-using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
-using AgGateway.ADAPT.ApplicationDataModel.Guidance;
-using AgGateway.ADAPT.ApplicationDataModel.Products;
+using AgGateway.ADAPT.ApplicationDataModel.Common;
+using AgGateway.ADAPT.ApplicationDataModel.Equipment;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
+using AgGateway.ADAPT.ApplicationDataModel.Shapes;
+using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
+using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
+using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using AgGateway.ADAPT.ISOv4Plugin.Representation;
-using AgGateway.ADAPT.ApplicationDataModel.Equipment;
-using System.IO;
-using AgGateway.ADAPT.ApplicationDataModel.Common;
-using AgGateway.ADAPT.Representation.RepresentationSystem;
 using AgGateway.ADAPT.Representation.RepresentationSystem.ExtensionMethods;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
@@ -28,12 +22,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
     public interface ITimeLogMapper
     {
         IEnumerable<ISOTimeLog> ExportTimeLogs(IEnumerable<OperationData> operationDatas, string dataPath);
-        IEnumerable<OperationData> ImportTimeLogs(ISOTask loggedTask, int? prescriptionID);
+        IEnumerable<OperationData> ImportTimeLogs(ISOTask loggedTask, IEnumerable<ISOTimeLog> timeLogs, int? prescriptionID);
     }
 
-    public class TimeLogMapper : BaseMapper, ITimeLogMapper
+    internal class TimeLogMapper : BaseMapper, ITimeLogMapper
     {
-        public TimeLogMapper(TaskDataMapper taskDataMapper) : base(taskDataMapper, "TLG")
+        internal TimeLogMapper(TaskDataMapper taskDataMapper) : base(taskDataMapper, "TLG")
         {
         }
 
@@ -281,10 +275,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         #region Import
 
-        public IEnumerable<OperationData> ImportTimeLogs(ISOTask loggedTask, int? prescriptionID)
+        public virtual IEnumerable<OperationData> ImportTimeLogs(ISOTask loggedTask, IEnumerable<ISOTimeLog> timeLogs, int? prescriptionID)
         {
             List<OperationData> operations = new List<OperationData>();
-            foreach (ISOTimeLog isoTimeLog in loggedTask.TimeLogs)
+            foreach (ISOTimeLog isoTimeLog in timeLogs)
             {
                 IEnumerable<OperationData> operationData = ImportTimeLog(loggedTask, isoTimeLog, prescriptionID);
                 if (operationData != null)
@@ -296,7 +290,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return operations;
         }
 
-        private IEnumerable<OperationData> ImportTimeLog(ISOTask loggedTask, ISOTimeLog isoTimeLog, int? prescriptionID)
+        protected IEnumerable<OperationData> ImportTimeLog(ISOTask loggedTask, ISOTimeLog isoTimeLog, int? prescriptionID)
         {
             WorkingDataMapper workingDataMapper = new WorkingDataMapper(new EnumeratedMeterFactory(), TaskDataMapper);
             SectionMapper sectionMapper = new SectionMapper(workingDataMapper, TaskDataMapper);
@@ -336,10 +330,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     TaskDataMapper.AddError($"Timelog file {isoTimeLog.Filename} is invalid.  Skipping.", ex.Message, null, ex.StackTrace);
                     return null;
                 }
-                ISOTime time = isoTimeLog.GetTimeElement(this.TaskDataPath);
+                ISOTime time = GetTimeElementFromTimeLog(isoTimeLog);
 
                 //Identify unique devices represented in this TimeLog data
-                IEnumerable<string> deviceElementIDs = time.DataLogValues.Where(d => d.ProcessDataDDI != "DFFF" && d.ProcessDataDDI != "DFFE").Select(d => d.DeviceElementIdRef);
+                IEnumerable<string> deviceElementIDs = time.DataLogValues.Where(d => !d.ProcessDataDDI.EqualsIgnoreCase("DFFF") && !d.ProcessDataDDI.EqualsIgnoreCase("DFFE"))
+                    .Select(d => d.DeviceElementIdRef).Distinct().ToList();
                 Dictionary<ISODevice, HashSet<string>> loggedDeviceElementsByDevice = new Dictionary<ISODevice, HashSet<string>>();
                 foreach (string deviceElementID in deviceElementIDs)
                 {
@@ -398,6 +393,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return null;
         }
 
+        protected virtual ISOTime GetTimeElementFromTimeLog(ISOTimeLog isoTimeLog)
+        {
+            return isoTimeLog.GetTimeElement(this.TaskDataPath);
+        }
+
         internal static List<int> GetDistinctProductIDs(TaskDataMapper taskDataMapper, Dictionary<string, List<ISOProductAllocation>> productAllocations)
         {
             HashSet<int> productIDs = new HashSet<int>();
@@ -417,29 +417,86 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         private Dictionary<string, List<ISOProductAllocation>> GetProductAllocationsByDeviceElement(ISOTask loggedTask, ISODevice dvc)
         {
-            Dictionary<string, List<ISOProductAllocation>> output = new Dictionary<string, List<ISOProductAllocation>>();
+            Dictionary<string, Dictionary<string, ISOProductAllocation>> reportedPANs = new Dictionary<string, Dictionary<string, ISOProductAllocation>>();
+            int panIndex = 0; // This supports multiple direct PANs for the same DET
             foreach (ISOProductAllocation pan in loggedTask.ProductAllocations.Where(p => !string.IsNullOrEmpty(p.DeviceElementIdRef)))
             {
-                if (dvc.DeviceElements.Select(d => d.DeviceElementId).Contains(pan.DeviceElementIdRef)) //Filter PANs by this DVC
+                ISODeviceElement deviceElement = dvc.DeviceElements.FirstOrDefault(d => d.DeviceElementId == pan.DeviceElementIdRef);
+                if (deviceElement != null) //Filter PANs by this DVC
                 {
-                    ISODeviceElement deviceElement = dvc.DeviceElements.First(d => d.DeviceElementId == pan.DeviceElementIdRef);
-                    AddProductAllocationsForDeviceElement(output, pan, deviceElement);
+                    AddProductAllocationsForDeviceElement(reportedPANs, pan, deviceElement, $"{GetHierarchyPosition(deviceElement)}_{panIndex}");
                 }
+                panIndex++;
             }
-            return output;
+            // Sort product allocations for each DeviceElement using it's position among ancestors.
+            // This arranges PANs on each DET in reverse order: ones from lowest DET in hierarchy having precedence over ones from top.
+            Dictionary<string, List<ISOProductAllocation>> output = reportedPANs.ToDictionary(x => x.Key, x=>
+            {
+                var allocations = x.Value.OrderByDescending(y => y.Key).Select(y => y.Value).ToList();
+                // Check if there are any indirect allocations: ones that came from parent device element
+                var indirectAllocations = allocations.Where(y => y.DeviceElementIdRef != x.Key).ToList();
+                if (indirectAllocations.Count > 0 && indirectAllocations.Count != allocations.Count)
+                {
+                    // Only keep direct allocations
+                    allocations = allocations.Except(indirectAllocations).ToList();
+                }
+                return allocations;
+            });
+
+            // Determine the lowest depth at which product allocations are reported to eliminate any duplicate PANs
+            // at multiple levels within the hierarchy
+            DeviceHierarchyElement det = reportedPANs.Keys
+                .Select(x => TaskDataMapper.DeviceElementHierarchies.GetMatchingElement(x))
+                .Where(x => x != null)
+                .FirstOrDefault();
+            int lowestLevel = GetLowestProductAllocationLevel(det?.GetRootDeviceElementHierarchy(), output);
+            // Remove allocations for all other levels
+            return output
+                .Where(x => TaskDataMapper.DeviceElementHierarchies.GetMatchingElement(x.Key)?.Depth == lowestLevel)
+                .ToDictionary(x => x.Key, x => x.Value);
         }
 
-        private void AddProductAllocationsForDeviceElement(Dictionary<string, List<ISOProductAllocation>> productAllocations, ISOProductAllocation pan, ISODeviceElement deviceElement)
+        private int GetLowestProductAllocationLevel(DeviceHierarchyElement isoDeviceElementHierarchy, Dictionary<string, List<ISOProductAllocation>> isoProductAllocations)
+        {
+            int level = -1;
+            // If device element has direct product allocations, use its Depth.
+            if (isoDeviceElementHierarchy != null &&
+                isoProductAllocations.TryGetValue(isoDeviceElementHierarchy.DeviceElement.DeviceElementId, out List<ISOProductAllocation> productAllocations) &&
+                productAllocations.Any(x => x.DeviceElementIdRef == isoDeviceElementHierarchy.DeviceElement.DeviceElementId))
+            {
+                level = isoDeviceElementHierarchy.Depth;
+            }
+
+            // Get max level from children elements
+            int? maxChildLevel = isoDeviceElementHierarchy?.Children?.Max(x => GetLowestProductAllocationLevel(x, isoProductAllocations));
+
+            return Math.Max(level, maxChildLevel.GetValueOrDefault(-1));
+        }
+
+        private int GetHierarchyPosition(ISODeviceElement deviceElement)
+        {
+            int position = 0;
+
+            while(deviceElement != null)
+            {
+                deviceElement = deviceElement.Parent as ISODeviceElement;
+                position++;
+            }
+            return position;
+        }
+
+        private void AddProductAllocationsForDeviceElement(Dictionary<string, Dictionary<string, ISOProductAllocation>> productAllocations, ISOProductAllocation pan, ISODeviceElement deviceElement, string hierarchyPoistion)
         {
             if (!productAllocations.ContainsKey(deviceElement.DeviceElementId))
             {
-                productAllocations.Add(deviceElement.DeviceElementId, new List<ISOProductAllocation>());
+                productAllocations.Add(deviceElement.DeviceElementId, new Dictionary<string, ISOProductAllocation>());
             }
-            productAllocations[deviceElement.DeviceElementId].Add(pan);
+
+            productAllocations[deviceElement.DeviceElementId][hierarchyPoistion] = pan;
 
             foreach (ISODeviceElement child in deviceElement.ChildDeviceElements)
             {
-                AddProductAllocationsForDeviceElement(productAllocations, pan, child);
+                AddProductAllocationsForDeviceElement(productAllocations, pan, child, hierarchyPoistion);
             }
         }
 
@@ -475,7 +532,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return OperationTypeEnum.Unknown;
         }
 
-        private IEnumerable<ISOSpatialRow> ReadTimeLog(ISOTimeLog timeLog, string dataPath)
+        protected virtual IEnumerable<ISOSpatialRow> ReadTimeLog(ISOTimeLog timeLog, string dataPath)
         {
             ISOTime templateTime = timeLog.GetTimeElement(dataPath);
             string binName = string.Concat(timeLog.Filename, ".bin");
@@ -492,7 +549,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return BinaryReader.ReadImplementGeometryValues(filePath, templateTime, dlvsToRead);
         }
 
-        private class BinaryReader
+        protected class BinaryReader
         {
             private static readonly DateTime _firstDayOf1980 = new DateTime(1980, 01, 01);
 

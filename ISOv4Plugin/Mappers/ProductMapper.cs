@@ -10,6 +10,8 @@ using System.Linq;
 using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
 using AgGateway.ADAPT.ApplicationDataModel.Products;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
+using AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers;
+using AgGateway.ADAPT.ApplicationDataModel.Logistics;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
@@ -24,9 +26,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
     public class ProductMapper : BaseMapper, IProductMapper
     {
+        private readonly IManufacturer _manufacturer;
+        private readonly static List<CategoryEnum> _chemicalCategories = new List<CategoryEnum>
+        {
+            CategoryEnum.Fungicide, CategoryEnum.Herbicide, CategoryEnum.Insecticide, CategoryEnum.Pesticide
+        };
+
         public ProductMapper(TaskDataMapper taskDataMapper, ProductGroupMapper productGroupMapper) : base(taskDataMapper, "PDT")
         {
             _productGroupMapper = productGroupMapper;
+
+            _manufacturer = ManufacturerFactory.GetManufacturer(taskDataMapper);
         }
 
         #region Export
@@ -202,25 +212,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         public Product ImportProduct(ISOProduct isoProduct)
         {
             //First check if we've already created a matching seed product from the crop type
-            Product product = DataModel.Catalog.Products.FirstOrDefault(p => p.ProductType == ProductTypeEnum.Variety && p.Description == isoProduct.ProductDesignator);
-
-            //If not, create a new product
-            if (product == null)
-            {
-                //Type
-                switch (isoProduct.ProductType)
-                {
-                    case ISOProductType.Mixture:
-                    case ISOProductType.TemporaryMixture:
-                        product = new MixProduct();
-                        product.ProductType = ProductTypeEnum.Mix;
-                        break;
-                    default:
-                        product = new GenericProduct();
-                        product.ProductType = ProductTypeEnum.Generic;
-                        break;
-                }
-            }
+            Product product = DataModel.Catalog.Products.FirstOrDefault(p => p.ProductType == ProductTypeEnum.Variety && p.Description == isoProduct.ProductDesignator)
+                ?? CreateNewProductInstance(isoProduct);
 
             //ID
             if (!ImportIDs(product.Id, isoProduct.ProductId))
@@ -229,58 +222,38 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 TaskDataMapper.InstanceIDMap.ReplaceISOID(product.Id.ReferenceId, isoProduct.ProductId);
             }
 
+            // ProductForm
+            product.Form = _manufacturer?.GetProductForm(isoProduct) ?? product.Form;
+
+            // Category
+            product.Category = _manufacturer?.GetProductCategory(isoProduct) ?? CategoryEnum.Unknown;
+
+            // Update ProductType
+            if (product.ProductType == ProductTypeEnum.Generic && product.Category != CategoryEnum.Unknown)
+            {
+                product.ProductType = product.Category == CategoryEnum.Fertilizer
+                    ? ProductTypeEnum.Fertilizer
+                    : (_chemicalCategories.Contains(product.Category) ? ProductTypeEnum.Chemical : ProductTypeEnum.Generic);
+            }
+
             //Context Items
             product.ContextItems = ImportContextItems(isoProduct.ProductId, "ADAPT_Context_Items:Product", isoProduct);
             ImportPackagedProductClasses(isoProduct, product);
 
+            // Manufacturer
+            product.ManufacturerId = ImportManufacturer(isoProduct);
 
             //Description
             product.Description = isoProduct.ProductDesignator;
 
             //Mixes
-            if (isoProduct.ProductRelations.Any())
+            product.ProductComponents = ImportProductComponents(isoProduct);
+
+            //Total Mix quantity
+            if (isoProduct.MixtureRecipeQuantity.HasValue && product is MixProduct mixProduct)
             {
-                if (product.ProductComponents == null)
-                {
-                    product.ProductComponents = new List<ProductComponent>();
-                }
-
-                foreach (ISOProductRelation prn in isoProduct.ProductRelations)
-                {
-                    //Find the product referenced by the relation
-                    ISOProduct isoComponent = ISOTaskData.ChildElements.OfType<ISOProduct>().FirstOrDefault(p => p.ProductId == prn.ProductIdRef);
-
-                    if (isoComponent != null) //Skip PRN if PRN@A doesn't resolve to a product
-                    {
-                        //Find or create the product to match the component
-                        Product adaptProduct = DataModel.Catalog.Products.FirstOrDefault(i => i.Id.FindIsoId() == isoComponent.ProductId);
-                        if (adaptProduct == null)
-                        {
-                            adaptProduct = new GenericProduct();
-                            adaptProduct.Description = isoComponent.ProductDesignator;
-                            DataModel.Catalog.Products.Add(adaptProduct);
-                        }
-
-                        //Create a component for this ingredient
-                        ProductComponent component = new ProductComponent() { IngredientId = adaptProduct.Id.ReferenceId, IsProduct = true };
-                        if (!string.IsNullOrEmpty(isoComponent.QuantityDDI))
-                        {
-                            component.Quantity = prn.QuantityValue.AsNumericRepresentationValue(isoComponent.QuantityDDI, RepresentationMapper);
-                        }
-                        product.ProductComponents.Add(component);
-                    }
-                    else
-                    {
-                        TaskDataMapper.AddError($"Product relation with quantity {prn.QuantityValue} ommitted for product {isoProduct.ProductId} due to no ProductIdRef");
-                    }
-                }
-
-                //Total Mix quantity
-                if (isoProduct.MixtureRecipeQuantity.HasValue)
-                {
-                    MixProduct mixProduct = product as MixProduct;
-                    mixProduct.TotalQuantity = isoProduct.MixtureRecipeQuantity.Value.AsNumericRepresentationValue(isoProduct.QuantityDDI, RepresentationMapper);
-                }
+                mixProduct.TotalQuantity = isoProduct.MixtureRecipeQuantity.Value.AsNumericRepresentationValue(
+                    GetQuantityDDI(isoProduct.QuantityDDI, product.Form), RepresentationMapper);
             }
 
             //Density
@@ -297,6 +270,118 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 product.Density = isoProduct.DensityVolumePerCount.Value.AsNumericRepresentationValue("007B", RepresentationMapper);
             }
 
+            return product;
+        }
+
+        private int? ImportManufacturer(ISOProduct isoProduct)
+        {
+            var manufacturerName = _manufacturer?.GetProductManufacturer(isoProduct);
+            if (string.IsNullOrWhiteSpace(manufacturerName))
+            {
+                return null;
+            }
+
+            var manufacturer = TaskDataMapper.AdaptDataModel.Catalog.Manufacturers.FirstOrDefault(x => x.Description.EqualsIgnoreCase(manufacturerName));
+            if (manufacturer == null)
+            {
+                manufacturer = new Manufacturer();
+                manufacturer.Description = manufacturerName;
+                TaskDataMapper.AdaptDataModel.Catalog.Manufacturers.Add(manufacturer);
+            }
+            return manufacturer.Id.ReferenceId;
+        }
+
+        private List<ProductComponent> ImportProductComponents(ISOProduct isoProduct)
+        {
+            if (!isoProduct.ProductRelations.Any())
+            {
+                return null;
+
+            }
+            var productComponents = new List<ProductComponent>();
+
+            foreach (ISOProductRelation prn in isoProduct.ProductRelations)
+            {
+                //Find the product referenced by the relation
+                ISOProduct isoComponent = ISOTaskData.ChildElements.OfType<ISOProduct>().FirstOrDefault(p => p.ProductId == prn.ProductIdRef);
+
+                if (isoComponent != null) //Skip PRN if PRN@A doesn't resolve to a product
+                {
+                    //Find or create the product to match the component
+                    Product adaptProduct = DataModel.Catalog.Products.FirstOrDefault(i => i.Id.FindIsoId() == isoComponent.ProductId);
+                    if (adaptProduct == null)
+                    {
+                        adaptProduct = ImportProduct(isoComponent);
+                    }
+
+                    //Create a component for this ingredient
+                    ProductComponent component = new ProductComponent()
+                    {
+                        IngredientId = adaptProduct.Id.ReferenceId,
+                        IsProduct = true,
+                        IsCarrier = adaptProduct.Category == CategoryEnum.Carrier
+                    };
+
+                    var quantityDDI = GetQuantityDDI(isoComponent.QuantityDDI, adaptProduct.Form);
+                    if (!string.IsNullOrEmpty(quantityDDI))
+                    {
+                        component.Quantity = prn.QuantityValue.AsNumericRepresentationValue(quantityDDI, RepresentationMapper);
+                    }
+                    productComponents.Add(component);
+                }
+                else
+                {
+                    TaskDataMapper.AddError($"Product relation with quantity {prn.QuantityValue} ommitted for product {isoProduct.ProductId} due to no ProductIdRef");
+                }
+            }
+
+            return productComponents;
+        }
+
+        private string GetQuantityDDI(string quantityDDI, ProductFormEnum productForm)
+        {
+            return !string.IsNullOrEmpty(quantityDDI)
+                ? quantityDDI
+                : productForm == ProductFormEnum.Liquid ? "0048" : (productForm == ProductFormEnum.Solid ? "004B" : null);
+        }
+
+        private Product CreateNewProductInstance(ISOProduct isoProduct)
+        {
+            // If there is a manufacturer defined attribute representing a crop name, use it
+            string cropName = _manufacturer?.GetCropName(isoProduct);
+            if (!string.IsNullOrWhiteSpace(cropName))
+            {
+                // New crop variety product
+                var cropProduct = new CropVarietyProduct();
+                cropProduct.ProductType = ProductTypeEnum.Variety;
+
+                // Check if there is already Crop in ADAPT model
+                Crop adaptCrop = TaskDataMapper.AdaptDataModel.Catalog.Crops.FirstOrDefault(x => x.Name.EqualsIgnoreCase(cropName));
+                if (adaptCrop == null)
+                {
+                    // Create a new one
+                    adaptCrop = new Crop();
+                    adaptCrop.Name = cropName;
+                    TaskDataMapper.AdaptDataModel.Catalog.Crops.Add(adaptCrop);
+                }
+                cropProduct.CropId = adaptCrop.Id.ReferenceId;
+                return cropProduct;
+            }
+
+            Product product;
+            //Type
+            switch (isoProduct.ProductType)
+            {
+                case ISOProductType.Mixture:
+                case ISOProductType.TemporaryMixture:
+                    product = new MixProduct();
+                    product.ProductType = ProductTypeEnum.Mix;
+                    break;
+                default:
+                    product = new GenericProduct();
+                    product.ProductType = _manufacturer?.GetProductType(isoProduct) ?? ProductTypeEnum.Generic;
+                    break;
+            }
             return product;
         }
 
