@@ -59,12 +59,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             gpn.PropagationDirection = ExportPropagationDirection(adaptGuidancePattern.PropagationDirection);
             gpn.Extension = ExportExtension(adaptGuidancePattern.Extension);
             gpn.Heading = ExportHeading(adaptGuidancePattern);
-            gpn.GNSSMethod = ExportGNSSMethod(adaptGuidancePattern.GpsSource.SourceType);
-            if (adaptGuidancePattern.GpsSource.HorizontalAccuracy != null)
+            if (adaptGuidancePattern.GpsSource != null)
+            {
+                gpn.GNSSMethod = ExportGNSSMethod(adaptGuidancePattern.GpsSource.SourceType);
+            }
+            if (adaptGuidancePattern.GpsSource?.HorizontalAccuracy != null)
             {
                 gpn.HorizontalAccuracy = (decimal)adaptGuidancePattern.GpsSource.HorizontalAccuracy.AsConvertedDouble("m").Value;
             }
-            if (adaptGuidancePattern.GpsSource.VerticalAccuracy != null)
+            if (adaptGuidancePattern.GpsSource?.VerticalAccuracy != null)
             {
                 gpn.VerticalAccuracy = (decimal)adaptGuidancePattern.GpsSource.VerticalAccuracy.AsConvertedDouble("m").Value;
             }
