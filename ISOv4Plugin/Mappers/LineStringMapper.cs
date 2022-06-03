@@ -2,16 +2,13 @@
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
-using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
-using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AgGateway.ADAPT.ApplicationDataModel.Logistics;
+using AgGateway.ADAPT.ApplicationDataModel.Guidance;
 using AgGateway.ADAPT.ApplicationDataModel.Shapes;
 using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
+using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
@@ -22,6 +19,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         IEnumerable<AttributeShape> ImportAttributeLineStrings(IEnumerable<ISOLineString> isoLineStrings);
         IEnumerable<ISOLineString> ExportLinearRings(IEnumerable<LinearRing> adaptLinearRings, ISOLineStringType lsgType);
         IEnumerable<LinearRing> ImportLinearRings(IEnumerable<ISOLineString> isoLineStrings);
+        ISOLineString ExportGuidancePattern(GuidancePattern adaptGuidancePattern);
     }
 
     public class LineStringMapper : BaseMapper, ILineStringMapper
@@ -68,6 +66,67 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             PointMapper pointMapper = new PointMapper(TaskDataMapper);
             lineString.Points = pointMapper.ExportPoints(adaptLineString.Points, pointType).ToList();
+            return lineString;
+        }
+
+        public ISOLineString ExportGuidancePattern(GuidancePattern adaptGuidancePattern)
+        {
+            ISOLineString lineString = new ISOLineString(TaskDataMapper.Version);
+            lineString.LineStringType = ISOLineStringType.GuidancePattern;
+
+            PointMapper pointMapper = new PointMapper(TaskDataMapper);
+
+            List<Point> adaptPoints;
+            switch (adaptGuidancePattern.GuidancePatternType)
+            {
+                case GuidancePatternTypeEnum.AbCurve:
+                    AbCurve curve = adaptGuidancePattern as AbCurve;
+                    adaptPoints = curve.Shape[0].Points; //Only first linestring used.
+                    break;
+
+                case GuidancePatternTypeEnum.AbLine:
+                    AbLine abLine = adaptGuidancePattern as AbLine;
+                    adaptPoints = new List<Point>();
+                    adaptPoints.Add(abLine.A);
+                    adaptPoints.Add(abLine.B);
+                    break;
+                case GuidancePatternTypeEnum.APlus:
+                    APlus aPlus = adaptGuidancePattern as APlus;
+                    adaptPoints = new List<Point>();
+                    adaptPoints.Add(aPlus.Point);
+                    break;
+                case GuidancePatternTypeEnum.CenterPivot:
+                    PivotGuidancePattern pivot = adaptGuidancePattern as PivotGuidancePattern;
+                    adaptPoints = new List<Point>();
+                    lineString.Points.Add(pointMapper.ExportPoint(pivot.Center, ISOPointType.GuidanceReferenceCenter));
+
+                    if (pivot.DefinitionMethod == PivotGuidanceDefinitionEnum.PivotGuidancePatternStartEndCenter &&
+                        pivot.StartPoint != null &&
+                        pivot.EndPoint != null)
+                    {
+                        adaptPoints.Add(pivot.StartPoint);
+                        adaptPoints.Add(pivot.EndPoint);
+                    }
+                    break;
+                case GuidancePatternTypeEnum.Spiral:
+                    Spiral spiral = adaptGuidancePattern as Spiral;
+                    adaptPoints = spiral.Shape.Points;
+                    break;
+                default:
+                    return null;
+            }
+
+            for (int i = 0; i < adaptPoints.Count; i++)
+            {
+                ISOPointType pointType = i == 0
+                    ? ISOPointType.GuidanceReferenceA
+                    : (i == adaptPoints.Count - 1
+                        ? ISOPointType.GuidanceReferenceB
+                        : ISOPointType.GuidancePoint);
+
+                lineString.Points.Add(pointMapper.ExportPoint(adaptPoints[i], pointType));
+            }
+
             return lineString;
         }
 
