@@ -2,18 +2,16 @@
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
-using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
-using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AgGateway.ADAPT.ApplicationDataModel.Logistics;
-using AgGateway.ADAPT.ApplicationDataModel.Shapes;
-using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
 using AgGateway.ADAPT.ApplicationDataModel.Guidance;
+using AgGateway.ADAPT.ApplicationDataModel.Logistics;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
+using AgGateway.ADAPT.ApplicationDataModel.Shapes;
+using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
+using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
+using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 using AgGateway.ADAPT.Representation.UnitSystem;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
@@ -59,14 +57,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             gpn.PropagationDirection = ExportPropagationDirection(adaptGuidancePattern.PropagationDirection);
             gpn.Extension = ExportExtension(adaptGuidancePattern.Extension);
             gpn.Heading = ExportHeading(adaptGuidancePattern);
-            gpn.GNSSMethod = ExportGNSSMethod(adaptGuidancePattern.GpsSource.SourceType);
-            if (adaptGuidancePattern.GpsSource.HorizontalAccuracy != null)
+            if (adaptGuidancePattern.GpsSource != null)
             {
-                gpn.HorizontalAccuracy = (decimal)adaptGuidancePattern.GpsSource.HorizontalAccuracy.AsConvertedDouble("m").Value;
-            }
-            if (adaptGuidancePattern.GpsSource.VerticalAccuracy != null)
-            {
-                gpn.VerticalAccuracy = (decimal)adaptGuidancePattern.GpsSource.VerticalAccuracy.AsConvertedDouble("m").Value;
+                gpn.GNSSMethod = ExportGNSSMethod(adaptGuidancePattern.GpsSource.SourceType);
+                if (adaptGuidancePattern.GpsSource.HorizontalAccuracy != null)
+                {
+                    gpn.HorizontalAccuracy = (decimal)adaptGuidancePattern.GpsSource.HorizontalAccuracy.AsConvertedDouble("m").Value;
+                }
+                if (adaptGuidancePattern.GpsSource.VerticalAccuracy != null)
+                {
+                    gpn.VerticalAccuracy = (decimal)adaptGuidancePattern.GpsSource.VerticalAccuracy.AsConvertedDouble("m").Value;
+                }
             }
             gpn.OriginalSRID = adaptGuidancePattern.OriginalEpsgCode;
             gpn.NumberOfSwathsLeft = (uint?)adaptGuidancePattern.NumbersOfSwathsLeft;
@@ -74,49 +75,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             //Pattern
             LineStringMapper lineStringMapper = new LineStringMapper(TaskDataMapper);
-            switch (adaptGuidancePattern.GuidancePatternType)
-            {
-                case GuidancePatternTypeEnum.AbCurve:
-                    AbCurve curve = adaptGuidancePattern as AbCurve;
-                    gpn.LineString = lineStringMapper.ExportLineString(curve.Shape[0], ISOLineStringType.GuidancePattern); //Only first linestring used.
-                    break;
+            gpn.LineString = lineStringMapper.ExportGuidancePattern(adaptGuidancePattern);
 
-                case GuidancePatternTypeEnum.AbLine:
-                    AbLine abLine = adaptGuidancePattern as AbLine;
-                    LineString line = new LineString { Points = new List<Point>() };
-                    line.Points.Add(abLine.A);
-                    line.Points.Add(abLine.B);
-                    gpn.LineString = lineStringMapper.ExportLineString(line, ISOLineStringType.GuidancePattern);
-                    break;
-                case GuidancePatternTypeEnum.APlus:
-                    APlus aPlus = adaptGuidancePattern as APlus;
-                    LineString aPlusLine = new LineString { Points = new List<Point>() };
-                    aPlusLine.Points.Add(aPlus.Point);
-                    gpn.LineString = lineStringMapper.ExportLineString(aPlusLine, ISOLineStringType.GuidancePattern);
-                    break;
-                case GuidancePatternTypeEnum.CenterPivot:
-                    PivotGuidancePattern pivot = adaptGuidancePattern as PivotGuidancePattern;
-                    LineString pivotLine = new LineString { Points = new List<Point>() };
-                    pivotLine.Points.Add(pivot.Center);
-                    if (pivot.DefinitionMethod == PivotGuidanceDefinitionEnum.PivotGuidancePatternStartEndCenter &&
-                        pivot.StartPoint != null &&
-                        pivot.EndPoint != null)
-                    {
-                        pivotLine.Points.Add(pivot.StartPoint);
-                        pivotLine.Points.Add(pivot.EndPoint);
-                    }
-                    else if (pivot.DefinitionMethod == PivotGuidanceDefinitionEnum.PivotGuidancePatternCenterRadius &&
-                             pivot.Radius != null)
-                    {
-                        gpn.Radius = (uint)pivot.Radius.AsConvertedInt("mm").Value;
-                        gpn.GuidancePatternOptions = ISOGuidancePatternOption.FullCircle;
-                    }
-                    gpn.LineString = lineStringMapper.ExportLineString(pivotLine, ISOLineStringType.GuidancePattern);
-                    break;
-                case GuidancePatternTypeEnum.Spiral:
-                    Spiral spiral = adaptGuidancePattern as Spiral;
-                    gpn.LineString = lineStringMapper.ExportLineString(spiral.Shape, ISOLineStringType.GuidancePattern);
-                    break;
+            if (adaptGuidancePattern is PivotGuidancePattern pivot &&
+                pivot.DefinitionMethod == PivotGuidanceDefinitionEnum.PivotGuidancePatternCenterRadius &&
+                pivot.Radius != null)
+            {
+                gpn.Radius = (uint)pivot.Radius.AsConvertedInt("mm").Value;
+                gpn.GuidancePatternOptions = ISOGuidancePatternOption.FullCircle;
             }
 
             //Boundary
