@@ -312,6 +312,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     if (adaptProduct == null)
                     {
                         adaptProduct = ImportProduct(isoComponent);
+                        DataModel.Catalog.Products.Add(adaptProduct);
                     }
 
                     //Create a component for this ingredient
