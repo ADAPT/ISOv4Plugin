@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
+using AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Factories
 {
@@ -18,6 +19,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Factories
         private readonly TimeLogMapper _timeLogMapper;
         private readonly MultiFileTimeLogMapper _multiFileTimeLogMapper;
         private readonly TaskDataMapper _taskDataMapper;
+        private readonly IManufacturer _manufacturer;
 
         // A wrapper class to hold together ISOTimeLog and included ISODataLogValues.
         // This avoids multiple calls to ISOTimeLog.GetTimeElement() which performs xml parsing on each call.
@@ -49,20 +51,23 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Factories
             _taskDataMapper = taskDataMapper;
             _timeLogMapper = new TimeLogMapper(taskDataMapper);
             _multiFileTimeLogMapper = new MultiFileTimeLogMapper(taskDataMapper);
+
+            _manufacturer = ManufacturerFactory.GetManufacturer(taskDataMapper);
         }
 
         public IEnumerable<OperationData> ImportTimeLogs(ISOTask loggedTask, int? prescriptionID)
         {
             var timeLogGroups = GetTimeLogGroups(loggedTask);
 
-            var opearationDats = new List<OperationData>();
+            var operationDatas = new List<OperationData>();
             foreach (var timeLogGroup in timeLogGroups)
             {
-                opearationDats.AddRange(timeLogGroup.Count > 1
+                operationDatas.AddRange(timeLogGroup.Count > 1
                     ? _multiFileTimeLogMapper.ImportTimeLogs(loggedTask, timeLogGroup, prescriptionID)
                     : _timeLogMapper.ImportTimeLogs(loggedTask, timeLogGroup, prescriptionID));
             }
-            return opearationDats;
+
+            return _manufacturer?.PostProcessOperationData(_taskDataMapper, operationDatas) ?? operationDatas;
         }
 
         public IEnumerable<ISOTimeLog> ExportTimeLogs(IEnumerable<OperationData> operationDatas, string dataPath)
