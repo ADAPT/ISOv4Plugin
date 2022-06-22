@@ -1,6 +1,10 @@
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
+using AgGateway.ADAPT.ApplicationDataModel.Common;
+using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ApplicationDataModel.Products;
+using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers
@@ -205,6 +209,41 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers
             }
 
             return productManufacturer;
+        }
+
+
+        public IEnumerable<OperationData> PostProcessOperationData(TaskDataMapper taskDataMapper, IEnumerable<OperationData> operationDatas)
+        {
+            var result = new List<OperationData>();
+
+            var catalog = taskDataMapper.AdaptDataModel.Catalog;
+            foreach (var operationData in operationDatas)
+            {
+                var deviceModels = operationData.GetAllSections()
+                    .Select(x => catalog.DeviceElementConfigurations.FirstOrDefault(y => y.Id.ReferenceId == x.DeviceConfigurationId))
+                    .Where(x => x != null)
+                    .Select(x => catalog.DeviceElements.FirstOrDefault(y => y.Id.ReferenceId == x.DeviceElementId))
+                    .Where(x => x != null)
+                    .Select(x => x.DeviceModelId)
+                    .Distinct()
+                    .Select(x => catalog.DeviceModels.FirstOrDefault(y => y.Id.ReferenceId == x))
+                    .Where(x => x != null)
+                    .ToList();
+                if (deviceModels.Count == 1 && !string.IsNullOrWhiteSpace(deviceModels[0].Description))
+                {
+                    var trimmed = deviceModels[0].Description.Trim();
+                    if (trimmed.EqualsIgnoreCase("Trip Computer Data"))
+                    {
+                        operationData.OperationType = OperationTypeEnum.DataCollection;
+                    }
+                    else if (trimmed.EqualsIgnoreCase("Vehicle Geometry"))
+                    {
+                        continue;
+                    }
+                }
+                result.Add(operationData);
+            }
+            return result;
         }
     }
 }
