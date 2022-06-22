@@ -301,12 +301,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             {
                 try
                 {
-                    if (TaskDataMapper.Properties != null)
+                    if (TaskDataMapper.Properties == null || !bool.TryParse(TaskDataMapper.Properties.GetProperty(TaskDataMapper.SpatialRecordDeferredExecution), out useDeferredExecution))
                     {
                         //Set this property to override the default behavior of deferring execution on the spatial data
                         //We historically pre-iterated this data, giving certain benefits but having negative memory impacts
                         //Going forward the default is to defer execution
-                        bool.TryParse(TaskDataMapper.Properties.GetProperty(TaskDataMapper.SpatialRecordDeferredExecution), out useDeferredExecution);
+                        useDeferredExecution = true;
                     }
 
                     if (!useDeferredExecution)
