@@ -151,13 +151,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Factories
             foreach (var timeLog in loggedTask.TimeLogs)
             {
                 ISOTime templateTime = timeLog.GetTimeElement(dataPath);
-                logGroup.Add(new TimeLogWrapper { DataLogValues = templateTime.DataLogValues, ISOTimeLog = timeLog });
-                // A time log with less than 255 DLVs found. Add it to current group
-                // and start a new one.
-                if (templateTime.DataLogValues.Count < 255)
+                if (templateTime != null)
                 {
-                    timeLogGroups.Add(logGroup);
-                    logGroup = new TimeLogWrapperGroup();
+                    logGroup.Add(new TimeLogWrapper { DataLogValues = templateTime.DataLogValues, ISOTimeLog = timeLog });
+                    // A time log with less than 255 DLVs found. Add it to current group
+                    // and start a new one.
+                    if (templateTime.DataLogValues.Count < 255)
+                    {
+                        timeLogGroups.Add(logGroup);
+                        logGroup = new TimeLogWrapperGroup();
+                    }
                 }
             }
             // Add remaning log group
