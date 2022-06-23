@@ -556,8 +556,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             public static Dictionary<byte, int> ReadImplementGeometryValues(string filePath, ISOTime templateTime, IEnumerable<byte> desiredDLVIndices)
             {
                 Dictionary<byte, int> output = new Dictionary<byte, int>();
-                List<byte> orderedDLVIndicesToRead = desiredDLVIndices.OrderBy(d => d).ToList();
-                byte lastDesiredDLVIndex = orderedDLVIndicesToRead.Last();
+                List<byte> desiredIndexes = desiredDLVIndices.ToList();
 
                 //Determine the number of header bytes in each position
                 short headerCount = 0;
@@ -587,19 +586,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                             if (ContinueReading(binaryReader))
                             {
                                 numberOfDLVs = ConfirmNumberOfDLVs(binaryReader, numberOfDLVs); //Validate we are not at the end of a truncated file
-
-                                int readIndex = 0; //Initialize DLVs to start of requested range for this new record
-                                byte nextIndexToRead = orderedDLVIndicesToRead[readIndex]; 
                                 for (byte i = 0; i < numberOfDLVs; i++)
                                 {
                                     byte dlvIndex = ReadByte(null, true, binaryReader).GetValueOrDefault(); //This is the current DLV reported
-                                    if (nextIndexToRead != 0 && dlvIndex > nextIndexToRead) 
-                                    {
-                                        //If the binary skipped past and of our desired DLVs, jump ahead in our request list
-                                        nextIndexToRead = orderedDLVIndicesToRead.FirstOrDefault(x => x >= dlvIndex); //This returns 0 by default which cannot be less than dlvIndex so we will skip values until the next record if 0.
-                                        readIndex = orderedDLVIndicesToRead.IndexOf(nextIndexToRead);
-                                    }
-                                    if (dlvIndex == nextIndexToRead && orderedDLVIndicesToRead.Contains(dlvIndex))
+                                    if (desiredIndexes.Contains(dlvIndex))
                                     {
                                         //A desired DLV is reported here
                                         int value = ReadInt32(null, true, binaryReader).GetValueOrDefault();
@@ -611,12 +601,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                                         {
                                             //Values should be all the same, but prefer the furthest from 0
                                             output[dlvIndex] = value;
-                                        }
-
-                                        if (readIndex < orderedDLVIndicesToRead.Count - 1)
-                                        {
-                                            //Increment the read index unless we are at the end of desired values
-                                            nextIndexToRead = orderedDLVIndicesToRead[++readIndex];
                                         }
                                     }
                                     else
