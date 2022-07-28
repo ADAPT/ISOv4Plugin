@@ -2,18 +2,15 @@
  * ISO standards can be purchased through the ANSI webstore at https://webstore.ansi.org
 */
 
-using AgGateway.ADAPT.ApplicationDataModel.ADM;
-using AgGateway.ADAPT.ApplicationDataModel.Equipment;
+
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
 using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 using AgGateway.ADAPT.ISOv4Plugin.Representation;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
 {
@@ -115,47 +112,51 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
 
                     if (dlvsToRead.Any())
                     {
-                        string binaryPath = System.IO.Path.Combine(taskDataPath, timeLog.Filename + ".bin");
-                        Dictionary<byte, int> timelogValues = Mappers.TimeLogMapper.ReadImplementGeometryValues(dlvsToRead.Select(d => d.Index), time, binaryPath);
-
-                        foreach (byte reportedDLVIndex in timelogValues.Keys)
+                        string binaryName = string.Concat(timeLog.Filename, ".bin");
+                        string binaryPath = taskDataPath.GetDirectoryFiles(binaryName, SearchOption.TopDirectoryOnly).FirstOrDefault();
+                        if (binaryPath != null)
                         {
-                            ISODataLogValue reportedDLV = dlvsToRead.First(d => d.Index == reportedDLVIndex);
-                            string dlvKey = DeviceHierarchyElement.GetDataLogValueKey(reportedDLV);
-                            if (!reportedValues.ContainsKey(dlvKey))
-                            {
-                                //First occurence of this DET and DDI in the timelogs
-                                //We take the max width/max (from 0) offset from the 1st timelog.  This matches existing functionality, and is workable for foreseeable cases where working width is the only dynamic value.
-                                //ISOXML supports changing widths and offsets dynamically throughout and across timelogs.    
-                                //Should max width and/or offset parameters change dynamically, data consumers will need to obtain this information via the OperationData.SpatialRecords as is commonly done with 0043 (working width) today
-                                //An alternative would be to enhance this logic to clone the entire DeviceModel hierarchy for each variation in offset value, should such data ever occur in the field.
-                                reportedValues.Add(dlvKey, timelogValues[reportedDLV.Index]);
+                            Dictionary<byte, int> timelogValues = Mappers.TimeLogMapper.ReadImplementGeometryValues(dlvsToRead.Select(d => d.Index), time, binaryPath);
 
-                                //Add to this element
-                                var matchingElement = GetMatchingElement(reportedDLV.DeviceElementIdRef);
-                                if (matchingElement != null)
+                            foreach (byte reportedDLVIndex in timelogValues.Keys)
+                            {
+                                ISODataLogValue reportedDLV = dlvsToRead.First(d => d.Index == reportedDLVIndex);
+                                string dlvKey = DeviceHierarchyElement.GetDataLogValueKey(reportedDLV);
+                                if (!reportedValues.ContainsKey(dlvKey))
                                 {
-                                    switch (reportedDLV.ProcessDataDDI)
+                                    //First occurence of this DET and DDI in the timelogs
+                                    //We take the max width/max (from 0) offset from the 1st timelog.  This matches existing functionality, and is workable for foreseeable cases where working width is the only dynamic value.
+                                    //ISOXML supports changing widths and offsets dynamically throughout and across timelogs.    
+                                    //Should max width and/or offset parameters change dynamically, data consumers will need to obtain this information via the OperationData.SpatialRecords as is commonly done with 0043 (working width) today
+                                    //An alternative would be to enhance this logic to clone the entire DeviceModel hierarchy for each variation in offset value, should such data ever occur in the field.
+                                    reportedValues.Add(dlvKey, timelogValues[reportedDLV.Index]);
+
+                                    //Add to this element
+                                    var matchingElement = GetMatchingElement(reportedDLV.DeviceElementIdRef);
+                                    if (matchingElement != null)
                                     {
-                                        case "0046":
-                                        case "0044":
-                                        case "0043":
-                                            if (matchingElement.Width == null || timelogValues[reportedDLV.Index] > matchingElement.Width)
-                                            {
-                                                //If max 0043 is greater than 0046, then take max 0043
-                                                matchingElement.Width = timelogValues[reportedDLV.Index];
-                                                matchingElement.WidthDDI = reportedDLV.ProcessDataDDI;
-                                            }
-                                            break;
-                                        case "0086":
-                                            matchingElement.XOffset = timelogValues[reportedDLV.Index];
-                                            break;
-                                        case "0087":
-                                            matchingElement.YOffset = timelogValues[reportedDLV.Index];
-                                            break;
-                                        case "0088":
-                                            matchingElement.ZOffset = timelogValues[reportedDLV.Index];
-                                            break;
+                                        switch (reportedDLV.ProcessDataDDI)
+                                        {
+                                            case "0046":
+                                            case "0044":
+                                            case "0043":
+                                                if (matchingElement.Width == null || timelogValues[reportedDLV.Index] > matchingElement.Width)
+                                                {
+                                                    //If max 0043 is greater than 0046, then take max 0043
+                                                    matchingElement.Width = timelogValues[reportedDLV.Index];
+                                                    matchingElement.WidthDDI = reportedDLV.ProcessDataDDI;
+                                                }
+                                                break;
+                                            case "0086":
+                                                matchingElement.XOffset = timelogValues[reportedDLV.Index];
+                                                break;
+                                            case "0087":
+                                                matchingElement.YOffset = timelogValues[reportedDLV.Index];
+                                                break;
+                                            case "0088":
+                                                matchingElement.ZOffset = timelogValues[reportedDLV.Index];
+                                                break;
+                                        }
                                     }
                                 }
                             }
