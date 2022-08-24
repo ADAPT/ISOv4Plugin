@@ -17,7 +17,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Factories
     public class TimeLogMapperFactory
     {
         private readonly TimeLogMapper _timeLogMapper;
-        private readonly MultiFileTimeLogMapper _multiFileTimeLogMapper;
         private readonly TaskDataMapper _taskDataMapper;
         private readonly IManufacturer _manufacturer;
 
@@ -50,7 +49,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Factories
         {
             _taskDataMapper = taskDataMapper;
             _timeLogMapper = new TimeLogMapper(taskDataMapper);
-            _multiFileTimeLogMapper = new MultiFileTimeLogMapper(taskDataMapper);
 
             _manufacturer = ManufacturerFactory.GetManufacturer(taskDataMapper);
         }
@@ -63,7 +61,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Factories
             foreach (var timeLogGroup in timeLogGroups)
             {
                 operationDatas.AddRange(timeLogGroup.Count > 1
-                    ? _multiFileTimeLogMapper.ImportTimeLogs(loggedTask, timeLogGroup, prescriptionID)
+                    ? new MultiFileTimeLogMapper(_taskDataMapper).ImportTimeLogs(loggedTask, timeLogGroup, prescriptionID)
                     : _timeLogMapper.ImportTimeLogs(loggedTask, timeLogGroup, prescriptionID));
             }
 
