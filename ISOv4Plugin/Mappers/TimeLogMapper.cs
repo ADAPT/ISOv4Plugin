@@ -9,6 +9,7 @@ using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.Equipment;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
+using AgGateway.ADAPT.ApplicationDataModel.Products;
 using AgGateway.ADAPT.ApplicationDataModel.Shapes;
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
@@ -355,34 +356,44 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 List<OperationData> operationDatas = new List<OperationData>();
                 foreach (ISODevice dvc in loggedDeviceElementsByDevice.Keys)
                 {
-                    OperationData operationData = new OperationData();
-
                     //Determine products
-                    Dictionary<string, List<ISOProductAllocation>> productAllocations = GetProductAllocationsByDeviceElement(loggedTask, dvc);
-                    List<int> productIDs = GetDistinctProductIDs(TaskDataMapper, productAllocations);
+                    Dictionary<string, List<ISOProductAllocation>> deviceProductAllocations = GetProductAllocationsByDeviceElement(loggedTask, dvc);
 
-                    //This line will necessarily invoke a spatial read in order to find 
-                    //1)The correct number of CondensedWorkState working datas to create 
-                    //2)Any Widths and Offsets stored in the spatial data
-                    IEnumerable<DeviceElementUse> sections = sectionMapper.Map(time,
-                                                                               isoRecords,
-                                                                               operationData.Id.ReferenceId,
-                                                                               loggedDeviceElementsByDevice[dvc],
-                                                                               productAllocations);
+                    //Create a separate operation for each product form (liquid, granular or solid).
+                    List<List<string>> deviceElementGroups = SplitElementsByProductForm(deviceProductAllocations, loggedDeviceElementsByDevice[dvc], dvc);
 
-                    var workingDatas = sections != null ? sections.SelectMany(x => x.GetWorkingDatas()).ToList() : new List<WorkingData>();
-
-                    operationData.GetSpatialRecords = () => spatialMapper.Map(isoRecords, workingDatas, productAllocations);
-                    operationData.MaxDepth = sections.Count() > 0 ? sections.Select(s => s.Depth).Max() : 0;
-                    operationData.GetDeviceElementUses = x => sectionMapper.ConvertToBaseTypes(sections.Where(s => s.Depth == x).ToList());
-                    operationData.PrescriptionId = prescriptionID;
-                    operationData.OperationType = GetOperationTypeFromLoggingDevices(time);
-                    operationData.ProductIds = productIDs;
-                    if (!useDeferredExecution)
+                    foreach (var deviceElementGroup in deviceElementGroups)
                     {
-                        operationData.SpatialRecordCount = isoRecords.Count(); //We will leave this at 0 unless a consumer has overridden deferred execution of spatial data iteration
+                        OperationData operationData = new OperationData();
+
+                        Dictionary<string, List<ISOProductAllocation>> productAllocations = deviceProductAllocations
+                            .Where(x => deviceElementGroup.Contains(x.Key))
+                            .ToDictionary(x => x.Key, x => x.Value);
+                        List<int> productIDs = GetDistinctProductIDs(TaskDataMapper, productAllocations);
+
+                        //This line will necessarily invoke a spatial read in order to find 
+                        //1)The correct number of CondensedWorkState working datas to create 
+                        //2)Any Widths and Offsets stored in the spatial data
+                        IEnumerable<DeviceElementUse> sections = sectionMapper.Map(time,
+                                                                                   isoRecords,
+                                                                                   operationData.Id.ReferenceId,
+                                                                                   deviceElementGroup,
+                                                                                   productAllocations);
+
+                        var workingDatas = sections != null ? sections.SelectMany(x => x.GetWorkingDatas()).ToList() : new List<WorkingData>();
+
+                        operationData.GetSpatialRecords = () => spatialMapper.Map(isoRecords, workingDatas, productAllocations);
+                        operationData.MaxDepth = sections.Count() > 0 ? sections.Select(s => s.Depth).Max() : 0;
+                        operationData.GetDeviceElementUses = x => sectionMapper.ConvertToBaseTypes(sections.Where(s => s.Depth == x).ToList());
+                        operationData.PrescriptionId = prescriptionID;
+                        operationData.OperationType = GetOperationTypeFromProductCategory(productIDs) ?? GetOperationTypeFromLoggingDevices(time);
+                        operationData.ProductIds = productIDs;
+                        if (!useDeferredExecution)
+                        {
+                            operationData.SpatialRecordCount = isoRecords.Count(); //We will leave this at 0 unless a consumer has overridden deferred execution of spatial data iteration
+                        }
+                        operationDatas.Add(operationData);
                     }
-                    operationDatas.Add(operationData);
                 }
 
                 //Set the CoincidentOperationDataIds property identifying Operation Datas from the same TimeLog.
@@ -391,6 +402,81 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 return operationDatas;
             }
             return null;
+        }
+
+        private List<List<string>> SplitElementsByProductForm(Dictionary<string, List<ISOProductAllocation>> productAllocations, HashSet<string> loggedDeviceElementIds, ISODevice dvc)
+        {
+            //This function splits device elements logged by single TimeLog into groups based
+            //on product form referenced by these elements. This is done using following logic:
+            // - determine used products forms and list of device element ids for each form
+            // - for each product form determine device elements from all other forms
+            // - remove these device elements and their children from a copy of device hierarchy elements
+            // - this gives a list of device elements to keep for a product form
+            var deviceElementIdsByProductForm = productAllocations
+                .SelectMany(x => x.Value.Select(y => new { Form = GetProductFormByProductAllocation(y), Id = x.Key }))
+                .Where(x => x.Form.HasValue)
+                .GroupBy(x => x.Form, x => x.Id)
+                .Select(x => x.Distinct().ToList())
+                .ToList();
+
+            List<List<string>> deviceElementGroups = new List<List<string>>();
+            if (deviceElementIdsByProductForm.Count > 1)
+            {
+                var deviceHierarchyElement = TaskDataMapper.DeviceElementHierarchies.Items[dvc.DeviceId];
+
+                var idsWithProduct = deviceElementIdsByProductForm.SelectMany(x => x).ToList();
+                foreach (var deviceElementIds in deviceElementIdsByProductForm)
+                {
+                    var idsToRemove = idsWithProduct.Except(deviceElementIds).ToList();
+                    var idsToKeep = FilterDeviceElementIds(deviceHierarchyElement, idsToRemove);
+
+                    deviceElementGroups.Add(loggedDeviceElementIds.Intersect(idsToKeep).ToList());
+                }
+            }
+            else
+            {
+                deviceElementGroups.Add(loggedDeviceElementIds.ToList());
+            }
+
+            return deviceElementGroups;
+        }
+
+        private ProductFormEnum? GetProductFormByProductAllocation(ISOProductAllocation pan)
+        {
+            var adaptProductId = TaskDataMapper.InstanceIDMap.GetADAPTID(pan.ProductIdRef);
+            var adaptProduct = TaskDataMapper.AdaptDataModel.Catalog.Products.FirstOrDefault(x => x.Id.ReferenceId == adaptProductId);
+
+            // Add an error if ProductAllocation is referencing non-existent product
+            if (adaptProduct == null)
+            {
+                TaskDataMapper.AddError($"ProductAllocation referencing Product={pan.ProductIdRef} skipped since no matching product found");
+            }
+            return adaptProduct?.Form;
+        }
+
+        private List<string> FilterDeviceElementIds(DeviceHierarchyElement deviceHierarchyElement, List<string> idsToRemove)
+        {
+            var elementIdsToKeep = new List<string>();
+            if (!idsToRemove.Contains(deviceHierarchyElement.DeviceElement.DeviceElementId))
+            {
+                //By default we need to keep this element - covers scenario of no children elements
+                bool addThisElement = true;
+                if (deviceHierarchyElement.Children != null && deviceHierarchyElement.Children.Count > 0)
+                {
+                    foreach (var c in deviceHierarchyElement.Children)
+                    {
+                        elementIdsToKeep.AddRange(FilterDeviceElementIds(c, idsToRemove));
+                    }
+                    //Keep this element if at least one child element is kept
+                    addThisElement = elementIdsToKeep.Count > 0;
+                }
+
+                if (addThisElement)
+                {
+                    elementIdsToKeep.Add(deviceHierarchyElement.DeviceElement.DeviceElementId);
+                }
+            }
+            return elementIdsToKeep;
         }
 
         protected virtual ISOTime GetTimeElementFromTimeLog(ISOTimeLog isoTimeLog)
@@ -497,6 +583,35 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             foreach (ISODeviceElement child in deviceElement.ChildDeviceElements)
             {
                 AddProductAllocationsForDeviceElement(productAllocations, pan, child, hierarchyPoistion);
+            }
+        }
+
+        private OperationTypeEnum? GetOperationTypeFromProductCategory(List<int> productIds)
+        {
+            var productCategories = productIds
+                .Select(x => TaskDataMapper.AdaptDataModel.Catalog.Products.FirstOrDefault(y => y.Id.ReferenceId == x))
+                .Where(x => x != null && x.Category != CategoryEnum.Unknown)
+                .Select(x => x.Category)
+                .ToList();
+
+            switch (productCategories.FirstOrDefault())
+            {
+                case CategoryEnum.Variety:
+                    return OperationTypeEnum.SowingAndPlanting;
+
+                case CategoryEnum.Fertilizer:
+                case CategoryEnum.NitrogenStabilizer:
+                case CategoryEnum.Manure:
+                    return OperationTypeEnum.Fertilizing;
+
+                case CategoryEnum.Fungicide:
+                case CategoryEnum.Herbicide:
+                case CategoryEnum.Insecticide:
+                case CategoryEnum.Pesticide:
+                    return OperationTypeEnum.CropProtection;
+
+                default:
+                    return null;
             }
         }
 

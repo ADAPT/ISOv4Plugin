@@ -226,7 +226,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             product.Form = _manufacturer?.GetProductForm(isoProduct) ?? product.Form;
 
             // Category
-            product.Category = _manufacturer?.GetProductCategory(isoProduct) ?? CategoryEnum.Unknown;
+            product.Category = _manufacturer?.GetProductCategory(isoProduct) ?? (product.ProductType == ProductTypeEnum.Variety
+                                                                                    ? CategoryEnum.Variety
+                                                                                    : CategoryEnum.Unknown);
 
             // Update ProductType
             if (product.ProductType == ProductTypeEnum.Generic && product.Category != CategoryEnum.Unknown)
