@@ -9,6 +9,7 @@ using AgGateway.ADAPT.ApplicationDataModel.Guidance;
 using AgGateway.ADAPT.ApplicationDataModel.Shapes;
 using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
 using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
+using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
@@ -73,6 +74,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         {
             ISOLineString lineString = new ISOLineString(TaskDataMapper.Version);
             lineString.LineStringType = ISOLineStringType.GuidancePattern;
+            if (adaptGuidancePattern.SwathWidth != null)
+            {
+                lineString.LineStringWidth = (uint?)adaptGuidancePattern.SwathWidth.AsConvertedInt("mm");
+            }
 
             PointMapper pointMapper = new PointMapper(TaskDataMapper);
 
