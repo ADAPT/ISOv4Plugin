@@ -359,8 +359,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     //Determine products
                     Dictionary<string, List<ISOProductAllocation>> deviceProductAllocations = GetProductAllocationsByDeviceElement(loggedTask, dvc);
 
-                    //Create a separate operation for each product form (liquid, granular or solid).
-                    List<List<string>> deviceElementGroups = SplitElementsByProductForm(deviceProductAllocations, loggedDeviceElementsByDevice[dvc], dvc);
+                    //Create a separate operation for each combination of specific product properties.
+                    List<List<string>> deviceElementGroups = SplitElementsByProductProperties(deviceProductAllocations, loggedDeviceElementsByDevice[dvc], dvc);
 
                     foreach (var deviceElementGroup in deviceElementGroups)
                     {
@@ -404,18 +404,18 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return null;
         }
 
-        private List<List<string>> SplitElementsByProductForm(Dictionary<string, List<ISOProductAllocation>> productAllocations, HashSet<string> loggedDeviceElementIds, ISODevice dvc)
+        private List<List<string>> SplitElementsByProductProperties(Dictionary<string, List<ISOProductAllocation>> productAllocations, HashSet<string> loggedDeviceElementIds, ISODevice dvc)
         {
             //This function splits device elements logged by single TimeLog into groups based
-            //on product form referenced by these elements. This is done using following logic:
+            //on product form/type referenced by these elements. This is done using following logic:
             // - determine used products forms and list of device element ids for each form
             // - for each product form determine device elements from all other forms
             // - remove these device elements and their children from a copy of device hierarchy elements
             // - this gives a list of device elements to keep for a product form
             var deviceElementIdsByProductForm = productAllocations
-                .SelectMany(x => x.Value.Select(y => new { Form = GetProductFormByProductAllocation(y), Id = x.Key }))
-                .Where(x => x.Form.HasValue)
-                .GroupBy(x => x.Form, x => x.Id)
+                .SelectMany(x => x.Value.Select(y => new { Product = GetProductByProductAllocation(y), Id = x.Key }))
+                .Where(x => x.Product != null)
+                .GroupBy(x => new { x.Product.Form, x.Product.ProductType }, x => x.Id)
                 .Select(x => x.Distinct().ToList())
                 .ToList();
 
@@ -441,7 +441,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return deviceElementGroups;
         }
 
-        private ProductFormEnum? GetProductFormByProductAllocation(ISOProductAllocation pan)
+        private Product GetProductByProductAllocation(ISOProductAllocation pan)
         {
             var adaptProductId = TaskDataMapper.InstanceIDMap.GetADAPTID(pan.ProductIdRef);
             var adaptProduct = TaskDataMapper.AdaptDataModel.Catalog.Products.FirstOrDefault(x => x.Id.ReferenceId == adaptProductId);
@@ -451,7 +451,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             {
                 TaskDataMapper.AddError($"ProductAllocation referencing Product={pan.ProductIdRef} skipped since no matching product found");
             }
-            return adaptProduct?.Form;
+            return adaptProduct;
         }
 
         private List<string> FilterDeviceElementIds(DeviceHierarchyElement deviceHierarchyElement, List<string> idsToRemove)
