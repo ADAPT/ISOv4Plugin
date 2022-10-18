@@ -366,8 +366,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     {
                         OperationData operationData = new OperationData();
 
+                        //Get ids of all device elements in a group including parent element ids
+                        //since product allocations can be at parent elements which are not logging any data.
+                        var elementHierarchyIds = GetISOElementHierarchyIds(deviceElementGroup);
                         Dictionary<string, List<ISOProductAllocation>> productAllocations = deviceProductAllocations
-                            .Where(x => deviceElementGroup.Contains(x.Key))
+                            .Where(x => elementHierarchyIds.Contains(x.Key))
                             .ToDictionary(x => x.Key, x => x.Value);
                         List<int> productIDs = GetDistinctProductIDs(TaskDataMapper, productAllocations);
 
@@ -477,6 +480,20 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 }
             }
             return elementIdsToKeep;
+        }
+
+        private List<string> GetISOElementHierarchyIds(List<string> deviceElementIds)
+        {
+            return deviceElementIds.Aggregate(new { ids = new HashSet<string>(), TaskDataMapper.DeviceElementHierarchies }, (acc, x) =>
+            {
+                var isoDevElement = acc.DeviceElementHierarchies.GetISODeviceElementFromID(x);
+                while (isoDevElement != null)
+                {
+                    acc.ids.Add(isoDevElement.DeviceElementId);
+                    isoDevElement = isoDevElement.Parent as ISODeviceElement;
+                }
+                return acc;
+            }).ids.ToList();
         }
 
         protected virtual ISOTime GetTimeElementFromTimeLog(ISOTimeLog isoTimeLog)
