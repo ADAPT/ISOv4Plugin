@@ -32,6 +32,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         public const string SpatialRecordDeferredExecution = "SpatialRecordDeferredExecution";
         public const string MergeSingleBinsIntoBoom = "MergeSingleBinsIntoBoom";
         public const string ExportVersion = "ExportVersion"; //Version "3" or "4"
+        public const string SuppressTimeLogDataInterpolation = "SuppressTimeLogDataInterpolation";
 
         public TaskDataMapper(string dataPath, Properties properties)
         {

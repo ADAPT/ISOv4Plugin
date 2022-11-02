@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
 using AgGateway.ADAPT.Representation.RepresentationSystem;
@@ -17,9 +17,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
     public class RepresentationValueInterpolator : IRepresentationValueInterpolator
     {
         private readonly List<string> _numericRepresentationTotals;
-        private Dictionary<WorkingData, RepresentationValue> _meterToPreviousValue; 
+        private Dictionary<WorkingData, RepresentationValue> _meterToPreviousValue;
+        private bool _disabled;
 
-        public RepresentationValueInterpolator()
+        public RepresentationValueInterpolator(bool isDisabled = false)
         {
             _meterToPreviousValue = new Dictionary<WorkingData, RepresentationValue>();
 
@@ -30,6 +31,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 RepresentationInstanceList.vrYieldWetMassFrgPerArea.DomainId,
                 RepresentationInstanceList.vrTotalQuantityAppliedVolume.DomainId,
             };
+
+            _disabled = isDisabled;
         }
         
         public void SetMostRecentMeterValue(WorkingData meter, RepresentationValue value)
@@ -51,7 +54,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         public RepresentationValue Interpolate(WorkingData meter)
         {
-            if (!_meterToPreviousValue.ContainsKey(meter))
+            if (_disabled || !_meterToPreviousValue.ContainsKey(meter))
                 return null;
 
             var previousValue = _meterToPreviousValue[meter];
