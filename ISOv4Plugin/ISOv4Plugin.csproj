@@ -1,7 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net451</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <AssemblyName>AgGateway.ADAPT.ISOv4Plugin</AssemblyName>
     <RootNamespace>AgGateway.ADAPT.ISOv4Plugin</RootNamespace>
     <Version>2.0.0</Version>
