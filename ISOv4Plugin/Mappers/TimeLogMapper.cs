@@ -295,7 +295,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         {
             WorkingDataMapper workingDataMapper = new WorkingDataMapper(new EnumeratedMeterFactory(), TaskDataMapper);
             SectionMapper sectionMapper = new SectionMapper(workingDataMapper, TaskDataMapper);
-            SpatialRecordMapper spatialMapper = new SpatialRecordMapper(new RepresentationValueInterpolator(), sectionMapper, workingDataMapper, TaskDataMapper);
+            bool suppressDataInterpolation;
+            if (TaskDataMapper.Properties == null || !bool.TryParse(TaskDataMapper.Properties.GetProperty(TaskDataMapper.SuppressTimeLogDataInterpolation), out suppressDataInterpolation))
+            {
+                //We interpolate sparse data by default.  One may wish to override this setting to examine the raw state/frequency of the data.
+                suppressDataInterpolation = false;
+            }
+            SpatialRecordMapper spatialMapper = new SpatialRecordMapper(new RepresentationValueInterpolator(suppressDataInterpolation), sectionMapper, workingDataMapper, TaskDataMapper);
             IEnumerable<ISOSpatialRow> isoRecords = ReadTimeLog(isoTimeLog, this.TaskDataPath);
             bool useDeferredExecution = true;
             if (isoRecords != null)
