@@ -155,9 +155,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     {
                         //There are multiple product allocations for the device element
                         //Find the product allocation that governs this timestamp
-                        ISOProductAllocation relevantPan = productAllocationsForDeviceElement.FirstOrDefault(p => Offset(p.AllocationStamp.Start) <= spatialRecord.Timestamp &&
-                                                                                                         (p.AllocationStamp.Stop == null ||
-                                                                                                          Offset(p.AllocationStamp.Stop) >= spatialRecord.Timestamp));
+                        ISOProductAllocation relevantPan = productAllocationsForDeviceElement.FirstOrDefault(p => GovernsTimestamp(p, spatialRecord));
                         if (relevantPan == null)
                         {
                             //We couldn't correlate strictly based on time.  Check for a more general match on date alone before returning null.
@@ -185,6 +183,44 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 var value = _representationValueInterpolator.Interpolate(meter) as NumericRepresentationValue;
                 spatialRecord.SetMeterValue(meter, value);
             }
+        }
+
+        /// <summary>
+        /// Return true if the product allocation governs the timestamp for the SpatialRecord
+        /// </summary>
+        private bool GovernsTimestamp(ISOProductAllocation p, SpatialRecord spatialRecord)
+        {
+            DateTime? allocationStart = Offset(p.AllocationStamp.Start);
+            DateTime? allocationStop = p.AllocationStamp.Stop != null ? Offset(p.AllocationStamp.Stop) : null;
+            DateTime spatialRecordTimestampUtc = ToUtc(spatialRecord.Timestamp);
+
+            return
+                ToUtc(allocationStart) <= spatialRecordTimestampUtc &&
+                (p.AllocationStamp.Stop == null || ToUtc(allocationStop) >= spatialRecordTimestampUtc);
+        }
+
+        // Comparing DateTime values with different Kind values leads to inaccurate results.
+        // Convert DateTimes to UTC if possible before comparing them
+        private DateTime? ToUtc(DateTime? nullableDateTime)
+        {
+            return nullableDateTime.HasValue ? ToUtc(nullableDateTime.Value) : nullableDateTime;
+        }
+
+        private DateTime ToUtc(DateTime dateTime)
+        {
+            if (dateTime.Kind == DateTimeKind.Utc)
+                return dateTime;
+
+            if (dateTime.Kind == DateTimeKind.Local)
+                return dateTime.ToUniversalTime();
+
+            if (dateTime.Kind == DateTimeKind.Unspecified && _taskDataMapper.GPSToLocalDelta.HasValue)
+            {
+                return new DateTime(dateTime.AddHours(- _taskDataMapper.GPSToLocalDelta.Value).Ticks, DateTimeKind.Utc);
+            }
+
+            // Nothing left to try; return original value
+            return dateTime;
         }
 
         private DateTime? Offset(DateTime? input)
