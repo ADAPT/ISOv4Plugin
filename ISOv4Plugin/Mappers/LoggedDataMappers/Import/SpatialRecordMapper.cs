@@ -211,16 +211,22 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             if (dateTime.Kind == DateTimeKind.Utc)
                 return dateTime;
 
+            DateTime utc;
             if (dateTime.Kind == DateTimeKind.Local)
-                return dateTime.ToUniversalTime();
-
-            if (dateTime.Kind == DateTimeKind.Unspecified && _taskDataMapper.GPSToLocalDelta.HasValue)
             {
-                return new DateTime(dateTime.AddHours(- _taskDataMapper.GPSToLocalDelta.Value).Ticks, DateTimeKind.Utc);
+                utc = dateTime.ToUniversalTime();
+            }
+            else if (dateTime.Kind == DateTimeKind.Unspecified && _taskDataMapper.GPSToLocalDelta.HasValue)
+            {
+                utc = new DateTime(dateTime.AddHours(- _taskDataMapper.GPSToLocalDelta.Value).Ticks, DateTimeKind.Utc);
+            }
+            else
+            {
+                // Nothing left to try; return original value
+                utc = dateTime;
             }
 
-            // Nothing left to try; return original value
-            return dateTime;
+            return utc;
         }
 
         private DateTime? Offset(DateTime? input)
