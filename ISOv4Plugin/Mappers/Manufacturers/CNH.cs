@@ -1,9 +1,12 @@
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ApplicationDataModel.Products;
+using AgGateway.ADAPT.ApplicationDataModel.Representations;
+using AgGateway.ADAPT.ApplicationDataModel.Shapes;
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 
@@ -244,6 +247,68 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers
                 result.Add(operationData);
             }
             return result;
+        }
+
+        public void PostProcessPolygons(List<Polygon> polygons)
+        {
+            var groupedPolygons = polygons.GroupBy(x => x.ExteriorRing != null).ToDictionary(x => x.Key, x => x.ToList());
+            if (!groupedPolygons.TryGetValue(true, out var exteriorPolygons) ||
+                !groupedPolygons.TryGetValue(false, out var interiorPolygons))
+            {
+                return;
+            }
+
+            foreach (var exteriorPolygon in exteriorPolygons)
+            {
+                var exteriorRing = exteriorPolygon.ExteriorRing;
+                var boundingBox = new BoundingBox
+                {
+                    MaxX = new NumericRepresentationValue(null, new NumericValue(null, exteriorRing.Points.Max(p => p.X))),
+                    MinX = new NumericRepresentationValue(null, new NumericValue(null, exteriorRing.Points.Min(p => p.X))),
+                    MaxY = new NumericRepresentationValue(null, new NumericValue(null, exteriorRing.Points.Max(p => p.Y))),
+                    MinY = new NumericRepresentationValue(null, new NumericValue(null, exteriorRing.Points.Min(p => p.Y))),
+                };
+
+                foreach (var interiorPolygon in interiorPolygons)
+                {
+                    if (interiorPolygon.InteriorRings == null || interiorPolygon.InteriorRings.Count <= 0)
+                    {
+                        continue;
+                    }
+
+                    // Test if a single point from interior polygon lies within exterior polygon
+                    if (IsPointInPolygon(boundingBox, exteriorRing, interiorPolygon?.InteriorRings.First().Points.FirstOrDefault()))
+                    {
+                        exteriorPolygon.InteriorRings = exteriorPolygon.InteriorRings ?? new List<LinearRing>();
+                        exteriorPolygon.InteriorRings.AddRange(interiorPolygon.InteriorRings);
+
+                        polygons.Remove(interiorPolygon);
+                    }
+                }
+            }
+        }
+
+        private bool IsPointInPolygon(BoundingBox boundingBox, LinearRing ring, Point testPoint)
+        {
+            if (testPoint.X < boundingBox.MinX.Value.Value || testPoint.X > boundingBox.MaxX.Value.Value ||
+                testPoint.Y < boundingBox.MinY.Value.Value || testPoint.Y > boundingBox.MaxY.Value.Value)
+            {
+                return false;
+            }
+
+            // Following code adapted from https://wrf.ecse.rpi.edu/Research/Short_Notes/pnpoly.html
+            bool inside = false;
+            for (int i = 0, j = ring.Points.Count - 1; i < ring.Points.Count; j = i++)
+            {
+                var pointI = ring.Points[i];
+                var pointJ = ring.Points[j];
+                if ((pointI.Y > testPoint.Y) != (pointJ.Y > testPoint.Y) &&
+                    testPoint.X < (pointJ.X - pointI.X) * (testPoint.Y - pointI.Y) / (pointJ.Y - pointI.Y) + pointI.X)
+                {
+                    inside = !inside;
+                }
+            }
+            return inside;
         }
     }
 }
