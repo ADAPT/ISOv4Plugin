@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ApplicationDataModel.Products;
+using AgGateway.ADAPT.ApplicationDataModel.Shapes;
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 
@@ -15,6 +16,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers
         string GetProductManufacturer(ISOProduct isoProduct);
 
         IEnumerable<OperationData> PostProcessOperationData(TaskDataMapper taskDataMapper, IEnumerable<OperationData> operationDatas);
+        void PostProcessPolygons(List<Polygon> polygons);
     }
 
     internal static class ManufacturerFactory
