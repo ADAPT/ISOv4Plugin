@@ -251,7 +251,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 prescription.OutOfFieldRate = ImportTreatmentZoneAsNumericRepValue(task.OutOfFieldTreatmentZone, null);
                 foreach (RxProductLookup rxProductLookup in prescription.RxProductLookups)
                 {
-                    rxProductLookup.OutOfFieldRate = ImportTreatmentZoneAsNumericRepValue(task.PositionLostTreatmentZone, rxProductLookup);
+                    rxProductLookup.OutOfFieldRate = ImportTreatmentZoneAsNumericRepValue(task.OutOfFieldTreatmentZone, rxProductLookup);
                 }
             }
 
