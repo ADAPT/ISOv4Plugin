@@ -238,10 +238,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             LineStringMapper lineStringMapper = new LineStringMapper(TaskDataMapper);
             PointMapper pointMapper = new PointMapper(TaskDataMapper);
             var isoLineString = isoGuidancePattern.LineString ?? new ISOLineString();
-            if (isoLineString.LineStringWidth.HasValue)
-            {
-                pattern.SwathWidth = ((int)isoLineString.LineStringWidth.Value).AsNumericRepresentationValue("mm");
-            }
             switch (isoGuidancePattern.GuidancePatternType)
             {
                 case ISOGuidancePatternType.AB:
@@ -317,6 +313,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             pattern.NumbersOfSwathsLeft = (int?)(isoGuidancePattern.NumberOfSwathsLeft);
             pattern.NumbersOfSwathsRight = (int?)(isoGuidancePattern.NumberOfSwathsRight);
             pattern.OriginalEpsgCode = isoGuidancePattern.OriginalSRID;
+
+            if (isoLineString.LineStringWidth.HasValue)
+            {
+                pattern.SwathWidth = ((int)isoLineString.LineStringWidth.Value).AsNumericRepresentationValue("mm");
+            }
 
             return pattern;
         }
