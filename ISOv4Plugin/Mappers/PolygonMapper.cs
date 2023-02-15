@@ -9,6 +9,7 @@ using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.Shapes;
 using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
+using AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
@@ -24,8 +25,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
     public class PolygonMapper : BaseMapper, IPolygonMapper
     {
+        private readonly IManufacturer _manufacturer;
+
         public PolygonMapper(TaskDataMapper taskDataMapper) : base(taskDataMapper, "PLN")
         {
+            _manufacturer = ManufacturerFactory.GetManufacturer(taskDataMapper);
         }
 
         #region Export
@@ -129,6 +133,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     adaptPolygons.AddRange(polygonOutput);
                 }
             }
+
+            _manufacturer?.PostProcessPolygons(adaptPolygons);
+
             return adaptPolygons;
         }
 
