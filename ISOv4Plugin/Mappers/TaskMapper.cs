@@ -32,6 +32,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
     {
         private Dictionary<string, int> _rxIDsByTask;
         private Dictionary<int, string> _taskIDsByPrescription;
+
         public TaskMapper(TaskDataMapper taskDataMapper) : base(taskDataMapper, "TSK")
         {
             _rxIDsByTask = new Dictionary<string, int>();
@@ -650,10 +651,26 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 loggedData.EquipmentConfigurationGroup = new EquipmentConfigurationGroup();
                 loggedData.EquipmentConfigurationGroup.EquipmentConfigurations = equipConfigs.ToList();
 
+                var configsWithDevElementConfigIds = equipConfigs.Select(equipConfig =>
+                {
+                    return new
+                    {
+                        LeftElmentConfigId = DataModel.Catalog.Connectors.FirstOrDefault(c => c.Id.ReferenceId == equipConfig.Connector1Id)?.DeviceElementConfigurationId ?? 0,
+                        RightElmentConfigId = DataModel.Catalog.Connectors.FirstOrDefault(c => c.Id.ReferenceId == equipConfig.Connector2Id)?.DeviceElementConfigurationId ?? 0,
+                        EquipmentConfigId = equipConfig.Id.ReferenceId
+                    };
+                }).Distinct().ToList();
+
                 //Make a reference to the IDs on the OperationData
                 foreach (OperationData operationData in loggedData.OperationData)
                 {
-                    operationData.EquipmentConfigurationIds.AddRange(equipConfigs.Select(e => e.Id.ReferenceId));
+                    var deviceConfigIds = operationData.GetAllSections()
+                        .Select(x => x.DeviceConfigurationId)
+                        .ToList();
+
+                    operationData.EquipmentConfigurationIds.AddRange(configsWithDevElementConfigIds
+                            .Where(x => deviceConfigIds.Contains(x.LeftElmentConfigId) || deviceConfigIds.Contains(x.RightElmentConfigId))
+                            .Select(x => x.EquipmentConfigId));
                 }
 
                 DataModel.Catalog.EquipmentConfigurations.AddRange(equipConfigs);
