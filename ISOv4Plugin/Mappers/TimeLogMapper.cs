@@ -340,8 +340,27 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 ISOTime time = GetTimeElementFromTimeLog(isoTimeLog);
 
                 //Identify unique devices represented in this TimeLog data
-                IEnumerable<string> deviceElementIDs = time.DataLogValues.Where(d => !d.ProcessDataDDI.EqualsIgnoreCase("DFFF") && !d.ProcessDataDDI.EqualsIgnoreCase("DFFE"))
+                List<string> deviceElementIDs = time.DataLogValues.Where(d => !d.ProcessDataDDI.EqualsIgnoreCase("DFFF") && !d.ProcessDataDDI.EqualsIgnoreCase("DFFE"))
                     .Select(d => d.DeviceElementIdRef).Distinct().ToList();
+
+                //Supplement the list with any parent device elements which although don't log data in the TLG
+                //May require a vrProductIndex working data based on product allocations
+                HashSet<string> parentsToAdd = new HashSet<string>();
+                foreach (string deviceElementID in deviceElementIDs)
+                {
+                    ISODeviceElement isoDeviceElement = TaskDataMapper.DeviceElementHierarchies.GetISODeviceElementFromID(deviceElementID);
+                    if (isoDeviceElement != null)
+                    {
+                        while (isoDeviceElement.Parent != null &&
+                                isoDeviceElement.Parent is ISODeviceElement parentDet)
+                        {
+                            parentsToAdd.Add(parentDet.DeviceElementId);
+                            isoDeviceElement= parentDet;
+                        }
+                    }
+                }
+                deviceElementIDs.AddRange(parentsToAdd);
+
                 Dictionary<ISODevice, HashSet<string>> loggedDeviceElementsByDevice = new Dictionary<ISODevice, HashSet<string>>();
                 foreach (string deviceElementID in deviceElementIDs)
                 {
