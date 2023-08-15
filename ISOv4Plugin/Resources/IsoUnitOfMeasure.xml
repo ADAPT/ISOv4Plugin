@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <ddiToUnitOfMeasureMapping>
   <mappings>
     <mapping unit="kg" domainId="kg" />
@@ -47,5 +47,6 @@
     <mapping unit="kg/m3" domainId="kg1[m3]-1" />
     <mapping unit="r/min" domainId="RPM" />
     <mapping unit="N" domainId="N" />
+    <mapping unit="kg/h" domainId="kg1hr-1" />
   </mappings>
 </ddiToUnitOfMeasureMapping>
