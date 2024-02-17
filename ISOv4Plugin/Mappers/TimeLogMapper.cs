@@ -552,6 +552,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 ISODeviceElement deviceElement = dvc.DeviceElements.FirstOrDefault(d => d.DeviceElementId == pan.DeviceElementIdRef);
                 if (deviceElement != null) //Filter PANs by this DVC
                 {
+                    // If device element was merged with another one, use it instead
+                    var mergedElement = TaskDataMapper.DeviceElementHierarchies.GetMatchingElement(deviceElement.DeviceElementId, true);
+                    if (mergedElement != null)
+                    {
+                        deviceElement = mergedElement.DeviceElement;
+                    }
                     AddProductAllocationsForDeviceElement(reportedPANs, pan, deviceElement, $"{GetHierarchyPosition(deviceElement)}_{panIndex}");
                 }
                 panIndex++;
@@ -587,13 +593,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         private int GetLowestProductAllocationLevel(DeviceHierarchyElement isoDeviceElementHierarchy, Dictionary<string, List<ISOProductAllocation>> isoProductAllocations)
         {
             int level = -1;
-            // If device element has direct product allocations, use its Depth.
+            // If device element or any merged device elements have direct product allocations, use its Depth.
             if (isoDeviceElementHierarchy != null &&
-                isoProductAllocations.TryGetValue(isoDeviceElementHierarchy.DeviceElement.DeviceElementId, out List<ISOProductAllocation> productAllocations) &&
-                productAllocations.Any(x => x.DeviceElementIdRef == isoDeviceElementHierarchy.DeviceElement.DeviceElementId))
+                isoProductAllocations.TryGetValue(isoDeviceElementHierarchy.DeviceElement.DeviceElementId, out List<ISOProductAllocation> productAllocations))
             {
-                level = isoDeviceElementHierarchy.Depth;
-            }
+                var deviceElementIds = new List<string> { isoDeviceElementHierarchy.DeviceElement.DeviceElementId };
+                deviceElementIds.AddRange(isoDeviceElementHierarchy.MergedElements.Select(x => x.DeviceElementId));
+                if (productAllocations.Any(x => deviceElementIds.Contains(x.DeviceElementIdRef)))
+                {
+                    level = isoDeviceElementHierarchy.Depth;
+                }
+            }           
 
             // Get max level from children elements
             int? maxChildLevel = isoDeviceElementHierarchy?.Children?.Max(x => GetLowestProductAllocationLevel(x, isoProductAllocations));
