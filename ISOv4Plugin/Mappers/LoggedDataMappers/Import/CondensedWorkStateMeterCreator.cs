@@ -133,7 +133,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         public EnumeratedValue GetValueForMeter(SpatialValue value, ISOEnumeratedMeter meter)// EnumeratedWorkingData meter)
         {
-            var sectionValue = GetSectionValue((uint)value.Value, meter.SectionIndex);
+            var sectionValue = GetSectionValue((uint)(int)value.Value, meter.SectionIndex); //Mac arm processors fail to correctly decode the value without the double (uint)(int) cast
             var enumerationMember = SectionValueToEnumerationMember[(int)sectionValue];
 
             return new EnumeratedValue

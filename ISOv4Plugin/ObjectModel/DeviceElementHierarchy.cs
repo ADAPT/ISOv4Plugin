@@ -47,11 +47,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
 
         public Dictionary<string, DeviceHierarchyElement> Items { get; set; }
 
-        public DeviceHierarchyElement GetMatchingElement(string isoDeviceElementId)
+        public DeviceHierarchyElement GetMatchingElement(string isoDeviceElementId, bool includeMergedElements = false)
         {
             foreach (DeviceHierarchyElement hierarchy in this.Items.Values)
             {
-                DeviceHierarchyElement foundModel = hierarchy.FromDeviceElementID(isoDeviceElementId);
+                DeviceHierarchyElement foundModel = hierarchy.FromDeviceElementID(isoDeviceElementId, includeMergedElements);
                 if (foundModel != null)
                 {
                     return foundModel;
@@ -358,9 +358,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
         public DeviceHierarchyElement Parent { get; set; }
 
 
-        public DeviceHierarchyElement FromDeviceElementID(string deviceElementID)
+        public DeviceHierarchyElement FromDeviceElementID(string deviceElementID, bool includeMergedElements = false)
         {
-            if (DeviceElement?.DeviceElementId == deviceElementID)
+            if (DeviceElement?.DeviceElementId == deviceElementID || (includeMergedElements && MergedElements.Any(x => x.DeviceElementId == deviceElementID)))
             {
                 return this;
             }
@@ -368,7 +368,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
             {
                 foreach (DeviceHierarchyElement child in Children)
                 {
-                    DeviceHierarchyElement childModel = child.FromDeviceElementID(deviceElementID);
+                    DeviceHierarchyElement childModel = child.FromDeviceElementID(deviceElementID, includeMergedElements);
                     if (childModel != null)
                     {
                         return childModel;
