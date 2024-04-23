@@ -111,6 +111,19 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
         }
 
+        CropVarietyMapper _cropVarietyMapper;
+        public CropVarietyMapper CropVarietyMapper
+        {
+            get
+            {
+                if (_cropVarietyMapper == null)
+                {
+                    _cropVarietyMapper = new CropVarietyMapper(this);
+                }
+                return _cropVarietyMapper;
+            }
+        }
+
         GuidanceGroupMapper _guidanceGroupMapper;
         public GuidanceGroupMapper GuidanceGroupMapper
         {
