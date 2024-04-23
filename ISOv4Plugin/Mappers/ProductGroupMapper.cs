@@ -21,16 +21,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         {
             if (productGroupName == "Variety")
             {
-                if (isCropType)
-                {
-                    //This is the CropType group.  Some systems fail to recognize PDTs in this group based on an interpretation of the spec.
-                    return this.ExportProductGroup("CropType", true);
-                }
-                else
-                {
-                    //Make a PGP which we link to PDTs.  
-                    return this.ExportProductGroup("VarietyProducts", false);
-                }
+                return this.ExportProductGroup("CropType", true);
             }
             else if (ISOTaskData.ChildElements.OfType<ISOProductGroup>().Any(g => g.ProductGroupDesignator == productGroupName))
             {
