@@ -72,8 +72,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     IEnumerable<CropVarietyProduct> cropVarieties = varietyProducts.Cast<CropVarietyProduct>().Where(v => v.CropId == adaptCropType.Id.ReferenceId);
                     if (cropVarieties.Any())
                     {
-                        CropVarietyMapper varietyMapper = new CropVarietyMapper(TaskDataMapper);
-                        isoCrop.CropVarieties = varietyMapper.ExportCropVarieties(cropVarieties).ToList();
+                        isoCrop.CropVarieties = TaskDataMapper.CropVarietyMapper.ExportCropVarieties(cropVarieties).ToList();
                     }
                 }
             }
@@ -112,8 +111,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //Varieties
             if (isoCropType.CropVarieties.Any())
             {
-                CropVarietyMapper varietyMapper = new CropVarietyMapper(TaskDataMapper);
-                varietyMapper.ImportCropVarieties(adaptCrop, isoCropType.CropVarieties);
+                TaskDataMapper.CropVarietyMapper.ImportCropVarieties(adaptCrop, isoCropType.CropVarieties);
             }
 
             return adaptCrop;
