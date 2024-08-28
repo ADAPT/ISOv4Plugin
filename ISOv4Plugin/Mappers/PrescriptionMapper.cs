@@ -285,7 +285,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     outOfFieldTreatmentZone.ProcessDataVariables.Add(oofPDV);
                 }
 
-                NumericRepresentation defaultRepresentation = productLookup?.LossOfGpsRate.Representation; //We can reuse the loss of gps representation here if it exists
+                NumericRepresentation defaultRepresentation = productLookup?.LossOfGpsRate?.Representation; //We can reuse the loss of gps representation here if it exists
                 if (defaultRepresentation == null)
                 {
                     //Determine the representation based on the unit of the product to be applied

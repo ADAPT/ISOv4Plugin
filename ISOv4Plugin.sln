@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ISOv4Plugin", "ISOv4Plugin\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestUtilities", "TestUtilities\TestUtilities.csproj", "{98DBD0C7-5677-4B64-8DDA-BDA1E3B3DFCB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examples", "Examples\Examples.csproj", "{22ECC922-F80E-4142-9835-455B02A70B63}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{98DBD0C7-5677-4B64-8DDA-BDA1E3B3DFCB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{98DBD0C7-5677-4B64-8DDA-BDA1E3B3DFCB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{98DBD0C7-5677-4B64-8DDA-BDA1E3B3DFCB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{22ECC922-F80E-4142-9835-455B02A70B63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{22ECC922-F80E-4142-9835-455B02A70B63}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{22ECC922-F80E-4142-9835-455B02A70B63}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{22ECC922-F80E-4142-9835-455B02A70B63}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
