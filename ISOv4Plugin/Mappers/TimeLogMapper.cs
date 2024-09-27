@@ -564,7 +564,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
             // Sort product allocations for each DeviceElement using it's position among ancestors.
             // This arranges PANs on each DET in reverse order: ones from lowest DET in hierarchy having precedence over ones from top.
-            Dictionary<string, List<ISOProductAllocation>> output = reportedPANs.ToDictionary(x => x.Key, x=>
+            Dictionary<string, List<ISOProductAllocation>> output = reportedPANs.ToDictionary(x => x.Key, x =>
             {
                 var allocations = x.Value.OrderByDescending(y => y.Key).Select(y => y.Value).ToList();
                 // Check if there are any indirect allocations: ones that came from parent device element
@@ -583,10 +583,30 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 .Select(x => TaskDataMapper.DeviceElementHierarchies.GetMatchingElement(x))
                 .Where(x => x != null)
                 .FirstOrDefault();
-            int lowestLevel = GetLowestProductAllocationLevel(det?.GetRootDeviceElementHierarchy(), output);
-            // Remove allocations for all other levels
+
+            var rootElement = det?.GetRootDeviceElementHierarchy();
+            int lowestLevel = GetLowestProductAllocationLevel(rootElement, output);
+            var elementAtLowestDepth = rootElement?.GetElementsAtDepth(lowestLevel).FirstOrDefault();
+
+            // Keep allocations for lowest level or for elements of the same type and without children.
+            // This handles scenario where device hierarchy for different products have different lengths:
+            // - one with 4 levels and Unit device element at the lowest level
+            // - one with 3 levels and Unit device element at the lowest level
             return output
-                .Where(x => TaskDataMapper.DeviceElementHierarchies.GetMatchingElement(x.Key)?.Depth == lowestLevel)
+                .Where(x =>
+                {
+                    var matchingElement = TaskDataMapper.DeviceElementHierarchies.GetMatchingElement(x.Key);
+                    if (matchingElement == null)
+                    {
+                        return false;
+                    }
+                    if (matchingElement.Depth == lowestLevel)
+                    {
+                        return true;
+                    }
+                    return matchingElement.Type == elementAtLowestDepth?.Type &&
+                           (matchingElement.Children == null || matchingElement.Children.Count == 0);
+                })
                 .ToDictionary(x => x.Key, x => x.Value);
         }
 
