@@ -257,6 +257,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 fieldBoundary = new FieldBoundary
                 {
                     FieldId = field.Id.ReferenceId,
+                    Description = isoPartfield.Polygons.Select(item => item.PolygonDesignator).FirstOrDefault(attr => attr != null),
                     SpatialData = boundary,
                 };
 
