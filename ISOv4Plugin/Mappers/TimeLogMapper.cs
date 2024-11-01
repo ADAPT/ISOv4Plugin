@@ -916,7 +916,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         }
 
                         //Add any fixed values from the TLG.xml
-                        foreach (ISODataLogValue fixedValue in templateTime.DataLogValues.Where(dlv => dlv.ProcessDataValue.HasValue && !EnumeratedMeterFactory.IsCondensedMeter(dlv.ProcessDataDDI.AsInt32DDI())))
+                        foreach (ISODataLogValue fixedValue in templateTime.DataLogValues.Where(dlv => dlv.ProcessDataValue.HasValue && !EnumeratedMeterFactory.IsCondensedMeter(dlv.ProcessDataInt32DDI)))
                         {
                             byte order = (byte)templateTime.DataLogValues.IndexOf(fixedValue);
                             if (record.SpatialValues.Any(s => s.Id == order)) //Check to ensure the binary data didn't already write this value
@@ -1012,14 +1012,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
                 ISODeviceElement det = deviceHierarchies.GetISODeviceElementFromID(matchingDlv.DeviceElementIdRef);
                 ISODevice dvc = det?.Device;
-                ISODeviceProcessData dpd = dvc?.DeviceProcessDatas?.FirstOrDefault(d => d.DDI == matchingDlv.ProcessDataDDI);
+                ISODeviceProcessData dpd = dvc?.FirstOrDefaultDeviceProcessData(matchingDlv.ProcessDataInt32DDI);
 
                 var ddis = DdiLoader.Ddis;
 
                 var resolution = 1d;
-                if (matchingDlv.ProcessDataDDI != null && ddis.ContainsKey(matchingDlv.ProcessDataDDI.AsInt32DDI()))
+                if (matchingDlv.ProcessDataDDI != null && ddis.ContainsKey(matchingDlv.ProcessDataInt32DDI))
                 {
-                    resolution = ddis[matchingDlv.ProcessDataDDI.AsInt32DDI()].Resolution;
+                    resolution = ddis[matchingDlv.ProcessDataInt32DDI].Resolution;
                 }
 
                 var spatialValue = new SpatialValue

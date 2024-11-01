@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
+using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 using AgGateway.ADAPT.Representation.UnitSystem;
@@ -27,6 +28,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         private readonly ISectionMapper _sectionMapper;
         private readonly TaskDataMapper _taskDataMapper;
         private double? _effectiveTimeZoneOffset;
+        private static readonly int s_Dffe = "DFFE".AsInt32DDI();
 
         public SpatialRecordMapper(IRepresentationValueInterpolator representationValueInterpolator, ISectionMapper sectionMapper, IWorkingDataMapper workingDataMapper, TaskDataMapper taskDataMapper)
         {
@@ -91,8 +93,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         {
             var isoDataLogValue = _workingDataMapper.DataLogValuesByWorkingDataID[meter.Id.ReferenceId];
             var isoValue = isoSpatialRow.SpatialValues.FirstOrDefault(v =>
-                    v.DataLogValue.DeviceElementIdRef == isoDataLogValue.DeviceElementIdRef &&
-                    v.DataLogValue.ProcessDataDDI == isoDataLogValue.ProcessDataDDI);
+                    v.DataLogValue.ProcessDataInt32DDI == isoDataLogValue.ProcessDataInt32DDI &&
+                    v.DataLogValue.DeviceElementIdRef.ReverseEquals(isoDataLogValue.DeviceElementIdRef));
             if (isoValue != null)
             {
                 var isoEnumeratedMeter = meter as ISOEnumeratedMeter;
@@ -114,9 +116,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 : null;
             var isoValue = dataLogValue != null
                            ? isoSpatialRow.SpatialValues.FirstOrDefault(v =>
-                                v.DataLogValue.ProcessDataDDI != "DFFE" &&
-                                v.DataLogValue.DeviceElementIdRef == dataLogValue.DeviceElementIdRef &&
-                                v.DataLogValue.ProcessDataDDI == dataLogValue.ProcessDataDDI)
+                                v.DataLogValue.ProcessDataInt32DDI != s_Dffe &&
+                                v.DataLogValue.ProcessDataInt32DDI == dataLogValue.ProcessDataInt32DDI &&
+                                v.DataLogValue.DeviceElementIdRef.ReverseEquals(dataLogValue.DeviceElementIdRef))
                            : null;
 
 
@@ -218,7 +220,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
             else if (dateTime.Kind == DateTimeKind.Unspecified && _taskDataMapper.GPSToLocalDelta.HasValue)
             {
-                utc = new DateTime(dateTime.AddHours(- _taskDataMapper.GPSToLocalDelta.Value).Ticks, DateTimeKind.Utc);
+                utc = new DateTime(dateTime.AddHours(-_taskDataMapper.GPSToLocalDelta.Value).Ticks, DateTimeKind.Utc);
             }
             else
             {

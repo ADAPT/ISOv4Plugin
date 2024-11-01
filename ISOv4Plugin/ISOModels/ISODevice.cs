@@ -36,6 +36,36 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         public List<ISODeviceProperty> DeviceProperties { get; set; }
         public List<ISODeviceValuePresentation> DeviceValuePresentations { get; set; }
 
+        //Performance optimizations
+        private Dictionary<int, ISODeviceProcessData> _deviceProcessDataByInt32DDI;
+
+        public ISODeviceProcessData FirstOrDefaultDeviceProcessData(int int32DDI)
+        {
+            if (DeviceProcessDatas == null)
+            {
+                return null;
+            }
+            if (_deviceProcessDataByInt32DDI == null)
+            {
+                _deviceProcessDataByInt32DDI = new Dictionary<int, ISODeviceProcessData>();
+                foreach (var dpd2 in DeviceProcessDatas)
+                {
+                    if (!_deviceProcessDataByInt32DDI.TryGetValue(dpd2.Int32DDI, out _))
+                    {
+                        _deviceProcessDataByInt32DDI[dpd2.Int32DDI] = dpd2;
+                    }
+                }
+            }
+
+            ISODeviceProcessData dpd;
+            if (_deviceProcessDataByInt32DDI.TryGetValue(int32DDI, out dpd))
+            {
+                return dpd;
+            }
+
+            return null;
+        }
+
         public override XmlWriter WriteXML(XmlWriter xmlBuilder)
         {
             xmlBuilder.WriteStartElement("DVC");

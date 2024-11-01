@@ -14,8 +14,29 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 {
     public class ISODataLogValue : ISOElement
     {
-        //Attributes
-        public string ProcessDataDDI { get; set; }
+        private string _processDataDDI;
+        public string ProcessDataDDI
+        {
+            get => _processDataDDI;
+            set
+            {
+                _processDataDDI = value;
+                _processDataInt32DDI = -1;
+            }
+        }
+
+        private int _processDataInt32DDI = -1;
+        public int ProcessDataInt32DDI
+        {
+            get
+            {
+                if (_processDataInt32DDI == -1)
+                {
+                    _processDataInt32DDI = ProcessDataDDI.AsInt32DDI();
+                }
+                return _processDataInt32DDI;
+            }
+        }
         public int? ProcessDataValue { get; set; }
         public string DeviceElementIdRef { get; set; }
         public uint? DataLogPGN { get; set; }

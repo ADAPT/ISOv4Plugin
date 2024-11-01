@@ -17,7 +17,31 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
     {
         //Attributes
         public uint ObjectID { get; set; }
-        public string DDI  { get; set; }
+
+        private string _ddi;
+        public string DDI
+        {
+            get => _ddi;
+            set
+            {
+                _ddi = value;
+                _int32Ddi = -1;
+            }
+        }
+
+        private int _int32Ddi = -1;
+        public int Int32DDI
+        {
+            get
+            {
+                if (_int32Ddi == -1)
+                {
+                    _int32Ddi = DDI.AsInt32DDI();
+                }
+                return _int32Ddi;
+            }
+        }
+
         public int Property  { get; set; }
         public int TriggerMethods { get; set; }
         public string Designator { get; set; }

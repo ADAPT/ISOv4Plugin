@@ -67,6 +67,34 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
             return n.ToString("X4");
         }
 
+        public static bool ReverseEquals(this string s1, string s2)
+        {
+            if (ReferenceEquals(s1, s2))
+            {
+                return true;
+            }
+
+            if (s1 == null || s2 == null)
+            {
+                return false;
+            }
+
+            if (s1.Length != s2.Length)
+            {
+                return false;
+            }
+
+            for (int i = s1.Length; i >= 0; i--)
+            {
+                if (s1[i] != s2[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
 
         /// <summary>
         /// Looks up unit, converts and loads representation

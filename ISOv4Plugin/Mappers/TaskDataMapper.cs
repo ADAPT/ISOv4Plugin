@@ -420,6 +420,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 //During DET import, we use the DeviceElementHierarchies from above to map the actual hierarchies and fill in details.
                 DeviceMapper deviceMapper = new DeviceMapper(this);
                 AdaptDataModel.Catalog.DeviceModels.AddRange(deviceMapper.ImportDevices(devices));
+                DeviceElementHierarchies.CacheDeviceElementIds();
             }
 
             //Workers
