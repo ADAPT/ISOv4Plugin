@@ -35,7 +35,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         
         public EnumeratedValue GetValueForMeter(SpatialValue value, ISOEnumeratedMeter meter)
         {
-            if (value.DataLogValue.ProcessDataInt32DDI != DDI)
+            if (value.DataLogValue.ProcessDataIntDDI != DDI)
                 return null;
 
             const int clear = 0x20524C43;        

@@ -21,22 +21,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             set
             {
                 _processDataDDI = value;
-                _processDataInt32DDI = -1;
+                ProcessDataIntDDI = value.AsInt32DDI();
             }
         }
-
-        private int _processDataInt32DDI = -1;
-        public int ProcessDataInt32DDI
-        {
-            get
-            {
-                if (_processDataInt32DDI == -1)
-                {
-                    _processDataInt32DDI = ProcessDataDDI.AsInt32DDI();
-                }
-                return _processDataInt32DDI;
-            }
-        }
+        public int ProcessDataIntDDI { get; private set; }
         public int? ProcessDataValue { get; set; }
         public string DeviceElementIdRef { get; set; }
         public uint? DataLogPGN { get; set; }

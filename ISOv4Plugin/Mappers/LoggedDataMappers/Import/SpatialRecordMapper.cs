@@ -28,7 +28,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         private readonly ISectionMapper _sectionMapper;
         private readonly TaskDataMapper _taskDataMapper;
         private double? _effectiveTimeZoneOffset;
-        private static readonly int s_Dffe = "DFFE".AsInt32DDI();
 
         public SpatialRecordMapper(IRepresentationValueInterpolator representationValueInterpolator, ISectionMapper sectionMapper, IWorkingDataMapper workingDataMapper, TaskDataMapper taskDataMapper)
         {
@@ -92,9 +91,19 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         private void SetEnumeratedMeterValue(ISOSpatialRow isoSpatialRow, EnumeratedWorkingData meter, SpatialRecord spatialRecord)
         {
             var isoDataLogValue = _workingDataMapper.DataLogValuesByWorkingDataID[meter.Id.ReferenceId];
-            var isoValue = isoSpatialRow.SpatialValues.FirstOrDefault(v =>
-                    v.DataLogValue.ProcessDataInt32DDI == isoDataLogValue.ProcessDataInt32DDI &&
-                    v.DataLogValue.DeviceElementIdRef.ReverseEquals(isoDataLogValue.DeviceElementIdRef));
+            SpatialValue isoValue = null;
+            if (isoDataLogValue != null)
+            {
+                var tmp = isoSpatialRow.SpatialValuesById[isoDataLogValue.Index];
+                if (tmp != null)
+                {
+                    ISODataLogValue dlv = tmp.DataLogValue;
+                    if (dlv.DeviceElementIdRef.ReverseEquals(isoDataLogValue.DeviceElementIdRef))
+                    {
+                        isoValue = tmp;
+                    }
+                }
+            }
             if (isoValue != null)
             {
                 var isoEnumeratedMeter = meter as ISOEnumeratedMeter;
@@ -114,13 +123,19 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             var dataLogValue = _workingDataMapper.DataLogValuesByWorkingDataID.ContainsKey(meter.Id.ReferenceId)
                 ? _workingDataMapper.DataLogValuesByWorkingDataID[meter.Id.ReferenceId]
                 : null;
-            var isoValue = dataLogValue != null
-                           ? isoSpatialRow.SpatialValues.FirstOrDefault(v =>
-                                v.DataLogValue.ProcessDataInt32DDI != s_Dffe &&
-                                v.DataLogValue.ProcessDataInt32DDI == dataLogValue.ProcessDataInt32DDI &&
-                                v.DataLogValue.DeviceElementIdRef.ReverseEquals(dataLogValue.DeviceElementIdRef))
-                           : null;
-
+            SpatialValue isoValue = null;
+            if (dataLogValue != null && dataLogValue.ProcessDataIntDDI != 0xDFFE)
+            {
+                var tmp = isoSpatialRow.SpatialValuesById[dataLogValue.Index];
+                if (tmp != null)
+                {
+                    ISODataLogValue dlv = tmp.DataLogValue;
+                    if (dlv.DeviceElementIdRef.ReverseEquals(dataLogValue.DeviceElementIdRef))
+                    {
+                        isoValue = tmp;
+                    }
+                }
+            }
 
             if (isoValue != null)
             {

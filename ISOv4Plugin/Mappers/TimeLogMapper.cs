@@ -890,7 +890,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         //If the reported number of values does not fit into the stream, correct the numberOfDLVs
                         numberOfDLVs = ConfirmNumberOfDLVs(binaryReader, numberOfDLVs);
 
-                        record.SpatialValues = new List<SpatialValue>();
+                        record.SpatialValuesById = new SpatialValue[templateTime.DataLogValues.Count];
 
                         bool unexpectedEndOfStream = false;
                         //Read DLVs out of the TLG.bin
@@ -907,7 +907,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
                             SpatialValue spatialValue = CreateSpatialValue(templateTime, order, value, deviceHierarchies);
                             if (spatialValue != null)
-                                record.SpatialValues.Add(spatialValue);
+                            {
+                                if (record.SpatialValuesById[order] == null)
+                                {
+                                    record.SpatialValuesById[order] = spatialValue;
+                                }
+                            }
                         }
                         // Unable to read some of the expected DLVs, stop processing
                         if (unexpectedEndOfStream)
@@ -916,13 +921,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         }
 
                         //Add any fixed values from the TLG.xml
-                        foreach (ISODataLogValue fixedValue in templateTime.DataLogValues.Where(dlv => dlv.ProcessDataValue.HasValue && !EnumeratedMeterFactory.IsCondensedMeter(dlv.ProcessDataInt32DDI)))
+                        foreach (ISODataLogValue fixedValue in templateTime.DataLogValues.Where(dlv => dlv.ProcessDataValue.HasValue && !EnumeratedMeterFactory.IsCondensedMeter(dlv.ProcessDataIntDDI)))
                         {
                             byte order = (byte)templateTime.DataLogValues.IndexOf(fixedValue);
-                            if (record.SpatialValues.Any(s => s.Id == order)) //Check to ensure the binary data didn't already write this value
+                            SpatialValue matchingValue = record.SpatialValuesById[order];
+                            if (matchingValue != null) //Check to ensure the binary data didn't already write this value
                             {
                                 //Per the spec, any fixed value in the XML applies to all rows; as such, replace what was read from the binary
-                                SpatialValue matchingValue = record.SpatialValues.Single(s => s.Id == order);
                                 matchingValue.DataLogValue = fixedValue;
                             }
                         }
@@ -1012,14 +1017,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
                 ISODeviceElement det = deviceHierarchies.GetISODeviceElementFromID(matchingDlv.DeviceElementIdRef);
                 ISODevice dvc = det?.Device;
-                ISODeviceProcessData dpd = dvc?.FirstOrDefaultDeviceProcessData(matchingDlv.ProcessDataInt32DDI);
+                ISODeviceProcessData dpd = dvc?.FirstOrDefaultDeviceProcessData(matchingDlv.ProcessDataIntDDI);
 
                 var ddis = DdiLoader.Ddis;
 
                 var resolution = 1d;
-                if (matchingDlv.ProcessDataDDI != null && ddis.ContainsKey(matchingDlv.ProcessDataInt32DDI))
+                if (matchingDlv.ProcessDataDDI != null && ddis.ContainsKey(matchingDlv.ProcessDataIntDDI))
                 {
-                    resolution = ddis[matchingDlv.ProcessDataInt32DDI].Resolution;
+                    resolution = ddis[matchingDlv.ProcessDataIntDDI].Resolution;
                 }
 
                 var spatialValue = new SpatialValue

@@ -73,7 +73,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                                                                isoDeviceElementHierarchy);
                 if (newWorkingDatas.Count() > 0)
                 {
-                    int ddi = dlv.ProcessDataInt32DDI;
+                    int ddi = dlv.ProcessDataIntDDI;
                     if (!EnumeratedMeterFactory.IsCondensedMeter(ddi))
                     {
                         //We skip adding Condensed WorkingDatas to this DeviceElementUse since they were added separately below to their specific DeviceElementUse
@@ -126,7 +126,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                                              DeviceHierarchyElement isoDeviceElementHierarchy)
         {
             var workingDatas = new List<WorkingData>();
-            if (_ddis.ContainsKey(dlv.ProcessDataInt32DDI))
+            if (_ddis.ContainsKey(dlv.ProcessDataIntDDI))
             {
                 //Numeric Representations
                 NumericWorkingData numericMeter = MapNumericMeter(dlv, deviceElementUse.Id.ReferenceId);
@@ -135,7 +135,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 workingDatas.Add(numericMeter);
                 return workingDatas;
             }
-            var meterCreator = _enumeratedMeterCreatorFactory.GetMeterCreator(dlv.ProcessDataInt32DDI);
+            var meterCreator = _enumeratedMeterCreatorFactory.GetMeterCreator(dlv.ProcessDataIntDDI);
             if (meterCreator != null)
             {
                 //Enumerated Representations
@@ -187,9 +187,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         {
             var meter = new NumericWorkingData
             {
-                UnitOfMeasure = RepresentationMapper.GetUnitForDdi(dlv.ProcessDataInt32DDI),
+                UnitOfMeasure = RepresentationMapper.GetUnitForDdi(dlv.ProcessDataIntDDI),
                 DeviceElementUseId = deviceElementUseId,
-                Representation = RepresentationMapper.Map(dlv.ProcessDataInt32DDI)
+                Representation = RepresentationMapper.Map(dlv.ProcessDataIntDDI)
             };
             return meter;
         }

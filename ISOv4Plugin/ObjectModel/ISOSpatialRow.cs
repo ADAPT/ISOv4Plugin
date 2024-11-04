@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
 {
@@ -20,7 +21,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
         public uint? GpsUtcTime { get; set;  }
         public ushort? GpsUtcDate { get; set; }
         public DateTime? GpsUtcDateTime { get; set; }
-        public List<SpatialValue> SpatialValues {get; set; }
+        public IEnumerable<SpatialValue> SpatialValues => SpatialValuesById.Where(x => x != null);
+        public SpatialValue[] SpatialValuesById { get; set; }
 
         /// <summary>
         /// Merge SpatialValues from provided SpatialRow into this one.
@@ -34,13 +36,36 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                 return this;
             }
 
-            if (SpatialValues == null)
+            SpatialValue[] mine = SpatialValuesById;
+            SpatialValue[] theirs = otherRow.SpatialValuesById;
+            if (theirs != null)
             {
-                SpatialValues = new List<SpatialValue>();
-            }
-            if (otherRow.SpatialValues != null)
-            {
-                SpatialValues.AddRange(otherRow.SpatialValues);
+                if (mine == null)
+                {
+                    SpatialValuesById = theirs;
+                }
+                else
+                {
+                    if (theirs.Length > mine.Length)
+                    {
+                        var tmp = mine;
+                        mine = SpatialValuesById = theirs;
+                        for (int i = 0; i < tmp.Length; i++)
+                        {
+                            mine[i] = tmp[i];
+                        }
+                    }
+                    else
+                    {
+                        for (int i = 0; i < mine.Length && i < theirs.Length; i++)
+                        {
+                            if (mine[i] == null)
+                            {
+                                mine[i] = theirs[i];
+                            }
+                        }
+                    }
+                }
             }
 
             return this;

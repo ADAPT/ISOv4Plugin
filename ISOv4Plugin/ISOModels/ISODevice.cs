@@ -37,28 +37,28 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         public List<ISODeviceValuePresentation> DeviceValuePresentations { get; set; }
 
         //Performance optimizations
-        private Dictionary<int, ISODeviceProcessData> _deviceProcessDataByInt32DDI;
+        private Dictionary<int, ISODeviceProcessData> _deviceProcessDataByIntDDI;
 
-        public ISODeviceProcessData FirstOrDefaultDeviceProcessData(int int32DDI)
+        public ISODeviceProcessData FirstOrDefaultDeviceProcessData(int intDDI)
         {
             if (DeviceProcessDatas == null)
             {
                 return null;
             }
-            if (_deviceProcessDataByInt32DDI == null)
+            if (_deviceProcessDataByIntDDI == null)
             {
-                _deviceProcessDataByInt32DDI = new Dictionary<int, ISODeviceProcessData>();
+                _deviceProcessDataByIntDDI = new Dictionary<int, ISODeviceProcessData>();
                 foreach (var dpd2 in DeviceProcessDatas)
                 {
-                    if (!_deviceProcessDataByInt32DDI.TryGetValue(dpd2.Int32DDI, out _))
+                    if (!_deviceProcessDataByIntDDI.TryGetValue(dpd2.IntDDI, out _))
                     {
-                        _deviceProcessDataByInt32DDI[dpd2.Int32DDI] = dpd2;
+                        _deviceProcessDataByIntDDI[dpd2.IntDDI] = dpd2;
                     }
                 }
             }
 
             ISODeviceProcessData dpd;
-            if (_deviceProcessDataByInt32DDI.TryGetValue(int32DDI, out dpd))
+            if (_deviceProcessDataByIntDDI.TryGetValue(intDDI, out dpd))
             {
                 return dpd;
             }

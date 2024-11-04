@@ -84,7 +84,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
                 return false;
             }
 
-            for (int i = s1.Length; i >= 0; i--)
+            for (int i = s1.Length - 1; i >= 0; i--)
             {
                 if (s1[i] != s2[i])
                 {
