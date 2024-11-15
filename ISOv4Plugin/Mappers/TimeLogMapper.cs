@@ -340,26 +340,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 ISOTime time = GetTimeElementFromTimeLog(isoTimeLog);
 
                 //Identify unique devices represented in this TimeLog data
-                List<string> deviceElementIDs = time.DataLogValues.Where(d => !d.ProcessDataDDI.EqualsIgnoreCase("DFFF") && !d.ProcessDataDDI.EqualsIgnoreCase("DFFE"))
+                List<string> deviceElementIDs = time.DataLogValues.Where(d => d.ProcessDataIntDDI != 0xDFFF && d.ProcessDataIntDDI != 0xDFFE)
                     .Select(d => d.DeviceElementIdRef).Distinct().ToList();
-
-                //Supplement the list with any parent device elements which although don't log data in the TLG
-                //May require a vrProductIndex working data based on product allocations
-                HashSet<string> parentsToAdd = new HashSet<string>();
-                foreach (string deviceElementID in deviceElementIDs)
-                {
-                    ISODeviceElement isoDeviceElement = TaskDataMapper.DeviceElementHierarchies.GetISODeviceElementFromID(deviceElementID);
-                    if (isoDeviceElement != null)
-                    {
-                        while (isoDeviceElement.Parent != null &&
-                                isoDeviceElement.Parent is ISODeviceElement parentDet)
-                        {
-                            parentsToAdd.Add(parentDet.DeviceElementId);
-                            isoDeviceElement= parentDet;
-                        }
-                    }
-                }
-                deviceElementIDs.AddRange(parentsToAdd);
 
                 Dictionary<ISODevice, HashSet<string>> loggedDeviceElementsByDevice = new Dictionary<ISODevice, HashSet<string>>();
                 foreach (string deviceElementID in deviceElementIDs)
@@ -373,6 +355,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                             loggedDeviceElementsByDevice.Add(device, new HashSet<string>());
                         }
                         loggedDeviceElementsByDevice[device].Add(deviceElementID);
+
+                        //Supplement the list with any parent device elements which although don't log data in the TLG
+                        //May require a vrProductIndex working data based on product allocations
+                        while (isoDeviceElement.Parent != null &&
+                                isoDeviceElement.Parent is ISODeviceElement parentDet)
+                        {
+                            loggedDeviceElementsByDevice[device].Add(parentDet.DeviceElementId);
+                            isoDeviceElement = parentDet;
+                        }
                     }
                 }
 
@@ -890,7 +881,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         //If the reported number of values does not fit into the stream, correct the numberOfDLVs
                         numberOfDLVs = ConfirmNumberOfDLVs(binaryReader, numberOfDLVs);
 
-                        record.SpatialValuesById = new SpatialValue[templateTime.DataLogValues.Count];
+                        record.SpatialValues = new List<SpatialValue>(numberOfDLVs);
 
                         bool unexpectedEndOfStream = false;
                         //Read DLVs out of the TLG.bin
@@ -908,10 +899,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                             SpatialValue spatialValue = CreateSpatialValue(templateTime, order, value, deviceHierarchies);
                             if (spatialValue != null)
                             {
-                                if (record.SpatialValuesById[order] == null)
-                                {
-                                    record.SpatialValuesById[order] = spatialValue;
-                                }
+                                record.SpatialValues.Add(spatialValue);
                             }
                         }
                         // Unable to read some of the expected DLVs, stop processing
@@ -924,7 +912,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         foreach (ISODataLogValue fixedValue in templateTime.DataLogValues.Where(dlv => dlv.ProcessDataValue.HasValue && !EnumeratedMeterFactory.IsCondensedMeter(dlv.ProcessDataIntDDI)))
                         {
                             byte order = (byte)templateTime.DataLogValues.IndexOf(fixedValue);
-                            SpatialValue matchingValue = record.SpatialValuesById[order];
+                            SpatialValue matchingValue = record.SpatialValues.FirstOrDefault(s => s.Id == order);
                             if (matchingValue != null) //Check to ensure the binary data didn't already write this value
                             {
                                 //Per the spec, any fixed value in the XML applies to all rows; as such, replace what was read from the binary
