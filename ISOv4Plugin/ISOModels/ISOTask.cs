@@ -140,6 +140,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             task.DefaultTreatmentZoneCode = taskNode.GetXmlNodeValueAsNullableInt("@H");
             task.PositionLostTreatmentZoneCode = taskNode.GetXmlNodeValueAsNullableInt("@I");
             task.OutOfFieldTreatmentZoneCode = taskNode.GetXmlNodeValueAsNullableInt("@J");
+            task.ProprietarySchemaExtensions = ReadProperietarySchemaExtensions(taskNode);
 
             //Treatment Zones
             XmlNodeList tznNodes = taskNode.SelectNodes("TZN");
