@@ -20,6 +20,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         WorkingData ConvertToBaseType(WorkingData meter);
         Dictionary<int, ISODataLogValue> DataLogValuesByWorkingDataID { get; set; }
         Dictionary<int, string> ISODeviceElementIDsByWorkingDataID { get; set; }
+
+        IEnumerable<ISODataLogValue> GetDataLogValuesForDeviceElement(ISOTime time, DeviceHierarchyElement deviceElementHierarchy);
     }
 
     public class WorkingDataMapper : BaseMapper, IWorkingDataMapper
@@ -38,6 +40,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             _ddis = DdiLoader.Ddis;
             DataLogValuesByWorkingDataID = new Dictionary<int, ISODataLogValue>();
             ISODeviceElementIDsByWorkingDataID = new Dictionary<int, string>();
+        }
+
+        public IEnumerable<ISODataLogValue> GetDataLogValuesForDeviceElement(ISOTime time, DeviceHierarchyElement deviceElementHierarchy)
+        {
+            return time.DataLogValues.Where(dlv => dlv.DeviceElementIdRef == deviceElementHierarchy.DeviceElement.DeviceElementId ||  //DLV DET reference matches the primary DET for the ADAPT element
+                                                                             deviceElementHierarchy.MergedElements.Any(e => e.DeviceElementId == dlv.DeviceElementIdRef)) //DLV DET reference matches one of the merged DETs on the ADAPT element
+                                     .ToList();
         }
 
         public List<WorkingData> Map(ISOTime time,
