@@ -108,7 +108,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         }
 
                         //Add Working Data for any data on this device element
-                        List<WorkingData> data = _workingDataMapper.Map(time, isoRecords, deviceElementUse, hierarchyElement, sections, isoProductAllocations);
+                        List<WorkingData> data = _workingDataMapper.Map(time, isoRecordsWithData, deviceElementUse, hierarchyElement, sections, isoProductAllocations);
                         if (data.Any())
                         {
                             workingDatas.AddRange(data);
