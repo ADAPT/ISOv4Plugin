@@ -65,7 +65,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Factories
                     : _timeLogMapper.ImportTimeLogs(loggedTask, timeLogGroup, prescriptionID));
             }
 
-            return _manufacturer?.PostProcessOperationData(_taskDataMapper, operationDatas) ?? operationDatas;
+            return _manufacturer?.PostProcessOperationData(_taskDataMapper, loggedTask, operationDatas) ?? operationDatas;
         }
 
         public IEnumerable<ISOTimeLog> ExportTimeLogs(IEnumerable<OperationData> operationDatas, string dataPath)
@@ -93,7 +93,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Factories
             foreach (var timeLogGroup in timeLogGroups)
             {
                 var duplicatesByElementAndDDI = timeLogGroup.SelectMany(x => x.DataLogValues)
-                    .Where(x => x.DataLogPGN == null && x.ProcessDataDDI != "0000")
+                    .Where(x => x.DataLogPGN == null && x.ProcessDataIntDDI != 0x0000)
                     .GroupBy(x => new { x.DeviceElementIdRef, x.ProcessDataDDI })
                     .Where(x => x.Count() > 1);
                 if (!timeLogGroup.KeepAsGroup && duplicatesByElementAndDDI.Any())

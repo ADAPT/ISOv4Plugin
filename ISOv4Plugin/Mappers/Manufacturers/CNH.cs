@@ -215,9 +215,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers
         }
 
 
-        public IEnumerable<OperationData> PostProcessOperationData(TaskDataMapper taskDataMapper, IEnumerable<OperationData> operationDatas)
+        public IEnumerable<OperationData> PostProcessOperationData(TaskDataMapper taskDataMapper, ISOTask isoTask, IEnumerable<OperationData> operationDatas)
         {
             var result = new List<OperationData>();
+
+            var cropNameFromTask = GetCropName(isoTask);
 
             var catalog = taskDataMapper.AdaptDataModel.Catalog;
             foreach (var operationData in operationDatas)
@@ -244,9 +246,54 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers
                         continue;
                     }
                 }
+
+                if (!string.IsNullOrEmpty(cropNameFromTask) &&
+                    operationData.OperationType != OperationTypeEnum.DataCollection &&
+                    (operationData.ProductIds == null || operationData.ProductIds.Count == 0))
+                {
+                    operationData.ProductIds = new List<int>
+                    {
+                        AddOrGetHavestCommodityProduct(catalog, cropNameFromTask).Id.ReferenceId
+                    };
+                }
+
                 result.Add(operationData);
             }
             return result;
+        }
+
+        private HarvestedCommodityProduct AddOrGetHavestCommodityProduct(ApplicationDataModel.ADM.Catalog catalog, string cropName)
+        {
+            Crop adaptCrop = catalog.Crops.FirstOrDefault(x => x.Name.EqualsIgnoreCase(cropName));
+            if (adaptCrop == null)
+            {
+                // Create a new one
+                adaptCrop = new Crop
+                {
+                    Name = cropName
+                };
+                catalog.Crops.Add(adaptCrop);
+            }
+
+            var commodityProduct = catalog.Products.OfType<HarvestedCommodityProduct>()
+                .FirstOrDefault(x => x.Description.EqualsIgnoreCase(cropName) && x.CropId == adaptCrop.Id.ReferenceId);
+            if (commodityProduct == null)
+            {
+                // New harvested commodity product
+                commodityProduct = new HarvestedCommodityProduct
+                {
+                    Category = CategoryEnum.Variety,
+                    Form = ProductFormEnum.Solid,
+                    ProductType = ProductTypeEnum.Variety,
+                    HasHarvestCommodity = true,
+                    Description = cropName
+                };
+
+                commodityProduct.CropId = adaptCrop.Id.ReferenceId;
+
+                catalog.Products.Add(commodityProduct);
+            }
+            return commodityProduct;
         }
 
         public void PostProcessPolygons(List<Polygon> polygons)
