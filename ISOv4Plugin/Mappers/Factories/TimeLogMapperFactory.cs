@@ -65,7 +65,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Factories
                     : _timeLogMapper.ImportTimeLogs(loggedTask, timeLogGroup, prescriptionID));
             }
 
-            return _manufacturer?.PostProcessOperationData(_taskDataMapper, operationDatas) ?? operationDatas;
+            return _manufacturer?.PostProcessOperationData(_taskDataMapper, loggedTask, operationDatas) ?? operationDatas;
         }
 
         public IEnumerable<ISOTimeLog> ExportTimeLogs(IEnumerable<OperationData> operationDatas, string dataPath)

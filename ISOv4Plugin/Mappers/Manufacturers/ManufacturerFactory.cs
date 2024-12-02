@@ -15,7 +15,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers
         CategoryEnum? GetProductCategory(ISOProduct isoProduct);
         string GetProductManufacturer(ISOProduct isoProduct);
 
-        IEnumerable<OperationData> PostProcessOperationData(TaskDataMapper taskDataMapper, IEnumerable<OperationData> operationDatas);
+        IEnumerable<OperationData> PostProcessOperationData(TaskDataMapper taskDataMapper, ISOTask isoTask, IEnumerable<OperationData> operationDatas);
         void PostProcessPolygons(List<Polygon> polygons);
     }
 
