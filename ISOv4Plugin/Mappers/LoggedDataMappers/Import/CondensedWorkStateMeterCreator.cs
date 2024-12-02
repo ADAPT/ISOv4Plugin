@@ -106,13 +106,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         public List<ISOEnumeratedMeter> CreateMeters(IEnumerable<ISOSpatialRow> spatialRows, ISODataLogValue dlv)
         {
             //We need to find a row of data with the value in order to create the correct number of meters.
-            var spatialRowWithDdi = spatialRows.FirstOrDefault(x => x.SpatialValues.Any(y => y.DataLogValue.ProcessDataDDI.AsInt32DDI() == DDI
+            var spatialRowWithDdi = spatialRows.FirstOrDefault(x => x.SpatialValues.Any(y => y.DataLogValue.ProcessDataIntDDI == DDI
                                                                                           && y.DataLogValue.DeviceElementIdRef == dlv.DeviceElementIdRef));
 
             int numberOfSections = 0;
             if (spatialRowWithDdi != null)
             {
-                var spatialValue = spatialRowWithDdi.SpatialValues.First(x => x.DataLogValue.ProcessDataDDI.AsInt32DDI() == DDI &&
+                var spatialValue = spatialRowWithDdi.SpatialValues.First(x => x.DataLogValue.ProcessDataIntDDI == DDI &&
                                                                               x.DataLogValue.DeviceElementIdRef == dlv.DeviceElementIdRef);
                 numberOfSections = GetNumberOfInstalledSections(spatialValue);
             }
