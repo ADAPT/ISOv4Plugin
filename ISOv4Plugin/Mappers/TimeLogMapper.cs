@@ -324,8 +324,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     //Set a UTC "delta" from the first record where possible.  We set only one per data import.
                     if (!TaskDataMapper.GPSToLocalDelta.HasValue)
                     {
-                        var firstRecord = isoRecords.FirstOrDefault();
-                        if (firstRecord != null && firstRecord.GpsUtcDateTime.HasValue)
+                        //Find the first record with a valid GPS time and date. A GpsUtcDate of 0x0000 or 0xFFFF indicates an invalid date.
+                        var firstRecord = isoRecords.FirstOrDefault(r => r.GpsUtcDateTime.HasValue && r.GpsUtcDate != ushort.MaxValue && r.GpsUtcDate != 0);
+                        if (firstRecord != null)
                         {
                             //Local - UTC = Delta.  This value will be rough based on the accuracy of the clock settings but will expose the ability to derive the UTC times from the exported local times.
                             TaskDataMapper.GPSToLocalDelta = (firstRecord.TimeStart - firstRecord.GpsUtcDateTime.Value).TotalHours;
