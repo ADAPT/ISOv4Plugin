@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
+using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 using AgGateway.ADAPT.Representation.UnitSystem;
@@ -91,8 +92,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         {
             var isoDataLogValue = _workingDataMapper.DataLogValuesByWorkingDataID[meter.Id.ReferenceId];
             var isoValue = isoSpatialRow.SpatialValues.FirstOrDefault(v =>
-                    v.DataLogValue.DeviceElementIdRef == isoDataLogValue.DeviceElementIdRef &&
-                    v.DataLogValue.ProcessDataDDI == isoDataLogValue.ProcessDataDDI);
+                    v.DataLogValue.ProcessDataIntDDI == isoDataLogValue.ProcessDataIntDDI &&
+                    v.DataLogValue.DeviceElementIdRef.ReverseEquals(isoDataLogValue.DeviceElementIdRef)
+                    );
             if (isoValue != null)
             {
                 var isoEnumeratedMeter = meter as ISOEnumeratedMeter;
@@ -112,13 +114,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             var dataLogValue = _workingDataMapper.DataLogValuesByWorkingDataID.ContainsKey(meter.Id.ReferenceId)
                 ? _workingDataMapper.DataLogValuesByWorkingDataID[meter.Id.ReferenceId]
                 : null;
-            var isoValue = dataLogValue != null
+            var isoValue = dataLogValue != null && dataLogValue.ProcessDataIntDDI != 0xDFEE
                            ? isoSpatialRow.SpatialValues.FirstOrDefault(v =>
-                                v.DataLogValue.ProcessDataDDI != "DFFE" &&
-                                v.DataLogValue.DeviceElementIdRef == dataLogValue.DeviceElementIdRef &&
-                                v.DataLogValue.ProcessDataDDI == dataLogValue.ProcessDataDDI)
+                                v.DataLogValue.ProcessDataIntDDI == dataLogValue.ProcessDataIntDDI &&
+                                v.DataLogValue.DeviceElementIdRef.ReverseEquals(dataLogValue.DeviceElementIdRef)
+                                )
                            : null;
-
 
             if (isoValue != null)
             {
@@ -218,7 +219,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
             else if (dateTime.Kind == DateTimeKind.Unspecified && _taskDataMapper.GPSToLocalDelta.HasValue)
             {
-                utc = new DateTime(dateTime.AddHours(- _taskDataMapper.GPSToLocalDelta.Value).Ticks, DateTimeKind.Utc);
+                utc = new DateTime(dateTime.AddHours(-_taskDataMapper.GPSToLocalDelta.Value).Ticks, DateTimeKind.Utc);
             }
             else
             {

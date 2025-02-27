@@ -11,6 +11,9 @@ using AgGateway.ADAPT.ISOv4Plugin.Representation;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography.X509Certificates;
+using AgGateway.ADAPT.ApplicationDataModel.Equipment;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
 {
@@ -47,14 +50,44 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
 
         public Dictionary<string, DeviceHierarchyElement> Items { get; set; }
 
-        public DeviceHierarchyElement GetMatchingElement(string isoDeviceElementId, bool includeMergedElements = false)
+        private Dictionary<string, DeviceHierarchyElement> _mainMatchingElements;
+        private Dictionary<string, DeviceHierarchyElement> _mergedMatchingElements;
+
+        public void CacheDeviceElementIds()
         {
+            _mainMatchingElements = new Dictionary<string, DeviceHierarchyElement>();
+            _mergedMatchingElements = new Dictionary<string, DeviceHierarchyElement>();
             foreach (DeviceHierarchyElement hierarchy in this.Items.Values)
             {
-                DeviceHierarchyElement foundModel = hierarchy.FromDeviceElementID(isoDeviceElementId, includeMergedElements);
-                if (foundModel != null)
+                hierarchy.CacheDeviceElementIds(_mainMatchingElements, _mergedMatchingElements);
+                hierarchy.CacheDeviceElementIds();
+            }
+        }
+
+        public DeviceHierarchyElement GetMatchingElement(string isoDeviceElementId, bool includeMergedElements = false)
+        {
+            if (_mainMatchingElements != null)
+            {
+                DeviceHierarchyElement el;
+                if (_mainMatchingElements.TryGetValue(isoDeviceElementId, out el))
                 {
-                    return foundModel;
+                    return el;
+                }
+
+                if (includeMergedElements && _mergedMatchingElements.TryGetValue(isoDeviceElementId, out el))
+                {
+                    return el;
+                }
+            }
+            else
+            {
+                foreach (DeviceHierarchyElement hierarchy in this.Items.Values)
+                {
+                    DeviceHierarchyElement foundModel = hierarchy.FromDeviceElementID(isoDeviceElementId, includeMergedElements);
+                    if (foundModel != null)
+                    {
+                        return foundModel;
+                    }
                 }
             }
             return null;
@@ -337,6 +370,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
         public ISODeviceElementType Type { get; set; }
         private HashSet<int> _crawledElements;
 
+        private Dictionary<string, DeviceHierarchyElement> _mainDeviceElementCache;
+        private Dictionary<string, DeviceHierarchyElement> _mergedDeviceElementCache;
+
         /// <summary>
         /// Tracks any secondary DeviceElements that exist independently in the ISOXML
         /// but have been merged into another DeviceElement in the ADAPT model
@@ -357,21 +393,79 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
         public List<DeviceHierarchyElement> Children { get; set; }
         public DeviceHierarchyElement Parent { get; set; }
 
-
-        public DeviceHierarchyElement FromDeviceElementID(string deviceElementID, bool includeMergedElements = false)
+        public void CacheDeviceElementIds()
         {
-            if (DeviceElement?.DeviceElementId == deviceElementID || (includeMergedElements && MergedElements.Any(x => x.DeviceElementId == deviceElementID)))
-            {
-                return this;
-            }
-            else if (Children != null)
+            _mainDeviceElementCache = new Dictionary<string, DeviceHierarchyElement>();
+
+            _mergedDeviceElementCache = new Dictionary<string, DeviceHierarchyElement>();
+
+            CacheDeviceElementIds(_mainDeviceElementCache, _mergedDeviceElementCache);
+
+            if (Children != null)
             {
                 foreach (DeviceHierarchyElement child in Children)
                 {
-                    DeviceHierarchyElement childModel = child.FromDeviceElementID(deviceElementID, includeMergedElements);
-                    if (childModel != null)
+                    child.CacheDeviceElementIds();
+                }
+            }
+        }
+
+        public void CacheDeviceElementIds(Dictionary<string, DeviceHierarchyElement> mainDeviceElementCache,
+            Dictionary<string, DeviceHierarchyElement> mergedDeviceElementCache)
+        {
+            if (DeviceElement != null)
+            {
+                if (!mainDeviceElementCache.TryGetValue(DeviceElement.DeviceElementId, out _))
+                {
+                    mainDeviceElementCache[DeviceElement.DeviceElementId] = this;
+                }
+            }
+            foreach (ISODeviceElement element in MergedElements)
+            {
+                if (!mergedDeviceElementCache.TryGetValue(element.DeviceElementId, out _))
+                {
+                    mergedDeviceElementCache[element.DeviceElementId] = this;
+                }
+            }
+
+            if (Children != null)
+            {
+                foreach (DeviceHierarchyElement child in Children)
+                {
+                    child.CacheDeviceElementIds(mainDeviceElementCache, mergedDeviceElementCache);
+                }
+            }
+        }
+
+        public DeviceHierarchyElement FromDeviceElementID(string deviceElementID, bool includeMergedElements = false)
+        {
+            if (_mainDeviceElementCache != null)
+            {
+                DeviceHierarchyElement el;
+                if (_mainDeviceElementCache.TryGetValue(deviceElementID, out el))
+                {
+                    return el;
+                }
+                else if (includeMergedElements && _mergedDeviceElementCache.TryGetValue(deviceElementID, out el))
+                {
+                    return el;
+                }
+            }
+            else
+            {
+                if (DeviceElement?.DeviceElementId == deviceElementID || (includeMergedElements && MergedElements.Any(x => x.DeviceElementId == deviceElementID)))
+                {
+                    return this;
+                }
+                else if (Children != null)
+                {
+                    foreach (DeviceHierarchyElement child in Children)
                     {
-                        return childModel;
+                        DeviceHierarchyElement childModel = child.FromDeviceElementID(deviceElementID, includeMergedElements);
+                        if (childModel != null)
+                        {
+                            return childModel;
+                        }
                     }
                 }
             }
@@ -502,5 +596,5 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                 }
             }
         }
-    }  
+    }
 }
