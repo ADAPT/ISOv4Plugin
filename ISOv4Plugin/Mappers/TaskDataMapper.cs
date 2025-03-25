@@ -13,6 +13,7 @@ using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ApplicationDataModel.Logistics;
 using AgGateway.ADAPT.ApplicationDataModel.Products;
 using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
+using AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using AgGateway.ADAPT.ISOv4Plugin.Representation;
 
@@ -407,14 +408,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 if (Properties == null || !bool.TryParse(Properties.GetProperty(MergeSingleBinsIntoBoom), out mergeBins))
                 {
                     mergeBins = true;
-                }             
+                }
 
                 //Load the internal objects modeling hierarchies of DETs per DVC
                 DeviceElementHierarchies = new DeviceElementHierarchies(devices,
                                                                         RepresentationMapper,
                                                                         mergeBins,
                                                                         taskData.ChildElements.OfType<ISOTask>().SelectMany(t => t.TimeLogs),
-                                                                        BaseFolder);
+                                                                        BaseFolder,
+                                                                        this);
 
                 //Import the ISO DVC & DET data into the actual ADAPT models.
                 //During DET import, we use the DeviceElementHierarchies from above to map the actual hierarchies and fill in details.

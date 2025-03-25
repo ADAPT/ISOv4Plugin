@@ -1,14 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Text;
+using System.Xml;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
+using AgGateway.ADAPT.ApplicationDataModel.Equipment;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ApplicationDataModel.Products;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
 using AgGateway.ADAPT.ApplicationDataModel.Shapes;
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers
 {
@@ -356,6 +361,100 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers
                 }
             }
             return inside;
+        }
+
+        public void ProcessDeviceElementHierarchy(DeviceHierarchyElement hierarchyElement, Dictionary<string, List<string>> missingGeometryDefinitions)
+        {
+            // The steering type DDI 0252 can define the Origin Axle.
+            // Add it to missing geometry definitions if any child device element has it.
+            if (!hierarchyElement.DeviceElement.Device.DeviceDesignator.EqualsIgnoreCase("Vehicle Geometry"))
+            {
+                return;
+            }
+
+            foreach (var devElement in hierarchyElement.AllDescendants)
+            {
+                var steeringTypeDPD = devElement.DeviceProcessDatas.FirstOrDefault(x => x.IntDDI == 0x252);
+                if (steeringTypeDPD == null)
+                {
+                    continue;
+                }
+
+                if (!missingGeometryDefinitions.TryGetValue(devElement.DeviceElementId, out var ddis))
+                {
+                    ddis = new List<string>();
+                    missingGeometryDefinitions[devElement.DeviceElementId] = ddis;
+                }
+                ddis.Add("0252");
+            }
+        }
+
+        public void PostProcessDeviceElementHierarchies(DeviceElementHierarchies hierarchies)
+        {
+            // Merge "Trip Computer Task Totals" with "Vehicle Geometry"
+            var tripHierarchy = hierarchies.Items.FirstOrDefault(x => x.Value.DeviceElement.Device.DeviceDesignator.EqualsIgnoreCase("Trip Computer Data"));
+            if (string.IsNullOrEmpty(tripHierarchy.Key))
+            {
+                return;
+            }
+
+            var tripTotalsHierarchyElement = tripHierarchy.Value.Children.FirstOrDefault(x => x.DeviceElement.DeviceElementDesignator.EqualsIgnoreCase("Trip Computer Task Totals"));
+
+            var vehicleHierarchy = hierarchies.Items.FirstOrDefault(x => x.Value.DeviceElement.Device.DeviceDesignator.EqualsIgnoreCase("Vehicle Geometry"));
+            if (!string.IsNullOrEmpty(vehicleHierarchy.Key))
+            {
+                // Both "Vehicle Geometry" and "Trip Computer Data" devices exist.
+                // Remove "Trip Computer Data" from hierarchy and add "Totals" as a child of "Vehicle Geometry"
+                hierarchies.Items.Remove(tripHierarchy.Key);
+
+                if (tripTotalsHierarchyElement != null)
+                {
+                    tripTotalsHierarchyElement.Parent = vehicleHierarchy.Value;
+                    vehicleHierarchy.Value.Children.Add(tripTotalsHierarchyElement);
+
+                }
+            }
+            else if (tripTotalsHierarchyElement != null)
+            {
+                // "Vehicle Geometry" doesn't exist, so move "Totals" to top level element
+                hierarchies.Items[tripHierarchy.Key] = tripTotalsHierarchyElement;
+            }
+
+            // If there is only one other device without width, then move width from "Totals" to it
+            var remainingHierarchyItems = hierarchies.Items.Where(x => x.Key != tripHierarchy.Key && x.Key != vehicleHierarchy.Key).ToList();
+            if (remainingHierarchyItems.Count == 1 && tripTotalsHierarchyElement != null)
+            {
+                var firstItem = remainingHierarchyItems[0];
+                if (!firstItem.Value.Width.HasValue)
+                {
+                    firstItem.Value.Width = tripTotalsHierarchyElement.Width;
+                    firstItem.Value.WidthDDI = tripTotalsHierarchyElement.WidthDDI;
+                }
+            }
+        }
+
+        public IEnumerable<ISODevice> PreProcessDevices(IEnumerable<ISODevice> isoDevices)
+        {
+            var result = isoDevices.ToList();
+
+            // Remove "Trip computer Data" from list of devices and rename to Vehicle
+            var tripComputerDataDevice = result.FirstOrDefault(x => x.DeviceDesignator.EqualsIgnoreCase("Trip Computer Data"));
+            if (tripComputerDataDevice == null)
+            {
+                return result;
+            }
+
+            var vehicleGeometryDevice = result.FirstOrDefault(x => x.DeviceDesignator.EqualsIgnoreCase("Vehicle Geometry"));
+            if (vehicleGeometryDevice == null)
+            {
+                tripComputerDataDevice.DeviceDesignator = "Vehicle";
+                return result;
+            }
+
+            result.Remove(tripComputerDataDevice);
+            vehicleGeometryDevice.DeviceDesignator = "Vehicle";
+
+            return result;
         }
     }
 }
