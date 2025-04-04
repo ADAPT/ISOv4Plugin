@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using AgGateway.ADAPT.ApplicationDataModel.Equipment;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ApplicationDataModel.Products;
 using AgGateway.ADAPT.ApplicationDataModel.Shapes;
@@ -19,8 +18,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers
 
         IEnumerable<OperationData> PostProcessOperationData(TaskDataMapper taskDataMapper, ISOTask isoTask, IEnumerable<OperationData> operationDatas);
         void PostProcessPolygons(List<Polygon> polygons);
-        IEnumerable<ISODevice> PreProcessDevices(IEnumerable<ISODevice> isoDevices);
-        void PostProcessDeviceElementHierarchies(DeviceElementHierarchies deviceElementHierarchies);
+        void PostProcessModel(ApplicationDataModel.ADM.ApplicationDataModel model, DeviceElementHierarchies deviceElementHierarchies);
         void ProcessDeviceElementHierarchy(DeviceHierarchyElement hierarchyElement, Dictionary<string, List<string>> missingGeometryDefinitions);
     }
 

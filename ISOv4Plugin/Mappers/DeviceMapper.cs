@@ -89,8 +89,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         public IEnumerable<DeviceModel> ImportDevices(IEnumerable<ISODevice> isoDevices)
         {
-            isoDevices = _manufacturer?.PreProcessDevices(isoDevices) ?? isoDevices;
-
             //Import devices
             List<DeviceModel> adaptDevices = new List<DeviceModel>();
             foreach (ISODevice isoDevice in isoDevices)
