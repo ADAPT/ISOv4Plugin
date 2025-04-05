@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml;
+using AgGateway.ADAPT.ApplicationDataModel.ADM;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.Equipment;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
@@ -367,94 +368,150 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers
         {
             // The steering type DDI 0252 can define the Origin Axle.
             // Add it to missing geometry definitions if any child device element has it.
-            if (!hierarchyElement.DeviceElement.Device.DeviceDesignator.EqualsIgnoreCase("Vehicle Geometry"))
+            if (hierarchyElement.DeviceElement.Device.DeviceDesignator.EqualsIgnoreCase("Vehicle Geometry"))
             {
-                return;
-            }
-
-            foreach (var devElement in hierarchyElement.AllDescendants)
-            {
-                var steeringTypeDPD = devElement.DeviceProcessDatas.FirstOrDefault(x => x.IntDDI == 0x252);
-                if (steeringTypeDPD == null)
+                var vehicleElement = hierarchyElement.AllDescendants.FirstOrDefault(x => x.DeviceProcessDatas.Any(y => y.IntDDI == 0x252));
+                if (vehicleElement != null)
                 {
-                    continue;
-                }
-
-                if (!missingGeometryDefinitions.TryGetValue(devElement.DeviceElementId, out var ddis))
-                {
-                    ddis = new List<string>();
-                    missingGeometryDefinitions[devElement.DeviceElementId] = ddis;
-                }
-                ddis.Add("0252");
-            }
-        }
-
-        public void PostProcessDeviceElementHierarchies(DeviceElementHierarchies hierarchies)
-        {
-            // Merge "Trip Computer Task Totals" with "Vehicle Geometry"
-            var tripHierarchy = hierarchies.Items.FirstOrDefault(x => x.Value.DeviceElement.Device.DeviceDesignator.EqualsIgnoreCase("Trip Computer Data"));
-            if (string.IsNullOrEmpty(tripHierarchy.Key))
-            {
-                return;
-            }
-
-            var tripTotalsHierarchyElement = tripHierarchy.Value.Children.FirstOrDefault(x => x.DeviceElement.DeviceElementDesignator.EqualsIgnoreCase("Trip Computer Task Totals"));
-
-            var vehicleHierarchy = hierarchies.Items.FirstOrDefault(x => x.Value.DeviceElement.Device.DeviceDesignator.EqualsIgnoreCase("Vehicle Geometry"));
-            if (!string.IsNullOrEmpty(vehicleHierarchy.Key))
-            {
-                // Both "Vehicle Geometry" and "Trip Computer Data" devices exist.
-                // Remove "Trip Computer Data" from hierarchy and add "Totals" as a child of "Vehicle Geometry"
-                hierarchies.Items.Remove(tripHierarchy.Key);
-
-                if (tripTotalsHierarchyElement != null)
-                {
-                    tripTotalsHierarchyElement.Parent = vehicleHierarchy.Value;
-                    vehicleHierarchy.Value.Children.Add(tripTotalsHierarchyElement);
-
-                }
-            }
-            else if (tripTotalsHierarchyElement != null)
-            {
-                // "Vehicle Geometry" doesn't exist, so move "Totals" to top level element
-                hierarchies.Items[tripHierarchy.Key] = tripTotalsHierarchyElement;
-            }
-
-            // If there is only one other device without width, then move width from "Totals" to it
-            var remainingHierarchyItems = hierarchies.Items.Where(x => x.Key != tripHierarchy.Key && x.Key != vehicleHierarchy.Key).ToList();
-            if (remainingHierarchyItems.Count == 1 && tripTotalsHierarchyElement != null)
-            {
-                var firstItem = remainingHierarchyItems[0];
-                if (!firstItem.Value.Width.HasValue)
-                {
-                    firstItem.Value.Width = tripTotalsHierarchyElement.Width;
-                    firstItem.Value.WidthDDI = tripTotalsHierarchyElement.WidthDDI;
+                    if (missingGeometryDefinitions.ContainsKey(vehicleElement.DeviceElementId))
+                    {
+                        if (!missingGeometryDefinitions[vehicleElement.DeviceElementId].Contains("0252"))
+                        {
+                            missingGeometryDefinitions[vehicleElement.DeviceElementId].Add("0252");
+                        }
+                    }
+                    else
+                    {
+                        missingGeometryDefinitions[vehicleElement.DeviceElementId] = new List<string> { "0252" };
+                    }
                 }
             }
         }
 
-        public IEnumerable<ISODevice> PreProcessDevices(IEnumerable<ISODevice> isoDevices)
+        public void PostProcessModel(ApplicationDataModel.ADM.ApplicationDataModel model, DeviceElementHierarchies deviceElementHierarchies)
         {
-            var result = isoDevices.ToList();
-
-            // Remove "Trip computer Data" from list of devices and rename to Vehicle
-            var tripComputerDataDevice = result.FirstOrDefault(x => x.DeviceDesignator.EqualsIgnoreCase("Trip Computer Data"));
-            if (tripComputerDataDevice == null)
+            MachineConfiguration consolidatedVehicle;
+            var machineConfigs = model.Catalog.DeviceElementConfigurations.OfType<MachineConfiguration>();
+            if (machineConfigs.Count() > 1)
             {
-                return result;
+                consolidatedVehicle = machineConfigs.FirstOrDefault(c => c.Description.StartsWith("Vehicle"));
+                if (consolidatedVehicle != null)
+                {
+                    consolidatedVehicle.Description = "Vehicle";
+                    List<MachineConfiguration> machinesToRemove = new List<MachineConfiguration>();
+                    List<int> deviceElementsToRemove = new List<int>();
+                    List<int> deviceModelsToRemove = new List<int>();
+                    foreach (MachineConfiguration otherMachineConfig in model.Catalog.DeviceElementConfigurations.OfType<MachineConfiguration>()
+                                .Where(c => c.Id.ReferenceId != consolidatedVehicle.Id.ReferenceId))
+                    {
+                        MergeMachineConfigurations(consolidatedVehicle, otherMachineConfig);
+                        machinesToRemove.Add(otherMachineConfig);
+                    }
+                    foreach (var itemToRemove in machinesToRemove)
+                    {
+                        foreach (var loggedDatum in model.Documents.LoggedData)
+                        {
+                            foreach (var operationData in loggedDatum.OperationData)
+                            {
+                                // Update DeviceElementUses to point to the consolidated vehicle
+                                var isoOperation = operationData as ISOOperationData;
+                                foreach (var deu in isoOperation.DeviceElementUses)
+                                {
+                                    if (deu.DeviceConfigurationId == itemToRemove.Id.ReferenceId)
+                                    {
+                                        deu.DeviceConfigurationId = consolidatedVehicle.Id.ReferenceId;
+                                        var deviceElementToRemove = model.Catalog.DeviceElements.FirstOrDefault(x => x.Id.ReferenceId == itemToRemove.DeviceElementId);
+                                        if (deviceElementToRemove != null)
+                                        {
+                                            model.Catalog.DeviceElements.Remove(deviceElementToRemove);
+                                            var deviceToRemove = model.Catalog.DeviceModels.FirstOrDefault(x => x.Id.ReferenceId == deviceElementToRemove.ParentDeviceId);
+                                            if (deviceToRemove != null)
+                                            {
+                                                deviceModelsToRemove.Add(deviceToRemove.Id.ReferenceId);
+                                                model.Catalog.DeviceModels.Remove(deviceToRemove);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        var item = model.Catalog.DeviceElementConfigurations.First(x => x.Id.ReferenceId == itemToRemove.Id.ReferenceId);
+                        model.Catalog.DeviceElementConfigurations.Remove(item);
+                    }
+                }
+            }
+            else
+            {
+                consolidatedVehicle = machineConfigs.FirstOrDefault();
             }
 
-            var vehicleGeometryDevice = result.FirstOrDefault(x => x.DeviceDesignator.EqualsIgnoreCase("Vehicle Geometry"));
-            if (vehicleGeometryDevice == null)
+            if (consolidatedVehicle != null)
             {
-                tripComputerDataDevice.DeviceDesignator = "Vehicle";
-                return result;
+                consolidatedVehicle.Description = "Vehicle";
+                var implementConfigs = model.Catalog.DeviceElementConfigurations.OfType<ImplementConfiguration>();
+                if (implementConfigs.Count() > 1)
+                {
+                    List<int> implementsToRemove = new List<int>();
+                    var tripComputerData = implementConfigs.Where(c => c.Description.Contains("Trip Computer")).ToList();
+                    if (tripComputerData.Count > 0)
+                    {
+                        foreach (var tripComputer in tripComputerData)
+                        {
+                            foreach (var loggedDatum in model.Documents.LoggedData)
+                            {
+                                foreach (var operationData in loggedDatum.OperationData)
+                                {
+                                    // Update DeviceElementUses to point to the consolidated vehicle
+                                    var isoOperation = operationData as ISOOperationData;
+                                    foreach (var deu in isoOperation.DeviceElementUses)
+                                    {
+                                        if (deu.DeviceConfigurationId == tripComputer.Id.ReferenceId)
+                                        {
+                                            deu.DeviceConfigurationId = consolidatedVehicle.Id.ReferenceId;
+                                        }
+                                    }
+                                }
+                            }
+                            implementsToRemove.Add(tripComputer.Id.ReferenceId);
+                        }
+                    }
+                    foreach (int itemToRemove in implementsToRemove)
+                    {
+                        var item = model.Catalog.DeviceElementConfigurations.First(x => x.Id.ReferenceId == itemToRemove) as ImplementConfiguration;
+                        model.Catalog.DeviceElementConfigurations.Remove(item);
+                        if (implementConfigs.Count() == 1)
+                        {
+                            var other = implementConfigs.Single();
+                            if (other.PhysicalWidth == null &&
+                                item.PhysicalWidth != null)
+                            {
+                                //Data condition may exist in mixed-fleet scenarios.
+                                other.PhysicalWidth = item.PhysicalWidth;
+                            }
+                        }
+                    }
+                }
             }
+        }
 
-            result.Remove(tripComputerDataDevice);
-            vehicleGeometryDevice.DeviceDesignator = "Vehicle";
+        private void MergeNumericRepresentationValues(NumericRepresentationValue consolidated, NumericRepresentationValue other)
+        {
+            if (consolidated?.Value == null && other?.Value != null)
+            {
+                consolidated = other;
+            }
+        }
 
-            return result;
+        private void MergeMachineConfigurations(MachineConfiguration consolidated, MachineConfiguration other)
+        {
+            MergeNumericRepresentationValues(consolidated.GpsReceiverXOffset, other.GpsReceiverXOffset);
+            MergeNumericRepresentationValues(consolidated.GpsReceiverYOffset, other.GpsReceiverYOffset);
+            MergeNumericRepresentationValues(consolidated.GpsReceiverZOffset, other.GpsReceiverZOffset);
+            if (consolidated.OriginAxleLocation == OriginAxleLocationEnum.Rear ||
+                other.OriginAxleLocation == OriginAxleLocationEnum.Rear)
+            {
+                consolidated.OriginAxleLocation = OriginAxleLocationEnum.Rear;
+            }
         }
     }
 }

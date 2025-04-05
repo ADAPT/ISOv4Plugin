@@ -30,8 +30,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                                         string dataPath,
                                         TaskDataMapper taskDataMapper)
         {
-            _manufacturer = ManufacturerFactory.GetManufacturer(taskDataMapper);
-
             Items = new Dictionary<string, DeviceHierarchyElement>();
 
             //Track any device element geometries not logged as a DPT
@@ -55,8 +53,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
             {
                 FillDPDGeometryDefinitions(missingGeometryDefinitions, timeLogs, dataPath);
             }
-
-            _manufacturer?.PostProcessDeviceElementHierarchies(this);
         }
 
         public Dictionary<string, DeviceHierarchyElement> Items { get; set; }
