@@ -1,14 +1,20 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Text;
+using System.Xml;
+using AgGateway.ADAPT.ApplicationDataModel.ADM;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
+using AgGateway.ADAPT.ApplicationDataModel.Equipment;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ApplicationDataModel.Products;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
 using AgGateway.ADAPT.ApplicationDataModel.Shapes;
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers
 {
@@ -356,6 +362,156 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers
                 }
             }
             return inside;
+        }
+
+        public void ProcessDeviceElementHierarchy(DeviceHierarchyElement hierarchyElement, Dictionary<string, List<string>> missingGeometryDefinitions)
+        {
+            // The steering type DDI 0252 can define the Origin Axle.
+            // Add it to missing geometry definitions if any child device element has it.
+            if (hierarchyElement.DeviceElement.Device.DeviceDesignator.EqualsIgnoreCase("Vehicle Geometry"))
+            {
+                var vehicleElement = hierarchyElement.AllDescendants.FirstOrDefault(x => x.DeviceProcessDatas.Any(y => y.IntDDI == 0x252));
+                if (vehicleElement != null)
+                {
+                    if (missingGeometryDefinitions.ContainsKey(vehicleElement.DeviceElementId))
+                    {
+                        if (!missingGeometryDefinitions[vehicleElement.DeviceElementId].Contains("0252"))
+                        {
+                            missingGeometryDefinitions[vehicleElement.DeviceElementId].Add("0252");
+                        }
+                    }
+                    else
+                    {
+                        missingGeometryDefinitions[vehicleElement.DeviceElementId] = new List<string> { "0252" };
+                    }
+                }
+            }
+        }
+
+        public void PostProcessModel(ApplicationDataModel.ADM.ApplicationDataModel model, DeviceElementHierarchies deviceElementHierarchies)
+        {
+            MachineConfiguration consolidatedVehicle;
+            var machineConfigs = model.Catalog.DeviceElementConfigurations.OfType<MachineConfiguration>();
+            if (machineConfigs.Count() > 1)
+            {
+                consolidatedVehicle = machineConfigs.FirstOrDefault(c => c.Description.StartsWith("Vehicle"));
+                if (consolidatedVehicle != null)
+                {
+                    consolidatedVehicle.Description = "Vehicle";
+                    List<MachineConfiguration> machinesToRemove = new List<MachineConfiguration>();
+                    List<int> deviceElementsToRemove = new List<int>();
+                    List<int> deviceModelsToRemove = new List<int>();
+                    foreach (MachineConfiguration otherMachineConfig in model.Catalog.DeviceElementConfigurations.OfType<MachineConfiguration>()
+                                .Where(c => c.Id.ReferenceId != consolidatedVehicle.Id.ReferenceId))
+                    {
+                        MergeMachineConfigurations(consolidatedVehicle, otherMachineConfig);
+                        machinesToRemove.Add(otherMachineConfig);
+                    }
+                    foreach (var itemToRemove in machinesToRemove)
+                    {
+                        foreach (var loggedDatum in model.Documents.LoggedData)
+                        {
+                            foreach (var operationData in loggedDatum.OperationData)
+                            {
+                                // Update DeviceElementUses to point to the consolidated vehicle
+                                var isoOperation = operationData as ISOOperationData;
+                                foreach (var deu in isoOperation.DeviceElementUses)
+                                {
+                                    if (deu.DeviceConfigurationId == itemToRemove.Id.ReferenceId)
+                                    {
+                                        deu.DeviceConfigurationId = consolidatedVehicle.Id.ReferenceId;
+                                        var deviceElementToRemove = model.Catalog.DeviceElements.FirstOrDefault(x => x.Id.ReferenceId == itemToRemove.DeviceElementId);
+                                        if (deviceElementToRemove != null)
+                                        {
+                                            model.Catalog.DeviceElements.Remove(deviceElementToRemove);
+                                            var deviceToRemove = model.Catalog.DeviceModels.FirstOrDefault(x => x.Id.ReferenceId == deviceElementToRemove.ParentDeviceId);
+                                            if (deviceToRemove != null)
+                                            {
+                                                deviceModelsToRemove.Add(deviceToRemove.Id.ReferenceId);
+                                                model.Catalog.DeviceModels.Remove(deviceToRemove);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        var item = model.Catalog.DeviceElementConfigurations.First(x => x.Id.ReferenceId == itemToRemove.Id.ReferenceId);
+                        model.Catalog.DeviceElementConfigurations.Remove(item);
+                    }
+                }
+            }
+            else
+            {
+                consolidatedVehicle = machineConfigs.FirstOrDefault();
+            }
+
+            if (consolidatedVehicle != null)
+            {
+                consolidatedVehicle.Description = "Vehicle";
+                var implementConfigs = model.Catalog.DeviceElementConfigurations.OfType<ImplementConfiguration>();
+                if (implementConfigs.Count() > 1)
+                {
+                    List<int> implementsToRemove = new List<int>();
+                    var tripComputerData = implementConfigs.Where(c => c.Description.Contains("Trip Computer")).ToList();
+                    if (tripComputerData.Count > 0)
+                    {
+                        foreach (var tripComputer in tripComputerData)
+                        {
+                            foreach (var loggedDatum in model.Documents.LoggedData)
+                            {
+                                foreach (var operationData in loggedDatum.OperationData)
+                                {
+                                    // Update DeviceElementUses to point to the consolidated vehicle
+                                    var isoOperation = operationData as ISOOperationData;
+                                    foreach (var deu in isoOperation.DeviceElementUses)
+                                    {
+                                        if (deu.DeviceConfigurationId == tripComputer.Id.ReferenceId)
+                                        {
+                                            deu.DeviceConfigurationId = consolidatedVehicle.Id.ReferenceId;
+                                        }
+                                    }
+                                }
+                            }
+                            implementsToRemove.Add(tripComputer.Id.ReferenceId);
+                        }
+                    }
+                    foreach (int itemToRemove in implementsToRemove)
+                    {
+                        var item = model.Catalog.DeviceElementConfigurations.First(x => x.Id.ReferenceId == itemToRemove) as ImplementConfiguration;
+                        model.Catalog.DeviceElementConfigurations.Remove(item);
+                        if (implementConfigs.Count() == 1)
+                        {
+                            var other = implementConfigs.Single();
+                            if (other.PhysicalWidth == null &&
+                                item.PhysicalWidth != null)
+                            {
+                                //Data condition may exist in mixed-fleet scenarios.
+                                other.PhysicalWidth = item.PhysicalWidth;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void MergeNumericRepresentationValues(NumericRepresentationValue consolidated, NumericRepresentationValue other)
+        {
+            if (consolidated?.Value == null && other?.Value != null)
+            {
+                consolidated = other;
+            }
+        }
+
+        private void MergeMachineConfigurations(MachineConfiguration consolidated, MachineConfiguration other)
+        {
+            MergeNumericRepresentationValues(consolidated.GpsReceiverXOffset, other.GpsReceiverXOffset);
+            MergeNumericRepresentationValues(consolidated.GpsReceiverYOffset, other.GpsReceiverYOffset);
+            MergeNumericRepresentationValues(consolidated.GpsReceiverZOffset, other.GpsReceiverZOffset);
+            if (consolidated.OriginAxleLocation == OriginAxleLocationEnum.Rear ||
+                other.OriginAxleLocation == OriginAxleLocationEnum.Rear)
+            {
+                consolidated.OriginAxleLocation = OriginAxleLocationEnum.Rear;
+            }
         }
     }
 }
