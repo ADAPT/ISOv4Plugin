@@ -381,7 +381,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
                     foreach (var deviceElementGroup in deviceElementGroups)
                     {
-                        OperationData operationData = new OperationData();
+                        ISOOperationData operationData = new ISOOperationData();
 
                         //Get ids of all device elements in a group including parent element ids
                         //since product allocations can be at parent elements which are not logging any data.
@@ -404,7 +404,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
                         operationData.GetSpatialRecords = () => spatialMapper.Map(isoRecords, workingDatas, productAllocations);
                         operationData.MaxDepth = sections.Count() > 0 ? sections.Select(s => s.Depth).Max() : 0;
-                        operationData.GetDeviceElementUses = x => sectionMapper.ConvertToBaseTypes(sections.Where(s => s.Depth == x).ToList());
+                        operationData.DeviceElementUses = sectionMapper.ConvertToBaseTypes(sections.ToList());
+                        operationData.GetDeviceElementUses = x => operationData.DeviceElementUses.Where(s => s.Depth == x).ToList();
                         operationData.PrescriptionId = prescriptionID;
                         operationData.OperationType = GetOperationTypeFromProductCategory(productIDs) ?? GetOperationTypeFromLoggingDevices(time);
                         operationData.ProductIds = productIDs;

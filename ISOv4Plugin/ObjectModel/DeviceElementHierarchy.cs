@@ -14,16 +14,21 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 using AgGateway.ADAPT.ApplicationDataModel.Equipment;
+using AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers;
+using AgGateway.ADAPT.ISOv4Plugin.Mappers;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
 {
     public class DeviceElementHierarchies
     {
+        private readonly IManufacturer _manufacturer;
+
         public DeviceElementHierarchies(IEnumerable<ISODevice> devices,
                                         RepresentationMapper representationMapper,
                                         bool mergeBins,
                                         IEnumerable<ISOTimeLog> timeLogs,
-                                        string dataPath)
+                                        string dataPath,
+                                        TaskDataMapper taskDataMapper)
         {
             Items = new Dictionary<string, DeviceHierarchyElement>();
 
@@ -38,6 +43,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                     DeviceHierarchyElement hierarchyElement = new DeviceHierarchyElement(rootDeviceElement, 0, representationMapper, mergeBins, missingGeometryDefinitions);
                     hierarchyElement.HandleBinDeviceElements();
                     Items.Add(device.DeviceId, hierarchyElement);
+
+                    _manufacturer?.ProcessDeviceElementHierarchy(hierarchyElement, missingGeometryDefinitions);
                 }
             }
 
@@ -188,6 +195,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                                                 break;
                                             case "0088":
                                                 matchingElement.ZOffset = timelogValues[reportedDLV.Index];
+                                                break;
+                                            case "0252":
+                                                matchingElement.OriginAxleLocation = timelogValues[reportedDLV.Index] == 1 || timelogValues[reportedDLV.Index] == 4
+                                                    ? OriginAxleLocationEnum.Front : OriginAxleLocationEnum.Rear;
                                                 break;
                                         }
                                     }
@@ -384,6 +395,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
         public int? XOffset { get; set; }
         public int? YOffset { get; set; }
         public int? ZOffset { get; set; }
+
+        public OriginAxleLocationEnum? OriginAxleLocation { get; set; }
 
         public NumericRepresentationValue WidthRepresentation { get { return Width.HasValue ? Width.Value.AsNumericRepresentationValue(WidthDDI, RepresentationMapper) : null; } }
         public NumericRepresentationValue XOffsetRepresentation { get { return XOffset.HasValue ? XOffset.Value.AsNumericRepresentationValue("0086", RepresentationMapper) : null; } }
