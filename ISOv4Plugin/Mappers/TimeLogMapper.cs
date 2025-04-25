@@ -616,7 +616,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 {
                     level = isoDeviceElementHierarchy.Depth;
                 }
-            }           
+            }
 
             // Get max level from children elements
             int? maxChildLevel = isoDeviceElementHierarchy?.Children?.Max(x => GetLowestProductAllocationLevel(x, isoProductAllocations));
@@ -628,7 +628,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         {
             int position = 0;
 
-            while(deviceElement != null)
+            while (deviceElement != null)
             {
                 deviceElement = deviceElement.Parent as ISODeviceElement;
                 position++;
@@ -719,40 +719,42 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             string filePath = dataPath.GetDirectoryFiles(binName, SearchOption.TopDirectoryOnly).FirstOrDefault();
             if (templateTime != null && filePath != null)
             {
-                return BinaryReader.Read(filePath, templateTime, TaskDataMapper.DeviceElementHierarchies);
+                return BinaryReader.Read(filePath, templateTime, TaskDataMapper.DeviceElementHierarchies, TaskDataMapper.Version);
             }
             return null;
         }
 
-        internal static Dictionary<byte, int> ReadImplementGeometryValues(IEnumerable<byte> dlvsToRead, ISOTime templateTime, string filePath)
+        internal static Dictionary<byte, int> ReadImplementGeometryValues(IEnumerable<byte> dlvsToRead, ISOTime templateTime, string filePath, int version)
         {
-            return BinaryReader.ReadImplementGeometryValues(filePath, templateTime, dlvsToRead);
+            return BinaryReader.ReadImplementGeometryValues(filePath, templateTime, dlvsToRead, version);
         }
 
         protected class BinaryReader
         {
             private static readonly DateTime _firstDayOf1980 = new DateTime(1980, 01, 01);
 
-            public static Dictionary<byte, int> ReadImplementGeometryValues(string filePath, ISOTime templateTime, IEnumerable<byte> desiredDLVIndices)
+            public static Dictionary<byte, int> ReadImplementGeometryValues(string filePath, ISOTime templateTime, IEnumerable<byte> desiredDLVIndices, int version)
             {
                 Dictionary<byte, int> output = new Dictionary<byte, int>();
                 List<byte> desiredIndexes = desiredDLVIndices.ToList();
 
                 //Determine the number of header bytes in each position
                 short headerCount = 0;
-                SkipBytes(templateTime.HasStart && templateTime.Start == null, 6, ref headerCount);
+                bool overrideTimelogAttributeChecks = DetermineTimelogAttributeValidity(filePath, version);
+                SkipBytes(overrideTimelogAttributeChecks || (templateTime.HasStart && templateTime.Start == null), 6, ref headerCount);
                 ISOPosition templatePosition = templateTime.Positions.FirstOrDefault();
+                
                 if (templatePosition != null)
                 {
-                    SkipBytes(templatePosition.HasPositionNorth && templatePosition.PositionNorth == null, 4, ref headerCount);
-                    SkipBytes(templatePosition.HasPositionEast && templatePosition.PositionEast == null, 4, ref headerCount);
-                    SkipBytes(templatePosition.HasPositionUp && templatePosition.PositionUp == null, 4, ref headerCount);
-                    SkipBytes(templatePosition.HasPositionStatus && templatePosition.PositionStatus == null, 1, ref headerCount);
-                    SkipBytes(templatePosition.HasPDOP && templatePosition.PDOP == null, 2, ref headerCount);
-                    SkipBytes(templatePosition.HasHDOP && templatePosition.HDOP == null, 2, ref headerCount);
-                    SkipBytes(templatePosition.HasNumberOfSatellites && templatePosition.NumberOfSatellites == null, 1, ref headerCount);
-                    SkipBytes(templatePosition.HasGpsUtcTime && templatePosition.GpsUtcTime == null, 4, ref headerCount);
-                    SkipBytes(templatePosition.HasGpsUtcDate && templatePosition.GpsUtcDate == null, 2, ref headerCount);
+                    SkipBytes(overrideTimelogAttributeChecks || (templatePosition.HasPositionNorth && templatePosition.PositionNorth == null), 4, ref headerCount);
+                    SkipBytes(overrideTimelogAttributeChecks || (templatePosition.HasPositionEast && templatePosition.PositionEast == null), 4, ref headerCount);
+                    SkipBytes(overrideTimelogAttributeChecks || (templatePosition.HasPositionUp && templatePosition.PositionUp == null), 4, ref headerCount);
+                    SkipBytes(overrideTimelogAttributeChecks || (templatePosition.HasPositionStatus && templatePosition.PositionStatus == null), 1, ref headerCount);
+                    SkipBytes(overrideTimelogAttributeChecks || (templatePosition.HasPDOP && templatePosition.PDOP == null), 2, ref headerCount);
+                    SkipBytes(overrideTimelogAttributeChecks || (templatePosition.HasHDOP && templatePosition.HDOP == null), 2, ref headerCount);
+                    SkipBytes(overrideTimelogAttributeChecks || (templatePosition.HasNumberOfSatellites && templatePosition.NumberOfSatellites == null), 1, ref headerCount);
+                    SkipBytes(overrideTimelogAttributeChecks || (templatePosition.HasGpsUtcTime && templatePosition.GpsUtcTime == null), 4, ref headerCount);
+                    SkipBytes(overrideTimelogAttributeChecks || (templatePosition.HasGpsUtcDate && templatePosition.GpsUtcDate == null), 2, ref headerCount);
                 }
 
                 using (var binaryReader = new System.IO.BinaryReader(File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read)))
@@ -762,17 +764,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         binaryReader.BaseStream.Position += headerCount; //Skip over the header
                         if (ContinueReading(binaryReader))
                         {
-                            var numberOfDLVs = ReadByte(null, true, binaryReader).GetValueOrDefault(0);
+                            var numberOfDLVs = ReadByte(null, true, false, binaryReader).GetValueOrDefault(0);
                             if (ContinueReading(binaryReader))
                             {
                                 numberOfDLVs = ConfirmNumberOfDLVs(binaryReader, numberOfDLVs); //Validate we are not at the end of a truncated file
                                 for (byte i = 0; i < numberOfDLVs; i++)
                                 {
-                                    byte dlvIndex = ReadByte(null, true, binaryReader).GetValueOrDefault(); //This is the current DLV reported
+                                    byte dlvIndex = ReadByte(null, true, false, binaryReader).GetValueOrDefault(); //This is the current DLV reported
                                     if (desiredIndexes.Contains(dlvIndex))
                                     {
                                         //A desired DLV is reported here
-                                        int value = ReadInt32(null, true, binaryReader).GetValueOrDefault();
+                                        int value = ReadInt32(null, true, false, binaryReader).GetValueOrDefault();
                                         if (!output.ContainsKey(dlvIndex))
                                         {
                                             output.Add(dlvIndex, value);
@@ -823,7 +825,46 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 return numberOfDLVs;
             }
 
-            public static IEnumerable<ISOSpatialRow> Read(string fileName, ISOTime templateTime, DeviceElementHierarchies deviceHierarchies)
+            private static bool DetermineTimelogAttributeValidity(string fileName, int version)
+            {
+                bool overrideTimelogAttributeChecks = false;
+                if (version < 3)
+                {
+                    //Some early datasets have a misinterpretation of the "template" behavior of the TIM & PTN elements in the TLG.XML files, 
+                    //and all GPS data elements are reported (often as 0s) regardless of the TLG.XML.
+                    //Run a quick check to see if this is such a dataset (or if all GPS header attributes are legitimately populated)
+                    //to override the attribute-prescence logic in reading the binary.
+                    using (var binaryReader = new System.IO.BinaryReader(File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read)))
+                    {
+                        if (binaryReader.BaseStream.Length > 31) //Guard against small files failing on this logic
+                        {
+                            //First record
+                            binaryReader.BaseStream.Seek(4, SeekOrigin.Current);
+                            var firstDaysSince1980 = binaryReader.ReadUInt16();
+                            binaryReader.BaseStream.Seek(24, SeekOrigin.Current);
+                            var firstDLVCount = binaryReader.ReadByte();
+
+                            var firstRecordDataByteCount = firstDLVCount * 5; //1 byte of id + 4 bytes of value for each dlv
+                            if (binaryReader.BaseStream.Length > 31 + firstRecordDataByteCount + 6) //Guard against small files failing on this logic
+                            {
+                                binaryReader.BaseStream.Seek(firstRecordDataByteCount, SeekOrigin.Current);
+
+                                //Second record
+                                binaryReader.BaseStream.Seek(4, SeekOrigin.Current);
+                                var secondDaysSince1980 = binaryReader.ReadUInt16();
+                                if (firstDaysSince1980 == secondDaysSince1980)
+                                {
+                                    //The byte offsets suggest all header data is present
+                                    overrideTimelogAttributeChecks = true;
+                                }
+                            }
+                        }
+                    }
+                }
+                return overrideTimelogAttributeChecks;
+            }
+
+            public static IEnumerable<ISOSpatialRow> Read(string fileName, ISOTime templateTime, DeviceElementHierarchies deviceHierarchies, int version)
             {
                 if (templateTime == null)
                     yield break;
@@ -831,35 +872,36 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 if (!File.Exists(fileName))
                     yield break;
 
+                bool overrideTimelogAttributeChecks = DetermineTimelogAttributeValidity(fileName, version);
                 using (var binaryReader = new System.IO.BinaryReader(File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read)))
                 {
                     while (binaryReader.BaseStream.Position < binaryReader.BaseStream.Length)
                     {
                         ISOPosition templatePosition = templateTime.Positions.FirstOrDefault();
 
-                        var record = new ISOSpatialRow { TimeStart = GetStartTime(templateTime, binaryReader).GetValueOrDefault() };
+                        var record = new ISOSpatialRow { TimeStart = GetStartTime(templateTime, binaryReader, overrideTimelogAttributeChecks).GetValueOrDefault() };
 
                         if (templatePosition != null)
                         {
                             //North and East are required binary data
-                            record.NorthPosition = ReadInt32((double?)templatePosition.PositionNorth, templatePosition.HasPositionNorth, binaryReader).GetValueOrDefault(0);
-                            record.EastPosition = ReadInt32((double?)templatePosition.PositionEast, templatePosition.HasPositionEast, binaryReader).GetValueOrDefault(0);
+                            record.NorthPosition = ReadInt32((double?)templatePosition.PositionNorth, templatePosition.HasPositionNorth, overrideTimelogAttributeChecks, binaryReader).GetValueOrDefault(0);
+                            record.EastPosition = ReadInt32((double?)templatePosition.PositionEast, templatePosition.HasPositionEast, overrideTimelogAttributeChecks, binaryReader).GetValueOrDefault(0);
 
                             //Optional position attributes will be included in the binary only if a corresponding attribute is present in the PTN element
-                            record.Elevation = ReadInt32(templatePosition.PositionUp, templatePosition.HasPositionUp, binaryReader);
+                            record.Elevation = ReadInt32(templatePosition.PositionUp, templatePosition.HasPositionUp, overrideTimelogAttributeChecks, binaryReader);
 
                             //Position status is required
-                            record.PositionStatus = ReadByte((byte?)templatePosition.PositionStatus, templatePosition.HasPositionStatus, binaryReader);
+                            record.PositionStatus = ReadByte((byte?)templatePosition.PositionStatus, templatePosition.HasPositionStatus, overrideTimelogAttributeChecks, binaryReader);
 
-                            record.PDOP = ReadUShort((double?)templatePosition.PDOP, templatePosition.HasPDOP, binaryReader);
+                            record.PDOP = ReadUShort((double?)templatePosition.PDOP, templatePosition.HasPDOP, overrideTimelogAttributeChecks, binaryReader);
 
-                            record.HDOP = ReadUShort((double?)templatePosition.HDOP, templatePosition.HasHDOP, binaryReader);
+                            record.HDOP = ReadUShort((double?)templatePosition.HDOP, templatePosition.HasHDOP, overrideTimelogAttributeChecks, binaryReader);
 
-                            record.NumberOfSatellites = ReadByte(templatePosition.NumberOfSatellites, templatePosition.HasNumberOfSatellites, binaryReader);
+                            record.NumberOfSatellites = ReadByte(templatePosition.NumberOfSatellites, templatePosition.HasNumberOfSatellites, overrideTimelogAttributeChecks, binaryReader);
 
-                            record.GpsUtcTime = ReadUInt32(templatePosition.GpsUtcTime, templatePosition.HasGpsUtcTime, binaryReader).GetValueOrDefault();
+                            record.GpsUtcTime = ReadUInt32(templatePosition.GpsUtcTime, templatePosition.HasGpsUtcTime, overrideTimelogAttributeChecks, binaryReader).GetValueOrDefault();
 
-                            record.GpsUtcDate = ReadUShort(templatePosition.GpsUtcDate, templatePosition.HasGpsUtcDate, binaryReader);
+                            record.GpsUtcDate = ReadUShort(templatePosition.GpsUtcDate, templatePosition.HasGpsUtcDate, overrideTimelogAttributeChecks, binaryReader);
 
                             if (record.GpsUtcDate != null && record.GpsUtcTime != null)
                             {
@@ -873,7 +915,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                             break;
                         }
 
-                        var numberOfDLVs = ReadByte(null, true, binaryReader).GetValueOrDefault(0);
+                        var numberOfDLVs = ReadByte(null, true, false, binaryReader).GetValueOrDefault(0);
                         // There should be some values but no more data exists in file, stop processing
                         if (numberOfDLVs > 0 && binaryReader.BaseStream.Position >= binaryReader.BaseStream.Length)
                         {
@@ -889,8 +931,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         //Read DLVs out of the TLG.bin
                         for (int i = 0; i < numberOfDLVs; i++)
                         {
-                            var order = ReadByte(null, true, binaryReader).GetValueOrDefault();
-                            var value = ReadInt32(null, true, binaryReader).GetValueOrDefault();
+                            var order = ReadByte(null, true, false, binaryReader).GetValueOrDefault();
+                            var value = ReadInt32(null, true, false, binaryReader).GetValueOrDefault();
                             // Can't read either order or value or both, stop processing
                             if (i < numberOfDLVs - 1 && binaryReader.BaseStream.Position >= binaryReader.BaseStream.Length)
                             {
@@ -927,25 +969,25 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 }
             }
 
-            private static ushort? ReadUShort(double? value, bool specified, System.IO.BinaryReader binaryReader)
+            private static ushort? ReadUShort(double? value, bool specified, bool overrideTemplate, System.IO.BinaryReader binaryReader)
             {
-                if (specified)
+                if (specified || overrideTemplate)
                 {
-                    if (value.HasValue)
+                    if (value.HasValue && !overrideTemplate)
                         return (ushort)value.Value;
 
                     var buffer = new byte[2];
                     var actualSize = binaryReader.Read(buffer, 0, buffer.Length);
                     return actualSize != buffer.Length ? null : (ushort?)BitConverter.ToUInt16(buffer, 0);
                 }
-                return null;
+                return null;          
             }
 
-            private static byte? ReadByte(byte? byteValue, bool specified, System.IO.BinaryReader binaryReader)
-            {
-                if (specified)
+            private static byte? ReadByte(byte? byteValue, bool specified, bool overrideTemplate, System.IO.BinaryReader binaryReader)
+            {  
+                if (specified || overrideTemplate)
                 {
-                    if (byteValue.HasValue)
+                    if (byteValue.HasValue && !overrideTemplate)
                         return byteValue;
 
                     var buffer = new byte[1];
@@ -955,11 +997,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 return null;
             }
 
-            private static int? ReadInt32(double? d, bool specified, System.IO.BinaryReader binaryReader)
+            private static int? ReadInt32(double? d, bool specified, bool overrideTemplate, System.IO.BinaryReader binaryReader)
             {
-                if (specified)
+                if (specified || overrideTemplate)
                 {
-                    if (d.HasValue)
+                    if (d.HasValue && !overrideTemplate)
                         return (int)d.Value;
 
                     var buffer = new byte[4];
@@ -969,11 +1011,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 return null;
             }
 
-            private static uint? ReadUInt32(double? d, bool specified, System.IO.BinaryReader binaryReader)
+            private static uint? ReadUInt32(double? d, bool specified, bool overrideTemplate, System.IO.BinaryReader binaryReader)
             {
-                if (specified)
+                if (specified || overrideTemplate)
                 {
-                    if (d.HasValue)
+                    if (d.HasValue && !overrideTemplate)
                         return (uint)d.Value;
 
                     var buffer = new byte[4];
@@ -983,12 +1025,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 return null;
             }
 
-            private static DateTime? GetStartTime(ISOTime templateTime, System.IO.BinaryReader binaryReader)
+            private static DateTime? GetStartTime(ISOTime templateTime, System.IO.BinaryReader binaryReader, bool overrideTemplate)
             {
-                if (templateTime.HasStart && templateTime.Start == null)
+                if (overrideTemplate || (templateTime.HasStart && templateTime.Start == null))
                 {
-                    var milliseconds = ReadInt32(null, true, binaryReader);
-                    var daysFrom1980 = ReadUShort(null, true, binaryReader);
+                    var milliseconds = ReadInt32(null, true, overrideTemplate, binaryReader);
+                    var daysFrom1980 = ReadUShort(null, true, overrideTemplate, binaryReader);
                     return !milliseconds.HasValue || !daysFrom1980.HasValue ? null : (DateTime?)_firstDayOf1980.AddDays(daysFrom1980.Value).AddMilliseconds(milliseconds.Value);
                 }
                 else if (templateTime.HasStart)

@@ -17,6 +17,7 @@ using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
 using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 using AgGateway.ADAPT.ISOv4Plugin.Mappers.Factories;
 using AgGateway.ADAPT.ISOv4Plugin.Representation;
+using AgGateway.ADAPT.Representation.RepresentationSystem.ExtensionMethods;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
@@ -571,7 +572,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 if (personID.HasValue)
                 {
                     //Create a Role
-                    PersonRole role = new PersonRole() { PersonId = personID.Value };
+                    PersonRole role = new PersonRole()
+                    {
+                        PersonId = personID.Value,
+                        Role = new EnumeratedValue { Value = AgGateway.ADAPT.Representation.RepresentationSystem.DefinedTypeEnumerationInstanceList.dtiPersonRoleOperator.ToModelEnumMember() }
+                    };
 
                     //Add to Catalog
                     DataModel.Catalog.PersonRoles.Add(role);

@@ -61,7 +61,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin
             foreach (var taskData in taskDataObjects)
             {
                 //Convert the ISO model to ADAPT
-                TaskDataMapper taskDataMapper = new TaskDataMapper(taskData.DataFolder, properties);
+                TaskDataMapper taskDataMapper = new TaskDataMapper(taskData.DataFolder, properties, taskData.VersionMajor);
                 ApplicationDataModel.ADM.ApplicationDataModel dataModel = taskDataMapper.Import(taskData);
                 foreach (var error in taskDataMapper.Errors)
                 {
