@@ -217,6 +217,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         private void UpdateCondensedWorkingDatas(List<ISOEnumeratedMeter> condensedWorkingDatas, ISODataLogValue dlv, DeviceElementUse deviceElementUse, List<DeviceElementUse> pendingDeviceElementUses, DeviceHierarchyElement isoDeviceElementHierarchy)
         {
             ISODeviceElement isoDeviceElement = TaskDataMapper.DeviceElementHierarchies.GetISODeviceElementFromID(dlv.DeviceElementIdRef);
+            if (isoDeviceElement == null)
+            {
+                // If no device element found for the log value, nothing more to do here
+                return;
+            }
+
             List<ISODeviceElement> isoSectionElements = isoDeviceElement.ChildDeviceElements.Where(d => d.DeviceElementType == ISOEnumerations.ISODeviceElementType.Section).ToList();
             foreach (var subElement in isoDeviceElement.ChildDeviceElements)
             {
