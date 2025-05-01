@@ -724,13 +724,21 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         timeScope.TimeStamp2 = time.Stop;
                     }
 
-                    if (time.Stop == null && time.Duration != null)
+                    if (time.Duration != null)
                     {
-                        //Calculate the Stop time if missing and duration present
-                        timeScope.TimeStamp2 = timeScope.TimeStamp1.Value.AddSeconds(time.Duration.Value);
+                        timeScope.Duration = System.TimeSpan.FromSeconds(time.Duration.Value);
+                        if (time.Stop == null)
+                        {
+                            //Calculate the Stop time if missing and duration present
+                            timeScope.TimeStamp2 = timeScope.TimeStamp1.Value.AddSeconds(time.Duration.Value);
+                        }
+                    }
+                    else if (timeScope.TimeStamp1.HasValue && timeScope.TimeStamp2.HasValue)
+                    {
+                        //Calculate the Duration if missing and start/stop present
+                        timeScope.Duration = timeScope.TimeStamp2.Value - timeScope.TimeStamp1.Value;
                     }
                     timeScope.DateContext = time.Type == ISOEnumerations.ISOTimeType.Planned ? DateContextEnum.ProposedStart : DateContextEnum.ActualStart;
-                    timeScope.Duration = timeScope.TimeStamp2.GetValueOrDefault() - timeScope.TimeStamp1.GetValueOrDefault();
                     summary.TimeScopes.Add(timeScope);
                 }
 
@@ -846,7 +854,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             //All types should be the same
             stampedValues.Stamp.DateContext = orderedTimes.First().Type == ISOEnumerations.ISOTimeType.Planned ? DateContextEnum.ProposedStart : DateContextEnum.ActualStart;
             //Duration will define the time from the first to the last time.   Gaps will be identifiable by examining Summary.Timescopes as defined above.
-            stampedValues.Stamp.Duration = stampedValues.Stamp.TimeStamp2.GetValueOrDefault() - stampedValues.Stamp.TimeStamp1.GetValueOrDefault();
+            if (stampedValues.Stamp.TimeStamp1.HasValue && stampedValues.Stamp.TimeStamp2.HasValue)
+            {
+                stampedValues.Stamp.Duration = stampedValues.Stamp.TimeStamp2.Value - stampedValues.Stamp.TimeStamp1.Value;
+            }
 
             //Values
             foreach (ISODataLogValue dlv in orderedTimes.Last().DataLogValues) //The last Time contains the comprehensive Task totals
