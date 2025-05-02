@@ -501,8 +501,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 }
             }
 
-                var manufacturer = ManufacturerFactory.GetManufacturer(this);
-                manufacturer?.PostProcessModel(AdaptDataModel, DeviceElementHierarchies);
+            var manufacturer = ManufacturerFactory.GetManufacturer(this);
+            manufacturer?.PostProcessModel(AdaptDataModel, DeviceElementHierarchies);
 
             return AdaptDataModel;
         }
