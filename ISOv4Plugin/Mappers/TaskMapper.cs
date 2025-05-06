@@ -718,6 +718,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 foreach (ISOTime time in isoLoggedTask.Times.Where(t => t.HasStart && t.HasType)) //Nothing added without a Start and Type attribute
                 {
                     TimeScope timeScope = new TimeScope();
+                    timeScope.DateContext = DateContextEnum.ActualStart;
                     timeScope.TimeStamp1 = time.Start;
                     if (time.Stop != null)
                     {
@@ -840,6 +841,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             //TimeScope
             stampedValues.Stamp = new TimeScope();
+            stampedValues.Stamp.DateContext = DateContextEnum.ActualStart;
             stampedValues.Stamp.TimeStamp1 = orderedTimes.First().Start;
             if (orderedTimes.Last().Stop != null)
             {
