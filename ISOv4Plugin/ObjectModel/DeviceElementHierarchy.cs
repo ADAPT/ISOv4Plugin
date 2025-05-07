@@ -11,17 +11,16 @@ using AgGateway.ADAPT.ISOv4Plugin.Representation;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography.X509Certificates;
 using AgGateway.ADAPT.ApplicationDataModel.Equipment;
 using AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers;
 using AgGateway.ADAPT.ISOv4Plugin.Mappers;
+using AgGateway.ADAPT.ApplicationDataModel.ADM;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
 {
     public class DeviceElementHierarchies
     {
-        private readonly IManufacturer _manufacturer;
+        private readonly List<IError> _errors;
 
         public DeviceElementHierarchies(IEnumerable<ISODevice> devices,
                                         RepresentationMapper representationMapper,
@@ -31,9 +30,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                                         TaskDataMapper taskDataMapper)
         {
             Items = new Dictionary<string, DeviceHierarchyElement>();
+            _errors = taskDataMapper.Errors;
 
             //Track any device element geometries not logged as a DPT
             Dictionary<string, List<string>> missingGeometryDefinitions = new Dictionary<string, List<string>>();
+
+            var manufacturer = ManufacturerFactory.GetManufacturer(taskDataMapper);
 
             foreach (ISODevice device in devices)
             {
@@ -44,14 +46,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                     hierarchyElement.HandleBinDeviceElements();
                     Items.Add(device.DeviceId, hierarchyElement);
 
-                    _manufacturer?.ProcessDeviceElementHierarchy(hierarchyElement, missingGeometryDefinitions);
+                    manufacturer?.ProcessDeviceElementHierarchy(hierarchyElement, missingGeometryDefinitions);
                 }
             }
 
             //Address the missing geometry data with targeted reads of the TLG binaries for any DPDs
             if (missingGeometryDefinitions.Any())
             {
-                FillDPDGeometryDefinitions(missingGeometryDefinitions, timeLogs, dataPath);
+                FillDPDGeometryDefinitions(missingGeometryDefinitions, timeLogs, dataPath, taskDataMapper.Version);
             }
         }
 
@@ -117,7 +119,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
         /// <param name="timeLogTimeElements"></param>
         /// <param name="taskDataPath"></param>
         /// <param name="allDeviceHierarchyElements"></param>
-        public void FillDPDGeometryDefinitions(Dictionary<string, List<string>> missingDefinitions, IEnumerable<ISOTimeLog> timeLogs, string taskDataPath)
+        public void FillDPDGeometryDefinitions(Dictionary<string, List<string>> missingDefinitions, IEnumerable<ISOTimeLog> timeLogs, string taskDataPath, int version)
         {
             Dictionary<string, int?> reportedValues = new Dictionary<string, int?>(); //DLV signature / value 
             foreach (ISOTimeLog timeLog in timeLogs)
@@ -156,7 +158,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                         string binaryPath = taskDataPath.GetDirectoryFiles(binaryName, SearchOption.TopDirectoryOnly).FirstOrDefault();
                         if (binaryPath != null)
                         {
-                            Dictionary<byte, int> timelogValues = Mappers.TimeLogMapper.ReadImplementGeometryValues(dlvsToRead.Select(d => d.Index), time, binaryPath);
+                            Dictionary<byte, int> timelogValues = Mappers.TimeLogMapper.ReadImplementGeometryValues(dlvsToRead.Select(d => d.Index), time, binaryPath, version, _errors);
 
                             foreach (byte reportedDLVIndex in timelogValues.Keys)
                             {
@@ -344,6 +346,18 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                             //with the rate for each bin associated to the corresponding DeviceElement in the ADAPT model.
                             //Were this multi-bin/single boom DDOP common, we could perhaps extend the WorkingData(?) class with some new piece of information
                             //To differentiate like data elements from different bins and thereby extend the merge functionality to this case.
+                        }
+                        else if (DeviceElement.DeviceElementType == ISODeviceElementType.Device &&
+                                 DeviceElement.ChildDeviceElements.Count(x => x.DeviceElementType == ISODeviceElementType.Function) > 1 &&
+                                 GetChildElementWithYieldSensor(DeviceElement) != null &&
+                                 GetChildElementWithMoistureSensor(DeviceElement) != null &&
+                                 (GetChildElementWithYieldSensor(DeviceElement).DeviceElementId != GetChildElementWithMoistureSensor(DeviceElement).DeviceElementId)
+                                )
+                        {
+                            //This is a Combine with yield and moisture data on different device elements 
+                            //While a valid ISO11783-10 DDOP modeling approach, for ADAPT's purposes yield and moisture need to be considered together.
+                            //Merge all the child functions onto the parent.
+                            MergedElements.Add(childDeviceElement);
                         }
                         else
                         {
@@ -608,6 +622,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                         .ForEach(x => x.Depth++);
                 }
             }
+        }
+
+        private ISODeviceElement GetChildElementWithYieldSensor(ISODeviceElement parentElement)
+        {
+            return parentElement.ChildDeviceElements.FirstOrDefault(d => d.DeviceProcessDatas.Any(p => p.DDI == "0063"));
+        }
+
+        private ISODeviceElement GetChildElementWithMoistureSensor(ISODeviceElement parentElement)
+        {
+            return parentElement.ChildDeviceElements.FirstOrDefault(d => d.DeviceProcessDatas.Any(p => p.DDI == "0054" || p.DDI == "0057"));
         }
     }
 }

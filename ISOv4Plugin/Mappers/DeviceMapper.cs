@@ -33,13 +33,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
     public class DeviceMapper : BaseMapper, IDeviceMapper
     {
         DeviceElementMapper _deviceElementMapper;
-        private readonly IManufacturer _manufacturer;
 
         public DeviceMapper(TaskDataMapper taskDataMapper) : base(taskDataMapper, "DVC")
         {
             _deviceElementMapper = new DeviceElementMapper(taskDataMapper);
-
-            _manufacturer = ManufacturerFactory.GetManufacturer(taskDataMapper);
         }
 
         #region Export

@@ -35,7 +35,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         public const string ExportVersion = "ExportVersion"; //Version "3" or "4"
         public const string SuppressTimeLogDataInterpolation = "SuppressTimeLogDataInterpolation";
 
-        public TaskDataMapper(string dataPath, Properties properties)
+        public TaskDataMapper(string dataPath, Properties properties, int? taskDataVersionMajor = null)
         {
             BaseFolder = dataPath;
             RepresentationMapper = new RepresentationMapper();
@@ -45,16 +45,22 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             InstanceIDMap = new InstanceIDMap();
             Errors = new List<IError>();
 
-            //Export version
-            string exportVersion = Properties.GetProperty(ExportVersion);
-            if (Int32.TryParse(exportVersion, out int version))
+            if (taskDataVersionMajor.HasValue)
             {
-                Version = version;  //3 or 4
+                Version = taskDataVersionMajor.Value;
             }
-            if (version != 3 && version != 4)
+            else
             {
-                Version = 4; //Default ISO Version for the export
-            }
+                string exportVersion = Properties.GetProperty(ExportVersion);
+                if (Int32.TryParse(exportVersion, out int version))
+                {
+                    Version = version;  //3 or 4
+                }
+                if (version != 3 && version != 4)
+                {
+                    Version = 4; //Default ISO Version for the export
+                }
+            }           
         }
 
         public string BaseFolder { get; private set; }
@@ -501,8 +507,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 }
             }
 
-                var manufacturer = ManufacturerFactory.GetManufacturer(this);
-                manufacturer?.PostProcessModel(AdaptDataModel, DeviceElementHierarchies);
+            var manufacturer = ManufacturerFactory.GetManufacturer(this);
+            manufacturer?.PostProcessModel(AdaptDataModel, DeviceElementHierarchies);
 
             return AdaptDataModel;
         }
