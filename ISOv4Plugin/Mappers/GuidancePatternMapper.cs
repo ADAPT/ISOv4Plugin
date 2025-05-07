@@ -13,7 +13,6 @@ using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
 using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 using AgGateway.ADAPT.Representation.UnitSystem;
-using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {

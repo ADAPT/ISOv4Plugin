@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using AgGateway.ADAPT.ApplicationDataModel.ADM;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.Equipment;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
@@ -347,7 +348,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 Dictionary<ISODevice, HashSet<string>> loggedDeviceElementsByDevice = new Dictionary<ISODevice, HashSet<string>>();
                 foreach (string deviceElementID in deviceElementIDs)
                 {
-                    ISODeviceElement isoDeviceElement = TaskDataMapper.DeviceElementHierarchies.GetISODeviceElementFromID(deviceElementID);
+                    ISODeviceElement isoDeviceElement = TaskDataMapper.DeviceElementHierarchies?.GetISODeviceElementFromID(deviceElementID);
                     if (isoDeviceElement != null)
                     {
                         ISODevice device = isoDeviceElement.Device;
@@ -724,16 +725,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return null;
         }
 
-        internal static Dictionary<byte, int> ReadImplementGeometryValues(IEnumerable<byte> dlvsToRead, ISOTime templateTime, string filePath, int version)
+        internal static Dictionary<byte, int> ReadImplementGeometryValues(IEnumerable<byte> dlvsToRead, ISOTime templateTime, string filePath, int version, IList<IError> errors)
         {
-            return BinaryReader.ReadImplementGeometryValues(filePath, templateTime, dlvsToRead, version);
+            return BinaryReader.ReadImplementGeometryValues(filePath, templateTime, dlvsToRead, version, errors);
         }
 
         protected class BinaryReader
         {
             private static readonly DateTime _firstDayOf1980 = new DateTime(1980, 01, 01);
 
-            public static Dictionary<byte, int> ReadImplementGeometryValues(string filePath, ISOTime templateTime, IEnumerable<byte> desiredDLVIndices, int version)
+            public static Dictionary<byte, int> ReadImplementGeometryValues(string filePath, ISOTime templateTime, IEnumerable<byte> desiredDLVIndices, int version, IList<IError> errors)
             {
                 Dictionary<byte, int> output = new Dictionary<byte, int>();
                 List<byte> desiredIndexes = desiredDLVIndices.ToList();
@@ -775,14 +776,22 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                                     {
                                         //A desired DLV is reported here
                                         int value = ReadInt32(null, true, false, binaryReader).GetValueOrDefault();
-                                        if (!output.ContainsKey(dlvIndex))
+                                        try
                                         {
-                                            output.Add(dlvIndex, value);
+                                            if (!output.ContainsKey(dlvIndex))
+                                            {
+                                                output.Add(dlvIndex, value);
+                                            }
+                                            else if (Math.Abs(value) > Math.Abs(output[dlvIndex]))
+                                            {
+                                                //Values should be all the same, but prefer the furthest from 0
+                                                output[dlvIndex] = value;
+                                            }
                                         }
-                                        else if (Math.Abs(value) > Math.Abs(output[dlvIndex]))
+                                        catch (OverflowException ex)
                                         {
-                                            //Values should be all the same, but prefer the furthest from 0
-                                            output[dlvIndex] = value;
+                                            // If value == int.MinValue, Math.Abs(value) will throw System.OverflowException: Negating the minimum value of a twos complement number is invalid.
+                                            errors.Add(new Error() { Description = ex.Message, Id = ex.GetType().ToString(), Source = ex.Source, StackTrace = ex.StackTrace });
                                         }
                                     }
                                     else
@@ -1047,7 +1056,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 if (matchingDlv == null)
                     return null;
 
-                ISODeviceElement det = deviceHierarchies.GetISODeviceElementFromID(matchingDlv.DeviceElementIdRef);
+                ISODeviceElement det = deviceHierarchies?.GetISODeviceElementFromID(matchingDlv.DeviceElementIdRef);
                 ISODevice dvc = det?.Device;
                 ISODeviceProcessData dpd = dvc?.FirstOrDefaultDeviceProcessData(matchingDlv.ProcessDataIntDDI);
 
