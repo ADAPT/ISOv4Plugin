@@ -21,8 +21,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
 {
     public class DeviceElementHierarchies
     {
-        private readonly IManufacturer _manufacturer;
-
         public DeviceElementHierarchies(IEnumerable<ISODevice> devices,
                                         RepresentationMapper representationMapper,
                                         bool mergeBins,
@@ -35,6 +33,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
             //Track any device element geometries not logged as a DPT
             Dictionary<string, List<string>> missingGeometryDefinitions = new Dictionary<string, List<string>>();
 
+            var manufacturer = ManufacturerFactory.GetManufacturer(taskDataMapper);
+
             foreach (ISODevice device in devices)
             {
                 ISODeviceElement rootDeviceElement = device.DeviceElements.SingleOrDefault(det => det.DeviceElementType == ISODeviceElementType.Device);
@@ -44,7 +44,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                     hierarchyElement.HandleBinDeviceElements();
                     Items.Add(device.DeviceId, hierarchyElement);
 
-                    _manufacturer?.ProcessDeviceElementHierarchy(hierarchyElement, missingGeometryDefinitions);
+                    manufacturer?.ProcessDeviceElementHierarchy(hierarchyElement, missingGeometryDefinitions);
                 }
             }
 
