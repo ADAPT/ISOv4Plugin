@@ -11,16 +11,17 @@ using AgGateway.ADAPT.ISOv4Plugin.Representation;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography.X509Certificates;
 using AgGateway.ADAPT.ApplicationDataModel.Equipment;
 using AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers;
 using AgGateway.ADAPT.ISOv4Plugin.Mappers;
+using AgGateway.ADAPT.ApplicationDataModel.ADM;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
 {
     public class DeviceElementHierarchies
     {
+        private readonly List<IError> _errors;
+
         public DeviceElementHierarchies(IEnumerable<ISODevice> devices,
                                         RepresentationMapper representationMapper,
                                         bool mergeBins,
@@ -29,6 +30,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                                         TaskDataMapper taskDataMapper)
         {
             Items = new Dictionary<string, DeviceHierarchyElement>();
+            _errors = taskDataMapper.Errors;
 
             //Track any device element geometries not logged as a DPT
             Dictionary<string, List<string>> missingGeometryDefinitions = new Dictionary<string, List<string>>();
@@ -156,7 +158,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                         string binaryPath = taskDataPath.GetDirectoryFiles(binaryName, SearchOption.TopDirectoryOnly).FirstOrDefault();
                         if (binaryPath != null)
                         {
-                            Dictionary<byte, int> timelogValues = Mappers.TimeLogMapper.ReadImplementGeometryValues(dlvsToRead.Select(d => d.Index), time, binaryPath, version);
+                            Dictionary<byte, int> timelogValues = Mappers.TimeLogMapper.ReadImplementGeometryValues(dlvsToRead.Select(d => d.Index), time, binaryPath, version, _errors);
 
                             foreach (byte reportedDLVIndex in timelogValues.Keys)
                             {
