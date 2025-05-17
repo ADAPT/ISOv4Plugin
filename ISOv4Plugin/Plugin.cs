@@ -9,8 +9,10 @@ using AgGateway.ADAPT.ISOv4Plugin.Mappers;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using System;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Xml;
 
@@ -50,6 +52,19 @@ namespace AgGateway.ADAPT.ISOv4Plugin
                 writer.WriteLinkList(outputPath, taskData.LinkList);
             }
         }
+
+        public byte[] ExportToZipBytes(ApplicationDataModel.ADM.ApplicationDataModel dataModel, string exportPath, Properties properties)
+        {
+            //Convert the ADAPT model into the ISO model
+            Export(dataModel, exportPath, properties);
+
+            TimeSpan t = DateTime.UtcNow - new DateTime(1970, 1, 1);   // ensure that the filename is truly unique by using epoch timestamp
+            string outputZip = Path.Combine(exportPath, "ISOv4_Output_" + t.TotalSeconds.ToString() + ".zip");
+            System.IO.Compression.ZipFile.CreateFromDirectory(exportPath, outputZip);
+            return File.ReadAllBytes(outputZip);
+        }
+
+
 
         public IList<ApplicationDataModel.ADM.ApplicationDataModel> Import(string dataPath, Properties properties = null)
         {
