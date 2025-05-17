@@ -9,10 +9,8 @@ using AgGateway.ADAPT.ISOv4Plugin.Mappers;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using System;
 using System.Collections.Generic;
-using System.Data.SqlTypes;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Reflection;
 using System.Xml;
 
