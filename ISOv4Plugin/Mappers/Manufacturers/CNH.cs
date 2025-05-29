@@ -254,7 +254,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers
                 }
 
                 if (!string.IsNullOrEmpty(cropNameFromTask) &&
-                    operationData.OperationType != OperationTypeEnum.DataCollection &&
+                    (operationData.OperationType == OperationTypeEnum.Harvesting ||
+                    operationData.OperationType == OperationTypeEnum.ForageHarvesting) &&
                     (operationData.ProductIds == null || operationData.ProductIds.Count == 0))
                 {
                     operationData.ProductIds = new List<int>

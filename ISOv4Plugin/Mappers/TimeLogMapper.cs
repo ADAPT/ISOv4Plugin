@@ -408,7 +408,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         operationData.DeviceElementUses = sectionMapper.ConvertToBaseTypes(sections.ToList());
                         operationData.GetDeviceElementUses = x => operationData.DeviceElementUses.Where(s => s.Depth == x).ToList();
                         operationData.PrescriptionId = prescriptionID;
-                        operationData.OperationType = GetOperationTypeFromProductCategory(productIDs) ?? GetOperationTypeFromLoggingDevices(time);
+                        operationData.OperationType = GetOperationTypeFromProductCategory(productIDs) ??
+                                                      GetOperationTypeFromWorkingDatas(workingDatas) ??
+                                                      GetOperationTypeFromLoggingDevices(time);
                         operationData.ProductIds = productIDs;
                         if (!useDeferredExecution)
                         {
@@ -422,6 +424,24 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 operationDatas.ForEach(o => o.CoincidentOperationDataIds = operationDatas.Where(o2 => o2.Id.ReferenceId != o.Id.ReferenceId).Select(o3 => o3.Id.ReferenceId).ToList());
 
                 return operationDatas;
+            }
+            return null;
+        }
+
+        private OperationTypeEnum? GetOperationTypeFromWorkingDatas(List<WorkingData> workingDatas)
+        {
+            //Harvest/ForageHarvest omitted intentionally to be determined from machine type vs. working data
+            if (workingDatas.Any(w => w.Representation.Code.Contains("Seed")))
+            {
+                return OperationTypeEnum.SowingAndPlanting;
+            }
+            else if (workingDatas.Any(w => w.Representation.Code.Contains("Tillage")))
+            {
+                return OperationTypeEnum.Tillage;
+            }
+            if (workingDatas.Any(w => w.Representation.Code.Contains("AppRate")))
+            {
+                return OperationTypeEnum.Unknown; //We can't differentiate CropProtection from Fertiliizing, but prefer unkonwn to letting implement type set to SowingAndPlanting
             }
             return null;
         }
