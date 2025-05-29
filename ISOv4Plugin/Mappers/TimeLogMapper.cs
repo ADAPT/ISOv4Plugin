@@ -441,7 +441,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
             if (workingDatas.Any(w => w.Representation.Code.Contains("AppRate")))
             {
-                return OperationTypeEnum.Unknown; //We can't differentiate CropProtection from Fertiliizing, but prefer unkonwn to letting implement type set to SowingAndPlanting
+                return OperationTypeEnum.Unknown; //We can't differentiate CropProtection from Fertilizing, but prefer unkonwn to letting implement type set to SowingAndPlanting
             }
             return null;
         }
