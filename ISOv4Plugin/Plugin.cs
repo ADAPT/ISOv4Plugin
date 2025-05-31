@@ -41,27 +41,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin
             ISO11783_TaskData taskData = taskDataMapper.Export(dataModel);
 
             //Serialize the ISO model to XML
-            TaskDocumentWriter writer = new TaskDocumentWriter();
-            writer.WriteTaskData(outputPath, taskData);
-
-            //Serialize the Link List
-            if (taskData.Version > 3)
+            using (TaskDocumentWriter writer = new TaskDocumentWriter())
             {
-                writer.WriteLinkList(outputPath, taskData.LinkList);
+                writer.WriteTaskData(outputPath, taskData);
+
+                //Serialize the Link List
+                if (taskData.Version > 3)
+                {
+                    writer.WriteLinkList(outputPath, taskData.LinkList);
+                }
             }
         }
-
-        public byte[] ExportToZipBytes(ApplicationDataModel.ADM.ApplicationDataModel dataModel, string exportPath, Properties properties)
-        {
-            //Convert the ADAPT model into the ISO model
-            Export(dataModel, exportPath, properties);
-
-            TimeSpan t = DateTime.UtcNow - new DateTime(1970, 1, 1);   // ensure that the filename is truly unique by using epoch timestamp
-            string outputZip = Path.Combine(exportPath, "ISOv4_Output_" + t.TotalSeconds.ToString() + ".zip");
-            System.IO.Compression.ZipFile.CreateFromDirectory(exportPath, outputZip);
-            return File.ReadAllBytes(outputZip);
-        }
-
 
 
         public IList<ApplicationDataModel.ADM.ApplicationDataModel> Import(string dataPath, Properties properties = null)
