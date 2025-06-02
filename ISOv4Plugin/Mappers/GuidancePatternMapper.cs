@@ -214,8 +214,19 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             List<GuidancePattern> adaptGuidancePatterns = new List<GuidancePattern>();
             foreach (ISOGuidancePattern isoGuidancePattern in isoGuidancePatterns)
             {
-                GuidancePattern adaptGuidancePattern = ImportGuidancePattern(isoGuidancePattern);
-                adaptGuidancePatterns.Add(adaptGuidancePattern);
+                try
+                {
+                    GuidancePattern adaptGuidancePattern = ImportGuidancePattern(isoGuidancePattern);
+                    adaptGuidancePatterns.Add(adaptGuidancePattern);
+                }
+                catch (ArgumentOutOfRangeException ex)
+                {
+                    TaskDataMapper.AddError($"Guidance pattern {isoGuidancePattern.GuidancePatternDesignator} is invalid.  Skipping.", ex.Message, null, ex.StackTrace);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    TaskDataMapper.AddError($"Guidance pattern {isoGuidancePattern.GuidancePatternDesignator} is invalid.  Skipping.", ex.Message, null, ex.StackTrace);
+                }
             }
 
             //Add the patterns to the Catalog
