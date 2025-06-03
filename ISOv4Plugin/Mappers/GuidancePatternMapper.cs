@@ -214,18 +214,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             List<GuidancePattern> adaptGuidancePatterns = new List<GuidancePattern>();
             foreach (ISOGuidancePattern isoGuidancePattern in isoGuidancePatterns)
             {
-                try
+                GuidancePattern adaptGuidancePattern = ImportGuidancePattern(isoGuidancePattern);
+                if (adaptGuidancePattern != null)
                 {
-                    GuidancePattern adaptGuidancePattern = ImportGuidancePattern(isoGuidancePattern);
                     adaptGuidancePatterns.Add(adaptGuidancePattern);
-                }
-                catch (ArgumentOutOfRangeException ex)
-                {
-                    TaskDataMapper.AddError($"Guidance pattern {isoGuidancePattern.GuidancePatternDesignator} is invalid.  Skipping.", ex.Message, null, ex.StackTrace);
-                }
-                catch (InvalidOperationException ex)
-                {
-                    TaskDataMapper.AddError($"Guidance pattern {isoGuidancePattern.GuidancePatternDesignator} is invalid.  Skipping.", ex.Message, null, ex.StackTrace);
                 }
             }
 
@@ -247,7 +239,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             GuidancePattern pattern = null;
             LineStringMapper lineStringMapper = new LineStringMapper(TaskDataMapper);
             PointMapper pointMapper = new PointMapper(TaskDataMapper);
-            var isoLineString = isoGuidancePattern.LineString ?? new ISOLineString();
+            ISOLineString isoLineString = isoGuidancePattern.LineString;
+            if (isoLineString == null || isoLineString.Points.Count == 0)
+            {
+                TaskDataMapper.AddError($"Guidance pattern {isoGuidancePattern.GuidancePatternDesignator} is invalid. Skipping.");
+                return null;
+            }
+
             switch (isoGuidancePattern.GuidancePatternType)
             {
                 case ISOGuidancePatternType.AB:
