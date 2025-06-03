@@ -240,7 +240,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             LineStringMapper lineStringMapper = new LineStringMapper(TaskDataMapper);
             PointMapper pointMapper = new PointMapper(TaskDataMapper);
             ISOLineString isoLineString = isoGuidancePattern.LineString;
-            if (isoLineString == null || isoLineString.Points.Count == 0)
+            if ((isoLineString?.Points?.Count ?? 0) == 0)
             {
                 TaskDataMapper.AddError($"Guidance pattern {isoGuidancePattern.GuidancePatternDesignator} is invalid. Skipping.");
                 return null;
