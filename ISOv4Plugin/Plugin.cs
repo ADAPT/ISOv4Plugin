@@ -41,13 +41,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin
             ISO11783_TaskData taskData = taskDataMapper.Export(dataModel);
 
             //Serialize the ISO model to XML
-            TaskDocumentWriter writer = new TaskDocumentWriter();
-            writer.WriteTaskData(outputPath, taskData);
-
-            //Serialize the Link List
-            if (taskData.Version > 3)
+            using (TaskDocumentWriter writer = new TaskDocumentWriter())
             {
-                writer.WriteLinkList(outputPath, taskData.LinkList);
+                writer.WriteTaskData(outputPath, taskData);
+
+                //Serialize the Link List
+                if (taskData.Version > 3)
+                {
+                    writer.WriteLinkList(outputPath, taskData.LinkList);
+                }
             }
         }
 
