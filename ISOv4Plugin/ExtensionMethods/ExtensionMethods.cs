@@ -95,6 +95,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
             return true;
         }
 
+        /// <summary>
+        /// Matches NumericRepresentation by code, accounting for null representation code
+        /// </summary>
+        public static bool ContainsCode(this ApplicationDataModel.Representations.Representation representation, string code)
+        {
+            return representation?.Code != null && representation.Code.Contains(code);
+        }
 
         /// <summary>
         /// Looks up unit, converts and loads representation
