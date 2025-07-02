@@ -431,17 +431,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         private OperationTypeEnum? GetOperationTypeFromWorkingDatas(List<WorkingData> workingDatas)
         {
             //Harvest/ForageHarvest omitted intentionally to be determined from machine type vs. working data
-            if (workingDatas.Any(w => w.Representation.Code.Contains("Seed")))
+            if (workingDatas.Any(w => w.Representation.ContainsCode("Seed")))
             {
                 return OperationTypeEnum.SowingAndPlanting;
             }
-            else if (workingDatas.Any(w => w.Representation.Code.Contains("Tillage")))
+            else if (workingDatas.Any(w => w.Representation.ContainsCode("Tillage")))
             {
                 return OperationTypeEnum.Tillage;
             }
-            if (workingDatas.Any(w => w.Representation.Code.Contains("AppRate")))
+            if (workingDatas.Any(w => w.Representation.ContainsCode("AppRate")))
             {
-                return OperationTypeEnum.Unknown; //We can't differentiate CropProtection from Fertilizing, but prefer unkonwn to letting implement type set to SowingAndPlanting
+                return OperationTypeEnum.Unknown; //We can't differentiate CropProtection from Fertilizing, but prefer unknown to letting implement type set to SowingAndPlanting
             }
             return null;
         }
