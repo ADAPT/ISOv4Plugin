@@ -409,8 +409,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         operationData.GetDeviceElementUses = x => operationData.DeviceElementUses.Where(s => s.Depth == x).ToList();
                         operationData.PrescriptionId = prescriptionID;
                         operationData.OperationType = GetOperationTypeFromProductCategory(productIDs) ??
-                                                      GetOperationTypeFromWorkingDatas(workingDatas) ??
-                                                      GetOperationTypeFromLoggingDevices(time);
+                                                      OverrideOperationTypeFromWorkingDatas(GetOperationTypeFromLoggingDevices(time), workingDatas);
                         operationData.ProductIds = productIDs;
                         if (!useDeferredExecution)
                         {
@@ -428,7 +427,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             return null;
         }
 
-        private OperationTypeEnum? GetOperationTypeFromWorkingDatas(List<WorkingData> workingDatas)
+        private OperationTypeEnum OverrideOperationTypeFromWorkingDatas(OperationTypeEnum deviceOperationType, List<WorkingData> workingDatas)
         {
             //Harvest/ForageHarvest omitted intentionally to be determined from machine type vs. working data
             if (workingDatas.Any(w => w.Representation.ContainsCode("Seed")))
@@ -441,9 +440,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
             if (workingDatas.Any(w => w.Representation.ContainsCode("AppRate")))
             {
-                return OperationTypeEnum.Unknown; //We can't differentiate CropProtection from Fertilizing, but prefer unknown to letting implement type set to SowingAndPlanting
+                if (deviceOperationType != OperationTypeEnum.Fertilizing && deviceOperationType != OperationTypeEnum.CropProtection)
+                {
+                    return OperationTypeEnum.Unknown; //We can't differentiate CropProtection from Fertilizing, but prefer unknown to letting implement type set to SowingAndPlanting
+                }
             }
-            return null;
+            return deviceOperationType;
         }
 
         private List<List<string>> SplitElementsByProductProperties(Dictionary<string, List<ISOProductAllocation>> productAllocations, HashSet<string> loggedDeviceElementIds, ISODevice dvc)
