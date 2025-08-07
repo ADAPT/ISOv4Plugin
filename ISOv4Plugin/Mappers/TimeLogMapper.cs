@@ -684,9 +684,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             switch (productCategories.FirstOrDefault())
             {
-                case CategoryEnum.Variety:
-                    return OperationTypeEnum.SowingAndPlanting;
-
                 case CategoryEnum.Fertilizer:
                 case CategoryEnum.NitrogenStabilizer:
                 case CategoryEnum.Manure:
@@ -724,7 +721,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 }
             }
 
-            DeviceOperationType deviceType = representedTypes.FirstOrDefault(t => t.ClientNAMEMachineType >= 2 && t.ClientNAMEMachineType <= 11);
+            DeviceOperationType deviceType = representedTypes.FirstOrDefault(t => t.ClientNAMEMachineType >= 2 && t.ClientNAMEMachineType <= 11 &&
+                t.OperationType != OperationTypeEnum.Unknown);
+
             if (deviceType != null)
             {
                 //2-11 represent known types of operations
