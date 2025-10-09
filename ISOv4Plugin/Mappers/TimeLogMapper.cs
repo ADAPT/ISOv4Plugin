@@ -150,7 +150,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         {   // ATTENTION: CoordinateMultiplier and ZMultiplier also exist in Import\SpatialRecordMapper.cs!
             private const double CoordinateMultiplier = 0.0000001;
             private const double ZMultiplier = 0.001;   // In ISO the PositionUp value is specified in mm.
-            private readonly DateTime _januaryFirst1980 = new DateTime(1980, 1, 1);
+            private readonly DateTime _januaryFirst1980 = new DateTime(1980, 1, 1, 0, 0, 0, DateTimeKind.Local);
 
             private readonly IEnumeratedValueMapper _enumeratedValueMapper;
             private readonly INumericValueMapper _numericValueMapper;
@@ -753,7 +753,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         protected class BinaryReader
         {
-            private static readonly DateTime _firstDayOf1980 = new DateTime(1980, 01, 01);
+            private static readonly DateTime _firstDayOf1980 = new DateTime(1980, 1, 1, 0, 0, 0, DateTimeKind.Local);
 
             public static Dictionary<byte, int> ReadImplementGeometryValues(string filePath, ISOTime templateTime, IEnumerable<byte> desiredDLVIndices, int version, IList<IError> errors)
             {
