@@ -4,6 +4,7 @@ using AgGateway.ADAPT.ApplicationDataModel.Products;
 using AgGateway.ADAPT.ApplicationDataModel.Shapes;
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
+using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers
 {
@@ -15,8 +16,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers
         CategoryEnum? GetProductCategory(ISOProduct isoProduct);
         string GetProductManufacturer(ISOProduct isoProduct);
 
-        IEnumerable<OperationData> PostProcessOperationData(TaskDataMapper taskDataMapper, IEnumerable<OperationData> operationDatas);
+        IEnumerable<OperationData> PostProcessOperationData(TaskDataMapper taskDataMapper, ISOTask isoTask, IEnumerable<OperationData> operationDatas);
         void PostProcessPolygons(List<Polygon> polygons);
+        void PostProcessModel(ApplicationDataModel.ADM.ApplicationDataModel model, DeviceElementHierarchies deviceElementHierarchies);
+        void ProcessDeviceElementHierarchy(DeviceHierarchyElement hierarchyElement, Dictionary<string, List<string>> missingGeometryDefinitions);
     }
 
     internal static class ManufacturerFactory

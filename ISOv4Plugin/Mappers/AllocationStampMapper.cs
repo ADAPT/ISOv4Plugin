@@ -89,6 +89,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         public static TimeScope ImportAllocationStamp(ISOAllocationStamp isoAllocationStamp)
         {
             TimeScope adaptTimeScope = new TimeScope();
+            adaptTimeScope.DateContext = DateContextEnum.ActualStart;
             adaptTimeScope.TimeStamp1 = isoAllocationStamp.Start;
 
             //[Check] AllocationStamp XML element: a recording with only the Start attribute defined is allowed

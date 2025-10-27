@@ -11,21 +11,31 @@ using AgGateway.ADAPT.ISOv4Plugin.Representation;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
+using AgGateway.ADAPT.ApplicationDataModel.Equipment;
+using AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers;
+using AgGateway.ADAPT.ISOv4Plugin.Mappers;
+using AgGateway.ADAPT.ApplicationDataModel.ADM;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
 {
     public class DeviceElementHierarchies
     {
+        private readonly List<IError> _errors;
+
         public DeviceElementHierarchies(IEnumerable<ISODevice> devices,
                                         RepresentationMapper representationMapper,
                                         bool mergeBins,
                                         IEnumerable<ISOTimeLog> timeLogs,
-                                        string dataPath)
+                                        string dataPath,
+                                        TaskDataMapper taskDataMapper)
         {
             Items = new Dictionary<string, DeviceHierarchyElement>();
+            _errors = taskDataMapper.Errors;
 
             //Track any device element geometries not logged as a DPT
             Dictionary<string, List<string>> missingGeometryDefinitions = new Dictionary<string, List<string>>();
+
+            var manufacturer = ManufacturerFactory.GetManufacturer(taskDataMapper);
 
             foreach (ISODevice device in devices)
             {
@@ -35,26 +45,58 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                     DeviceHierarchyElement hierarchyElement = new DeviceHierarchyElement(rootDeviceElement, 0, representationMapper, mergeBins, missingGeometryDefinitions);
                     hierarchyElement.HandleBinDeviceElements();
                     Items.Add(device.DeviceId, hierarchyElement);
+
+                    manufacturer?.ProcessDeviceElementHierarchy(hierarchyElement, missingGeometryDefinitions);
                 }
             }
 
             //Address the missing geometry data with targeted reads of the TLG binaries for any DPDs
             if (missingGeometryDefinitions.Any())
             {
-                FillDPDGeometryDefinitions(missingGeometryDefinitions, timeLogs, dataPath);
+                FillDPDGeometryDefinitions(missingGeometryDefinitions, timeLogs, dataPath, taskDataMapper.Version);
             }
         }
 
         public Dictionary<string, DeviceHierarchyElement> Items { get; set; }
 
-        public DeviceHierarchyElement GetMatchingElement(string isoDeviceElementId, bool includeMergedElements = false)
+        private Dictionary<string, DeviceHierarchyElement> _mainMatchingElements;
+        private Dictionary<string, DeviceHierarchyElement> _mergedMatchingElements;
+
+        public void CacheDeviceElementIds()
         {
+            _mainMatchingElements = new Dictionary<string, DeviceHierarchyElement>();
+            _mergedMatchingElements = new Dictionary<string, DeviceHierarchyElement>();
             foreach (DeviceHierarchyElement hierarchy in this.Items.Values)
             {
-                DeviceHierarchyElement foundModel = hierarchy.FromDeviceElementID(isoDeviceElementId, includeMergedElements);
-                if (foundModel != null)
+                hierarchy.CacheDeviceElementIds(_mainMatchingElements, _mergedMatchingElements);
+                hierarchy.CacheDeviceElementIds();
+            }
+        }
+
+        public DeviceHierarchyElement GetMatchingElement(string isoDeviceElementId, bool includeMergedElements = false)
+        {
+            if (_mainMatchingElements != null)
+            {
+                DeviceHierarchyElement el;
+                if (_mainMatchingElements.TryGetValue(isoDeviceElementId, out el))
                 {
-                    return foundModel;
+                    return el;
+                }
+
+                if (includeMergedElements && _mergedMatchingElements.TryGetValue(isoDeviceElementId, out el))
+                {
+                    return el;
+                }
+            }
+            else
+            {
+                foreach (DeviceHierarchyElement hierarchy in this.Items.Values)
+                {
+                    DeviceHierarchyElement foundModel = hierarchy.FromDeviceElementID(isoDeviceElementId, includeMergedElements);
+                    if (foundModel != null)
+                    {
+                        return foundModel;
+                    }
                 }
             }
             return null;
@@ -77,7 +119,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
         /// <param name="timeLogTimeElements"></param>
         /// <param name="taskDataPath"></param>
         /// <param name="allDeviceHierarchyElements"></param>
-        public void FillDPDGeometryDefinitions(Dictionary<string, List<string>> missingDefinitions, IEnumerable<ISOTimeLog> timeLogs, string taskDataPath)
+        public void FillDPDGeometryDefinitions(Dictionary<string, List<string>> missingDefinitions, IEnumerable<ISOTimeLog> timeLogs, string taskDataPath, int version)
         {
             Dictionary<string, int?> reportedValues = new Dictionary<string, int?>(); //DLV signature / value 
             foreach (ISOTimeLog timeLog in timeLogs)
@@ -116,7 +158,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                         string binaryPath = taskDataPath.GetDirectoryFiles(binaryName, SearchOption.TopDirectoryOnly).FirstOrDefault();
                         if (binaryPath != null)
                         {
-                            Dictionary<byte, int> timelogValues = Mappers.TimeLogMapper.ReadImplementGeometryValues(dlvsToRead.Select(d => d.Index), time, binaryPath);
+                            Dictionary<byte, int> timelogValues = Mappers.TimeLogMapper.ReadImplementGeometryValues(dlvsToRead.Select(d => d.Index), time, binaryPath, version, _errors);
 
                             foreach (byte reportedDLVIndex in timelogValues.Keys)
                             {
@@ -155,6 +197,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                                                 break;
                                             case "0088":
                                                 matchingElement.ZOffset = timelogValues[reportedDLV.Index];
+                                                break;
+                                            case "0252":
+                                                matchingElement.OriginAxleLocation = timelogValues[reportedDLV.Index] == 1 || timelogValues[reportedDLV.Index] == 4
+                                                    ? OriginAxleLocationEnum.Front : OriginAxleLocationEnum.Rear;
                                                 break;
                                         }
                                     }
@@ -301,6 +347,18 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                             //Were this multi-bin/single boom DDOP common, we could perhaps extend the WorkingData(?) class with some new piece of information
                             //To differentiate like data elements from different bins and thereby extend the merge functionality to this case.
                         }
+                        else if (DeviceElement.DeviceElementType == ISODeviceElementType.Device &&
+                                 DeviceElement.ChildDeviceElements.Count(x => x.DeviceElementType == ISODeviceElementType.Function) > 1 &&
+                                 GetChildElementWithYieldSensor(DeviceElement) != null &&
+                                 GetChildElementWithMoistureSensor(DeviceElement) != null &&
+                                 (GetChildElementWithYieldSensor(DeviceElement).DeviceElementId != GetChildElementWithMoistureSensor(DeviceElement).DeviceElementId)
+                                )
+                        {
+                            //This is a Combine with yield and moisture data on different device elements 
+                            //While a valid ISO11783-10 DDOP modeling approach, for ADAPT's purposes yield and moisture need to be considered together.
+                            //Merge all the child functions onto the parent.
+                            MergedElements.Add(childDeviceElement);
+                        }
                         else
                         {
                             //Add the child device element
@@ -337,6 +395,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
         public ISODeviceElementType Type { get; set; }
         private HashSet<int> _crawledElements;
 
+        private Dictionary<string, DeviceHierarchyElement> _mainDeviceElementCache;
+        private Dictionary<string, DeviceHierarchyElement> _mergedDeviceElementCache;
+
         /// <summary>
         /// Tracks any secondary DeviceElements that exist independently in the ISOXML
         /// but have been merged into another DeviceElement in the ADAPT model
@@ -349,6 +410,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
         public int? YOffset { get; set; }
         public int? ZOffset { get; set; }
 
+        public OriginAxleLocationEnum? OriginAxleLocation { get; set; }
+
         public NumericRepresentationValue WidthRepresentation { get { return Width.HasValue ? Width.Value.AsNumericRepresentationValue(WidthDDI, RepresentationMapper) : null; } }
         public NumericRepresentationValue XOffsetRepresentation { get { return XOffset.HasValue ? XOffset.Value.AsNumericRepresentationValue("0086", RepresentationMapper) : null; } }
         public NumericRepresentationValue YOffsetRepresentation { get { return YOffset.HasValue ? YOffset.Value.AsNumericRepresentationValue("0087", RepresentationMapper) : null; } }
@@ -357,21 +420,79 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
         public List<DeviceHierarchyElement> Children { get; set; }
         public DeviceHierarchyElement Parent { get; set; }
 
-
-        public DeviceHierarchyElement FromDeviceElementID(string deviceElementID, bool includeMergedElements = false)
+        public void CacheDeviceElementIds()
         {
-            if (DeviceElement?.DeviceElementId == deviceElementID || (includeMergedElements && MergedElements.Any(x => x.DeviceElementId == deviceElementID)))
-            {
-                return this;
-            }
-            else if (Children != null)
+            _mainDeviceElementCache = new Dictionary<string, DeviceHierarchyElement>();
+
+            _mergedDeviceElementCache = new Dictionary<string, DeviceHierarchyElement>();
+
+            CacheDeviceElementIds(_mainDeviceElementCache, _mergedDeviceElementCache);
+
+            if (Children != null)
             {
                 foreach (DeviceHierarchyElement child in Children)
                 {
-                    DeviceHierarchyElement childModel = child.FromDeviceElementID(deviceElementID, includeMergedElements);
-                    if (childModel != null)
+                    child.CacheDeviceElementIds();
+                }
+            }
+        }
+
+        public void CacheDeviceElementIds(Dictionary<string, DeviceHierarchyElement> mainDeviceElementCache,
+            Dictionary<string, DeviceHierarchyElement> mergedDeviceElementCache)
+        {
+            if (DeviceElement != null)
+            {
+                if (!mainDeviceElementCache.TryGetValue(DeviceElement.DeviceElementId, out _))
+                {
+                    mainDeviceElementCache[DeviceElement.DeviceElementId] = this;
+                }
+            }
+            foreach (ISODeviceElement element in MergedElements)
+            {
+                if (!mergedDeviceElementCache.TryGetValue(element.DeviceElementId, out _))
+                {
+                    mergedDeviceElementCache[element.DeviceElementId] = this;
+                }
+            }
+
+            if (Children != null)
+            {
+                foreach (DeviceHierarchyElement child in Children)
+                {
+                    child.CacheDeviceElementIds(mainDeviceElementCache, mergedDeviceElementCache);
+                }
+            }
+        }
+
+        public DeviceHierarchyElement FromDeviceElementID(string deviceElementID, bool includeMergedElements = false)
+        {
+            if (_mainDeviceElementCache != null)
+            {
+                DeviceHierarchyElement el;
+                if (_mainDeviceElementCache.TryGetValue(deviceElementID, out el))
+                {
+                    return el;
+                }
+                else if (includeMergedElements && _mergedDeviceElementCache.TryGetValue(deviceElementID, out el))
+                {
+                    return el;
+                }
+            }
+            else
+            {
+                if (DeviceElement?.DeviceElementId == deviceElementID || (includeMergedElements && MergedElements.Any(x => x.DeviceElementId == deviceElementID)))
+                {
+                    return this;
+                }
+                else if (Children != null)
+                {
+                    foreach (DeviceHierarchyElement child in Children)
                     {
-                        return childModel;
+                        DeviceHierarchyElement childModel = child.FromDeviceElementID(deviceElementID, includeMergedElements);
+                        if (childModel != null)
+                        {
+                            return childModel;
+                        }
                     }
                 }
             }
@@ -502,5 +623,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                 }
             }
         }
-    }  
+
+        private ISODeviceElement GetChildElementWithYieldSensor(ISODeviceElement parentElement)
+        {
+            return parentElement.ChildDeviceElements.FirstOrDefault(d => d.DeviceProcessDatas.Any(p => p.DDI == "0063"));
+        }
+
+        private ISODeviceElement GetChildElementWithMoistureSensor(ISODeviceElement parentElement)
+        {
+            return parentElement.ChildDeviceElements.FirstOrDefault(d => d.DeviceProcessDatas.Any(p => p.DDI == "0054" || p.DDI == "0057"));
+        }
+    }
 }

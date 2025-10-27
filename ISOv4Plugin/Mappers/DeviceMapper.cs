@@ -18,6 +18,7 @@ using AgGateway.ADAPT.ApplicationDataModel.Representations;
 using System.Globalization;
 using AgGateway.ADAPT.Representation.RepresentationSystem;
 using AgGateway.ADAPT.Representation.RepresentationSystem.ExtensionMethods;
+using AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
@@ -32,6 +33,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
     public class DeviceMapper : BaseMapper, IDeviceMapper
     {
         DeviceElementMapper _deviceElementMapper;
+
         public DeviceMapper(TaskDataMapper taskDataMapper) : base(taskDataMapper, "DVC")
         {
             _deviceElementMapper = new DeviceElementMapper(taskDataMapper);
@@ -91,6 +93,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 DeviceModel adaptDevice = ImportDevice(isoDevice);
                 adaptDevices.Add(adaptDevice);
             }
+
             return adaptDevices;
         }
 

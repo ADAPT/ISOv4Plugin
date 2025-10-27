@@ -20,7 +20,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
         public uint? GpsUtcTime { get; set;  }
         public ushort? GpsUtcDate { get; set; }
         public DateTime? GpsUtcDateTime { get; set; }
-        public List<SpatialValue> SpatialValues {get; set; }
+        public List<SpatialValue> SpatialValues { get; set; }
 
         /// <summary>
         /// Merge SpatialValues from provided SpatialRow into this one.

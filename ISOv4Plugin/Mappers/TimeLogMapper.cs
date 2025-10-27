@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using AgGateway.ADAPT.ApplicationDataModel.ADM;
 using AgGateway.ADAPT.ApplicationDataModel.Common;
 using AgGateway.ADAPT.ApplicationDataModel.Equipment;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
@@ -324,8 +325,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     //Set a UTC "delta" from the first record where possible.  We set only one per data import.
                     if (!TaskDataMapper.GPSToLocalDelta.HasValue)
                     {
-                        var firstRecord = isoRecords.FirstOrDefault();
-                        if (firstRecord != null && firstRecord.GpsUtcDateTime.HasValue)
+                        //Find the first record with a valid GPS time and date. A GpsUtcDate of 0x0000 or 0xFFFF indicates an invalid date.
+                        var firstRecord = isoRecords.FirstOrDefault(r => r.GpsUtcDateTime.HasValue && r.GpsUtcDate != ushort.MaxValue && r.GpsUtcDate != 0);
+                        if (firstRecord != null)
                         {
                             //Local - UTC = Delta.  This value will be rough based on the accuracy of the clock settings but will expose the ability to derive the UTC times from the exported local times.
                             TaskDataMapper.GPSToLocalDelta = (firstRecord.TimeStart - firstRecord.GpsUtcDateTime.Value).TotalHours;
@@ -340,31 +342,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 ISOTime time = GetTimeElementFromTimeLog(isoTimeLog);
 
                 //Identify unique devices represented in this TimeLog data
-                List<string> deviceElementIDs = time.DataLogValues.Where(d => !d.ProcessDataDDI.EqualsIgnoreCase("DFFF") && !d.ProcessDataDDI.EqualsIgnoreCase("DFFE"))
+                List<string> deviceElementIDs = time.DataLogValues.Where(d => d.ProcessDataIntDDI != 0xDFFF && d.ProcessDataIntDDI != 0xDFFE)
                     .Select(d => d.DeviceElementIdRef).Distinct().ToList();
-
-                //Supplement the list with any parent device elements which although don't log data in the TLG
-                //May require a vrProductIndex working data based on product allocations
-                HashSet<string> parentsToAdd = new HashSet<string>();
-                foreach (string deviceElementID in deviceElementIDs)
-                {
-                    ISODeviceElement isoDeviceElement = TaskDataMapper.DeviceElementHierarchies.GetISODeviceElementFromID(deviceElementID);
-                    if (isoDeviceElement != null)
-                    {
-                        while (isoDeviceElement.Parent != null &&
-                                isoDeviceElement.Parent is ISODeviceElement parentDet)
-                        {
-                            parentsToAdd.Add(parentDet.DeviceElementId);
-                            isoDeviceElement= parentDet;
-                        }
-                    }
-                }
-                deviceElementIDs.AddRange(parentsToAdd);
 
                 Dictionary<ISODevice, HashSet<string>> loggedDeviceElementsByDevice = new Dictionary<ISODevice, HashSet<string>>();
                 foreach (string deviceElementID in deviceElementIDs)
                 {
-                    ISODeviceElement isoDeviceElement = TaskDataMapper.DeviceElementHierarchies.GetISODeviceElementFromID(deviceElementID);
+                    ISODeviceElement isoDeviceElement = TaskDataMapper.DeviceElementHierarchies?.GetISODeviceElementFromID(deviceElementID);
                     if (isoDeviceElement != null)
                     {
                         ISODevice device = isoDeviceElement.Device;
@@ -373,6 +357,15 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                             loggedDeviceElementsByDevice.Add(device, new HashSet<string>());
                         }
                         loggedDeviceElementsByDevice[device].Add(deviceElementID);
+
+                        //Supplement the list with any parent device elements which although don't log data in the TLG
+                        //May require a vrProductIndex working data based on product allocations
+                        while (isoDeviceElement.Parent != null &&
+                                isoDeviceElement.Parent is ISODeviceElement parentDet)
+                        {
+                            loggedDeviceElementsByDevice[device].Add(parentDet.DeviceElementId);
+                            isoDeviceElement = parentDet;
+                        }
                     }
                 }
 
@@ -389,7 +382,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
                     foreach (var deviceElementGroup in deviceElementGroups)
                     {
-                        OperationData operationData = new OperationData();
+                        ISOOperationData operationData = new ISOOperationData();
 
                         //Get ids of all device elements in a group including parent element ids
                         //since product allocations can be at parent elements which are not logging any data.
@@ -412,9 +405,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
                         operationData.GetSpatialRecords = () => spatialMapper.Map(isoRecords, workingDatas, productAllocations);
                         operationData.MaxDepth = sections.Count() > 0 ? sections.Select(s => s.Depth).Max() : 0;
-                        operationData.GetDeviceElementUses = x => sectionMapper.ConvertToBaseTypes(sections.Where(s => s.Depth == x).ToList());
+                        operationData.DeviceElementUses = sectionMapper.ConvertToBaseTypes(sections.ToList());
+                        operationData.GetDeviceElementUses = x => operationData.DeviceElementUses.Where(s => s.Depth == x).ToList();
                         operationData.PrescriptionId = prescriptionID;
-                        operationData.OperationType = GetOperationTypeFromProductCategory(productIDs) ?? GetOperationTypeFromLoggingDevices(time);
+                        operationData.OperationType = GetOperationTypeFromProductCategory(productIDs) ??
+                                                      OverrideOperationTypeFromWorkingDatas(GetOperationTypeFromLoggingDevices(time), workingDatas);
                         operationData.ProductIds = productIDs;
                         if (!useDeferredExecution)
                         {
@@ -430,6 +425,27 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 return operationDatas;
             }
             return null;
+        }
+
+        private OperationTypeEnum OverrideOperationTypeFromWorkingDatas(OperationTypeEnum deviceOperationType, List<WorkingData> workingDatas)
+        {
+            //Harvest/ForageHarvest omitted intentionally to be determined from machine type vs. working data
+            if (workingDatas.Any(w => w.Representation.ContainsCode("Seed")))
+            {
+                return OperationTypeEnum.SowingAndPlanting;
+            }
+            else if (workingDatas.Any(w => w.Representation.ContainsCode("Tillage")))
+            {
+                return OperationTypeEnum.Tillage;
+            }
+            if (workingDatas.Any(w => w.Representation.ContainsCode("AppRate")))
+            {
+                if (deviceOperationType != OperationTypeEnum.Fertilizing && deviceOperationType != OperationTypeEnum.CropProtection)
+                {
+                    return OperationTypeEnum.Unknown; //We can't differentiate CropProtection from Fertilizing, but prefer unknown to letting implement type set to SowingAndPlanting
+                }
+            }
+            return deviceOperationType;
         }
 
         private List<List<string>> SplitElementsByProductProperties(Dictionary<string, List<ISOProductAllocation>> productAllocations, HashSet<string> loggedDeviceElementIds, ISODevice dvc)
@@ -564,7 +580,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
             // Sort product allocations for each DeviceElement using it's position among ancestors.
             // This arranges PANs on each DET in reverse order: ones from lowest DET in hierarchy having precedence over ones from top.
-            Dictionary<string, List<ISOProductAllocation>> output = reportedPANs.ToDictionary(x => x.Key, x=>
+            Dictionary<string, List<ISOProductAllocation>> output = reportedPANs.ToDictionary(x => x.Key, x =>
             {
                 var allocations = x.Value.OrderByDescending(y => y.Key).Select(y => y.Value).ToList();
                 // Check if there are any indirect allocations: ones that came from parent device element
@@ -583,10 +599,30 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 .Select(x => TaskDataMapper.DeviceElementHierarchies.GetMatchingElement(x))
                 .Where(x => x != null)
                 .FirstOrDefault();
-            int lowestLevel = GetLowestProductAllocationLevel(det?.GetRootDeviceElementHierarchy(), output);
-            // Remove allocations for all other levels
+
+            var rootElement = det?.GetRootDeviceElementHierarchy();
+            int lowestLevel = GetLowestProductAllocationLevel(rootElement, output);
+            var elementAtLowestDepth = rootElement?.GetElementsAtDepth(lowestLevel).FirstOrDefault();
+
+            // Keep allocations for lowest level or for elements of the same type and without children.
+            // This handles scenario where device hierarchy for different products have different lengths:
+            // - one with 4 levels and Unit device element at the lowest level
+            // - one with 3 levels and Unit device element at the lowest level
             return output
-                .Where(x => TaskDataMapper.DeviceElementHierarchies.GetMatchingElement(x.Key)?.Depth == lowestLevel)
+                .Where(x =>
+                {
+                    var matchingElement = TaskDataMapper.DeviceElementHierarchies.GetMatchingElement(x.Key);
+                    if (matchingElement == null)
+                    {
+                        return false;
+                    }
+                    if (matchingElement.Depth == lowestLevel)
+                    {
+                        return true;
+                    }
+                    return matchingElement.Type == elementAtLowestDepth?.Type &&
+                           (matchingElement.Children == null || matchingElement.Children.Count == 0);
+                })
                 .ToDictionary(x => x.Key, x => x.Value);
         }
 
@@ -603,7 +639,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 {
                     level = isoDeviceElementHierarchy.Depth;
                 }
-            }           
+            }
 
             // Get max level from children elements
             int? maxChildLevel = isoDeviceElementHierarchy?.Children?.Max(x => GetLowestProductAllocationLevel(x, isoProductAllocations));
@@ -615,7 +651,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         {
             int position = 0;
 
-            while(deviceElement != null)
+            while (deviceElement != null)
             {
                 deviceElement = deviceElement.Parent as ISODeviceElement;
                 position++;
@@ -648,9 +684,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             switch (productCategories.FirstOrDefault())
             {
-                case CategoryEnum.Variety:
-                    return OperationTypeEnum.SowingAndPlanting;
-
                 case CategoryEnum.Fertilizer:
                 case CategoryEnum.NitrogenStabilizer:
                 case CategoryEnum.Manure:
@@ -688,7 +721,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 }
             }
 
-            DeviceOperationType deviceType = representedTypes.FirstOrDefault(t => t.ClientNAMEMachineType >= 2 && t.ClientNAMEMachineType <= 11);
+            DeviceOperationType deviceType = representedTypes.FirstOrDefault(t => t.ClientNAMEMachineType >= 2 && t.ClientNAMEMachineType <= 11 &&
+                t.OperationType != OperationTypeEnum.Unknown);
+
             if (deviceType != null)
             {
                 //2-11 represent known types of operations
@@ -706,40 +741,42 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             string filePath = dataPath.GetDirectoryFiles(binName, SearchOption.TopDirectoryOnly).FirstOrDefault();
             if (templateTime != null && filePath != null)
             {
-                return BinaryReader.Read(filePath, templateTime, TaskDataMapper.DeviceElementHierarchies);
+                return BinaryReader.Read(filePath, templateTime, TaskDataMapper.DeviceElementHierarchies, TaskDataMapper.Version);
             }
             return null;
         }
 
-        internal static Dictionary<byte, int> ReadImplementGeometryValues(IEnumerable<byte> dlvsToRead, ISOTime templateTime, string filePath)
+        internal static Dictionary<byte, int> ReadImplementGeometryValues(IEnumerable<byte> dlvsToRead, ISOTime templateTime, string filePath, int version, IList<IError> errors)
         {
-            return BinaryReader.ReadImplementGeometryValues(filePath, templateTime, dlvsToRead);
+            return BinaryReader.ReadImplementGeometryValues(filePath, templateTime, dlvsToRead, version, errors);
         }
 
         protected class BinaryReader
         {
             private static readonly DateTime _firstDayOf1980 = new DateTime(1980, 01, 01);
 
-            public static Dictionary<byte, int> ReadImplementGeometryValues(string filePath, ISOTime templateTime, IEnumerable<byte> desiredDLVIndices)
+            public static Dictionary<byte, int> ReadImplementGeometryValues(string filePath, ISOTime templateTime, IEnumerable<byte> desiredDLVIndices, int version, IList<IError> errors)
             {
                 Dictionary<byte, int> output = new Dictionary<byte, int>();
                 List<byte> desiredIndexes = desiredDLVIndices.ToList();
 
                 //Determine the number of header bytes in each position
                 short headerCount = 0;
-                SkipBytes(templateTime.HasStart && templateTime.Start == null, 6, ref headerCount);
+                bool overrideTimelogAttributeChecks = DetermineTimelogAttributeValidity(filePath, version);
+                SkipBytes(overrideTimelogAttributeChecks || (templateTime.HasStart && templateTime.Start == null), 6, ref headerCount);
                 ISOPosition templatePosition = templateTime.Positions.FirstOrDefault();
+                
                 if (templatePosition != null)
                 {
-                    SkipBytes(templatePosition.HasPositionNorth && templatePosition.PositionNorth == null, 4, ref headerCount);
-                    SkipBytes(templatePosition.HasPositionEast && templatePosition.PositionEast == null, 4, ref headerCount);
-                    SkipBytes(templatePosition.HasPositionUp && templatePosition.PositionUp == null, 4, ref headerCount);
-                    SkipBytes(templatePosition.HasPositionStatus && templatePosition.PositionStatus == null, 1, ref headerCount);
-                    SkipBytes(templatePosition.HasPDOP && templatePosition.PDOP == null, 2, ref headerCount);
-                    SkipBytes(templatePosition.HasHDOP && templatePosition.HDOP == null, 2, ref headerCount);
-                    SkipBytes(templatePosition.HasNumberOfSatellites && templatePosition.NumberOfSatellites == null, 1, ref headerCount);
-                    SkipBytes(templatePosition.HasGpsUtcTime && templatePosition.GpsUtcTime == null, 4, ref headerCount);
-                    SkipBytes(templatePosition.HasGpsUtcDate && templatePosition.GpsUtcDate == null, 2, ref headerCount);
+                    SkipBytes(overrideTimelogAttributeChecks || (templatePosition.HasPositionNorth && templatePosition.PositionNorth == null), 4, ref headerCount);
+                    SkipBytes(overrideTimelogAttributeChecks || (templatePosition.HasPositionEast && templatePosition.PositionEast == null), 4, ref headerCount);
+                    SkipBytes(overrideTimelogAttributeChecks || (templatePosition.HasPositionUp && templatePosition.PositionUp == null), 4, ref headerCount);
+                    SkipBytes(overrideTimelogAttributeChecks || (templatePosition.HasPositionStatus && templatePosition.PositionStatus == null), 1, ref headerCount);
+                    SkipBytes(overrideTimelogAttributeChecks || (templatePosition.HasPDOP && templatePosition.PDOP == null), 2, ref headerCount);
+                    SkipBytes(overrideTimelogAttributeChecks || (templatePosition.HasHDOP && templatePosition.HDOP == null), 2, ref headerCount);
+                    SkipBytes(overrideTimelogAttributeChecks || (templatePosition.HasNumberOfSatellites && templatePosition.NumberOfSatellites == null), 1, ref headerCount);
+                    SkipBytes(overrideTimelogAttributeChecks || (templatePosition.HasGpsUtcTime && templatePosition.GpsUtcTime == null), 4, ref headerCount);
+                    SkipBytes(overrideTimelogAttributeChecks || (templatePosition.HasGpsUtcDate && templatePosition.GpsUtcDate == null), 2, ref headerCount);
                 }
 
                 using (var binaryReader = new System.IO.BinaryReader(File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read)))
@@ -749,25 +786,33 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         binaryReader.BaseStream.Position += headerCount; //Skip over the header
                         if (ContinueReading(binaryReader))
                         {
-                            var numberOfDLVs = ReadByte(null, true, binaryReader).GetValueOrDefault(0);
+                            var numberOfDLVs = ReadByte(null, true, false, binaryReader).GetValueOrDefault(0);
                             if (ContinueReading(binaryReader))
                             {
                                 numberOfDLVs = ConfirmNumberOfDLVs(binaryReader, numberOfDLVs); //Validate we are not at the end of a truncated file
                                 for (byte i = 0; i < numberOfDLVs; i++)
                                 {
-                                    byte dlvIndex = ReadByte(null, true, binaryReader).GetValueOrDefault(); //This is the current DLV reported
+                                    byte dlvIndex = ReadByte(null, true, false, binaryReader).GetValueOrDefault(); //This is the current DLV reported
                                     if (desiredIndexes.Contains(dlvIndex))
                                     {
                                         //A desired DLV is reported here
-                                        int value = ReadInt32(null, true, binaryReader).GetValueOrDefault();
-                                        if (!output.ContainsKey(dlvIndex))
+                                        int value = ReadInt32(null, true, false, binaryReader).GetValueOrDefault();
+                                        try
                                         {
-                                            output.Add(dlvIndex, value);
+                                            if (!output.ContainsKey(dlvIndex))
+                                            {
+                                                output.Add(dlvIndex, value);
+                                            }
+                                            else if (Math.Abs(value) > Math.Abs(output[dlvIndex]))
+                                            {
+                                                //Values should be all the same, but prefer the furthest from 0
+                                                output[dlvIndex] = value;
+                                            }
                                         }
-                                        else if (Math.Abs(value) > Math.Abs(output[dlvIndex]))
+                                        catch (OverflowException ex)
                                         {
-                                            //Values should be all the same, but prefer the furthest from 0
-                                            output[dlvIndex] = value;
+                                            // If value == int.MinValue, Math.Abs(value) will throw System.OverflowException: Negating the minimum value of a twos complement number is invalid.
+                                            errors.Add(new Error() { Description = ex.Message, Id = ex.GetType().ToString(), Source = ex.Source, StackTrace = ex.StackTrace });
                                         }
                                     }
                                     else
@@ -810,7 +855,46 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 return numberOfDLVs;
             }
 
-            public static IEnumerable<ISOSpatialRow> Read(string fileName, ISOTime templateTime, DeviceElementHierarchies deviceHierarchies)
+            private static bool DetermineTimelogAttributeValidity(string fileName, int version)
+            {
+                bool overrideTimelogAttributeChecks = false;
+                if (version < 3)
+                {
+                    //Some early datasets have a misinterpretation of the "template" behavior of the TIM & PTN elements in the TLG.XML files, 
+                    //and all GPS data elements are reported (often as 0s) regardless of the TLG.XML.
+                    //Run a quick check to see if this is such a dataset (or if all GPS header attributes are legitimately populated)
+                    //to override the attribute-prescence logic in reading the binary.
+                    using (var binaryReader = new System.IO.BinaryReader(File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read)))
+                    {
+                        if (binaryReader.BaseStream.Length > 31) //Guard against small files failing on this logic
+                        {
+                            //First record
+                            binaryReader.BaseStream.Seek(4, SeekOrigin.Current);
+                            var firstDaysSince1980 = binaryReader.ReadUInt16();
+                            binaryReader.BaseStream.Seek(24, SeekOrigin.Current);
+                            var firstDLVCount = binaryReader.ReadByte();
+
+                            var firstRecordDataByteCount = firstDLVCount * 5; //1 byte of id + 4 bytes of value for each dlv
+                            if (binaryReader.BaseStream.Length > 31 + firstRecordDataByteCount + 6) //Guard against small files failing on this logic
+                            {
+                                binaryReader.BaseStream.Seek(firstRecordDataByteCount, SeekOrigin.Current);
+
+                                //Second record
+                                binaryReader.BaseStream.Seek(4, SeekOrigin.Current);
+                                var secondDaysSince1980 = binaryReader.ReadUInt16();
+                                if (firstDaysSince1980 == secondDaysSince1980)
+                                {
+                                    //The byte offsets suggest all header data is present
+                                    overrideTimelogAttributeChecks = true;
+                                }
+                            }
+                        }
+                    }
+                }
+                return overrideTimelogAttributeChecks;
+            }
+
+            public static IEnumerable<ISOSpatialRow> Read(string fileName, ISOTime templateTime, DeviceElementHierarchies deviceHierarchies, int version)
             {
                 if (templateTime == null)
                     yield break;
@@ -818,35 +902,36 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 if (!File.Exists(fileName))
                     yield break;
 
+                bool overrideTimelogAttributeChecks = DetermineTimelogAttributeValidity(fileName, version);
                 using (var binaryReader = new System.IO.BinaryReader(File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read)))
                 {
                     while (binaryReader.BaseStream.Position < binaryReader.BaseStream.Length)
                     {
                         ISOPosition templatePosition = templateTime.Positions.FirstOrDefault();
 
-                        var record = new ISOSpatialRow { TimeStart = GetStartTime(templateTime, binaryReader).GetValueOrDefault() };
+                        var record = new ISOSpatialRow { TimeStart = GetStartTime(templateTime, binaryReader, overrideTimelogAttributeChecks).GetValueOrDefault() };
 
                         if (templatePosition != null)
                         {
                             //North and East are required binary data
-                            record.NorthPosition = ReadInt32((double?)templatePosition.PositionNorth, templatePosition.HasPositionNorth, binaryReader).GetValueOrDefault(0);
-                            record.EastPosition = ReadInt32((double?)templatePosition.PositionEast, templatePosition.HasPositionEast, binaryReader).GetValueOrDefault(0);
+                            record.NorthPosition = ReadInt32((double?)templatePosition.PositionNorth, templatePosition.HasPositionNorth, overrideTimelogAttributeChecks, binaryReader).GetValueOrDefault(0);
+                            record.EastPosition = ReadInt32((double?)templatePosition.PositionEast, templatePosition.HasPositionEast, overrideTimelogAttributeChecks, binaryReader).GetValueOrDefault(0);
 
                             //Optional position attributes will be included in the binary only if a corresponding attribute is present in the PTN element
-                            record.Elevation = ReadInt32(templatePosition.PositionUp, templatePosition.HasPositionUp, binaryReader);
+                            record.Elevation = ReadInt32(templatePosition.PositionUp, templatePosition.HasPositionUp, overrideTimelogAttributeChecks, binaryReader);
 
                             //Position status is required
-                            record.PositionStatus = ReadByte((byte?)templatePosition.PositionStatus, templatePosition.HasPositionStatus, binaryReader);
+                            record.PositionStatus = ReadByte((byte?)templatePosition.PositionStatus, templatePosition.HasPositionStatus, overrideTimelogAttributeChecks, binaryReader);
 
-                            record.PDOP = ReadUShort((double?)templatePosition.PDOP, templatePosition.HasPDOP, binaryReader);
+                            record.PDOP = ReadUShort((double?)templatePosition.PDOP, templatePosition.HasPDOP, overrideTimelogAttributeChecks, binaryReader);
 
-                            record.HDOP = ReadUShort((double?)templatePosition.HDOP, templatePosition.HasHDOP, binaryReader);
+                            record.HDOP = ReadUShort((double?)templatePosition.HDOP, templatePosition.HasHDOP, overrideTimelogAttributeChecks, binaryReader);
 
-                            record.NumberOfSatellites = ReadByte(templatePosition.NumberOfSatellites, templatePosition.HasNumberOfSatellites, binaryReader);
+                            record.NumberOfSatellites = ReadByte(templatePosition.NumberOfSatellites, templatePosition.HasNumberOfSatellites, overrideTimelogAttributeChecks, binaryReader);
 
-                            record.GpsUtcTime = ReadUInt32(templatePosition.GpsUtcTime, templatePosition.HasGpsUtcTime, binaryReader).GetValueOrDefault();
+                            record.GpsUtcTime = ReadUInt32(templatePosition.GpsUtcTime, templatePosition.HasGpsUtcTime, overrideTimelogAttributeChecks, binaryReader).GetValueOrDefault();
 
-                            record.GpsUtcDate = ReadUShort(templatePosition.GpsUtcDate, templatePosition.HasGpsUtcDate, binaryReader);
+                            record.GpsUtcDate = ReadUShort(templatePosition.GpsUtcDate, templatePosition.HasGpsUtcDate, overrideTimelogAttributeChecks, binaryReader);
 
                             if (record.GpsUtcDate != null && record.GpsUtcTime != null)
                             {
@@ -860,7 +945,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                             break;
                         }
 
-                        var numberOfDLVs = ReadByte(null, true, binaryReader).GetValueOrDefault(0);
+                        var numberOfDLVs = ReadByte(null, true, false, binaryReader).GetValueOrDefault(0);
                         // There should be some values but no more data exists in file, stop processing
                         if (numberOfDLVs > 0 && binaryReader.BaseStream.Position >= binaryReader.BaseStream.Length)
                         {
@@ -870,14 +955,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         //If the reported number of values does not fit into the stream, correct the numberOfDLVs
                         numberOfDLVs = ConfirmNumberOfDLVs(binaryReader, numberOfDLVs);
 
-                        record.SpatialValues = new List<SpatialValue>();
+                        record.SpatialValues = new List<SpatialValue>(numberOfDLVs);
 
                         bool unexpectedEndOfStream = false;
                         //Read DLVs out of the TLG.bin
                         for (int i = 0; i < numberOfDLVs; i++)
                         {
-                            var order = ReadByte(null, true, binaryReader).GetValueOrDefault();
-                            var value = ReadInt32(null, true, binaryReader).GetValueOrDefault();
+                            var order = ReadByte(null, true, false, binaryReader).GetValueOrDefault();
+                            var value = ReadInt32(null, true, false, binaryReader).GetValueOrDefault();
                             // Can't read either order or value or both, stop processing
                             if (i < numberOfDLVs - 1 && binaryReader.BaseStream.Position >= binaryReader.BaseStream.Length)
                             {
@@ -887,7 +972,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
                             SpatialValue spatialValue = CreateSpatialValue(templateTime, order, value, deviceHierarchies);
                             if (spatialValue != null)
+                            {
                                 record.SpatialValues.Add(spatialValue);
+                            }
                         }
                         // Unable to read some of the expected DLVs, stop processing
                         if (unexpectedEndOfStream)
@@ -896,13 +983,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         }
 
                         //Add any fixed values from the TLG.xml
-                        foreach (ISODataLogValue fixedValue in templateTime.DataLogValues.Where(dlv => dlv.ProcessDataValue.HasValue && !EnumeratedMeterFactory.IsCondensedMeter(dlv.ProcessDataDDI.AsInt32DDI())))
+                        foreach (ISODataLogValue fixedValue in templateTime.DataLogValues.Where(dlv => dlv.ProcessDataValue.HasValue && !EnumeratedMeterFactory.IsCondensedMeter(dlv.ProcessDataIntDDI)))
                         {
                             byte order = (byte)templateTime.DataLogValues.IndexOf(fixedValue);
-                            if (record.SpatialValues.Any(s => s.Id == order)) //Check to ensure the binary data didn't already write this value
+                            SpatialValue matchingValue = record.SpatialValues.FirstOrDefault(s => s.Id == order);
+                            if (matchingValue != null) //Check to ensure the binary data didn't already write this value
                             {
                                 //Per the spec, any fixed value in the XML applies to all rows; as such, replace what was read from the binary
-                                SpatialValue matchingValue = record.SpatialValues.Single(s => s.Id == order);
                                 matchingValue.DataLogValue = fixedValue;
                             }
                         }
@@ -912,25 +999,25 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 }
             }
 
-            private static ushort? ReadUShort(double? value, bool specified, System.IO.BinaryReader binaryReader)
+            private static ushort? ReadUShort(double? value, bool specified, bool overrideTemplate, System.IO.BinaryReader binaryReader)
             {
-                if (specified)
+                if (specified || overrideTemplate)
                 {
-                    if (value.HasValue)
+                    if (value.HasValue && !overrideTemplate)
                         return (ushort)value.Value;
 
                     var buffer = new byte[2];
                     var actualSize = binaryReader.Read(buffer, 0, buffer.Length);
                     return actualSize != buffer.Length ? null : (ushort?)BitConverter.ToUInt16(buffer, 0);
                 }
-                return null;
+                return null;          
             }
 
-            private static byte? ReadByte(byte? byteValue, bool specified, System.IO.BinaryReader binaryReader)
-            {
-                if (specified)
+            private static byte? ReadByte(byte? byteValue, bool specified, bool overrideTemplate, System.IO.BinaryReader binaryReader)
+            {  
+                if (specified || overrideTemplate)
                 {
-                    if (byteValue.HasValue)
+                    if (byteValue.HasValue && !overrideTemplate)
                         return byteValue;
 
                     var buffer = new byte[1];
@@ -940,11 +1027,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 return null;
             }
 
-            private static int? ReadInt32(double? d, bool specified, System.IO.BinaryReader binaryReader)
+            private static int? ReadInt32(double? d, bool specified, bool overrideTemplate, System.IO.BinaryReader binaryReader)
             {
-                if (specified)
+                if (specified || overrideTemplate)
                 {
-                    if (d.HasValue)
+                    if (d.HasValue && !overrideTemplate)
                         return (int)d.Value;
 
                     var buffer = new byte[4];
@@ -954,11 +1041,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 return null;
             }
 
-            private static uint? ReadUInt32(double? d, bool specified, System.IO.BinaryReader binaryReader)
+            private static uint? ReadUInt32(double? d, bool specified, bool overrideTemplate, System.IO.BinaryReader binaryReader)
             {
-                if (specified)
+                if (specified || overrideTemplate)
                 {
-                    if (d.HasValue)
+                    if (d.HasValue && !overrideTemplate)
                         return (uint)d.Value;
 
                     var buffer = new byte[4];
@@ -968,12 +1055,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 return null;
             }
 
-            private static DateTime? GetStartTime(ISOTime templateTime, System.IO.BinaryReader binaryReader)
+            private static DateTime? GetStartTime(ISOTime templateTime, System.IO.BinaryReader binaryReader, bool overrideTemplate)
             {
-                if (templateTime.HasStart && templateTime.Start == null)
+                if (overrideTemplate || (templateTime.HasStart && templateTime.Start == null))
                 {
-                    var milliseconds = ReadInt32(null, true, binaryReader);
-                    var daysFrom1980 = ReadUShort(null, true, binaryReader);
+                    var milliseconds = ReadInt32(null, true, overrideTemplate, binaryReader);
+                    var daysFrom1980 = ReadUShort(null, true, overrideTemplate, binaryReader);
                     return !milliseconds.HasValue || !daysFrom1980.HasValue ? null : (DateTime?)_firstDayOf1980.AddDays(daysFrom1980.Value).AddMilliseconds(milliseconds.Value);
                 }
                 else if (templateTime.HasStart)
@@ -990,16 +1077,16 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 if (matchingDlv == null)
                     return null;
 
-                ISODeviceElement det = deviceHierarchies.GetISODeviceElementFromID(matchingDlv.DeviceElementIdRef);
+                ISODeviceElement det = deviceHierarchies?.GetISODeviceElementFromID(matchingDlv.DeviceElementIdRef);
                 ISODevice dvc = det?.Device;
-                ISODeviceProcessData dpd = dvc?.DeviceProcessDatas?.FirstOrDefault(d => d.DDI == matchingDlv.ProcessDataDDI);
+                ISODeviceProcessData dpd = dvc?.FirstOrDefaultDeviceProcessData(matchingDlv.ProcessDataIntDDI);
 
                 var ddis = DdiLoader.Ddis;
 
                 var resolution = 1d;
-                if (matchingDlv.ProcessDataDDI != null && ddis.ContainsKey(matchingDlv.ProcessDataDDI.AsInt32DDI()))
+                if (matchingDlv.ProcessDataDDI != null && ddis.ContainsKey(matchingDlv.ProcessDataIntDDI))
                 {
-                    resolution = ddis[matchingDlv.ProcessDataDDI.AsInt32DDI()].Resolution;
+                    resolution = ddis[matchingDlv.ProcessDataIntDDI].Resolution;
                 }
 
                 var spatialValue = new SpatialValue

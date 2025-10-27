@@ -213,6 +213,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         {
             //First check if we've already created a matching seed product from the crop type
             Product product = DataModel.Catalog.Products.FirstOrDefault(p => p.ProductType == ProductTypeEnum.Variety && p.Description == isoProduct.ProductDesignator)
+                ?? CreateCropProductFromCropType(isoProduct)
                 ?? CreateNewProductInstance(isoProduct);
 
             //ID
@@ -350,27 +351,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         private Product CreateNewProductInstance(ISOProduct isoProduct)
         {
-            // If there is a manufacturer defined attribute representing a crop name, use it
-            string cropName = _manufacturer?.GetCropName(isoProduct);
-            if (!string.IsNullOrWhiteSpace(cropName))
-            {
-                // New crop variety product
-                var cropProduct = new CropVarietyProduct();
-                cropProduct.ProductType = ProductTypeEnum.Variety;
-
-                // Check if there is already Crop in ADAPT model
-                Crop adaptCrop = TaskDataMapper.AdaptDataModel.Catalog.Crops.FirstOrDefault(x => x.Name.EqualsIgnoreCase(cropName));
-                if (adaptCrop == null)
-                {
-                    // Create a new one
-                    adaptCrop = new Crop();
-                    adaptCrop.Name = cropName;
-                    TaskDataMapper.AdaptDataModel.Catalog.Crops.Add(adaptCrop);
-                }
-                cropProduct.CropId = adaptCrop.Id.ReferenceId;
-                return cropProduct;
-            }
-
             Product product;
             //Type
             switch (isoProduct.ProductType)
@@ -386,6 +366,33 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     break;
             }
             return product;
+        }
+
+        private Product CreateCropProductFromCropType(ISOProduct isoProduct)
+        {
+            // If there is a manufacturer defined attribute representing a crop name, use it
+            string cropName = _manufacturer?.GetCropName(isoProduct);
+            if (!string.IsNullOrWhiteSpace(cropName))
+            {
+                // New crop variety product
+                var cropProduct = new CropVarietyProduct();
+                cropProduct.ProductType = ProductTypeEnum.Variety;
+                cropProduct.Description = cropName;
+
+                // Check if there is already Crop in ADAPT model
+                Crop adaptCrop = TaskDataMapper.AdaptDataModel.Catalog.Crops.FirstOrDefault(x => x.Name.EqualsIgnoreCase(cropName));
+                if (adaptCrop == null)
+                {
+                    // Create a new one
+                    adaptCrop = new Crop();
+                    adaptCrop.Name = cropName;
+                    TaskDataMapper.AdaptDataModel.Catalog.Crops.Add(adaptCrop);
+                }
+                cropProduct.CropId = adaptCrop.Id.ReferenceId;
+                return cropProduct;
+            }
+
+            return null;
         }
 
         /// <summary>

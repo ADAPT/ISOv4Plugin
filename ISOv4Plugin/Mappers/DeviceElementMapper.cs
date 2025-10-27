@@ -547,7 +547,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 machineConfig.GpsReceiverYOffset = navigation.YOffsetRepresentation;
                 machineConfig.GpsReceiverZOffset = navigation.ZOffsetRepresentation;
             }
-            
+
+            // OriginAxle
+            if (deviceHierarchy.OriginAxleLocation.HasValue)
+            {
+                machineConfig.OriginAxleLocation = deviceHierarchy.OriginAxleLocation.Value;
+            }
 
             catalog.DeviceElementConfigurations.Add(machineConfig);
             return machineConfig;

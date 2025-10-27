@@ -13,6 +13,7 @@ using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ApplicationDataModel.Logistics;
 using AgGateway.ADAPT.ApplicationDataModel.Products;
 using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
+using AgGateway.ADAPT.ISOv4Plugin.Mappers.Manufacturers;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using AgGateway.ADAPT.ISOv4Plugin.Representation;
 
@@ -34,7 +35,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         public const string ExportVersion = "ExportVersion"; //Version "3" or "4"
         public const string SuppressTimeLogDataInterpolation = "SuppressTimeLogDataInterpolation";
 
-        public TaskDataMapper(string dataPath, Properties properties)
+        public TaskDataMapper(string dataPath, Properties properties, int? taskDataVersionMajor = null)
         {
             BaseFolder = dataPath;
             RepresentationMapper = new RepresentationMapper();
@@ -44,16 +45,22 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             InstanceIDMap = new InstanceIDMap();
             Errors = new List<IError>();
 
-            //Export version
-            string exportVersion = Properties.GetProperty(ExportVersion);
-            if (Int32.TryParse(exportVersion, out int version))
+            if (taskDataVersionMajor.HasValue)
             {
-                Version = version;  //3 or 4
+                Version = taskDataVersionMajor.Value;
             }
-            if (version != 3 && version != 4)
+            else
             {
-                Version = 4; //Default ISO Version for the export
-            }
+                string exportVersion = Properties.GetProperty(ExportVersion);
+                if (Int32.TryParse(exportVersion, out int version))
+                {
+                    Version = version;  //3 or 4
+                }
+                if (version != 3 && version != 4)
+                {
+                    Version = 4; //Default ISO Version for the export
+                }
+            }           
         }
 
         public string BaseFolder { get; private set; }
@@ -407,19 +414,21 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 if (Properties == null || !bool.TryParse(Properties.GetProperty(MergeSingleBinsIntoBoom), out mergeBins))
                 {
                     mergeBins = true;
-                }             
+                }
 
                 //Load the internal objects modeling hierarchies of DETs per DVC
                 DeviceElementHierarchies = new DeviceElementHierarchies(devices,
                                                                         RepresentationMapper,
                                                                         mergeBins,
                                                                         taskData.ChildElements.OfType<ISOTask>().SelectMany(t => t.TimeLogs),
-                                                                        BaseFolder);
+                                                                        BaseFolder,
+                                                                        this);
 
                 //Import the ISO DVC & DET data into the actual ADAPT models.
                 //During DET import, we use the DeviceElementHierarchies from above to map the actual hierarchies and fill in details.
                 DeviceMapper deviceMapper = new DeviceMapper(this);
                 AdaptDataModel.Catalog.DeviceModels.AddRange(deviceMapper.ImportDevices(devices));
+                DeviceElementHierarchies.CacheDeviceElementIds();
             }
 
             //Workers
@@ -497,6 +506,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     AdaptDataModel.Documents.WorkRecords = workRecords;
                 }
             }
+
+            var manufacturer = ManufacturerFactory.GetManufacturer(this);
+            manufacturer?.PostProcessModel(AdaptDataModel, DeviceElementHierarchies);
 
             return AdaptDataModel;
         }

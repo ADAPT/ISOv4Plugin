@@ -20,6 +20,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         WorkingData ConvertToBaseType(WorkingData meter);
         Dictionary<int, ISODataLogValue> DataLogValuesByWorkingDataID { get; set; }
         Dictionary<int, string> ISODeviceElementIDsByWorkingDataID { get; set; }
+
+        IEnumerable<ISODataLogValue> GetDataLogValuesForDeviceElement(ISOTime time, DeviceHierarchyElement deviceElementHierarchy);
     }
 
     public class WorkingDataMapper : BaseMapper, IWorkingDataMapper
@@ -38,6 +40,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             _ddis = DdiLoader.Ddis;
             DataLogValuesByWorkingDataID = new Dictionary<int, ISODataLogValue>();
             ISODeviceElementIDsByWorkingDataID = new Dictionary<int, string>();
+        }
+
+        public IEnumerable<ISODataLogValue> GetDataLogValuesForDeviceElement(ISOTime time, DeviceHierarchyElement deviceElementHierarchy)
+        {
+            return time.DataLogValues.Where(dlv => dlv.DeviceElementIdRef == deviceElementHierarchy.DeviceElement.DeviceElementId ||  //DLV DET reference matches the primary DET for the ADAPT element
+                                                                             deviceElementHierarchy.MergedElements.Any(e => e.DeviceElementId == dlv.DeviceElementIdRef)) //DLV DET reference matches one of the merged DETs on the ADAPT element
+                                     .ToList();
         }
 
         public List<WorkingData> Map(ISOTime time,
@@ -73,7 +82,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                                                                isoDeviceElementHierarchy);
                 if (newWorkingDatas.Count() > 0)
                 {
-                    int ddi = dlv.ProcessDataDDI.AsInt32DDI();
+                    int ddi = dlv.ProcessDataIntDDI;
                     if (!EnumeratedMeterFactory.IsCondensedMeter(ddi))
                     {
                         //We skip adding Condensed WorkingDatas to this DeviceElementUse since they were added separately below to their specific DeviceElementUse
@@ -126,7 +135,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                                              DeviceHierarchyElement isoDeviceElementHierarchy)
         {
             var workingDatas = new List<WorkingData>();
-            if (_ddis.ContainsKey(dlv.ProcessDataDDI.AsInt32DDI()))
+            if (_ddis.ContainsKey(dlv.ProcessDataIntDDI))
             {
                 //Numeric Representations
                 NumericWorkingData numericMeter = MapNumericMeter(dlv, deviceElementUse.Id.ReferenceId);
@@ -135,7 +144,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 workingDatas.Add(numericMeter);
                 return workingDatas;
             }
-            var meterCreator = _enumeratedMeterCreatorFactory.GetMeterCreator(dlv.ProcessDataDDI.AsInt32DDI());
+            var meterCreator = _enumeratedMeterCreatorFactory.GetMeterCreator(dlv.ProcessDataIntDDI);
             if (meterCreator != null)
             {
                 //Enumerated Representations
@@ -187,9 +196,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         {
             var meter = new NumericWorkingData
             {
-                UnitOfMeasure = RepresentationMapper.GetUnitForDdi(dlv.ProcessDataDDI.AsInt32DDI()),
+                UnitOfMeasure = RepresentationMapper.GetUnitForDdi(dlv.ProcessDataIntDDI),
                 DeviceElementUseId = deviceElementUseId,
-                Representation = RepresentationMapper.Map(dlv.ProcessDataDDI.AsInt32DDI())
+                Representation = RepresentationMapper.Map(dlv.ProcessDataIntDDI)
             };
             return meter;
         }
@@ -208,6 +217,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         private void UpdateCondensedWorkingDatas(List<ISOEnumeratedMeter> condensedWorkingDatas, ISODataLogValue dlv, DeviceElementUse deviceElementUse, List<DeviceElementUse> pendingDeviceElementUses, DeviceHierarchyElement isoDeviceElementHierarchy)
         {
             ISODeviceElement isoDeviceElement = TaskDataMapper.DeviceElementHierarchies.GetISODeviceElementFromID(dlv.DeviceElementIdRef);
+            if (isoDeviceElement == null)
+            {
+                // If no device element found for the log value, nothing more to do here
+                return;
+            }
+
             List<ISODeviceElement> isoSectionElements = isoDeviceElement.ChildDeviceElements.Where(d => d.DeviceElementType == ISOEnumerations.ISODeviceElementType.Section).ToList();
             foreach (var subElement in isoDeviceElement.ChildDeviceElements)
             {

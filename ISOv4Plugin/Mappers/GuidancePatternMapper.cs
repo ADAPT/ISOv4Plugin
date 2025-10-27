@@ -13,7 +13,6 @@ using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using AgGateway.ADAPT.ISOv4Plugin.ISOEnumerations;
 using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
 using AgGateway.ADAPT.Representation.UnitSystem;
-using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
@@ -216,7 +215,10 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             foreach (ISOGuidancePattern isoGuidancePattern in isoGuidancePatterns)
             {
                 GuidancePattern adaptGuidancePattern = ImportGuidancePattern(isoGuidancePattern);
-                adaptGuidancePatterns.Add(adaptGuidancePattern);
+                if (adaptGuidancePattern != null)
+                {
+                    adaptGuidancePatterns.Add(adaptGuidancePattern);
+                }
             }
 
             //Add the patterns to the Catalog
@@ -237,7 +239,13 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             GuidancePattern pattern = null;
             LineStringMapper lineStringMapper = new LineStringMapper(TaskDataMapper);
             PointMapper pointMapper = new PointMapper(TaskDataMapper);
-            var isoLineString = isoGuidancePattern.LineString ?? new ISOLineString();
+            ISOLineString isoLineString = isoGuidancePattern.LineString;
+            if ((isoLineString?.Points?.Count ?? 0) == 0)
+            {
+                TaskDataMapper.AddError($"Guidance pattern {isoGuidancePattern.GuidancePatternDesignator} is invalid. Skipping.");
+                return null;
+            }
+
             switch (isoGuidancePattern.GuidancePatternType)
             {
                 case ISOGuidancePatternType.AB:
