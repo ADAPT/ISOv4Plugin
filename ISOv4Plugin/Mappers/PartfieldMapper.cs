@@ -90,7 +90,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             //Boundary
             PolygonMapper polygonMapper = new PolygonMapper(TaskDataMapper);
-            FieldBoundary boundary = DataModel.Catalog.FieldBoundaries.SingleOrDefault(b => b.FieldId == adaptField.Id.ReferenceId);
+
+            var boundaries = DataModel.Catalog.FieldBoundaries.Where(b => b.FieldId == adaptField.Id.ReferenceId).ToList();
+            var boundary = boundaries.FirstOrDefault(b=> b.Id.ReferenceId == adaptField.ActiveBoundaryId) ?? boundaries.FirstOrDefault();
             if (boundary != null)
             {
                 IEnumerable<ISOPolygon> isoPolygons = polygonMapper.ExportMultipolygon(boundary.SpatialData, ISOEnumerations.ISOPolygonType.PartfieldBoundary);
