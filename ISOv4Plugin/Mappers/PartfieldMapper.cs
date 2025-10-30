@@ -93,8 +93,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             FieldBoundary boundary = DataModel.Catalog.FieldBoundaries.SingleOrDefault(b => b.FieldId == adaptField.Id.ReferenceId);
             if (boundary != null)
             {
-                IEnumerable<ISOPolygon> isoPolygons = polygonMapper.ExportMultipolygon(boundary.SpatialData, ISOEnumerations.ISOPolygonType.PartfieldBoundary);
-                isoField.Polygons.AddRange(isoPolygons);
+                if (boundary.SpatialData != null)
+                {
+                    IEnumerable<ISOPolygon> isoPolygons = polygonMapper.ExportMultipolygon(boundary.SpatialData, ISOEnumerations.ISOPolygonType.PartfieldBoundary);
+                    isoField.Polygons.AddRange(isoPolygons);
+                }
             }
 
             //Guidance
