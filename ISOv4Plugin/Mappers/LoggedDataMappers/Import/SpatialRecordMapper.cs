@@ -212,30 +212,39 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             if (dateTime.Kind == DateTimeKind.Utc)
                 return dateTime;
 
-            DateTime utc;
-            if (dateTime.Kind == DateTimeKind.Local)
+            if (_taskDataMapper.TimezoneOffset.HasValue)
             {
-                utc = dateTime.ToUniversalTime();
-            }
-            else if (dateTime.Kind == DateTimeKind.Unspecified && _taskDataMapper.GPSToLocalDelta.HasValue)
-            {
-                utc = new DateTime(dateTime.AddHours(-_taskDataMapper.GPSToLocalDelta.Value).Ticks, DateTimeKind.Utc);
-            }
-            else
-            {
-                // Nothing left to try; return original value
-                utc = dateTime;
+                // Convert from local time to UTC using the timezone offset.
+                var localTime = new DateTimeOffset(dateTime.Year, dateTime.Month, dateTime.Day, 
+                    dateTime.Hour, dateTime.Minute, dateTime.Second, dateTime.Millisecond,
+                    _taskDataMapper.TimezoneOffset.Value);
+                DateTime utc = localTime.UtcDateTime;
+                return utc;
             }
 
-            return utc;
+            // Return original value
+            return dateTime;
         }
 
         private DateTime? Offset(DateTime? input)
         {
-            if (_effectiveTimeZoneOffset.HasValue && input.HasValue)
+            if (!input.HasValue)
+                return null;
+
+            if (input.Value.Kind == DateTimeKind.Utc)
+                return input;
+
+            if (_effectiveTimeZoneOffset.HasValue)
             {
-                return input.Value.AddHours(_effectiveTimeZoneOffset.Value);
+                var dateTime = input.Value;
+                var localTime = new DateTimeOffset(dateTime.Year, dateTime.Month, dateTime.Day, 
+                    dateTime.Hour, dateTime.Minute, dateTime.Second, dateTime.Millisecond,
+                    TimeSpan.FromHours(_effectiveTimeZoneOffset.Value));
+                DateTime utc = localTime.UtcDateTime;
+                return utc;
+                //return input.Value.AddHours(_effectiveTimeZoneOffset.Value);
             }
+
             return input;
         }
     }

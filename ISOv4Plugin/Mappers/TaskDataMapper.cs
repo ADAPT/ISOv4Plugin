@@ -78,6 +78,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         internal Dictionary<int, DdiDefinition> DDIs { get; private set; }
         internal DeviceOperationTypes DeviceOperationTypes { get; private set; }
         internal double? GPSToLocalDelta { get; set; }
+        internal TimeSpan? TimezoneOffset { get; set; }
 
         CodedCommentListMapper _commentListMapper;
         public CodedCommentListMapper CommentListMapper

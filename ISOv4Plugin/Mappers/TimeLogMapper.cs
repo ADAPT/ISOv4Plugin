@@ -330,8 +330,12 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         var firstRecord = isoRecords.FirstOrDefault(r => r.GpsUtcDateTime.HasValue && r.GpsUtcDate != ushort.MaxValue && r.GpsUtcDate != 0);
                         if (firstRecord != null)
                         {
-                            //Local - UTC = Delta.  This value will be rough based on the accuracy of the clock settings but will expose the ability to derive the UTC times from the exported local times.
-                            TaskDataMapper.GPSToLocalDelta = (firstRecord.TimeStart - firstRecord.GpsUtcDateTime.Value).TotalHours;
+                            //Local - UTC = Delta.  This value will be rough based on the accuracy of the clock settings
+                            // but will expose the ability to derive the UTC times from the exported local times.
+                            TimeSpan offset = firstRecord.TimeStart - firstRecord.GpsUtcDateTime.Value;
+                            // Round offset to nearest minute for use in timezone offset
+                            TaskDataMapper.TimezoneOffset = TimeSpan.FromMinutes(Math.Round(offset.TotalMinutes));
+                            TaskDataMapper.GPSToLocalDelta = TaskDataMapper.TimezoneOffset.Value.TotalHours;
                         }
                     }
                 }
