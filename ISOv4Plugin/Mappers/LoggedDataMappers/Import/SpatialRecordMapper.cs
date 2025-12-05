@@ -1,14 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using AgGateway.ADAPT.ApplicationDataModel.LoggedData;
 using AgGateway.ADAPT.ApplicationDataModel.Representations;
 using AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods;
 using AgGateway.ADAPT.ISOv4Plugin.ObjectModel;
 using AgGateway.ADAPT.ISOv4Plugin.ISOModels;
-using AgGateway.ADAPT.Representation.UnitSystem;
-using AgGateway.ADAPT.ISOv4Plugin.Representation;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 {
@@ -27,7 +24,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         private readonly IWorkingDataMapper _workingDataMapper;
         private readonly ISectionMapper _sectionMapper;
         private readonly TaskDataMapper _taskDataMapper;
-        private double? _effectiveTimeZoneOffset;
+        private TimeSpan? _effectiveTimeZoneOffset;
 
         public SpatialRecordMapper(IRepresentationValueInterpolator representationValueInterpolator, ISectionMapper sectionMapper, IWorkingDataMapper workingDataMapper, TaskDataMapper taskDataMapper)
         {
@@ -52,7 +49,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         pan.AllocationStamp.Start.Value.Minute == firstSpatialRow.TimeStart.Minute &&
                         pan.AllocationStamp.Start.Value.Second == firstSpatialRow.TimeStart.Second)
                     {
-                        _effectiveTimeZoneOffset = (firstSpatialRow.TimeStart - pan.AllocationStamp.Start.Value).TotalHours;
+                        _effectiveTimeZoneOffset = firstSpatialRow.TimeStart - pan.AllocationStamp.Start.Value;
                     }
                 }
             }
@@ -191,23 +188,26 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         /// </summary>
         private bool GovernsTimestamp(ISOProductAllocation p, SpatialRecord spatialRecord)
         {
-            DateTime? allocationStart = Offset(p.AllocationStamp.Start);
-            DateTime? allocationStop = p.AllocationStamp.Stop != null ? Offset(p.AllocationStamp.Stop) : null;
-            DateTime spatialRecordTimestampUtc = ToUtc(spatialRecord.Timestamp);
+            DateTime? allocationStartUtc = ToUtc(p.AllocationStamp.Start, _effectiveTimeZoneOffset);
+            DateTime? allocationStopUtc = p.AllocationStamp.Stop != null ? 
+                ToUtc(p.AllocationStamp.Stop, _effectiveTimeZoneOffset) : null;
+            DateTime spatialRecordTimestampUtc = ToUtc(spatialRecord.Timestamp, _taskDataMapper.TimezoneOffset);
 
-            return
-                ToUtc(allocationStart) <= spatialRecordTimestampUtc &&
-                (p.AllocationStamp.Stop == null || ToUtc(allocationStop) >= spatialRecordTimestampUtc);
+            var returnVal =
+                allocationStartUtc <= spatialRecordTimestampUtc &&
+                (p.AllocationStamp.Stop == null || allocationStopUtc >= spatialRecordTimestampUtc);
+
+            return returnVal;
         }
 
         // Comparing DateTime values with different Kind values leads to inaccurate results.
         // Convert DateTimes to UTC if possible before comparing them
-        private DateTime? ToUtc(DateTime? nullableDateTime)
+        private DateTime? ToUtc(DateTime? nullableDateTime, TimeSpan? timezoneOffset)
         {
-            return nullableDateTime.HasValue ? ToUtc(nullableDateTime.Value) : nullableDateTime;
+            return nullableDateTime.HasValue ? ToUtc(nullableDateTime.Value, timezoneOffset) : nullableDateTime;
         }
 
-        private DateTime ToUtc(DateTime dateTime)
+        private DateTime ToUtc(DateTime dateTime, TimeSpan? timezoneOffset)
         {
             if (dateTime.Kind == DateTimeKind.Utc)
                 return dateTime;
@@ -224,28 +224,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
             // Return original value
             return dateTime;
-        }
-
-        private DateTime? Offset(DateTime? input)
-        {
-            if (!input.HasValue)
-                return null;
-
-            if (input.Value.Kind == DateTimeKind.Utc)
-                return input;
-
-            if (_effectiveTimeZoneOffset.HasValue)
-            {
-                var dateTime = input.Value;
-                var localTime = new DateTimeOffset(dateTime.Year, dateTime.Month, dateTime.Day, 
-                    dateTime.Hour, dateTime.Minute, dateTime.Second, dateTime.Millisecond,
-                    TimeSpan.FromHours(_effectiveTimeZoneOffset.Value));
-                DateTime utc = localTime.UtcDateTime;
-                return utc;
-                //return input.Value.AddHours(_effectiveTimeZoneOffset.Value);
-            }
-
-            return input;
         }
     }
 }

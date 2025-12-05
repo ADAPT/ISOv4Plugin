@@ -335,7 +335,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                             TimeSpan offset = firstRecord.TimeStart - firstRecord.GpsUtcDateTime.Value;
                             // Round offset to nearest minute for use in timezone offset
                             TaskDataMapper.TimezoneOffset = TimeSpan.FromMinutes(Math.Round(offset.TotalMinutes));
-                            TaskDataMapper.GPSToLocalDelta = TaskDataMapper.TimezoneOffset.Value.TotalHours;
                         }
                     }
                 }

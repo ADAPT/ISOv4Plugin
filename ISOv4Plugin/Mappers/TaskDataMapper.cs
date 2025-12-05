@@ -77,7 +77,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         internal RepresentationMapper RepresentationMapper { get; private set; }
         internal Dictionary<int, DdiDefinition> DDIs { get; private set; }
         internal DeviceOperationTypes DeviceOperationTypes { get; private set; }
-        internal double? GPSToLocalDelta { get; set; }
+        internal double? GPSToLocalDelta => TimezoneOffset?.TotalHours;
         internal TimeSpan? TimezoneOffset { get; set; }
 
         CodedCommentListMapper _commentListMapper;
