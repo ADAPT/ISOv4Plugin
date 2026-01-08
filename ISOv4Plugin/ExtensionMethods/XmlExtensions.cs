@@ -6,12 +6,15 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Xml;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
 {
     public static class XmlExtensions
     {
+        private static readonly Regex _timezoneOffsetRegex = new Regex(@"(\+|-)\d\d:\d\d|Z$", RegexOptions.Compiled);
+
         public static XmlNodeList LoadActualNodes(this XmlNode xmlNode, string externalNodeTag, string baseFolder)
         {
             if (string.Equals(xmlNode.Name, externalNodeTag, StringComparison.OrdinalIgnoreCase))
@@ -112,14 +115,36 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
         public static DateTime? GetXmlNodeValueAsNullableDateTime(this XmlNode xmlNode, string xPath)
         {
             string value = GetXmlNodeValue(xmlNode, xPath);
-            DateTime outValue;
-            if (DateTime.TryParse(value, out outValue))
+            if (value == null)
             {
-                return outValue;
+                return null;
+            }
+            
+            // The value has timezone info, parse as DateTimeOffset and convert to UTC DateTime
+            // Otherwise, parse as local DateTime
+            if (_timezoneOffsetRegex.IsMatch(value))
+            {
+                DateTimeOffset dto;
+                if (DateTimeOffset.TryParse(value, out dto))
+                {
+                    return dto.UtcDateTime;
+                }
+                else
+                {
+                    return null;
+                }
             }
             else
             {
-                return null;
+                DateTime outValue;
+                if (DateTime.TryParse(value, out outValue))
+                {
+                    return outValue;
+                }
+                else
+                {
+                    return null;
+                }
             }
         }
 
