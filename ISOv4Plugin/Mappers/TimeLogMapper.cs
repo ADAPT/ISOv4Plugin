@@ -412,8 +412,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         operationData.DeviceElementUses = sectionMapper.ConvertToBaseTypes(sections.ToList());
                         operationData.GetDeviceElementUses = x => operationData.DeviceElementUses.Where(s => s.Depth == x).ToList();
                         operationData.PrescriptionId = prescriptionID;
-                        operationData.OperationType = GetOperationTypeFromProductCategory(productIDs) ??
-                                                      OverrideOperationTypeFromWorkingDatas(GetOperationTypeFromLoggingDevices(time), workingDatas);
+                        operationData.OperationType = GetOperationType(productIDs, time, workingDatas);
                         operationData.ProductIds = productIDs;
                         if (!useDeferredExecution)
                         {
@@ -429,27 +428,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 return operationDatas;
             }
             return null;
-        }
-
-        private OperationTypeEnum OverrideOperationTypeFromWorkingDatas(OperationTypeEnum deviceOperationType, List<WorkingData> workingDatas)
-        {
-            //Harvest/ForageHarvest omitted intentionally to be determined from machine type vs. working data
-            if (workingDatas.Any(w => w.Representation.ContainsCode("Seed")))
-            {
-                return OperationTypeEnum.SowingAndPlanting;
-            }
-            else if (workingDatas.Any(w => w.Representation.ContainsCode("Tillage")))
-            {
-                return OperationTypeEnum.Tillage;
-            }
-            if (workingDatas.Any(w => w.Representation.ContainsCode("AppRate")))
-            {
-                if (deviceOperationType != OperationTypeEnum.Fertilizing && deviceOperationType != OperationTypeEnum.CropProtection)
-                {
-                    return OperationTypeEnum.Unknown; //We can't differentiate CropProtection from Fertilizing, but prefer unknown to letting implement type set to SowingAndPlanting
-                }
-            }
-            return deviceOperationType;
         }
 
         private List<List<string>> SplitElementsByProductProperties(Dictionary<string, List<ISOProductAllocation>> productAllocations, HashSet<string> loggedDeviceElementIds, ISODevice dvc)
@@ -678,7 +656,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
         }
 
-        private OperationTypeEnum? GetOperationTypeFromProductCategory(List<int> productIds)
+        private OperationTypeEnum GetOperationType(List<int> productIds, ISOTime time, List<WorkingData> workingDatas)
         {
             var productCategories = productIds
                 .Select(x => TaskDataMapper.AdaptDataModel.Catalog.Products.FirstOrDefault(y => y.Id.ReferenceId == x))
@@ -686,8 +664,22 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 .Select(x => x.Category)
                 .ToList();
 
+            var deviceOperationType = GetOperationTypeFromLoggingDevices(time);
+
+            // Prefer product category to determine operation type where possible
             switch (productCategories.FirstOrDefault())
             {
+                case CategoryEnum.Variety:
+                    // It's technically an error to log Harvesting as a variety product,
+                    // but this was observed by Ag Leader in a CNH Pro1200 file in August 2025
+                    // (see https://github.com/ADAPT/ISOv4Plugin/pull/256)
+                    if (deviceOperationType == OperationTypeEnum.Harvesting)
+                    {
+                        return deviceOperationType;
+                    }
+
+                    return OperationTypeEnum.SowingAndPlanting;
+
                 case CategoryEnum.Fertilizer:
                 case CategoryEnum.NitrogenStabilizer:
                 case CategoryEnum.Manure:
@@ -700,7 +692,23 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     return OperationTypeEnum.CropProtection;
 
                 default:
-                    return null;
+                    //Harvest/ForageHarvest omitted intentionally to be determined from machine type vs. working data
+                    if (workingDatas.Any(w => w.Representation.ContainsCode("Seed")))
+                    {
+                        return OperationTypeEnum.SowingAndPlanting;
+                    }
+                    if (workingDatas.Any(w => w.Representation.ContainsCode("Tillage")))
+                    {
+                        return OperationTypeEnum.Tillage;
+                    }
+                    if (workingDatas.Any(w => w.Representation.ContainsCode("AppRate")))
+                    {
+                        if (deviceOperationType != OperationTypeEnum.Fertilizing && deviceOperationType != OperationTypeEnum.CropProtection)
+                        {
+                            return OperationTypeEnum.Unknown; // We can't differentiate CropProtection from Fertilizing, but prefer unknown to letting implement type set to SowingAndPlanting
+                        }
+                    }
+                    return deviceOperationType;
             }
         }
 
