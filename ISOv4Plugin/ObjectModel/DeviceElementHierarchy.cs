@@ -247,24 +247,24 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                 //DeviceProperty assigned Widths & Offsets
                 //DeviceProcessData assigned values will be assigned as the SectionMapper reads timelog data.
 
-                // Build a lookup of DeviceProperties by DDI for O(1) access
-                var propertiesByDdi = deviceElement.DeviceProperties
+                //Build a lookup of DeviceProperties by DDI for O(1) access
+                var propertiesByDDI = deviceElement.DeviceProperties
                     .GroupBy(dpt => dpt.DDI)
                     .ToDictionary(g => g.Key, g => g.First());
 
                 //Width
                 ISODeviceProperty widthProperty;
-                if (propertiesByDdi.TryGetValue("0046", out widthProperty)) //Max width
+                if (propertiesByDDI.TryGetValue("0046", out widthProperty)) //Max width
                 {
                     Width = widthProperty.Value;
                     WidthDDI = "0046";
                 }
-                else if (propertiesByDdi.TryGetValue("0044", out widthProperty)) //Default working width
+                else if (propertiesByDDI.TryGetValue("0044", out widthProperty)) //Default working width
                 {
                     Width = widthProperty.Value;
                     WidthDDI = "0044";
                 }
-                else if (propertiesByDdi.TryGetValue("0043", out widthProperty)) //Actual working width
+                else if (propertiesByDDI.TryGetValue("0043", out widthProperty)) //Actual working width
                 {
                     Width = widthProperty.Value;
                     WidthDDI = "0043";
@@ -278,7 +278,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
 
                 //Offsets
                 ISODeviceProperty xOffsetProperty;
-                if (propertiesByDdi.TryGetValue("0086", out xOffsetProperty))
+                if (propertiesByDDI.TryGetValue("0086", out xOffsetProperty))
                 {
                     XOffset = xOffsetProperty.Value;
                 }
@@ -288,7 +288,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                 }
 
                 ISODeviceProperty yOffsetProperty;
-                if (propertiesByDdi.TryGetValue("0087", out yOffsetProperty))
+                if (propertiesByDDI.TryGetValue("0087", out yOffsetProperty))
                 {
                     YOffset = yOffsetProperty.Value;
                 }
@@ -298,7 +298,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                 }
 
                 ISODeviceProperty zOffsetProperty;
-                if (propertiesByDdi.TryGetValue("0088", out zOffsetProperty))
+                if (propertiesByDDI.TryGetValue("0088", out zOffsetProperty))
                 {
                     ZOffset = zOffsetProperty.Value;
                 }
