@@ -3,6 +3,7 @@
 */
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -20,9 +21,10 @@ using RepresentationUnitSystem = AgGateway.ADAPT.Representation.UnitSystem;
 
 namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
 {
-    public static class ExtensionMethods
+    public static class Extensions
     {
         private static readonly Regex IsoIdPattern = new Regex("^[A-Z]{3,4}-?[0-9]+$", RegexOptions.Compiled);
+        private static readonly ConcurrentDictionary<string, string[]> _directoryFilesCache = new ConcurrentDictionary<string, string[]>();
 
         public static string WithTaskDataPath(this string dataPath)
         {
@@ -306,14 +308,21 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ExtensionMethods
         {
             if (Directory.Exists(dataPath))
             {
-                //Note! We need to iterate through all files and do a ToLower for this to work in .Net Core in Linux since that filesystem
-                //is case sensitive and the NetStandard interface for Directory.GetFiles doesn't account for that yet.
                 var fileNameToFind = searchPath.ToLower();
-                var allFiles = Directory.GetFiles(dataPath, "*.*", searchOption);
+                var cacheKey = string.Concat(dataPath, "\0", (int)searchOption);
+                var allFiles = _directoryFilesCache.GetOrAdd(cacheKey, _ => Directory.GetFiles(dataPath, "*.*", searchOption));
                 var matchedFiles = allFiles.Where(file => file.ToLower().EndsWith(fileNameToFind));
                 return matchedFiles;
             }
             return new List<string>();
+        }
+
+        /// <summary>
+        /// Clears the cached directory file listings. Call when directory contents may have changed.
+        /// </summary>
+        public static void ClearDirectoryFilesCache()
+        {
+            _directoryFilesCache.Clear();
         }
 
         /// <summary>

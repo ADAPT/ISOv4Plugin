@@ -84,16 +84,35 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             taskData.DataTransferOriginInt = taskDataNode.GetXmlNodeValueAsInt("@DataTransferOrigin");
             taskData.DataTransferLanguage = taskDataNode.GetXmlNodeValue("@DataTransferLanguage");
 
-            //--------------
-            //Child Elements
-            //--------------
+            //External file references - select all XFR nodes once and group by prefix
+            var allXfrNodes = taskDataNode.SelectNodes("XFR");
+            var xfrByPrefix = new Dictionary<string, List<XmlNode>>();
+            if (allXfrNodes != null)
+            {
+                for (int i = 0; i < allXfrNodes.Count; i++)
+                {
+                    var xfrNode = allXfrNodes[i];
+                    var fileName = xfrNode.GetXmlNodeValue("@A");
+                    if (fileName != null && fileName.Length >= 3)
+                    {
+                        var prefix = fileName.Substring(0, 3);
+                        if (!xfrByPrefix.TryGetValue(prefix, out var list))
+                        {
+                            list = new List<XmlNode>();
+                            xfrByPrefix[prefix] = list;
+                        }
+                        list.Add(xfrNode);
+                    }
+                }
+            }
+
             //Attached Files
             XmlNodeList afeNodes = taskDataNode.SelectNodes("AFE");
             if (afeNodes != null)
             {
                 taskData.ChildElements.AddRange(ISOAttachedFile.ReadXML(afeNodes));
             }
-            ProcessExternalNodes(taskDataNode, "AFE", baseFolder, taskData, ISOAttachedFile.ReadXML);
+            ProcessExternalNodes(xfrByPrefix, "AFE", baseFolder, taskData, ISOAttachedFile.ReadXML);
 
             //Coded Comments
             XmlNodeList cctNodes = taskDataNode.SelectNodes("CCT");
@@ -101,7 +120,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             {
                 taskData.ChildElements.AddRange(ISOCodedComment.ReadXML(cctNodes));
             }
-            ProcessExternalNodes(taskDataNode, "CCT", baseFolder, taskData, ISOCodedComment.ReadXML);
+            ProcessExternalNodes(xfrByPrefix, "CCT", baseFolder, taskData, ISOCodedComment.ReadXML);
 
             //Crop Types
             XmlNodeList ctpNodes = taskDataNode.SelectNodes("CTP");
@@ -109,7 +128,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             {
                 taskData.ChildElements.AddRange(ISOCropType.ReadXML(ctpNodes));
             }
-            ProcessExternalNodes(taskDataNode, "CTP", baseFolder, taskData, ISOCropType.ReadXML);
+            ProcessExternalNodes(xfrByPrefix, "CTP", baseFolder, taskData, ISOCropType.ReadXML);
 
             //Cultural Practices
             XmlNodeList cpcNodes = taskDataNode.SelectNodes("CPC");
@@ -117,7 +136,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             {
                 taskData.ChildElements.AddRange(ISOCulturalPractice.ReadXML(cpcNodes));
             }
-            ProcessExternalNodes(taskDataNode, "CPC", baseFolder, taskData, ISOCulturalPractice.ReadXML);
+            ProcessExternalNodes(xfrByPrefix, "CPC", baseFolder, taskData, ISOCulturalPractice.ReadXML);
 
             //Customers
             XmlNodeList ctrNodes = taskDataNode.SelectNodes("CTR");
@@ -125,7 +144,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             {
                 taskData.ChildElements.AddRange(ISOCustomer.ReadXML(ctrNodes));
             }
-            ProcessExternalNodes(taskDataNode, "CTR", baseFolder, taskData, ISOCustomer.ReadXML);
+            ProcessExternalNodes(xfrByPrefix, "CTR", baseFolder, taskData, ISOCustomer.ReadXML);
 
             //Devices
             XmlNodeList dvcNodes = taskDataNode.SelectNodes("DVC");
@@ -133,7 +152,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             {
                 taskData.ChildElements.AddRange(ISODevice.ReadXML(dvcNodes));
             }
-            ProcessExternalNodes(taskDataNode, "DVC", baseFolder, taskData, ISODevice.ReadXML);
+            ProcessExternalNodes(xfrByPrefix, "DVC", baseFolder, taskData, ISODevice.ReadXML);
 
             //Farms
             XmlNodeList frmNodes = taskDataNode.SelectNodes("FRM");
@@ -141,7 +160,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             {
                 taskData.ChildElements.AddRange(ISOFarm.ReadXML(frmNodes));
             }
-            ProcessExternalNodes(taskDataNode, "FRM", baseFolder, taskData, ISOFarm.ReadXML);
+            ProcessExternalNodes(xfrByPrefix, "FRM", baseFolder, taskData, ISOFarm.ReadXML);
 
             //Operation Techniques
             XmlNodeList otqNodes = taskDataNode.SelectNodes("OTQ");
@@ -149,7 +168,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             {
                 taskData.ChildElements.AddRange(ISOOperationTechnique.ReadXML(otqNodes));
             }
-            ProcessExternalNodes(taskDataNode, "OTQ", baseFolder, taskData, ISOOperationTechnique.ReadXML);
+            ProcessExternalNodes(xfrByPrefix, "OTQ", baseFolder, taskData, ISOOperationTechnique.ReadXML);
 
             //Partfields
             XmlNodeList pfdNodes = taskDataNode.SelectNodes("PFD");
@@ -157,7 +176,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             {
                 taskData.ChildElements.AddRange(ISOPartfield.ReadXML(pfdNodes));
             }
-            ProcessExternalNodes(taskDataNode, "PFD", baseFolder, taskData, ISOPartfield.ReadXML);
+            ProcessExternalNodes(xfrByPrefix, "PFD", baseFolder, taskData, ISOPartfield.ReadXML);
 
             //Products
             XmlNodeList pdtNodes = taskDataNode.SelectNodes("PDT");
@@ -165,7 +184,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             {
                 taskData.ChildElements.AddRange(ISOProduct.ReadXML(pdtNodes));
             }
-            ProcessExternalNodes(taskDataNode, "PDT", baseFolder, taskData, ISOProduct.ReadXML);
+            ProcessExternalNodes(xfrByPrefix, "PDT", baseFolder, taskData, ISOProduct.ReadXML);
 
             //Product Groups
             XmlNodeList pgpNodes = taskDataNode.SelectNodes("PGP");
@@ -173,7 +192,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             {
                 taskData.ChildElements.AddRange(ISOProductGroup.ReadXML(pgpNodes));
             }
-            ProcessExternalNodes(taskDataNode, "PGP", baseFolder, taskData, ISOProductGroup.ReadXML);
+            ProcessExternalNodes(xfrByPrefix, "PGP", baseFolder, taskData, ISOProductGroup.ReadXML);
 
             //Task Controller Capabilities
             XmlNodeList tccNodes = taskDataNode.SelectNodes("TCC");
@@ -181,7 +200,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             {
                 taskData.ChildElements.AddRange(ISOTaskControllerCapabilities.ReadXML(tccNodes));
             }
-            ProcessExternalNodes(taskDataNode, "TCC", baseFolder, taskData, ISOTaskControllerCapabilities.ReadXML);
+            ProcessExternalNodes(xfrByPrefix, "TCC", baseFolder, taskData, ISOTaskControllerCapabilities.ReadXML);
 
             //Tasks
             XmlNodeList tskNodes = taskDataNode.SelectNodes("TSK");
@@ -189,7 +208,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             {
                 taskData.ChildElements.AddRange(ISOTask.ReadXML(tskNodes));
             }
-            ProcessExternalNodes(taskDataNode, "TSK", baseFolder, taskData, ISOTask.ReadXML);
+            ProcessExternalNodes(xfrByPrefix, "TSK", baseFolder, taskData, ISOTask.ReadXML);
 
             //Value Presentations
             XmlNodeList vpnNodes = taskDataNode.SelectNodes("VPN");
@@ -197,7 +216,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             {
                 taskData.ChildElements.AddRange(ISOValuePresentation.ReadXML(vpnNodes));
             }
-            ProcessExternalNodes(taskDataNode, "VPN", baseFolder, taskData, ISOValuePresentation.ReadXML);
+            ProcessExternalNodes(xfrByPrefix, "VPN", baseFolder, taskData, ISOValuePresentation.ReadXML);
 
             //Workers
             XmlNodeList wkrNodes = taskDataNode.SelectNodes("WKR");
@@ -205,7 +224,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             {
                 taskData.ChildElements.AddRange(ISOWorker.ReadXML(wkrNodes));
             }
-            ProcessExternalNodes(taskDataNode, "WKR", baseFolder, taskData, ISOWorker.ReadXML);
+            ProcessExternalNodes(xfrByPrefix, "WKR", baseFolder, taskData, ISOWorker.ReadXML);
 
             //LinkList
             ISOAttachedFile linkListFile = taskData.ChildElements.OfType<ISOAttachedFile>().SingleOrDefault(afe => afe.FileType == 1);
@@ -240,9 +259,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
             return errors;
         }
 
-        private static void ProcessExternalNodes(XmlNode node, string xmlPrefix, string baseFolder, ISO11783_TaskData taskData, Func<XmlNodeList, IEnumerable<ISOElement>> readDelegate)
+        private static void ProcessExternalNodes(Dictionary<string, List<XmlNode>> xfrByPrefix, string xmlPrefix, string baseFolder, ISO11783_TaskData taskData, Func<XmlNodeList, IEnumerable<ISOElement>> readDelegate)
         {
-            var externalNodes = node.SelectNodes($"XFR[starts-with(@A, '{xmlPrefix}')]");
+            if (!xfrByPrefix.TryGetValue(xmlPrefix, out var externalNodes))
+                return;
+
             for (int i = 0; i < externalNodes.Count; i++)
             {
                 var inputNodes = externalNodes[i].LoadActualNodes("XFR", baseFolder);

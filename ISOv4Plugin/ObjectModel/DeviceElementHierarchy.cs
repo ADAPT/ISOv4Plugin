@@ -247,31 +247,27 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                 //DeviceProperty assigned Widths & Offsets
                 //DeviceProcessData assigned values will be assigned as the SectionMapper reads timelog data.
 
+                // Build a lookup of DeviceProperties by DDI for O(1) access
+                var propertiesByDdi = deviceElement.DeviceProperties
+                    .GroupBy(dpt => dpt.DDI)
+                    .ToDictionary(g => g.Key, g => g.First());
+
                 //Width
-                ISODeviceProperty widthProperty = deviceElement.DeviceProperties.FirstOrDefault(dpt => dpt.DDI == "0046"); //Max width
-                if (widthProperty != null)
+                ISODeviceProperty widthProperty;
+                if (propertiesByDdi.TryGetValue("0046", out widthProperty)) //Max width
                 {
                     Width = widthProperty.Value;
                     WidthDDI = "0046";
                 }
-                else
+                else if (propertiesByDdi.TryGetValue("0044", out widthProperty)) //Default working width
                 {
-                    widthProperty = deviceElement.DeviceProperties.FirstOrDefault(dpt => dpt.DDI == "0044"); //Default working width
-                    if (widthProperty != null)
-                    {
-                        Width = widthProperty.Value;
-                        WidthDDI = "0044";
-                    }
-
-                    if (widthProperty == null)
-                    {
-                        widthProperty = deviceElement.DeviceProperties.FirstOrDefault(dpt => dpt.DDI == "0043"); //Actual working width
-                        if (widthProperty != null)
-                        {
-                            Width = widthProperty.Value;
-                            WidthDDI = "0043";
-                        }
-                    }
+                    Width = widthProperty.Value;
+                    WidthDDI = "0044";
+                }
+                else if (propertiesByDdi.TryGetValue("0043", out widthProperty)) //Actual working width
+                {
+                    Width = widthProperty.Value;
+                    WidthDDI = "0043";
                 }
 
                 if (Width == null)
@@ -281,8 +277,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                 }
 
                 //Offsets
-                ISODeviceProperty xOffsetProperty = deviceElement.DeviceProperties.FirstOrDefault(dpt => dpt.DDI == "0086");
-                if (xOffsetProperty != null)
+                ISODeviceProperty xOffsetProperty;
+                if (propertiesByDdi.TryGetValue("0086", out xOffsetProperty))
                 {
                     XOffset = xOffsetProperty.Value;
                 }
@@ -291,8 +287,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                     AddMissingGeometryDefinition(missingGeometryDefinitions, deviceElement.DeviceElementId, "0086");
                 }
 
-                ISODeviceProperty yOffsetProperty = deviceElement.DeviceProperties.FirstOrDefault(dpt => dpt.DDI == "0087");
-                if (yOffsetProperty != null)
+                ISODeviceProperty yOffsetProperty;
+                if (propertiesByDdi.TryGetValue("0087", out yOffsetProperty))
                 {
                     YOffset = yOffsetProperty.Value;
                 }
@@ -301,8 +297,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ObjectModel
                     AddMissingGeometryDefinition(missingGeometryDefinitions, deviceElement.DeviceElementId, "0087");
                 }
 
-                ISODeviceProperty zOffsetProperty = deviceElement.DeviceProperties.FirstOrDefault(dpt => dpt.DDI == "0088");
-                if (zOffsetProperty != null)
+                ISODeviceProperty zOffsetProperty;
+                if (propertiesByDdi.TryGetValue("0088", out zOffsetProperty))
                 {
                     ZOffset = zOffsetProperty.Value;
                 }
