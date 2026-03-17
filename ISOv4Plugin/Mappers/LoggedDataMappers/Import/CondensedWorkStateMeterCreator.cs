@@ -133,7 +133,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         public EnumeratedValue GetValueForMeter(SpatialValue value, ISOEnumeratedMeter meter)// EnumeratedWorkingData meter)
         {
-            var sectionValue = GetSectionValue((uint)(int)value.Value, meter.SectionIndex); //Mac arm processors fail to correctly decode the value without the double (uint)(int) cast
+            var sectionValue = GetSectionValue((uint)(int)value.Value, meter.SectionIndex); //Mac arm processors fail to correctly decode the value without the double (uint)(int) cast.  Same behavior seen on .NET 10 for Windows.  See https://stackoverflow.com/questions/79762063/different-result-by-cast-negative-double-to-uint-with-net-framework-4-7-2-and
             var enumerationMember = SectionValueToEnumerationMember[(int)sectionValue];
 
             return new EnumeratedValue
@@ -148,7 +148,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         private int GetNumberOfInstalledSections(SpatialValue spatialValue)
         {
-            var value = (uint)spatialValue.Value;
+            var value = (uint)(int)spatialValue.Value;  //Mac arm processors fail to correctly decode the value without the double (uint)(int) cast.  Same behavior seen on .NET 10 for Windows.  See https://stackoverflow.com/questions/79762063/different-result-by-cast-negative-double-to-uint-with-net-framework-4-7-2-and
             const uint notInstalledValue = 0x03;
 
             for (int i = 1; i < 17; i++)
