@@ -767,7 +767,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
         {
             public static Dictionary<byte, int> ReadImplementGeometryValues(string filePath, ISOTime templateTime, IEnumerable<byte> desiredDLVIndices, int version, IList<IError> errors)
             {
-                Dictionary<byte, int> output = new Dictionary<byte, int>();
+                List<Tuple<int, int>>[] valuesByDLV = new List<Tuple<int, int>>[256];
+                foreach (byte dlv in desiredDLVIndices)
+                {
+                    valuesByDLV[dlv] = new List<Tuple<int, int>>();
+                }
                 List<byte> desiredIndexes = desiredDLVIndices.ToList();
 
                 //Determine the number of header bytes in each position
@@ -775,7 +779,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 bool overrideTimelogAttributeChecks = DetermineTimelogAttributeValidity(filePath, version);
                 SkipBytes(overrideTimelogAttributeChecks || (templateTime.HasStart && templateTime.Start == null), 6, ref headerCount);
                 ISOPosition templatePosition = templateTime.Positions.FirstOrDefault();
-                
+
                 if (templatePosition != null)
                 {
                     SkipBytes(overrideTimelogAttributeChecks || (templatePosition.HasPositionNorth && templatePosition.PositionNorth == null), 4, ref headerCount);
@@ -789,6 +793,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                     SkipBytes(overrideTimelogAttributeChecks || (templatePosition.HasGpsUtcDate && templatePosition.GpsUtcDate == null), 2, ref headerCount);
                 }
 
+                int recordIndex = 0;
                 using (var binaryReader = new System.IO.BinaryReader(File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read)))
                 {
                     while (ContinueReading(binaryReader))
@@ -807,23 +812,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                                     {
                                         //A desired DLV is reported here
                                         int value = ReadInt32(null, true, false, binaryReader).GetValueOrDefault();
-                                        try
-                                        {
-                                            if (!output.ContainsKey(dlvIndex))
-                                            {
-                                                output.Add(dlvIndex, value);
-                                            }
-                                            else if (Math.Abs(value) > Math.Abs(output[dlvIndex]))
-                                            {
-                                                //Values should be all the same, but prefer the furthest from 0
-                                                output[dlvIndex] = value;
-                                            }
-                                        }
-                                        catch (OverflowException ex)
-                                        {
-                                            // If value == int.MinValue, Math.Abs(value) will throw System.OverflowException: Negating the minimum value of a twos complement number is invalid.
-                                            errors.Add(new Error() { Description = ex.Message, Id = ex.GetType().ToString(), Source = ex.Source, StackTrace = ex.StackTrace });
-                                        }
+                                        valuesByDLV[dlvIndex].Add(new Tuple<int, int>(recordIndex, value));
                                     }
                                     else
                                     {
@@ -833,9 +822,58 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                             }
                         }
 
+                        recordIndex++;
                     }
 
                 }
+
+                int recordCount = recordIndex;
+                Dictionary<byte, int> output = new Dictionary<byte, int>();
+                foreach (byte dlvIndex in desiredIndexes)
+                {
+                    var vals = valuesByDLV[dlvIndex];
+                    if (vals.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    if (vals.Count == 1)
+                    {
+                        output[dlvIndex] = vals[0].Item2;
+                    }
+                    else
+                    {
+                        var counts = new Dictionary<int, long>();
+                        int lastVal = vals[0].Item2;
+
+                        void AddCount(int key, int theCount)
+                        {
+                            if (counts.ContainsKey(key))
+                            {
+                                counts[lastVal] += theCount;
+                            }
+                            else
+                            {
+                                counts[lastVal] = theCount;
+                            }
+                        }
+
+                        int count;
+                        for (int i = 1; i < vals.Count; i++)
+                        {
+                            count = vals[i].Item1 - vals[i - 1].Item1;
+                            AddCount(lastVal, count);
+                            lastVal = vals[i].Item2;
+                        }
+
+                        count = recordCount - vals[vals.Count - 1].Item1;
+                        AddCount(lastVal, count);
+
+                        // set the most common value for this DLV as the value to return, with the count of that value as a tie-breaker if needed
+                        output[dlvIndex] = counts.OrderByDescending(x => x.Value).ThenByDescending(x => x.Key).First().Key;
+                    }
+                }
+
                 return output;
             }
 
@@ -978,6 +1016,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                             {
                                 unexpectedEndOfStream = true;
                                 break;
+                            }
+
+                            if (Math.Abs(value) > 1000000)
+                            {
+                                int foo = 12;
                             }
 
                             SpatialValue spatialValue = CreateSpatialValue(templateTime, order, value, deviceHierarchies);
