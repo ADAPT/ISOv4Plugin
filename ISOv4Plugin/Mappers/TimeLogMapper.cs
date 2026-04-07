@@ -1018,11 +1018,6 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                                 break;
                             }
 
-                            if (Math.Abs(value) > 1000000)
-                            {
-                                int foo = 12;
-                            }
-
                             SpatialValue spatialValue = CreateSpatialValue(templateTime, order, value, deviceHierarchies);
                             if (spatialValue != null)
                             {
