@@ -22,6 +22,9 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
         public uint? Filelength { get; set; }
         public byte TimeLogType { get; set; }
 
+        private ISOTime _cachedTimeElement;
+        private string _cachedDataPath;
+
         public override XmlWriter WriteXML(XmlWriter xmlBuilder)
         {
             xmlBuilder.WriteStartElement("TLG");
@@ -53,6 +56,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
 
         public ISOTime GetTimeElement(string dataPath)
         {
+            if (_cachedTimeElement != null && _cachedDataPath == dataPath)
+            {
+                return _cachedTimeElement;
+            }
+
             string xmlName = string.Concat(Filename, ".xml");
             string filePath = dataPath.GetDirectoryFiles(xmlName, SearchOption.TopDirectoryOnly).FirstOrDefault();
             if (filePath != null)
@@ -61,10 +69,14 @@ namespace AgGateway.ADAPT.ISOv4Plugin.ISOModels
                 document.Load(filePath);
 
                 XmlNode rootNode = document.SelectSingleNode("TIM");
-                return ISOTime.ReadXML(rootNode);
+                var timeElement = ISOTime.ReadXML(rootNode);
+                _cachedTimeElement = timeElement;
+                _cachedDataPath = dataPath;
+                return timeElement;
             }
             else
             {
+                _cachedDataPath = dataPath;
                 return null;
             }
         }
