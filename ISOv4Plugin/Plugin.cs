@@ -34,44 +34,58 @@ namespace AgGateway.ADAPT.ISOv4Plugin
 
         public void Export(ApplicationDataModel.ADM.ApplicationDataModel dataModel, string exportPath, Properties properties)
         {
-            //Convert the ADAPT model into the ISO model
-            string outputPath = exportPath.WithTaskDataPath();
-            TaskDataMapper taskDataMapper = new TaskDataMapper(outputPath, properties);
-            Errors = taskDataMapper.Errors;
-            ISO11783_TaskData taskData = taskDataMapper.Export(dataModel);
-
-            //Serialize the ISO model to XML
-            using (TaskDocumentWriter writer = new TaskDocumentWriter())
+            try
             {
-                writer.WriteTaskData(outputPath, taskData);
+                //Convert the ADAPT model into the ISO model
+                string outputPath = exportPath.WithTaskDataPath();
+                TaskDataMapper taskDataMapper = new TaskDataMapper(outputPath, properties);
+                Errors = taskDataMapper.Errors;
+                ISO11783_TaskData taskData = taskDataMapper.Export(dataModel);
 
-                //Serialize the Link List
-                if (taskData.Version > 3)
+                //Serialize the ISO model to XML
+                using (TaskDocumentWriter writer = new TaskDocumentWriter())
                 {
-                    writer.WriteLinkList(outputPath, taskData.LinkList);
+                    writer.WriteTaskData(outputPath, taskData);
+
+                    //Serialize the Link List
+                    if (taskData.Version > 3)
+                    {
+                        writer.WriteLinkList(outputPath, taskData.LinkList);
+                    }
                 }
+            }
+            finally
+            {
+                Extensions.ClearDirectoryFilesCache();
             }
         }
 
         public IList<ApplicationDataModel.ADM.ApplicationDataModel> Import(string dataPath, Properties properties = null)
         {
-            var taskDataObjects = ReadDataCard(dataPath);
-            if (taskDataObjects == null)
-                return null;
-
-            var adms = new List<ApplicationDataModel.ADM.ApplicationDataModel>();
-            foreach (var taskData in taskDataObjects)
+            try
             {
-                //Convert the ISO model to ADAPT
-                TaskDataMapper taskDataMapper = new TaskDataMapper(taskData.DataFolder, properties, taskData.VersionMajor);
-                ApplicationDataModel.ADM.ApplicationDataModel dataModel = taskDataMapper.Import(taskData);
-                foreach (var error in taskDataMapper.Errors)
+                var taskDataObjects = ReadDataCard(dataPath);
+                if (taskDataObjects == null)
+                    return null;
+
+                var adms = new List<ApplicationDataModel.ADM.ApplicationDataModel>();
+                foreach (var taskData in taskDataObjects)
                 {
-                    Errors.Add(error);
+                    //Convert the ISO model to ADAPT
+                    TaskDataMapper taskDataMapper = new TaskDataMapper(taskData.DataFolder, properties, taskData.VersionMajor);
+                    ApplicationDataModel.ADM.ApplicationDataModel dataModel = taskDataMapper.Import(taskData);
+                    foreach (var error in taskDataMapper.Errors)
+                    {
+                        Errors.Add(error);
+                    }
+                    adms.Add(dataModel);
                 }
-                adms.Add(dataModel);
+                return adms;
             }
-            return adms;
+            finally
+            {
+                Extensions.ClearDirectoryFilesCache();
+            }
         }
 
         Properties _properties = null;

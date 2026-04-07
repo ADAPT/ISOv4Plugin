@@ -27,32 +27,46 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Representation
     public class RepresentationMapper : IRepresentationMapper
     {
         private readonly Dictionary<int, DdiDefinition> _ddis;
+        private readonly Dictionary<int, AdaptRepresentation> _ddiToRepresentationCache;
 
         public RepresentationMapper()
         {
             _ddis = DdiLoader.Ddis;
+            _ddiToRepresentationCache = BuildDdiToRepresentationCache();
+        }
+
+        private Dictionary<int, AdaptRepresentation> BuildDdiToRepresentationCache()
+        {
+            var cache = new Dictionary<int, AdaptRepresentation>();
+            foreach (var kvp in _ddis)
+            {
+                var ddi = kvp.Key;
+                var matchingDdi = kvp.Value;
+                var representations = RepresentationManager.Instance.Representations.Where(x => x.Ddi.GetValueOrDefault() == matchingDdi.Id);
+                if (representations.Any())
+                {
+                    var representation = representations.FirstOrDefault(r => r.IsDefaultRepresentationForDDI)
+                                            ??
+                                         representations.First();
+                    var adaptRep = GetADAPTRepresentation(representation);
+                    if (adaptRep != null)
+                    {
+                        cache[ddi] = adaptRep;
+                    }
+                }
+            }
+            return cache;
         }
 
         public AdaptRepresentation Map(int ddi)
         {
+            if (_ddiToRepresentationCache.TryGetValue(ddi, out var cached))
+            {
+                return cached;
+            }
+
             if (_ddis.ContainsKey(ddi))
             {
-                var matchingDdi = _ddis[ddi];
-                var representations = RepresentationManager.Instance.Representations.Where(x => x.Ddi.GetValueOrDefault() == matchingDdi.Id);
-                if (representations.Any())
-                {
-                    //Default the representation mapping approprately on import
-                    var representation = representations.FirstOrDefault(r => r.IsDefaultRepresentationForDDI)
-                                            ??
-                                         representations.First();
-
-                    AdaptRepresentation adaptRep = GetADAPTRepresentation(representation);
-                    if (adaptRep != null)
-                    {
-                        return adaptRep;
-                    }
-                }
-
                 return new ApplicationDataModel.Representations.NumericRepresentation { Code = ddi.ToString("X4"), CodeSource = RepresentationCodeSourceEnum.ISO11783_DDI };
             }
             return null;
