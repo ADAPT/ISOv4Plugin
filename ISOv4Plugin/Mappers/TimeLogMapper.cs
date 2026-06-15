@@ -418,7 +418,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         operationData.DeviceElementUses = sectionMapper.ConvertToBaseTypes(sections.ToList());
                         operationData.GetDeviceElementUses = x => operationData.DeviceElementUses.Where(s => s.Depth == x).ToList();
                         operationData.PrescriptionId = prescriptionID;
-                        operationData.OperationType = GetOperationType(productIDs, time, workingDatas);
+                        var adaptDeviceModelId = TaskDataMapper.InstanceIDMap.GetADAPTID(dvc.DeviceId);
+                        operationData.OperationType = GetOperationType(productIDs, time, workingDatas, adaptDeviceModelId);
                         operationData.ProductIds = productIDs;
                         if (!useDeferredExecution)
                         {
@@ -662,7 +663,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
         }
 
-        private OperationTypeEnum GetOperationType(List<int> productIds, ISOTime time, List<WorkingData> workingDatas)
+        private OperationTypeEnum GetOperationType(List<int> productIds, ISOTime time, List<WorkingData> workingDatas, int? adaptDeviceModelId)
         {
             var productCategories = productIds
                 .Select(x => TaskDataMapper.AdaptDataModel.Catalog.Products.FirstOrDefault(y => y.Id.ReferenceId == x))
@@ -670,7 +671,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 .Select(x => x.Category)
                 .ToList();
 
-            var deviceOperationType = GetOperationTypeFromLoggingDevices(time);
+            var deviceOperationType = GetOperationTypeFromLoggingDevices(time, adaptDeviceModelId);
 
             // Prefer product category to determine operation type where possible
             switch (productCategories.FirstOrDefault())
@@ -718,7 +719,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
         }
 
-        private OperationTypeEnum GetOperationTypeFromLoggingDevices(ISOTime time)
+        private OperationTypeEnum GetOperationTypeFromLoggingDevices(ISOTime time, int? adaptDeviceModelId)
         {
             HashSet<DeviceOperationType> representedTypes = new HashSet<DeviceOperationType>();
             IEnumerable<string> distinctDeviceElementIDs = time.DataLogValues.Select(d => d.DeviceElementIdRef).Distinct();
@@ -728,7 +729,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 if (deviceElementID.HasValue)
                 {
                     DeviceElement deviceElement = DataModel.Catalog.DeviceElements.FirstOrDefault(d => d.Id.ReferenceId == deviceElementID.Value);
-                    if (deviceElement != null && deviceElement.DeviceClassification != null)
+                    if (deviceElement != null && deviceElement.DeviceClassification != null && deviceElement.DeviceModelId == adaptDeviceModelId)
                     {
                         DeviceOperationType deviceOperationType = DeviceOperationTypes.FirstOrDefault(d => d.MachineEnumerationMember.ToModelEnumMember().Value == deviceElement.DeviceClassification.Value.Value);
                         if (deviceOperationType != null)
