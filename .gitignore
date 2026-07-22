@@ -198,3 +198,6 @@ FakesAssemblies/
 
 # Jetbrains Rider
 .idea/
+
+# VSCode
+.vscode/

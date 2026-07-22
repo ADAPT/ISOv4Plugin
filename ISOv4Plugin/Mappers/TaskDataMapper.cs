@@ -157,6 +157,27 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             Errors.Add(new Error() { Description = error, Id = id, Source = source, StackTrace = stackTrace });
         }
 
+        /// <summary>
+        /// Validates and processes a timezone offset calculated from local and UTC times.
+        /// Calculates offset = localTime - utcTime, rounds to nearest minute, and validates it's within ±14 hours.
+        /// </summary>
+        /// <returns>The validated TimeSpan offset, or null if the offset is outside the acceptable ±14 hour range.</returns>
+        public static TimeSpan? ValidateTimezoneOffset(DateTime localTime, DateTime utcTime)
+        {
+            TimeSpan offset = localTime - utcTime;
+            // Round offset to nearest minute for use in timezone offset
+            offset = TimeSpan.FromMinutes(Math.Round(offset.TotalMinutes));
+            // DateTimeOffset requires the offset to be within ±14 hours
+            if (Math.Abs(offset.TotalHours) <= 14)
+            {
+                return offset;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         public ISO11783_TaskData Export(ApplicationDataModel.ADM.ApplicationDataModel adm)
         {
             AdaptDataModel = adm;

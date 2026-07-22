@@ -330,11 +330,17 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         var firstRecord = isoRecords.FirstOrDefault(r => r.GpsUtcDateTime.HasValue && r.GpsUtcDate != ushort.MaxValue && r.GpsUtcDate != 0);
                         if (firstRecord != null)
                         {
-                            //Local - UTC = Delta.  This value will be rough based on the accuracy of the clock settings
+                            // Local - UTC = Delta.  This value will be rough based on the accuracy of the clock settings
                             // but will expose the ability to derive the UTC times from the exported local times.
-                            TimeSpan offset = firstRecord.TimeStart - firstRecord.GpsUtcDateTime.Value;
-                            // Round offset to nearest minute for use in timezone offset
-                            TaskDataMapper.TimezoneOffset = TimeSpan.FromMinutes(Math.Round(offset.TotalMinutes));
+                            TimeSpan? offset = TaskDataMapper.ValidateTimezoneOffset(firstRecord.TimeStart, firstRecord.GpsUtcDateTime.Value);
+                            if (offset.HasValue)
+                            {
+                                TaskDataMapper.TimezoneOffset = offset.Value;
+                            }
+                            else
+                            {
+                                TaskDataMapper.AddError($"GPS time offset of {firstRecord.TimeStart - firstRecord.GpsUtcDateTime.Value} is outside the acceptable range.  Monitor date/time setting is probably invalid. Product allocation logic may be impacted.");
+                            }
                         }
                     }
                 }
@@ -412,7 +418,8 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         operationData.DeviceElementUses = sectionMapper.ConvertToBaseTypes(sections.ToList());
                         operationData.GetDeviceElementUses = x => operationData.DeviceElementUses.Where(s => s.Depth == x).ToList();
                         operationData.PrescriptionId = prescriptionID;
-                        operationData.OperationType = GetOperationType(productIDs, time, workingDatas);
+                        var adaptDeviceModelId = TaskDataMapper.InstanceIDMap.GetADAPTID(dvc.DeviceId);
+                        operationData.OperationType = GetOperationType(productIDs, time, workingDatas, adaptDeviceModelId);
                         operationData.ProductIds = productIDs;
                         if (!useDeferredExecution)
                         {
@@ -656,7 +663,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
         }
 
-        private OperationTypeEnum GetOperationType(List<int> productIds, ISOTime time, List<WorkingData> workingDatas)
+        private OperationTypeEnum GetOperationType(List<int> productIds, ISOTime time, List<WorkingData> workingDatas, int? adaptDeviceModelId)
         {
             var productCategories = productIds
                 .Select(x => TaskDataMapper.AdaptDataModel.Catalog.Products.FirstOrDefault(y => y.Id.ReferenceId == x))
@@ -664,7 +671,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 .Select(x => x.Category)
                 .ToList();
 
-            var deviceOperationType = GetOperationTypeFromLoggingDevices(time);
+            var deviceOperationType = GetOperationTypeFromLoggingDevices(time, adaptDeviceModelId);
 
             // Prefer product category to determine operation type where possible
             switch (productCategories.FirstOrDefault())
@@ -712,7 +719,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
             }
         }
 
-        private OperationTypeEnum GetOperationTypeFromLoggingDevices(ISOTime time)
+        private OperationTypeEnum GetOperationTypeFromLoggingDevices(ISOTime time, int? adaptDeviceModelId)
         {
             HashSet<DeviceOperationType> representedTypes = new HashSet<DeviceOperationType>();
             IEnumerable<string> distinctDeviceElementIDs = time.DataLogValues.Select(d => d.DeviceElementIdRef).Distinct();
@@ -722,7 +729,7 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                 if (deviceElementID.HasValue)
                 {
                     DeviceElement deviceElement = DataModel.Catalog.DeviceElements.FirstOrDefault(d => d.Id.ReferenceId == deviceElementID.Value);
-                    if (deviceElement != null && deviceElement.DeviceClassification != null)
+                    if (deviceElement != null && deviceElement.DeviceClassification != null && deviceElement.DeviceModelId == adaptDeviceModelId)
                     {
                         DeviceOperationType deviceOperationType = DeviceOperationTypes.FirstOrDefault(d => d.MachineEnumerationMember.ToModelEnumMember().Value == deviceElement.DeviceClassification.Value.Value);
                         if (deviceOperationType != null)

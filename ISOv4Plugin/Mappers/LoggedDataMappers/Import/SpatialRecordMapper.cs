@@ -49,7 +49,11 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
                         pan.AllocationStamp.Start.Value.Minute == firstSpatialRow.TimeStart.Minute &&
                         pan.AllocationStamp.Start.Value.Second == firstSpatialRow.TimeStart.Second)
                     {
-                        _effectiveTimeZoneOffset = firstSpatialRow.TimeStart - pan.AllocationStamp.Start.Value;
+                        _effectiveTimeZoneOffset = TaskDataMapper.ValidateTimezoneOffset(firstSpatialRow.TimeStart, pan.AllocationStamp.Start.Value);
+                        if (!_effectiveTimeZoneOffset.HasValue)
+                        {
+                            _taskDataMapper.AddError($"Unable to determine effective timezone offset from comparison of spatial record and product allocation timestamps.  Monitor date/time setting may be invalid.");
+                        }
                     }
                 }
             }
@@ -202,22 +206,24 @@ namespace AgGateway.ADAPT.ISOv4Plugin.Mappers
 
         // Comparing DateTime values with different Kind values leads to inaccurate results.
         // Convert DateTimes to UTC if possible before comparing them
-        private DateTime? ToUtc(DateTime? nullableDateTime, TimeSpan? timezoneOffset)
+        private static DateTime? ToUtc(DateTime? nullableDateTime, TimeSpan? timezoneOffset)
         {
             return nullableDateTime.HasValue ? ToUtc(nullableDateTime.Value, timezoneOffset) : nullableDateTime;
         }
 
-        private DateTime ToUtc(DateTime dateTime, TimeSpan? timezoneOffset)
+        private static DateTime ToUtc(DateTime dateTime, TimeSpan? timezoneOffset)
         {
             if (dateTime.Kind == DateTimeKind.Utc)
                 return dateTime;
 
-            if (_taskDataMapper.TimezoneOffset.HasValue)
+            if (timezoneOffset.HasValue)
             {
                 // Convert from local time to UTC using the timezone offset.
+                // We're relying on the upstream guard ensuring the timezone offset is
+                // within 14 hours
                 var localTime = new DateTimeOffset(dateTime.Year, dateTime.Month, dateTime.Day, 
                     dateTime.Hour, dateTime.Minute, dateTime.Second, dateTime.Millisecond,
-                    _taskDataMapper.TimezoneOffset.Value);
+                    timezoneOffset.Value);
                 DateTime utc = localTime.UtcDateTime;
                 return utc;
             }
